@@ -1,0 +1,268 @@
+{
+  "message": {
+    "issued": {
+      "date-parts": [
+        [
+          2016,
+          2,
+          24
+        ]
+      ]
+    },
+    "URL": "http://dx.doi.org/10.1371/journal.pgen.1005874",
+    "member": "http://id.crossref.org/member/340",
+    "issue": "2",
+    "original-title": [],
+    "publisher": "Public Library of Science (PLoS)",
+    "score": 1.0,
+    "published-online": {
+      "date-parts": [
+        [
+          2016,
+          2,
+          24
+        ]
+      ]
+    },
+    "indexed": {
+      "date-parts": [
+        [
+          2016,
+          11,
+          17
+        ]
+      ],
+      "timestamp": 1479344403367,
+      "date-time": "2016-11-17T01:00:03Z"
+    },
+    "created": {
+      "date-parts": [
+        [
+          2016,
+          2,
+          24
+        ]
+      ],
+      "timestamp": 1456354371000,
+      "date-time": "2016-02-24T22:52:51Z"
+    },
+    "type": "journal-article",
+    "prefix": "http://id.crossref.org/prefix/10.1371",
+    "title": [
+      "Six Novel Loci Associated with Circulating VEGF Levels Identified by a Meta-analysis of Genome-Wide Association Studies"
+    ],
+    "page": "e1005874",
+    "subject": [
+      "Genetics(clinical)",
+      "Genetics",
+      "Cancer Research",
+      "Ecology, Evolution, Behavior and Systematics",
+      "Molecular Biology"
+    ],
+    "update-policy": "http://dx.doi.org/10.1371/journal.pgen.corrections_policy",
+    "ISSN": [
+      "1553-7404"
+    ],
+    "short-container-title": [
+      "PLoS Genet"
+    ],
+    "author": [
+      {
+        "family": "Choi",
+        "affiliation": [],
+        "given": "Seung Hoan"
+      },
+      {
+        "family": "Ruggiero",
+        "affiliation": [],
+        "given": "Daniela"
+      },
+      {
+        "family": "Sorice",
+        "affiliation": [],
+        "given": "Rossella"
+      },
+      {
+        "family": "Song",
+        "affiliation": [],
+        "given": "Ci"
+      },
+      {
+        "family": "Nutile",
+        "affiliation": [],
+        "given": "Teresa"
+      },
+      {
+        "family": "Vernon Smith",
+        "affiliation": [],
+        "given": "Albert"
+      },
+      {
+        "family": "Concas",
+        "affiliation": [],
+        "given": "Maria Pina"
+      },
+      {
+        "family": "Traglia",
+        "affiliation": [],
+        "given": "Michela"
+      },
+      {
+        "family": "Barbieri",
+        "affiliation": [],
+        "given": "Caterina"
+      },
+      {
+        "family": "Ndiaye",
+        "affiliation": [],
+        "given": "Ndeye Coumba"
+      },
+      {
+        "family": "Stathopoulou",
+        "affiliation": [],
+        "given": "Maria G."
+      },
+      {
+        "family": "Lagou",
+        "affiliation": [],
+        "given": "Vasiliki"
+      },
+      {
+        "family": "Maestrale",
+        "affiliation": [],
+        "given": "Giovanni Battista"
+      },
+      {
+        "family": "Sala",
+        "affiliation": [],
+        "given": "Cinzia"
+      },
+      {
+        "family": "Debette",
+        "affiliation": [],
+        "given": "Stephanie"
+      },
+      {
+        "family": "Kovacs",
+        "affiliation": [],
+        "given": "Peter"
+      },
+      {
+        "family": "Lind",
+        "affiliation": [],
+        "given": "Lars"
+      },
+      {
+        "family": "Lamont",
+        "affiliation": [],
+        "given": "John"
+      },
+      {
+        "family": "Fitzgerald",
+        "affiliation": [],
+        "given": "Peter"
+      },
+      {
+        "family": "T\u00f6njes",
+        "affiliation": [],
+        "given": "Anke"
+      },
+      {
+        "family": "Gudnason",
+        "affiliation": [],
+        "given": "Vilmundur"
+      },
+      {
+        "family": "Toniolo",
+        "affiliation": [],
+        "given": "Daniela"
+      },
+      {
+        "family": "Pirastu",
+        "affiliation": [],
+        "given": "Mario"
+      },
+      {
+        "family": "Bellenguez",
+        "affiliation": [],
+        "given": "Celine"
+      },
+      {
+        "family": "Vasan",
+        "affiliation": [],
+        "given": "Ramachandran S."
+      },
+      {
+        "family": "Ingelsson",
+        "affiliation": [],
+        "given": "Erik"
+      },
+      {
+        "family": "Leutenegger",
+        "affiliation": [],
+        "given": "Anne-Louise"
+      },
+      {
+        "family": "Johnson",
+        "affiliation": [],
+        "given": "Andrew D."
+      },
+      {
+        "family": "DeStefano",
+        "affiliation": [],
+        "given": "Anita L."
+      },
+      {
+        "family": "Visvikis-Siest",
+        "affiliation": [],
+        "given": "Sophie"
+      },
+      {
+        "family": "Seshadri",
+        "affiliation": [],
+        "given": "Sudha"
+      },
+      {
+        "family": "Ciullo",
+        "affiliation": [],
+        "given": "Marina"
+      }
+    ],
+    "content-domain": {
+      "crossmark-restriction": false,
+      "domain": [
+        "www.plosgenetics.org"
+      ]
+    },
+    "source": "CrossRef",
+    "deposited": {
+      "date-parts": [
+        [
+          2016,
+          2,
+          24
+        ]
+      ],
+      "timestamp": 1456354376000,
+      "date-time": "2016-02-24T22:52:56Z"
+    },
+    "editor": [
+      {
+        "family": "Zeggini",
+        "affiliation": [],
+        "given": "Eleftheria"
+      }
+    ],
+    "subtitle": [],
+    "DOI": "10.1371/journal.pgen.1005874",
+    "short-title": [],
+    "container-title": [
+      "PLOS Genetics"
+    ],
+    "volume": "12",
+    "reference-count": 0
+  },
+  "message-version": "1.0.0",
+  "status": "ok",
+  "message-type": "work"
+}

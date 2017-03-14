@@ -1,0 +1,15 @@
+/* Publications: Minor modifications to the standard bootstrap CSS. */
+
+/* The icon image padding must be adjusted for the navbar */
+.navbar-brand {padding: 9px; }
+
+/* Reduce empty space below navbar. */
+.navbar {margin-bottom: 0; }
+
+/* Remove border from panel. */
+.panel-noborder {border: 0; }
+
+/* Pre-formatted text variants. */
+.pre {white-space: pre; }
+.nobr {white-space:nowrap; }
+.number {text-align: right; font-family: monospace; }

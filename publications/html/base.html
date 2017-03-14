@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block head_title %}{{ title }}{% end %}</title>
+    <link rel="shortcut icon" type="image/png"
+	  href="{{ reverse_url('site', 'publications32.png') }}">
+    <link rel="stylesheet" type="text/css"
+	  href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" type="text/css"
+	  href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ reverse_url('site', 'publications.css') }}">
+    {% block header_css %}
+    {% end %}
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-static-top">
+      <div class="container-fluid">
+	<div class="navbar-header">
+	  <button type="button" class="navbar-toggle"
+		  data-toggle="collapse" data-target="#myNavbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+	  </button>
+	  <a class="navbar-brand" href="{{ reverse_url('home') }}">
+	    <img src="{{ reverse_url('site', 'publications32.png') }}"
+		 title="{{ settings['SITE_NAME'] }}"
+		 alt="{{ settings['SITE_NAME'] }}">
+	  </a>
+	</div>
+	<div class="collapse navbar-collapse" id="myNavbar">
+	  <ul class="nav navbar-nav">
+	    <li>
+	      <a href="{{ reverse_url('home') }}">
+		<span class="glyphicon glyphicon-home"></span>
+	      </a>
+	    </li>
+	    {% if current_user %}
+	    <li>
+	      <a href="{{ reverse_url('publication_add') }}">
+		<span class="glyphicon glyphicon-plus"></span>
+		Add publication
+	      </a>
+	    </li>
+	    {% end %} {# if current_user #}
+	  </ul>
+
+	  <div>
+	    <ul class="nav navbar-nav navbar-right">
+	      {% if current_user %}
+	      <li>
+		<a href="{{ reverse_url('account', current_user['email']) }}">
+		   {{ current_user['email'] }}
+		</a>
+	      </li>
+	      <li>
+		<form action="{{ reverse_url('logout') }}"
+		      role="form"
+		      class="navbar-form"
+		      method="POST">
+		  {% module xsrf_form_html() %}
+		  <button type="submit"
+			  title="Logout"
+			  class="btn btn-default">
+		    <span class="glyphicon glyphicon-log-out"></span>
+		  </button>
+		</form>
+	      </li>
+	      {% else %}
+	      <li class="navbar-form">
+		<button type="button"
+			class="btn btn-primary"
+			data-toggle="modal" data-target="#login">
+		  <span class="glyphicon glyphicon-log-in"></span>
+		  Login
+		</button>
+	      </li>
+	      {% end %} {# if current_user #}
+	      {% block search_field %}
+	      <li>
+		<form action="{{ reverse_url('search') }}"
+		      role="form"
+		      class="navbar-form form-inline"
+		      method="GET">
+		  <div class="form-group has-feedback">
+		    <input type="search" id="term" name="term"
+			   class="form-control"
+			   placeholder="Search">
+		    <span class="glyphicon glyphicon-search form-control-feedback"></span>
+		  </div>
+		</form>
+	      </li>
+	      {% end %} {# block search_field #}
+	    </ul>
+	  </div>
+	</div>
+      </div>
+    </nav>
+
+    <div id="login" class="modal fade" role="dialog">
+      <div class="modal-dialog modal-lg">
+	<div class="modal-content">
+	  <div class="modal-header">
+            <button type="button" class="close"
+		    data-dismiss="modal" aria-label="Close">
+	      <span aria-hidden="true">&times;</span>
+	    </button>
+            <h4 class="modal-title">
+	      <span class="glyphicon glyphicon-log-in"></span>
+	      Login
+	    </h4>
+	  </div>
+	  <div class="modal-body">
+	    <form action="{{ reverse_url('login') }}"
+		  role="form"
+		  method="POST">
+	      {% module xsrf_form_html() %}
+	      <div class="form-group">
+		<label for="email">Email</label>
+		<input type="text" class="form-control" name="email"
+		       placeholder="Email address of account">
+	      </div>
+	      <div class="form-group">
+		<label for="password">Password</label>
+		<input type="password" class="form-control" name="password">
+	      </div>
+	      <input type="hidden" name="uri" value="{{ request.uri }}">
+	      <div class="form-group"> 
+		<button type="submit" class="btn btn-primary btn-block">
+		  <span class="glyphicon glyphicon-log-in"></span>
+		  Login
+		</button>
+	      </div>
+	    </form>
+	  </div>
+	</div>
+      </div>
+    </div>
+
+    {% block container %}
+    <div class="container">
+    {% end %}
+
+      <div class="row">
+	<div class="col-md-12">
+	  &nbsp;
+	</div>
+      </div>
+
+      {% block body_header %}
+      <div class="row">
+	<div class="col-md-2">
+	  <img class="img-responsive"
+	       src="{{ reverse_url('site', 'publications132.png') }}"
+	       title="{{ settings['SITE_NAME'] }}"
+	       alt="{{ settings['SITE_NAME'] }}">
+	</div>
+	<div class="col-md-8">
+	  <h1>{% block body_header_title %}{{ title }}{% end %}</h1>
+	</div>
+	<div class="col-md-2">
+	  {% block body_header_meta %}
+	  {% end %}
+	</div>
+      </div>
+      <br>
+      {% end %} {# block body_header #}
+
+      {% block error %}
+      {% try %}
+      {% if error %}
+      <div class="row">
+	<div class="col-md-12 lead alert alert-danger">
+	  <strong>Error:</strong> {{ error }}
+	</div>
+      </div>
+      {% end %} {# if error #}
+      {% except NameError %}
+      {% end %} {# try #}
+      {% end %} {# block error #}
+
+      {% block message %}
+      {% try %}
+      {% if message %}
+      <div class="row">
+	<div class="col-md-12 lead alert alert-warning">
+	  {# Allow links in message #}
+	  <strong>Message:</strong> {% raw message %}
+	</div>
+      </div>
+      {% end %} {# if message #}
+      {% except NameError %}
+      {% end %} {# try #}
+      {% end %} {# block message #}
+
+      {% block content %}
+      <div class="row">
+	<div class="col-md-10">
+	  {% block main_content %}
+	  {% end %} {# block main_content #}
+	</div>
+	<div class="col-md-2">
+	  {% block meta_content %}
+	  {% end %} {# block meta_content #}
+	</div>
+      </div>
+      {% block sub_main_content %}
+      {% end %} {# block sub_main_content #}
+      {% end %} {# block content #}
+
+    </div>
+
+    {% block javascript_standard %}
+    {# NOTE: jQuery has to be loaded before bootstrap! #}
+    <script src="https://code.jquery.com/jquery-1.12.3.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <script src="{{ static_url('jquery.localtime-0.9.1.min.js') }}"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script>
+      $(document).ready(function(){
+        $('.dropdown-submenu a.submenu').on("click", function(e){
+          $(this).next('ul').toggle();
+          e.stopPropagation();
+          e.preventDefault();
+        });
+      });
+    </script>
+    <script>
+      $.datepicker.setDefaults({dateFormat: "yy-mm-dd"});
+      $(document).ready(function(){ $(".datepicker").datepicker(); });
+    </script>
+    {% end %} {# block javascript_standard #}
+
+    {% block javascript_autofocus %}
+    <script>
+      $(document).ready(function(){ $("#term").focus(); });
+    </script>
+    {% end %}
+
+    {% block javascript_code %}
+    {% end %}
+  </body>
+</html>

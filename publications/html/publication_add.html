@@ -1,0 +1,37 @@
+{# Publications: Fetch a publication given its DOI or PMID and add it. #}
+
+{% extends "base.html" %}
+
+{% block main_content %}
+<form action="{{ reverse_url('publication_add') }}"
+      role="form"
+      class="form-horizontal"
+      method="POST">
+  {% module xsrf_form_html() %}
+  <div class="form-group">
+    <label class="control-label col-sm-2" for="identifier">Identifier</label>
+    <div class="col-sm-8">
+      <input type="text" class="form-control"
+	     name="identifier" id="identifier">
+      <span class="help-block">
+	Specify a valid publication identifier:
+	<ul>
+	  <li> Digital Object Identifier (DOI), e.g.
+	    <strong>10.1126/science.1260419</strong> or
+	    <strong>doi:10.1038/nature12211</strong>.
+	  </li>
+	  <li>PubMed identifier (PMID), e.g.
+	    <strong>25613900</strong> or
+	    <strong>pmid:23698360</strong>
+	  </li>
+	</ul>
+      </span>
+    </div>
+    <div class="col-sm-2">
+      <button type="submit" class="btn btn-default">
+	<span class="glyphicon glyphicon-plus"></span>
+	Add
+      </button>
+  </div>
+</form>
+{% end %} {# block main_content #}
