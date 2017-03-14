@@ -1,13 +1,10 @@
-""" OrderPortal: Dump the database into a tar file.
+""" Publications: Dump the database into a tar file.
 The settings file may be given as the first command line argument,
 otherwise it is obtained as usual.
 The dump file will be called 'dump_{ISO date}.tar.gz' using today's date.
-If the filename does not contain any directory specification (either relative
-or absolute), then the dump file is created in the directory specified
-by the BACKUP_DIR variable in the settings. 
 """
 
-from __future__ import print_function, absolute_import
+from __future__ import print_function
 
 import cStringIO
 import json
@@ -18,9 +15,9 @@ import time
 
 import couchdb
 
-from orderportal import constants
-from orderportal import settings
-from orderportal import utils
+from publications import constants
+from publications import settings
+from publications import utils
 
 
 def get_command_line_parser():
@@ -119,9 +116,4 @@ if __name__ == '__main__':
         filepath = options.dumpfile
     else:
         filepath = "dump_{0}.tar.gz".format(time.strftime("%Y-%m-%d"))
-    if os.path.basename(filepath) == filepath:
-        try:
-            filepath = os.path.join(settings['BACKUP_DIR'], filepath)
-        except KeyError:
-            pass
     dump(db, filepath)

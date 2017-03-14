@@ -16,7 +16,7 @@ from publications.publication import PublicationSaver
 
 CACHE_DIR = 'data'
 CROSSREF_URL = 'http://api.crossref.org/works/%s'
-PUBMED_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi?db=pubmed&retmode=json&id=%s'
+PUBMED_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&rettype=abstract&id=%s'
 
 delay = 2.0
 latest = None
@@ -56,7 +56,7 @@ def get_document(base_url, identifier):
         if CACHE_DIR:
             filepath = get_filepath(identifier)
             if filepath:
-                with open('out', mode='w') as outfile:
+                with open(filepath, mode='w') as outfile:
                     json.dump(result, outfile, indent=2)
     return result
 

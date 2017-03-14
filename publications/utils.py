@@ -55,8 +55,6 @@ def load_settings(filepath=None):
     with open(filepath) as infile:
         settings.update(yaml.safe_load(infile))
     settings['SETTINGS_FILEPATH'] = filepath
-    # Set ROOT as the current working dir
-    os.chdir(settings['ROOT'])
     # Expand environment variables (ROOT, SITE_DIR) once and for all
     for key, value in settings.items():
         if isinstance(value, str):
