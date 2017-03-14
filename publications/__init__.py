@@ -19,6 +19,5 @@ settings = dict(
     LOGIN_MAX_AGE_DAYS=14,
     SITE_NAME='Publications',
     SITE_DIR='{ROOT}/static',
-    SITE_SUPPORT_EMAIL=None,
-    SOURCE_HOME='https://github.com/pekrau/publications',
+    SOURCE_HOME='https://github.com/pekrau/Publications',
     )
