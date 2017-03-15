@@ -48,16 +48,18 @@ def fetch(pmid):
     response = session.get(url, timeout=TIMEOUT)
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
+    with open(pmid + '.xml', 'w') as outfile:
+        outfile.write(response.content)
     return parse(response.content)
 
-def parse(xmldata):
-    "Parse XML data for a publication into a dictionary."
+def parse(data):
+    "Parse XML text data for a publication into a dictionary."
     result = OrderedDict()
-    tree = xml.etree.ElementTree.fromstring(xmldata)
+    tree = xml.etree.ElementTree.fromstring(data)
     article = get_element(tree, 'PubmedArticle')
+    result['title']     = get_title(article)
     result['pmid']      = get_pmid(article)
     result['doi']       = None
-    result['title']     = get_title(article)
     result['authors']   = get_authors(article)
     result['journal']   = get_journal(article)
     result['type']      = get_type(article)
@@ -70,14 +72,14 @@ def parse(xmldata):
             break
     return result
 
-def get_pmid(article):
-    "Get the PMID from the article XML tree."
-    return article.findtext('MedlineCitation/PMID')
-
 def get_title(article):
     "Get the title from the article XML tree."
     element = get_element(article, 'MedlineCitation/Article')
-    return element.findtext('ArticleTitle') or '[no title}'
+    return element.findtext('ArticleTitle')
+
+def get_pmid(article):
+    "Get the PMID from the article XML tree."
+    return article.findtext('MedlineCitation/PMID')
 
 def get_authors(article):
     "Get the list of authors from the article XML tree."
@@ -86,7 +88,7 @@ def get_authors(article):
     result = []
     existing = set()                # Handle pathological multi-mention.
     for element in authorlist.findall('Author'):
-        author = dict()
+        author = OrderedDict()
         for jkey, xkey in [('family', 'LastName'),
                            ('given', 'ForeName'),
                            ('initials', 'Initials')]:
@@ -126,16 +128,16 @@ def get_authors(article):
 def get_journal(article):
     "Get the journal data from the article XML tree."
     element = get_element(article, 'MedlineCitation/Article/Journal')
-    result = dict()
+    result = OrderedDict()
     if element is not None:
-        result['issn'] = element.findtext('ISSN')
         result['title'] = element.findtext('Title')
+        result['issn'] = element.findtext('ISSN')
         result['abbreviation'] = element.findtext('ISOAbbreviation')
         issue = element.find('JournalIssue')
         if issue is not None:
             result['volume'] = issue.findtext('Volume')
             result['issue'] = issue.findtext('Issue')
-    element = article.find('Pagination/MedlinePgn')
+    element = article.find('MedlineCitation/Article/Pagination/MedlinePgn')
     if element is not None:
         pages = element.text
         if pages:
@@ -186,9 +188,9 @@ def get_published(article):
 
 def get_abstract(article):
     "Get the abstract from the article XML tree."
-    element = get_element(article, 'MedlineCitation/Article')
+    element = get_element(article, 'MedlineCitation/Article/Abstract')
     return '\n\n'.join([e.text for e in
-                        element.findall('Abstract/AbstractText')])
+                        element.findall('AbstractText')])
 
 def get_xrefs(article):
     "Get the list of cross-references from the article XML tree."
@@ -206,17 +208,6 @@ def get_element(tree, key):
     element = tree.find(key)
     if element is None: raise ValueError("could not find %s element" % key)
     return element
-
-def to_unicode(value):
-    "Convert to unicode using UTF-8 if not already done."
-    if isinstance(value, unicode):
-        return value
-    else:
-        return unicode(value, 'utf-8')
-
-def to_ascii(value):
-    "Convert any non-ASCII character to its closest equivalent."
-    return unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
 
 def get_date(element):
     "Get the [year, month, day] from the element."
@@ -241,6 +232,17 @@ def get_date(element):
     result.append(day)
     return result
 
+def to_unicode(value):
+    "Convert to unicode using UTF-8 if not already done."
+    if isinstance(value, unicode):
+        return value
+    else:
+        return unicode(value, 'utf-8')
+
+def to_ascii(value):
+    "Convert any non-ASCII character to its closest equivalent."
+    return unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+
 
 def test_fetch():
     "Fetch a specific article."
@@ -252,8 +254,3 @@ def test_search():
     "Search for a specific set of PMIDs."
     result = search(author='Kraulis PJ', published='1994')
     assert set(result) == set(['7525970', '8142349'])
-
-
-if __name__ == '__main__':
-    test_fetch()
-    test_search()
