@@ -13,6 +13,8 @@ PUBMED_FETCH_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db
 
 PUBMED_SEARCH_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=%s&term=%s'
 
+TIMEOUT = 5.0
+
 MONTHS = dict(jan=1, feb=2, mar=3, apr=4, may=5, jun=6,
               jul=7, aug=8, sep=9, oct=10, nov=11, dec=12)
 
@@ -34,7 +36,7 @@ def search(author=None, published=None, journal=None,
     if words:
         parts.append(words.replace(' ', '+'))
     url = PUBMED_SEARCH_URL % (retmax, ' AND '.join(parts))
-    response = session.get(url)
+    response = session.get(url, timeout=TIMEOUT)
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
     root = xml.etree.ElementTree.fromstring(response.content)
@@ -43,7 +45,7 @@ def search(author=None, published=None, journal=None,
 def fetch(pmid):
     "Fetch publication XML from PubMed and parse into a dictionary."
     url = PUBMED_FETCH_URL % pmid
-    response = session.get(url)
+    response = session.get(url, timeout=TIMEOUT)
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
     return parse(response.content)

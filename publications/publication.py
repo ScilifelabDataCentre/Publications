@@ -5,9 +5,9 @@ import logging
 import tornado.web
 
 from . import constants
+from . import pubmed
 from .saver import Saver
 from .requesthandler import RequestHandler
-
 
 class PublicationSaver(Saver):
     doctype = constants.PUBLICATION
@@ -40,12 +40,16 @@ class PublicationAdd(RequestHandler):
         try:
             publication = self.get_publication(identifier)
         except ValueError:
-            try:
-                if constants.PMID_RX.match(identifier):
-                    publication = self.fetch_pmid(identifier)
-                else:
-                    publication=self.fetch_doi(identifier)
-            except ValueError, msg:
-                self.see_other('publication_add', error=str(msg))
-        else:
-            self.see_other('publication', publication['_id'])
+            if constants.PMID_RX.match(identifier):
+                try:
+                    publication = pubmed.fetch(identifier)
+                except (IOError, requests.exceptions.Timeout):
+                    self.see_other('publication_add',
+                                   error='could not fetch article')
+            else:
+                self.see_other('publication_add', error='DOI not implemented')
+                return
+            with PublicationSaver(publication, rqh=self):
+                pass
+        self.see_other('publication_add')
+        # self.see_other('publication', publication['_id'])
