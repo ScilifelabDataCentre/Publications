@@ -54,6 +54,24 @@ class RequestHandler(tornado.web.RequestHandler):
             url += '?' + urllib.urlencode(query)
         return url
 
+    def get_docs(self, viewname, key, last=None, distinct=True, **kwargs):
+        """Get the list of documents using the named view and
+        the given key or interval."""
+        view = self.db.view(viewname, include_docs=True, **kwargs)
+        if key is None:
+            iterator = view
+        elif last is None:
+            iterator = view[key]
+        else:
+            iterator = view[key:last]
+        result = []
+        lookup = set()
+        for item in iterator:
+            if distinct and item.id in lookup: continue
+            result.append(item.doc)
+            lookup.add(item.id)
+        return result
+
     def get_entity(self, iuid, doctype=None):
         """Get the entity by the IUID. Check the doctype, if given.
         Raise HTTP 404 if no such entity.
@@ -111,7 +129,7 @@ class RequestHandler(tornado.web.RequestHandler):
                 account = self.get_current_user_basic()
             return account
         except ValueError:
-            raise tornado.web.HTTPError(403)
+            return None
 
     def get_current_user_session(self):
         """Get the current user from a secure login session cookie.

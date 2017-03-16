@@ -2,6 +2,20 @@
 
 {% extends "base.html" %}
 
-{% block content %}
+{% block body_header %}
+<div class="row">
+  <div class="col-md-2">
+    <img class="img-responsive"
+	 src="{{ reverse_url('site', 'publications132.png') }}"
+	 title="{{ settings['SITE_NAME'] }}"
+	 alt="{{ settings['SITE_NAME'] }}">
+  </div>
+  <div class="col-md-10">
+    <h1>{% block body_header_title %}{{ title }}{% end %}</h1>
+  </div>
+</div>
+{% end %} {# block body_header #}
 
-{% end %} {# block content #}
+{% block main_content %}
+{% include 'publications_list.html' %}
+{% end %} {# block main_content #}

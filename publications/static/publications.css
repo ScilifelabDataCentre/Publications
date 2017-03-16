@@ -13,3 +13,6 @@
 .pre {white-space: pre; }
 .nobr {white-space:nowrap; }
 .number {text-align: right; font-family: monospace; }
+
+/* Logo icon details */
+.logo-icon {vertical-align: middle; margin-right: 4px; }

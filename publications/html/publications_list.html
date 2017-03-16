@@ -1,0 +1,9 @@
+{# Publications: Display list of publications.. #}
+
+{% for publication in publications %}
+<p>
+  <a href="{{ reverse_url('publication', publication['_id']) }}">{{ publication['title'] }}</a>
+  <br>
+  {{ publication['published'] }}
+</p>
+{% end %} {# for #}

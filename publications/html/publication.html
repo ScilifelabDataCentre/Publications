@@ -1,0 +1,29 @@
+{# Publications: Publication page. #}
+
+{% extends "base.html" %}
+
+{% block main_content %}
+
+<p>
+  {{ ', '.join(["%s %s" % (a['family'], a['initials']) for a in publication['authors']]) }}
+</p>
+
+<h4>
+  {{ publication['journal']['title'] }}
+  <strong>{{ publication['journal']['volume'] or '-' }}</strong>
+  ({{ publication['journal']['issue'] or '-' }})
+  {{ publication['journal']['pages'] or '-' }},
+  {{ publication['published'] }}
+</h4>
+
+{% if publication['abstract'] %}
+<p>
+  {{ publication['abstract'] }}
+</p>
+{% end %}
+
+{% module Pubmed(publication['pmid']) %}
+{% module Doi(publication['doi']) %}
+{% module Crossref(publication['doi']) %}
+
+{% end %} {# block main_content #}

@@ -10,6 +10,7 @@ import tornado.web
 import tornado.ioloop
 
 from publications import settings
+from publications import uimodules
 from publications import utils
 from publications.requesthandler import RequestHandler
 
@@ -52,7 +53,7 @@ def main():
         debug=settings.get('TORNADO_DEBUG', False),
         cookie_secret=settings['COOKIE_SECRET'],
         xsrf_cookies=True,
-        # ui_modules=uimodules,
+        ui_modules=uimodules,
         template_path='html',
         static_path='static',
         login_url=r'/')

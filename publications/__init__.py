@@ -20,4 +20,5 @@ settings = dict(
     SITE_NAME='Publications',
     SITE_DIR='{ROOT}/static',
     SOURCE_HOME='https://github.com/pekrau/Publications',
+    MOST_RECENT_LIMIT=10,
     )

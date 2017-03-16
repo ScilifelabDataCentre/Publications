@@ -61,8 +61,8 @@ def get_authors(data):
         author = OrderedDict()
         author['family'] = item.get('family')
         author['family_normalized'] = to_ascii(author['family'])
-        # Remove dots and replace weird blank characters
-        given = item['given'].replace('.', ' ')
+        # Remove dots and dashes and replace weird blank characters
+        given = item['given'].replace('.', ' ').replace('-', ' ')
         author['given'] = ' '.join(given.split())
         author['given_normalized'] = to_ascii(author['given'])
         author['initials'] = ''.join([n[0] for n in given.split()])

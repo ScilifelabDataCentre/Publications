@@ -5,7 +5,9 @@ import logging
 import tornado.web
 
 from . import constants
+from . import crossref
 from . import pubmed
+from . import settings
 from .saver import Saver
 from .requesthandler import RequestHandler
 
@@ -17,7 +19,11 @@ class Publication(RequestHandler):
     "Display the publication."
 
     def get(self, identifier):
-        raise NotImplementedError
+        "Display the publication."
+        publication = self.get_entity(identifier, constants.PUBLICATION)
+        self.render('publication.html',
+                    title=publication['title'],
+                    publication=publication)
 
 
 class PublicationAdd(RequestHandler):
@@ -26,7 +32,12 @@ class PublicationAdd(RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        self.render('publication_add.html', title='Add publication')
+        docs = self.get_docs('publication/created',
+                             '9999', last='0', descending=True,
+                             limit=settings['MOST_RECENT_LIMIT'])
+        self.render('publication_add.html',
+                    title='Add publication',
+                    publications=docs)
 
     @tornado.web.authenticated
     def post(self):
@@ -47,8 +58,11 @@ class PublicationAdd(RequestHandler):
                     self.see_other('publication_add',
                                    error='could not fetch article')
             else:
-                self.see_other('publication_add', error='DOI not implemented')
-                return
+                try:
+                    publication = crossref.fetch(identifier)
+                except (IOError, requests.exceptions.Timeout):
+                    self.see_other('publication_add',
+                                   error='could not fetch article')
             with PublicationSaver(publication, rqh=self):
                 pass
         self.see_other('publication_add')
