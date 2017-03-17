@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block head_title %}{{ title }}{% end %}</title>
     <link rel="shortcut icon" type="image/png"
-	  href="{{ reverse_url('site', 'publications32.png') }}">
+	  href="{{ reverse_url('site', 'logo32.png') }}">
     <link rel="stylesheet" type="text/css"
 	  href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
     <link rel="stylesheet" type="text/css"
@@ -27,7 +27,7 @@
             <span class="icon-bar"></span>
 	  </button>
 	  <a class="navbar-brand" href="{{ reverse_url('home') }}">
-	    <img src="{{ reverse_url('site', 'publications32.png') }}"
+	    <img src="{{ reverse_url('site', 'logo32.png') }}"
 		 title="{{ settings['SITE_NAME'] }}"
 		 alt="{{ settings['SITE_NAME'] }}">
 	  </a>

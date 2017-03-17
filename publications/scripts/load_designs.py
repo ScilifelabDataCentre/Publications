@@ -1,4 +1,4 @@
-"Publications: Load all CouchDB database design documents."
+"Load all CouchDB database design documents."
 
 from __future__ import print_function
 

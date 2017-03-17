@@ -1,0 +1,36 @@
+{# Display list of log entries #}
+
+<h3>Log of changes</h3>
+
+<div class="table-response">
+  <table class="table table-striped">
+    <tr>
+      <th>Timestamp</th>
+      <th>Changed</th>
+      <th>Account</th>
+    </tr>
+    {% for log in logs %}
+    <tr>
+      <td class="localtime top">{{ log['modified'] }}</td>
+      <td class="top">
+	<table class="table table-striped">
+	  {% for key, value in sorted(log['changed'].iteritems()) %}
+	  <tr>
+	    <td class="top">{{ key }}</td>
+	    <td class="top">{{ value }}</td>
+	  </tr>
+	  {% end %}
+	</table>
+      </td>
+      <td class="top">
+	{{ log['account'] }}
+	<br>
+	{{ log['remote_ip'] }}
+	<br>
+	{{ log['user_agent'] }}
+      </td>
+    </tr>
+    {% end %}
+  </table>
+</div>
+

@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-"Publications: Web application server."
+"Web application server for a simple publications database."
 
 from __future__ import print_function
 

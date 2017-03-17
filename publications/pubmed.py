@@ -1,4 +1,4 @@
-"Publications: PubMed interface."
+"PubMed interface."
 
 from __future__ import print_function
 
@@ -130,9 +130,10 @@ def get_journal(article):
     element = get_element(article, 'MedlineCitation/Article/Journal')
     result = OrderedDict()
     if element is not None:
-        result['title'] = element.findtext('Title')
+        result['title'] = element.findtext('ISOAbbreviation')
+        if not result['title']:
+            result['title'] = element.findtext('Title')
         result['issn'] = element.findtext('ISSN')
-        result['abbreviation'] = element.findtext('ISOAbbreviation')
         issue = element.find('JournalIssue')
         if issue is not None:
             result['volume'] = issue.findtext('Volume')
@@ -176,12 +177,11 @@ def get_published(article):
                     date = get_date(elem)
                     break
             if len(date) >= 2: break
-    if len(date) == 0:              # Fallback 3: today's year and month
+    if len(date) == 0:              # Fallback 3: today's year
         d = time.localtime()
-        date = [d.tm_year, d.tm_mon, 0]
-    elif len(date) == 1:            # Add today's month
-        d = time.localtime()
-        date = [date[0], d.tm_mon, 0]
+        date = [d.tm_year, 0, 0]
+    elif len(date) == 1:            # Add dummy month
+        date.append(0)
     elif len(date) == 2:            # Add dummy day
         date.append(0)
     return "%s-%02i-%02i" % tuple(date)

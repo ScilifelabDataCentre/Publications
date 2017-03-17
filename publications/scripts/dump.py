@@ -1,4 +1,4 @@
-""" Publications: Dump the database into a tar file.
+"""Dump the database into a tar file.
 The settings file may be given as the first command line argument,
 otherwise it is obtained as usual.
 The dump file will be called 'dump_{ISO date}.tar.gz' using today's date.

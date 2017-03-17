@@ -1,4 +1,4 @@
-"Publications: Various constants."
+"Various constants."
 
 import re
 

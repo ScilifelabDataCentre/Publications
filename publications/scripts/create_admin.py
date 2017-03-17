@@ -1,4 +1,4 @@
-"Publications: Create an admin account in the database."
+"Create an admin account in the database."
 
 from __future__ import print_function
 

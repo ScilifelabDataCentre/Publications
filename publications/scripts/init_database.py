@@ -1,6 +1,7 @@
-""" Publications: Initialize the order database, directly towards CouchDB.
+"""Initialize the CouchDB database instance.
 1) Wipes out the old database.
 2) Loads the design documents.
+3) Load the dump file, if any.
 """
 
 from __future__ import print_function

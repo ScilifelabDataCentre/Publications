@@ -1,4 +1,4 @@
-"Publications: Various utility functions."
+"Various utility functions."
 
 import datetime
 import hashlib
@@ -205,11 +205,12 @@ def to_bool(value):
     if lowvalue in constants.FALSE: return False
     raise ValueError(u"invalid boolean: '{}'".format(value))
 
-def write_log(db, rqh, entity, changed=dict()):
+def write_log(db, rqh, doc, changed=dict()):
     "Add a log entry for the change of the given entity."
+    assert doc[constants.DOCTYPE] in constants.ENTITIES
     entry = dict(_id=get_iuid(),
-                 entity=entity['_id'],
-                 entity_type=entity[constants.DOCTYPE],
+                 doc=doc['_id'],
+                 doctype=doc[constants.DOCTYPE],
                  changed=changed,
                  modified=timestamp())
     entry[constants.DOCTYPE] = constants.LOG

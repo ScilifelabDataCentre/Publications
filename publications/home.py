@@ -1,7 +1,8 @@
-"Publications: Home page."
+"Home page."
 
 import logging
 
+from . import constants
 from . import settings
 from .requesthandler import RequestHandler
 
@@ -11,6 +12,6 @@ class Home(RequestHandler):
 
     def get(self):
         docs = self.get_docs('publication/published',
-                             '9999', last='0', descending=True,
+                             key=constants.CEILING, last='', descending=True,
                              limit=settings['MOST_RECENT_LIMIT'])
         self.render('home.html', publications=docs)

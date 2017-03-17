@@ -1,5 +1,4 @@
-/* Publications
-   Index publication document by DOI.
+/* Index publication document by DOI.
    Value: title.
 */
 function(doc) {

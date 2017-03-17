@@ -1,5 +1,4 @@
-/* Publications
-   Index publication document by author's normalized names.
+/* Index publication document by author's normalized names.
    Value: null.
 */
 function(doc) {

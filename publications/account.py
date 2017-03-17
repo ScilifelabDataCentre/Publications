@@ -146,7 +146,7 @@ class Login(RequestHandler):
         with AccountSaver(doc=account, rqh=self) as saver:
             saver['login'] = utils.timestamp() # Set last login timestamp.
         try:
-            self.redirect(self.get_argument('uri'))
+            self.redirect(self.get_argument('next'))
         except tornado.web.MissingArgumentError:
             self.see_other('home')
 

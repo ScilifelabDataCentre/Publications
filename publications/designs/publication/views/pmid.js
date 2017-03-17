@@ -1,5 +1,4 @@
-/* Publications
-   Index publication document by PMID.
+/* Index publication document by PMID.
    Value: title.
 */
 function(doc) {

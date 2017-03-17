@@ -1,4 +1,4 @@
-"Publications: Context handler for saving an entity as a CouchDB document. "
+"Context handler for saving a document. "
 
 from __future__ import print_function
 
@@ -31,8 +31,8 @@ class Saver(object):
         if '_id' in self.doc:
             assert self.doctype == self.doc[constants.DOCTYPE]
         else:
-            self.doc[constants.DOCTYPE] = self.doctype
             self.doc['_id'] = utils.get_iuid()
+            self.doc[constants.DOCTYPE] = self.doctype
             self.initialize()
         self.setup()
 

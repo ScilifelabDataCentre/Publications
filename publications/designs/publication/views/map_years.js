@@ -1,5 +1,4 @@
-/* Publications
-   Index publication document by publication year to allow count.
+/* Index publication document by publication year to allow count.
    Value: 1.
 */
 function(doc) {

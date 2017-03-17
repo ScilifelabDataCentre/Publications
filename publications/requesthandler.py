@@ -1,4 +1,4 @@
-"Publications: RequestHandler subclass."
+"RequestHandler subclass."
 
 import base64
 import logging
@@ -88,6 +88,8 @@ class RequestHandler(tornado.web.RequestHandler):
         """Get the publication given its IUID, DOI or PMID.
         Raise KeyError if no such publication.
         """
+        if not identifier:
+            raise KeyError
         try:
             doc = self.get_doc(identifier)
         except KeyError:
@@ -156,6 +158,13 @@ class RequestHandler(tornado.web.RequestHandler):
             raise KeyError
         logging.info("Basic auth login: account %s", account['email'])
         return account
+
+    def get_logs(self, doc):
+        "Get the log entries for the given document."
+        return self.get_docs('log/doc',
+                             key=[doc['_id'], constants.CEILING],
+                             last=[doc['_id'], ''],
+                             descending=True)
 
     def is_admin(self):
         "Does the current user have 'admin' role?"

@@ -1,4 +1,4 @@
-"Publications: User interface modules."
+"User web interface modules."
 
 from __future__ import print_function
 
@@ -14,27 +14,29 @@ from . import utils
 class External(tornado.web.UIModule):
     "HTML for an external link."
 
+    NAME = None
+    URL = None
+
     def render(self, key):
+        name = self.NAME or self.__class__.__name__
         if key:
             url = self.URL % key
-            icon = '<img src="%s" class="logo-icon">' % self.handler.static_url(self.ICON)
-            return '<p><a href="%s">%s %s</a></p>' % (url, icon, key)
+            return '<a href="%s">%s: %s</a>' % (url, name, key)
         else:
-            return ''
+            return "%s: -" % name
 
 class Pubmed(External):
     "HTML for link to the PubMed item."
+    NAME = 'PubMed'
     URL = 'https://www.ncbi.nlm.nih.gov/pubmed/%s'
-    ICON = 'pubmed_logo_100.png'
     
 
 class Doi(External):
     "HTML for link to the DOI redirect service."
+    NAME = 'DOI'
     URL = 'https://doi.org/%s'
-    ICON = 'doi_logo_32.png'
 
 
 class Crossref(External):
     "HTML for link to the Crossref service."
     URL = 'https://search.crossref.org/?q=%s'
-    ICON = 'crossref-logo-landscape-100.png'

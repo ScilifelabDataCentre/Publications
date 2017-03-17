@@ -9,10 +9,10 @@
 </p>
 
 <h4>
-  {{ publication['journal']['title'] }}
-  <strong>{{ publication['journal']['volume'] or '-' }}</strong>
-  ({{ publication['journal']['issue'] or '-' }})
-  {{ publication['journal']['pages'] or '-' }},
+  {{ publication['journal'].get('title') or '-' }}
+  <strong>{{ publication['journal'].get('volume') or '-' }}</strong>
+  ({{ publication['journal'].get('issue') or '-' }})
+  {{ publication['journal'].get('pages') or '-' }},
   {{ publication['published'] }}
 </h4>
 
@@ -22,8 +22,20 @@
 </p>
 {% end %}
 
-{% module Pubmed(publication['pmid']) %}
-{% module Doi(publication['doi']) %}
-{% module Crossref(publication['doi']) %}
+<p>
+  {% module Pubmed(publication['pmid']) %}
+</p>
+<p>
+  {% module Doi(publication['doi']) %}
+</p>
+<p>
+  {% module Crossref(publication['doi']) %}
+</p>
 
 {% end %} {# block main_content #}
+
+{% if is_admin %}
+{% block sub_content %}
+{% include 'logs_list.html' %}
+{% end %}
+{% end %}

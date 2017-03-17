@@ -1,4 +1,4 @@
-"Publications: Crossref interface."
+"Crossref interface."
 
 from __future__ import print_function
 
@@ -77,15 +77,14 @@ def get_authors(data):
 def get_journal(data):
     "Get the journal data from the article JSON."
     result = OrderedDict()
-    result['title'] = ' '.join(data['message']['container-title'])
+    try:
+        result['title'] = ' '.join(data['message']['short-container-title'])
+    except KeyError:
+        result['title'] = ' '.join(data['message']['container-title'])
     try:
         result['issn'] = data['message']['ISSN'][0]
     except (KeyError, IndexError):
         result['issn'] = None
-    try:
-        result['abbreviation'] = ' '.join(data['message']['short-container-title'])
-    except KeyError:
-        result['abbreviation'] = None
     result['volume'] = data['message'].get('volume')
     result['issue'] = data['message'].get('issue')
     result['pages'] = data['message'].get('page')
@@ -130,3 +129,13 @@ def test_fetch():
     key = '10.1016/j.cell.2015.12.018'
     result = fetch(key)
     assert result['doi'] == key
+
+
+if __name__ == '__main__':
+    doi = '10.1126/science.1260419'
+    url = CROSSREF_FETCH_URL % doi
+    response = session.get(url, timeout=TIMEOUT)
+    if response.status_code != 200:
+        raise IOError("HTTP status %s, %s " % (response.status_code, url))
+    with open('data/%s' % doi.replace('/', '_'), 'w') as outfile:
+        outfile.write(json.dumps(response.json(), indent=2))

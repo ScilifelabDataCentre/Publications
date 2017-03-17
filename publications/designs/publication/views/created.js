@@ -1,5 +1,4 @@
-/* Publications
-   Index publication document by created timestamp.
+/* Index publication document by created timestamp.
    Value: title.
 */
 function(doc) {

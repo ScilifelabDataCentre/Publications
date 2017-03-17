@@ -1,9 +1,24 @@
-{# Publications: Display list of publications.. #}
+{# Display list of publications. #}
 
 {% for publication in publications %}
 <p>
   <a href="{{ reverse_url('publication', publication['_id']) }}">{{ publication['title'] }}</a>
   <br>
-  {{ publication['published'] }}
+  {% if len(publication['authors']) > 4 %}
+    {{ ', '.join(["%s %s" % (a['family'], a['initials']) for a in publication['authors'][0:3]]) }}
+    ...
+    {{ "%s %s" % (publication['authors'][-1]['family'], publication['authors'][-1]['initials']) }}
+  {% else %}
+    {{ ', '.join(["%s %s" % (a['family'], a['initials']) for a in publication['authors']]) }}
+  {% end %} {# if len #}
+  <br>
+  {{ publication['journal'].get('title') or '-' }}
+  <strong>{{ publication['journal'].get('volume') or '-' }}</strong>
+  ({{ publication['journal'].get('issue') or '-' }})
+  {{ publication['journal'].get('pages') or '-' }}
+  <span class="spacer">{{ publication['published'] }}</span>
+  <span class="spacer">{% module Pubmed(publication['pmid']) %}</span>
+  <span class="spacer">{% module Doi(publication['doi']) %}</span>
+  <span class="spacer">{% module Crossref(publication['doi']) %}</span>
 </p>
 {% end %} {# for #}
