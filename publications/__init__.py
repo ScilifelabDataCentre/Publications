@@ -18,7 +18,9 @@ settings = dict(
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
     SITE_NAME='Publications',
+    SITE_TEXT='A simple publications reference database.',
     SITE_DIR='{ROOT}/static',
     SOURCE_HOME='https://github.com/pekrau/Publications',
+    SOURCE_VERSION=__version__,
     MOST_RECENT_LIMIT=10,
     )

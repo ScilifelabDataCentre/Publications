@@ -20,7 +20,10 @@ class Publication(RequestHandler):
 
     def get(self, identifier):
         "Display the publication."
-        publication = self.get_entity(identifier, constants.PUBLICATION)
+        try:
+            publication = self.get_publication(identifier)
+        except KeyError:
+            raise tornado.web.HTTPError(404, reason='No such publication.')
         self.render('publication.html',
                     title=publication['title'],
                     publication=publication)

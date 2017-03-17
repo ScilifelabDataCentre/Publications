@@ -47,6 +47,21 @@
 	      </a>
 	    </li>
 	    {% end %} {# if current_user #}
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">About
+		<span class="caret"></span>
+	      </a>
+              <ul class="dropdown-menu">
+		<li>
+		  <a href="#">Version {{ settings['SOURCE_VERSION'] }}</a>
+		</li>
+		<li>
+		  <a href="{{ settings['SOURCE_HOME'] }}">
+		    Software repo
+		  </a>
+		</li>
+	      </ul>
+	    </li>
 	  </ul>
 
 	  <div>

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python2
 "Publications: Web application server."
 
 from __future__ import print_function
@@ -59,7 +59,7 @@ def main():
         login_url=r'/')
     application.listen(settings['PORT'], xheaders=True)
     pid = os.getpid()
-    logging.info("web server PID=%s at %s", pid, settings['BASE_URL'])
+    logging.info("web server PID %s at %s", pid, settings['BASE_URL'])
     if options.pidfile:
         with open(options.pidfile, 'w') as pf:
             pf.write(str(pid))

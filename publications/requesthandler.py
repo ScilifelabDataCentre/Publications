@@ -7,7 +7,6 @@ import urllib
 import couchdb
 import tornado.web
 
-import publications
 from . import constants
 from . import settings
 from . import utils
@@ -23,8 +22,6 @@ class RequestHandler(tornado.web.RequestHandler):
     def get_template_namespace(self):
         "Set the variables accessible within the template."
         result = super(RequestHandler, self).get_template_namespace()
-        result['title'] = 'Publications'
-        result['version'] = publications.__version__
         result['constants'] = constants
         result['settings'] = settings
         result['error'] = self.get_argument('error', None)
@@ -54,6 +51,21 @@ class RequestHandler(tornado.web.RequestHandler):
             url += '?' + urllib.urlencode(query)
         return url
 
+    def get_doc(self, key, viewname=None):
+        """Get the document with the given id, or from the view if given.
+        Raise KeyError if not found.
+        """
+        if viewname is None:
+            try:
+                return self.db[key]
+            except couchdb.ResourceNotFound:
+                raise KeyError
+        else:
+            result = list(self.db.view(viewname, include_docs=True)[key])
+            if len(result) != 1:
+                raise KeyError
+            return result[0].doc
+
     def get_docs(self, viewname, key, last=None, distinct=True, **kwargs):
         """Get the list of documents using the named view and
         the given key or interval."""
@@ -72,51 +84,29 @@ class RequestHandler(tornado.web.RequestHandler):
             lookup.add(item.id)
         return result
 
-    def get_entity(self, iuid, doctype=None):
-        """Get the entity by the IUID. Check the doctype, if given.
-        Raise HTTP 404 if no such entity.
-        """
-        try:
-            entity = self.db[iuid]
-        except couchdb.ResourceNotFound:
-            raise tornado.web.HTTPError(404, reason='Sorry, no such entity.')
-        try:
-            if doctype is not None and entity[constants.DOCTYPE] != doctype:
-                raise KeyError
-        except KeyError:
-            raise tornado.web.HTTPError(
-                404, reason='Internal problem: invalid entity doctype.')
-        return entity
-
-    def get_entity_view(self, viewname, key, reason='Sorry, no such entity.'):
-        """Get the entity by the view name and the key.
-        Raise HTTP 404 if no such entity.
-        """
-        view = self.db.view(viewname, include_docs=True)
-        rows = list(view[key])
-        if len(rows) == 1:
-            return rows[0].doc
-        else:
-            raise tornado.web.HTTPError(404, reason=reason)
-
     def get_publication(self, identifier):
-        """Get the publication given its DOI, PMID or IUID.
-        Raise ValueError if no such publication.
+        """Get the publication given its IUID, DOI or PMID.
+        Raise KeyError if no such publication.
         """
         try:
-            return self.get_entity_view('publication/doi', identifier)
-            return self.get_entity_view('publication/pmid', identifier)
-        except tornado.web.HTTPError:
-            raise ValueError('Sorry, no such publication.')
+            doc = self.get_doc(identifier)
+        except KeyError:
+            try:
+                doc = self.get_doc(identifier, 'publication/doi')
+            except KeyError:
+                doc = self.get_doc(identifier, 'publication/pmid')
+        if doc[constants.DOCTYPE] != constants.PUBLICATION:
+            raise KeyError
+        return doc
 
     def get_account(self, email):
         """Get the account identified by the email address.
-        Raise ValueError if no such account.
+        Raise KeyError if no such account.
         """
-        try:
-            return self.get_entity_view('account/email', email.strip().lower())
-        except tornado.web.HTTPError:
-            raise ValueError('Sorry, no such account.')
+        doc = self.get_doc(email.strip().lower(), 'account/email')
+        if doc[constants.DOCTYPE] != constants.ACCOUNT:
+            raise KeyError
+        return doc
 
     def get_current_user(self):
         """Get the currently logged-in user account, if any.
@@ -128,20 +118,20 @@ class RequestHandler(tornado.web.RequestHandler):
             if not account:
                 account = self.get_current_user_basic()
             return account
-        except ValueError:
+        except KeyError:
             return None
 
     def get_current_user_session(self):
         """Get the current user from a secure login session cookie.
         Return None if no attempt at authentication.
-        Raise ValueError if incorrect authentication."""
+        Raise KeyError if invalid authentication."""
         email = self.get_secure_cookie(
             constants.USER_COOKIE,
             max_age_days=settings['LOGIN_MAX_AGE_DAYS'])
         if not email: return None
         account = self.get_account(email)
         # Check if login session is invalidated.
-        if account.get('login') is None: raise ValueError
+        if account.get('login') is None: raise KeyError
         logging.debug("Session login: account %s", account['email'])
         return account
 
@@ -149,7 +139,7 @@ class RequestHandler(tornado.web.RequestHandler):
         """Get the current user by HTTP Basic authentication.
         This should be used only if the site is using TLS (SSL, https).
         Return None if no attempt at authentication.
-        Raise ValueError if incorrect authentication."""
+        Raise KeyError if incorrect authentication."""
         try:
             auth = self.request.headers['Authorization']
         except KeyError:
@@ -163,7 +153,7 @@ class RequestHandler(tornado.web.RequestHandler):
             if utils.hashed_password(password) != account.get('password'):
                 raise ValueError
         except (IndexError, ValueError, TypeError):
-            raise ValueError
+            raise KeyError
         logging.info("Basic auth login: account %s", account['email'])
         return account
 

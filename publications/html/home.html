@@ -2,6 +2,8 @@
 
 {% extends "base.html" %}
 
+{% block head_title %}{{ settings['SITE_NAME'] }}{% end %}
+
 {% block body_header %}
 <div class="row">
   <div class="col-md-2">
@@ -11,11 +13,13 @@
 	 alt="{{ settings['SITE_NAME'] }}">
   </div>
   <div class="col-md-10">
-    <h1>{% block body_header_title %}{{ title }}{% end %}</h1>
+    <h1>{{ settings['SITE_NAME'] }}</h1>
+    <p>{{ settings['SITE_TEXT'] }}</p>
   </div>
 </div>
 {% end %} {# block body_header #}
 
 {% block main_content %}
+<h3>Most recent publications</h3>
 {% include 'publications_list.html' %}
 {% end %} {# block main_content #}
