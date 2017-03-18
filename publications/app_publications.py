@@ -20,8 +20,8 @@ from publications.publication import Publication, PublicationAdd
 
 
 class Dummy(RequestHandler):
-    def get(self):
-        pass
+    def get(self, *args, **kwargs):
+        raise NotImplementedError
 
 
 def get_args():
@@ -56,7 +56,7 @@ def main():
         ui_modules=uimodules,
         template_path='html',
         static_path='static',
-        login_url=r'/')
+        login_url=r'/login')
     application.listen(settings['PORT'], xheaders=True)
     pid = os.getpid()
     logging.info("web server PID %s at %s", pid, settings['BASE_URL'])

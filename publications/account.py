@@ -109,6 +109,11 @@ class AccountLogs(AccountMixin, RequestHandler):
 class Login(RequestHandler):
     "Login to a account account. Set a secure cookie."
 
+    def get(self):
+        "Display login page."
+        self.render('login.html',
+                    next=self.get_argument('next', self.reverse_url('home')))
+
     def post(self):
         """Login to a account account. Set a secure cookie.
         Log failed login attempt and disable account if too many recent.
@@ -117,38 +122,21 @@ class Login(RequestHandler):
             email = self.get_argument('email')
             password = self.get_argument('password')
         except tornado.web.MissingArgumentError:
-            self.see_other('home', error='Missing email or password argument.')
+            self.see_other('login', error='Missing email or password argument.')
             return
-        msg = 'Sorry, no such account or invalid password.'
         try:
             account = self.get_account(email)
-        except ValueError, msg:
-            self.see_other('home', error=str(msg))
-            return
-        if utils.hashed_password(password) != account.get('password'):
-            utils.write_log(self.db, self, account,
-                            changed=dict(login_failure=account['email']))
-            view = self.db.view('log/login_failure',
-                                startkey=[account['_id'], utils.timestamp(-1)],
-                                endkey=[account['_id'], utils.timestamp()])
-            if len(list(view)) > settings['LOGIN_MAX_FAILURES']:
-                logging.warning("account %s has been disabled due to"
-                                " too many login failures", account['email'])
-                with AccountSaver(doc=account, rqh=self) as saver:
-                    saver.erase_password()
-                msg = 'Too many failed login attempts: Your account has been' \
-                      ' disabled. You must contact the site administrators.'
-                self.see_other('home', error=msg)
-                return
-        self.set_secure_cookie(constants.USER_COOKIE,
-                               account['email'],
-                               expires_days=settings['LOGIN_MAX_AGE_DAYS'])
-        with AccountSaver(doc=account, rqh=self) as saver:
-            saver['login'] = utils.timestamp() # Set last login timestamp.
-        try:
-            self.redirect(self.get_argument('next'))
-        except tornado.web.MissingArgumentError:
-            self.see_other('home')
+            if utils.hashed_password(password) != account.get('password'):
+                raise KeyError
+        except KeyError:
+            self.see_other('login', error='Sorry, no such account or invalid password.')
+        else:
+            self.set_secure_cookie(constants.USER_COOKIE,
+                                   account['email'],
+                                   expires_days=settings['LOGIN_MAX_AGE_DAYS'])
+            with AccountSaver(doc=account, rqh=self) as saver:
+                saver['login'] = utils.timestamp() # Set last login timestamp.
+            self.redirect(self.get_argument('next', self.reverse_url('home')))
 
 
 class Logout(RequestHandler):

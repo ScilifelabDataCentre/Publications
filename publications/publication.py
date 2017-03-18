@@ -37,7 +37,7 @@ class PublicationAdd(RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        docs = self.get_docs('publication/modified',
+        docs = self.get_docs('publication/created',
                              key=constants.CEILING, last='', descending=True,
                              limit=settings['MOST_RECENT_LIMIT'])
         self.render('publication_add.html',

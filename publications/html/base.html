@@ -48,7 +48,8 @@
 	    </li>
 	    {% end %} {# if current_user #}
             <li class="dropdown">
-              <a class="dropdown-toggle" data-toggle="dropdown" href="#">About
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+		About
 		<span class="caret"></span>
 	      </a>
               <ul class="dropdown-menu">
@@ -86,13 +87,15 @@
 		</form>
 	      </li>
 	      {% else %}
-	      <li class="navbar-form">
-		<button type="button"
-			class="btn btn-primary"
-			data-toggle="modal" data-target="#login">
-		  <span class="glyphicon glyphicon-log-in"></span>
-		  Login
-		</button>
+	      <li>
+		<div class="navbar-btn">
+		  <a href="{{ reverse_url('login') }}"
+		     class="btn btn-default"
+		     role="button">
+		    <span class="glyphicon glyphicon-log-in"></span>
+		    Login
+		  </a>
+		</div>
 	      </li>
 	      {% end %} {# if current_user #}
 	      {% block search_field %}
@@ -115,46 +118,6 @@
 	</div>
       </div>
     </nav>
-
-    <div id="login" class="modal fade" role="dialog">
-      <div class="modal-dialog modal-lg">
-	<div class="modal-content">
-	  <div class="modal-header">
-            <button type="button" class="close"
-		    data-dismiss="modal" aria-label="Close">
-	      <span aria-hidden="true">&times;</span>
-	    </button>
-            <h4 class="modal-title">
-	      <span class="glyphicon glyphicon-log-in"></span>
-	      Login
-	    </h4>
-	  </div>
-	  <div class="modal-body">
-	    <form action="{{ reverse_url('login') }}"
-		  role="form"
-		  method="POST">
-	      {% module xsrf_form_html() %}
-	      <div class="form-group">
-		<label for="email">Email</label>
-		<input type="text" class="form-control" name="email"
-		       placeholder="Email address of account">
-	      </div>
-	      <div class="form-group">
-		<label for="password">Password</label>
-		<input type="password" class="form-control" name="password">
-	      </div>
-	      <input type="hidden" name="uri" value="{{ request.uri }}">
-	      <div class="form-group"> 
-		<button type="submit" class="btn btn-primary btn-block">
-		  <span class="glyphicon glyphicon-log-in"></span>
-		  Login
-		</button>
-	      </div>
-	    </form>
-	  </div>
-	</div>
-      </div>
-    </div>
 
     {% block container %}
     <div class="container">

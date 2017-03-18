@@ -24,12 +24,8 @@
 
 <p>
   {% module Pubmed(publication['pmid']) %}
-</p>
-<p>
-  {% module Doi(publication['doi']) %}
-</p>
-<p>
-  {% module Crossref(publication['doi']) %}
+  <span class="spacer">{% module Doi(publication['doi']) %}</span>
+  <span class="spacer">{% module Crossref(publication['doi']) %}</span>
 </p>
 
 {% end %} {# block main_content #}
