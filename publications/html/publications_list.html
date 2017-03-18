@@ -1,7 +1,7 @@
 {# Display list of publications. #}
 
 {% for publication in publications %}
-<p>
+<div class="well well-sm">
   <a href="{{ reverse_url('publication', publication['_id']) }}">{{ publication['title'] }}</a>
   <br>
   {% if len(publication['authors']) > 4 %}
@@ -20,5 +20,5 @@
   <span class="spacer">{% module Pubmed(publication['pmid']) %}</span>
   <span class="spacer">{% module Doi(publication['doi']) %}</span>
   <span class="spacer">{% module Crossref(publication['doi']) %}</span>
-</p>
+</div>
 {% end %} {# for #}
