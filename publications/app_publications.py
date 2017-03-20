@@ -17,7 +17,9 @@ from publications.requesthandler import RequestHandler
 from publications.home import Home
 from publications.login import Login, Logout
 from publications.account import Account
-from publications.publication import Publication, PublicationAdd
+from publications.publication import (Publication,
+                                      PublicationAdd,
+                                      PublicationEdit)
 from publications.search import Search
 from publications.logs import Logs
 
@@ -44,6 +46,8 @@ def main():
                 url(r'/site/([^/]+)', tornado.web.StaticFileHandler,
                     {'path': settings['SITE_DIR']}, name='site'),
                 url(r'/publication/([^/]+)', Publication, name='publication'),
+                url(r'/publication/([^/]+)/edit',
+                    PublicationEdit, name='publication_edit'),
                 url(r'/publication', PublicationAdd, name='publication_add'),
                 url(r'/login', Login, name='login'),
                 url(r'/logout', Logout, name='logout'),

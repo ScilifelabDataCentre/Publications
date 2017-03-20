@@ -1,0 +1,147 @@
+{# Publication edit page. #}
+
+{% extends "base.html" %}
+
+{% block main_content %}
+<form action="{{ reverse_url('publication_edit', publication['_id']) }}"
+      role="form"
+      class="form-horizontal"
+      method="POST">
+  {% module xsrf_form_html() %}
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="title">Title</label>
+    <div class="col-sm-11">
+      <textarea class="form-control" rows="4"
+		name="title" id="title">
+	{{ publication.get('title') or '' }}
+      </textarea>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="authors">Authors</label>
+    <div class="col-sm-7">
+      <textarea class="form-control" rows="6"
+		name="authors" id="authors">
+	{{ '\n'.join(["%s, %s" % (a.get('family'), a.get('given') or a.get('initials')) for a in publication.get('authors') or []]) }}
+      </textarea>
+      <span class="help-block">
+	One author per line, family name first, separated by comma ','
+	from the given name(s) or initials separated by blanks.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="pmid">PMID</label>
+    <div class="col-sm-5">
+      <input type="text" class="form-control"
+	     name="pmid" id="pmid"
+	     value="{{ publication.get('pmid') or '' }}">
+      <span class="help-block">
+	PubMed identifier.
+	Validity is currently <strong>not checked</strong>.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="doi">DOI</label>
+    <div class="col-sm-5">
+      <input type="text" class="form-control"
+	     name="doi" id="doi"
+	     value="{{ publication.get('doi') or '' }}">
+      <span class="help-block">
+	PubMed identifier.
+	Validity is currently <strong>not checked</strong>.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="journal">Journal</label>
+    <div class="col-sm-5">
+      <input type="text" class="form-control"
+	     name="journal" id="journal"
+	     value="{{ publication.get('journal', {}).get('title') or '' }}">
+      <span class="help-block">
+	Short name of the journal.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="issn">ISSN</label>
+    <div class="col-sm-5">
+      <input type="text" class="form-control"
+	     name="issn" id="issn"
+	     value="{{ publication.get('journal', {}).get('issn') or '' }}">
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="volume">Volume</label>
+    <div class="col-sm-5">
+      <input type="text" class="form-control"
+	     name="volume" id="volume"
+	     value="{{ publication.get('journal', {}).get('volume') or '' }}">
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="issue">Issue</label>
+    <div class="col-sm-5">
+      <input type="text" class="form-control"
+	     name="issue" id="issue"
+	     value="{{ publication.get('journal', {}).get('issue') or '' }}">
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="pages">Pages</label>
+    <div class="col-sm-5">
+      <input type="text" class="form-control"
+	     name="pages" id="pages"
+	     value="{{ publication.get('journal', {}).get('pages') or '' }}">
+      <span class="help-block">
+	Inclusive complete page numbers, e.g. <strong>1890-1894</strong>.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="abstract">Abstract</label>
+    <div class="col-sm-11">
+      <textarea class="form-control" rows="6"
+		name="abstract" id="abstract">
+	{{ publication.get('abstract') or '' }}
+      </textarea>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-11 col-md-offset-1">
+      <button type="submit" class="btn btn-success">
+	<span class="glyphicon glyphicon-save"></span>
+	Save
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<form action="{{ reverse_url('publication', publication['_id']) }}"
+      role="form"
+      method="GET">
+  <div class="form-group">
+    <label class="control-label"></label>
+    <button type="submit" class="btn btn-default">
+      <span class="glyphicon glyphicon-remove"></span>
+      Cancel
+    </button>
+  </div>
+</form>
+{% end %} {# block meta_content #}

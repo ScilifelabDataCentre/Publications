@@ -16,7 +16,7 @@
   <strong>{{ publication['journal'].get('volume') or '-' }}</strong>
   ({{ publication['journal'].get('issue') or '-' }})
   {{ publication['journal'].get('pages') or '-' }}
-  <span class="spacer">{{ publication['published'] }}</span>
+  [{{ publication['published'] }}]
   <span class="spacer">{% module Pubmed(publication['pmid']) %}</span>
   <span class="spacer">{% module Doi(publication['doi']) %}</span>
   <span class="spacer">{% module Crossref(publication['doi']) %}</span>

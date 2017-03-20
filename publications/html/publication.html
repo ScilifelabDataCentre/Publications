@@ -12,15 +12,9 @@
   {{ publication['journal'].get('title') or '-' }}
   <strong>{{ publication['journal'].get('volume') or '-' }}</strong>
   ({{ publication['journal'].get('issue') or '-' }})
-  {{ publication['journal'].get('pages') or '-' }},
-  {{ publication['published'] }}
+  {{ publication['journal'].get('pages') or '-' }}
+  [{{ publication['published'] }}]
 </h4>
-
-{% if publication['abstract'] %}
-<p>
-  {{ publication['abstract'] }}
-</p>
-{% end %}
 
 <p>
   {% module Pubmed(publication['pmid']) %}
@@ -28,13 +22,33 @@
   <span class="spacer">{% module Crossref(publication['doi']) %}</span>
 </p>
 
+{% if publication['abstract'] %}
+<p>
+  {{ publication['abstract'] }}
+</p>
+{% end %}
+
 {% end %} {# block main_content #}
 
 {% block meta_content %}
 {% if is_admin %}
-<a href="{{ reverse_url('logs', publication['_id']) }}">
-  <span class="badge">Logs</span>
-</a>
+<p>
+  <form action="{{ reverse_url('publication_edit', publication['_id']) }}"
+	role="form"
+	method="GET">
+    <div class="form-group">
+      <button type="submit" class="btn btn-default">
+	<span class="glyphicon glyphicon-edit"></span>
+	Edit
+      </button>
+    </div>
+  </form>
+</p>
+<p>
+  <a href="{{ reverse_url('logs', publication['_id']) }}">
+    <span class="badge">Logs</span>
+  </a>
+</p>
 {% end %}
 {% end %} {# block meta_content #}
 

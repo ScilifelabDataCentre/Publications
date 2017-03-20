@@ -10,6 +10,7 @@ from . import constants
 from . import crossref
 from . import pubmed
 from . import settings
+from . import utils
 from .saver import Saver
 from .requesthandler import RequestHandler
 
@@ -90,3 +91,58 @@ class PublicationAdd(RequestHandler):
             with PublicationSaver(new, rqh=self):
                 pass
         self.see_other('publication_add')
+
+
+class PublicationEdit(RequestHandler):
+    "Edit the publication."
+
+    @tornado.web.authenticated
+    def get(self, iuid):
+        self.check_admin()
+        try:
+            publication = self.get_publication(iuid)
+        except KeyError:
+            raise tornado.web.HTTPError(404, reason='No such publication.')
+        self.render('publication_edit.html',
+                    title='Edit publication',
+                    publication=publication)
+
+    @tornado.web.authenticated
+    def post(self, iuid):
+        self.check_admin()
+        try:
+            publication = self.get_publication(iuid)
+        except KeyError:
+            raise tornado.web.HTTPError(404, reason='No such publication.')
+        with PublicationSaver(doc=publication, rqh=self) as saver:
+            saver['title'] = self.get_argument('title', '') or '[no title]'
+            authors = []
+            for author in self.get_argument('authors', '').split('\n'):
+                author = author.strip()
+                if not author: continue
+                try:
+                    family, given = author.split(',', 1)
+                    family = family.strip()
+                    if not family: raise IndexError
+                    given = given.strip()
+                except IndexError:
+                    family = author
+                    given = ''
+                else:
+                    initials = ''.join([c[0] for c in given.split()])
+                    authors.append(
+                        dict(family=family,
+                             family_normalized=utils.to_ascii(family),
+                             given=given,
+                             given_normalized=utils.to_ascii(given),
+                             initials=initials,
+                             initials_normalized=utils.to_ascii(initials)))
+            saver['authors'] = authors
+            saver['pmid'] = self.get_argument('pmid', '') or None
+            saver['doi'] = self.get_argument('doi', '') or None
+            journal = dict(title=self.get_argument('journal', '') or None)
+            for key in ['issn', 'volume', 'issue', 'pages']:
+                journal[key] = self.get_argument(key, '') or None
+            saver['journal'] = journal
+            saver['abstract'] = self.get_argument('abstract', '') or None
+        self.see_other('publication', iuid)

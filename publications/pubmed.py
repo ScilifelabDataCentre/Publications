@@ -65,11 +65,15 @@ def parse(data):
     result['type']      = get_type(article)
     result['published'] = get_published(article)
     result['abstract']  = get_abstract(article)
-    result['xrefs']     = get_xrefs(article)
-    for xref in result['xrefs']:
+    result['xrefs']     = []
+    # Remove PMID from xrefs; get and remove DOI
+    for xref in get_xrefs(article):
         if xref['db'] == 'doi':
             result['doi'] = xref['key']
-            break
+        elif xref['db'] == 'pubmed':
+            pass
+        else:
+            result['xrefs'].append(xref)
     return result
 
 def get_title(article):
