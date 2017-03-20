@@ -10,13 +10,14 @@
 .panel-noborder {border: 0; }
 
 /* Pre-formatted text variants. */
-.pre {white-space: pre; }
-.nobr {white-space:nowrap; }
+.pre    {white-space: pre; }
+.nobr   {white-space:nowrap; }
 .number {text-align: right; font-family: monospace; }
 
 /* Logo icon details */
 .logo-icon {vertical-align: middle; margin-right: 4px; }
 
 /* Various */
-.top {vertical-align: top; }
+.top    {vertical-align: top; }
+.right  {text-align: right; }
 .spacer {padding-left: 1em; }

@@ -19,6 +19,7 @@ from publications.login import Login, Logout
 from publications.account import Account
 from publications.publication import Publication, PublicationAdd
 from publications.search import Search
+from publications.logs import Logs
 
 
 class Dummy(RequestHandler):
@@ -48,6 +49,7 @@ def main():
                 url(r'/logout', Logout, name='logout'),
                 url(r'/account/([^/]+)', Dummy, name='account'),
                 url(r'/search', Search, name='search'),
+                url(r'/logs/([^/]+)', Logs, name='logs'),
                 ]
 
     application = tornado.web.Application(

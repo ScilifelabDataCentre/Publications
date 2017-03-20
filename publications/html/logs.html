@@ -1,0 +1,47 @@
+{# Logs page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Logs for '{{ title }}'{% end %}
+{% block body_header_title %}
+Logs for <a href="{{ href }}">'{{ title }}'</a>
+{% end %}
+
+{% block content %}
+{% import json %}
+<div class="row">
+  <div class="col-md-12">
+    <div class="table-response">
+      <table class="table table-striped">
+	<tr>
+	  <th>Timestamp</th>
+	  <th>Account</th>
+	  <th>Changed</th>
+	</tr>
+	{% for log in logs %}
+	<tr>
+	  <td class="localtime">{{ log['modified'] }}</td>
+	  <td class="top">
+	    {{ log['account'] }}
+	    <br>
+	    {{ log['remote_ip'] }}
+	    <br>
+	    {{ log['user_agent'] }}
+	  </td>
+	  <td>
+	    <table class="table-condensed table-striped">
+	      {% for key, value in sorted(log['changed'].items()) %}
+	      <tr>
+		<th class="top right">{{ key }}</th>
+		<td class="pre">{{ json.dumps(value, ensure_ascii=False, indent=2) }}</td>
+	      </tr>
+	      {% end %}
+	    </table>
+	  </td>
+	</tr>
+	{% end %}
+      </table>
+    </div>
+  </div>
+</div>
+{% end %} {# block content #}

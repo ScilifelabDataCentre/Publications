@@ -13,6 +13,7 @@ from . import settings
 from .saver import Saver
 from .requesthandler import RequestHandler
 
+
 class PublicationSaver(Saver):
     doctype = constants.PUBLICATION
 
@@ -26,11 +27,9 @@ class Publication(RequestHandler):
             publication = self.get_publication(identifier)
         except KeyError:
             raise tornado.web.HTTPError(404, reason='No such publication.')
-        kwargs = dict(title=publication['title'],
-                      publication=publication)
-        if self.is_admin():
-            kwargs['logs'] = self.get_logs(publication)
-        self.render('publication.html', **kwargs)
+        self.render('publication.html',
+                    title=publication['title'],
+                    publication=publication)
 
 
 class PublicationAdd(RequestHandler):

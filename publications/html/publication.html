@@ -30,8 +30,11 @@
 
 {% end %} {# block main_content #}
 
+{% block meta_content %}
 {% if is_admin %}
-{% block sub_content %}
-{% include 'logs_list.html' %}
+<a href="{{ reverse_url('logs', publication['_id']) }}">
+  <span class="badge">Logs</span>
+</a>
 {% end %}
-{% end %}
+{% end %} {# block meta_content #}
+

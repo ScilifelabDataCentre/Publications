@@ -1,6 +1,7 @@
 "RequestHandler subclass."
 
 import base64
+import json
 import logging
 import urllib
 
@@ -24,6 +25,7 @@ class RequestHandler(tornado.web.RequestHandler):
         result = super(RequestHandler, self).get_template_namespace()
         result['constants'] = constants
         result['settings'] = settings
+        result['is_admin'] = self.is_admin()
         result['error'] = self.get_argument('error', None)
         result['message'] = self.get_argument('message', None)
         return result
@@ -159,11 +161,11 @@ class RequestHandler(tornado.web.RequestHandler):
         logging.info("Basic auth login: account %s", account['email'])
         return account
 
-    def get_logs(self, doc):
-        "Get the log entries for the given document."
+    def get_logs(self, iuid):
+        "Get the log entries for the document with the given IUID."
         return self.get_docs('log/doc',
-                             key=[doc['_id'], constants.CEILING],
-                             last=[doc['_id'], ''],
+                             key=[iuid, constants.CEILING],
+                             last=[iuid, ''],
                              descending=True)
 
     def is_admin(self):
