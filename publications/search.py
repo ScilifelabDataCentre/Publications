@@ -46,7 +46,11 @@ class Search(RequestHandler):
         term = [t for t in terms if t]
         if terms:
             hits = dict()
-            for viewname in ['publication/author', 'publication/title']:
+            for viewname in ['publication/author',
+                             'publication/title',
+                             'publication/pmid',
+                             'publication/doi',
+                             'publication/published']:
                 view = self.db.view(viewname)
                 for term in terms:
                     name = utils.to_ascii(term)
