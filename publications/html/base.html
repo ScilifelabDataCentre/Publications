@@ -41,9 +41,9 @@
 	    </li>
 	    {% if current_user %}
 	    <li>
-	      <a href="{{ reverse_url('publication_add') }}">
-		<span class="glyphicon glyphicon-plus"></span>
-		Add publication
+	      <a href="{{ reverse_url('publication_fetch') }}">
+		<span class="glyphicon glyphicon-cloud-download"></span>
+		Fetch publication
 	      </a>
 	    </li>
 	    {% end %} {# if current_user #}

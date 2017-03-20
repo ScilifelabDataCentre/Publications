@@ -1,9 +1,16 @@
-{# Fetch a publication given its DOI or PMID and add it. #}
+{# Fetch publication given its DOI or PMID. #}
 
 {% extends "base.html" %}
 
+{% block head_title %}Fetch publication{% end %}
+
+{% block body_header_title %}
+<span class="glyphicon glyphicon-cloud-download"></span>
+Fetch publication
+{% end %}
+
 {% block main_content %}
-<form action="{{ reverse_url('publication_add') }}"
+<form action="{{ reverse_url('publication_fetch') }}"
       role="form"
       class="form-horizontal"
       method="POST">
@@ -27,8 +34,8 @@
     </div>
     <div class="col-sm-3">
       <button type="submit" class="btn btn-default">
-	<span class="glyphicon glyphicon-plus"></span>
-	Add
+	<span class="glyphicon glyphicon-cloud-download"></span>
+	Fetch
       </button>
   </div>
 </form>

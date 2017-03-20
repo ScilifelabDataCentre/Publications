@@ -33,8 +33,8 @@ class Publication(RequestHandler):
                     publication=publication)
 
 
-class PublicationAdd(RequestHandler):
-    "Fetch a publication given its DOI or PMID and add it."
+class PublicationFetch(RequestHandler):
+    "Fetch a publication given its DOI or PMID."
 
     @tornado.web.authenticated
     def get(self):
@@ -42,9 +42,7 @@ class PublicationAdd(RequestHandler):
         docs = self.get_docs('publication/created',
                              key=constants.CEILING, last='', descending=True,
                              limit=settings['MOST_RECENT_LIMIT'])
-        self.render('publication_add.html',
-                    title='Add publication',
-                    publications=docs)
+        self.render('publication_fetch.html', publications=docs)
 
     @tornado.web.authenticated
     def post(self):
@@ -53,7 +51,7 @@ class PublicationAdd(RequestHandler):
             identifier = self.get_argument('identifier')
             if not identifier: raise ValueError
         except (tornado.web.MissingArgumentError, ValueError):
-            self.see_other('publication_add')
+            self.see_other('publication_fetch')
             return
         try:
             old = self.get_publication(identifier)
@@ -63,7 +61,7 @@ class PublicationAdd(RequestHandler):
             try:
                 new = pubmed.fetch(identifier)
             except (IOError, requests.exceptions.Timeout):
-                self.see_other('publication_add',
+                self.see_other('publication_fetch',
                                error='could not fetch article')
             else:
                 if old is None:
@@ -75,7 +73,7 @@ class PublicationAdd(RequestHandler):
             try:
                 new = crossref.fetch(identifier)
             except (IOError, requests.exceptions.Timeout):
-                self.see_other('publication_add',
+                self.see_other('publication_fetch',
                                error='could not fetch article')
             else:
                 if old is None:
@@ -90,7 +88,7 @@ class PublicationAdd(RequestHandler):
         else:
             with PublicationSaver(new, rqh=self):
                 pass
-        self.see_other('publication_add')
+        self.see_other('publication_fetch')
 
 
 class PublicationEdit(RequestHandler):

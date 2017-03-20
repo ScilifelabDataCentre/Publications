@@ -18,7 +18,7 @@ from publications.home import Home
 from publications.login import Login, Logout
 from publications.account import Account
 from publications.publication import (Publication,
-                                      PublicationAdd,
+                                      PublicationFetch,
                                       PublicationEdit)
 from publications.search import Search
 from publications.logs import Logs
@@ -48,7 +48,8 @@ def main():
                 url(r'/publication/([^/]+)', Publication, name='publication'),
                 url(r'/publication/([^/]+)/edit',
                     PublicationEdit, name='publication_edit'),
-                url(r'/publication', PublicationAdd, name='publication_add'),
+                url(r'/fetch',
+                    PublicationFetch, name='publication_fetch'),
                 url(r'/login', Login, name='login'),
                 url(r'/logout', Logout, name='logout'),
                 url(r'/account/([^/]+)', Dummy, name='account'),
