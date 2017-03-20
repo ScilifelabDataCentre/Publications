@@ -2,10 +2,7 @@
 
 from __future__ import print_function
 
-import csv
 import logging
-from collections import OrderedDict as OD
-from cStringIO import StringIO
 
 import tornado.web
 
@@ -82,11 +79,11 @@ class Account(AccountMixin, RequestHandler):
         except ValueError, msg:
             self.see_other('home', error=str(msg))
             return
-        view = self.db.view('log/account',
-                            startkey=[account['email'], constants.CEILING],
-                            lastkey=[account['email']],
-                            descending=True,
-                            limit=1)
+        # view = self.db.view('log/account',
+        #                     startkey=[account['email'], constants.CEILING],
+        #                     lastkey=[account['email']],
+        #                     descending=True,
+        #                     limit=1)
         self.render('account.html',
                     account=account)
 
@@ -104,46 +101,3 @@ class AccountLogs(AccountMixin, RequestHandler):
         self.render('logs.html',
                     entity=account,
                     logs=self.get_logs(account['_id']))
-
-
-class Login(RequestHandler):
-    "Login to a account account. Set a secure cookie."
-
-    def get(self):
-        "Display login page."
-        self.render('login.html',
-                    next=self.get_argument('next', self.reverse_url('home')))
-
-    def post(self):
-        """Login to a account account. Set a secure cookie.
-        Log failed login attempt and disable account if too many recent.
-        """
-        try:
-            email = self.get_argument('email')
-            password = self.get_argument('password')
-        except tornado.web.MissingArgumentError:
-            self.see_other('login', error='Missing email or password argument.')
-            return
-        try:
-            account = self.get_account(email)
-            if utils.hashed_password(password) != account.get('password'):
-                raise KeyError
-        except KeyError:
-            self.see_other('login', error='Sorry, no such account or invalid password.')
-        else:
-            self.set_secure_cookie(constants.USER_COOKIE,
-                                   account['email'],
-                                   expires_days=settings['LOGIN_MAX_AGE_DAYS'])
-            with AccountSaver(doc=account, rqh=self) as saver:
-                saver['login'] = utils.timestamp() # Set last login timestamp.
-            self.redirect(self.get_argument('next', self.reverse_url('home')))
-
-
-class Logout(RequestHandler):
-    "Logout; unset the secure cookie, and invalidate login session."
-
-    @tornado.web.authenticated
-    def post(self):
-        self.set_secure_cookie(constants.USER_COOKIE, '')
-        self.see_other('home')
-

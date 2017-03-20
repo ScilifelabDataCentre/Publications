@@ -49,10 +49,10 @@ class PublicationAdd(RequestHandler):
         self.check_admin()
         try:
             identifier = self.get_argument('identifier')
-            identifier = identifier.strip()
             if not identifier: raise ValueError
         except (tornado.web.MissingArgumentError, ValueError):
-            self.see_other('publication_add', error='No identifier given.')
+            self.see_other('publication_add')
+            return
         try:
             old = self.get_publication(identifier)
         except KeyError:

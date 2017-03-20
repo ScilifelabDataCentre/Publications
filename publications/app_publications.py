@@ -15,7 +15,8 @@ from publications import utils
 from publications.requesthandler import RequestHandler
 
 from publications.home import Home
-from publications.account import Login, Logout
+from publications.login import Login, Logout
+from publications.account import Account
 from publications.publication import Publication, PublicationAdd
 
 
