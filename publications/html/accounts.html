@@ -1,0 +1,38 @@
+{# Accounts list page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Accounts{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-user"></span>
+Accounts
+{% end %}
+
+{% block main_content %}
+<br>
+<table class="table table-striped table-condensed">
+  <tr>
+    <th>Account</th>
+    <th>Role</th>
+    <th>Login</th>
+  </tr>
+  {% for account in accounts %}
+  <tr>
+    <td>
+      <a href="{{ reverse_url('account', account['email']) }}">
+	{{ account['email'] }}
+      </a>
+    </td>
+    <td>{{ account['role'] }}</td>
+    <td>
+      {% if account['login'] %}
+      <span class="localtime">{{ account['login'] }}</span>
+      {% else %}
+      -
+      {% end %}
+    </td>
+  </tr>
+  {% end %}
+</table>
+{% end %}

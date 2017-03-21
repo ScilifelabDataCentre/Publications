@@ -79,13 +79,10 @@ class Account(AccountMixin, RequestHandler):
         except ValueError, msg:
             self.see_other('home', error=str(msg))
             return
-        # view = self.db.view('log/account',
-        #                     startkey=[account['email'], constants.CEILING],
-        #                     lastkey=[account['email']],
-        #                     descending=True,
-        #                     limit=1)
         self.render('account.html',
+                    title=account['email'],
                     account=account)
+
 
 class AccountLogs(AccountMixin, RequestHandler):
     "Account log entries page."
@@ -101,3 +98,13 @@ class AccountLogs(AccountMixin, RequestHandler):
         self.render('logs.html',
                     entity=account,
                     logs=self.get_logs(account['_id']))
+
+
+class Accounts(RequestHandler):
+    "List of accounts."
+
+    @tornado.web.authenticated
+    def get(self):
+        self.check_admin()
+        accounts = self.get_docs('account/email', key=None)
+        self.render('accounts.html', accounts=accounts)

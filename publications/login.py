@@ -48,7 +48,7 @@ class Login(RequestHandler):
 
 
 class Logout(RequestHandler):
-    "Logout; unset the secure cookie, and invalidate login session."
+    "Logout; unset the secure cookie to invalidate login session."
 
     @tornado.web.authenticated
     def post(self):

@@ -1,4 +1,4 @@
-{# Publications: Publication page. #}
+{# Publication page. #}
 
 {% extends "base.html" %}
 
@@ -54,7 +54,10 @@
 </p>
 <p>
   <a href="{{ reverse_url('logs', publication['_id']) }}">
-    <span class="badge">Logs</span>
+    <span class="badge">
+      <span class="glyphicon glyphicon-list-alt"></span>
+      Logs
+    </span>
   </a>
 </p>
 {% end %}

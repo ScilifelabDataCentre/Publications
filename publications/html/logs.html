@@ -2,10 +2,12 @@
 
 {% extends "base.html" %}
 
-{% block head_title %}Logs for '{{ title }}'{% end %}
-{% block body_header_title %}
-Logs for <a href="{{ href }}">'{{ title }}'</a>
-{% end %}
+{% block head_title %}Logs for {{ title }}{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-list-alt"></span>
+Logs for <a href="{{ href }}">{{ title }}</a>
+{% end %} {# block body_title #}
 
 {% block content %}
 {% import json %}
@@ -22,11 +24,11 @@ Logs for <a href="{{ href }}">'{{ title }}'</a>
 	<tr>
 	  <td class="localtime">{{ log['modified'] }}</td>
 	  <td class="top">
-	    {{ log['account'] }}
+	    {{ log.get('account') or '-' }}
 	    <br>
-	    {{ log['remote_ip'] }}
+	    {{ log.get('remote_ip') or '' }}
 	    <br>
-	    {{ log['user_agent'] }}
+	    {{ log.get('user_agent') or '' }}
 	  </td>
 	  <td>
 	    <table class="table-condensed table-striped">

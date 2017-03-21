@@ -1,0 +1,42 @@
+{# Account page. #}
+
+{% extends "base.html" %}
+
+{% block main_content %}
+<br>
+<table class="table">
+  <tr>
+    <th>Role</th>
+    <td>{{ account['role'] }}</td>
+  </tr>
+  <tr>
+    <th>Last login</th>
+    <td>
+      {% if account['login'] %}
+      <span class="localtime">{{ account['login'] }}</span>
+      {% else %}
+      -
+      {% end %}
+    </td>
+  </tr>
+  <tr>
+    <th>Modified</th>
+    <td class="localtime">{{ account['modified'] }}</td>
+  </tr>
+  <tr>
+    <th>Created</th>
+    <td class="localtime">{{ account['created'] }}</td>
+  </tr>
+</table>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<p>
+  <a href="{{ reverse_url('logs', account['_id']) }}">
+    <span class="badge">
+      <span class="glyphicon glyphicon-list-alt"></span>
+      Logs
+    </span>
+  </a>
+</p>
+{% end %} {# block meta_content #}

@@ -26,6 +26,7 @@ class RequestHandler(tornado.web.RequestHandler):
         result['constants'] = constants
         result['settings'] = settings
         result['is_admin'] = self.is_admin()
+        result['is_curator'] = self.is_curator()
         result['error'] = self.get_argument('error', None)
         result['message'] = self.get_argument('message', None)
         return result
@@ -187,7 +188,7 @@ class RequestHandler(tornado.web.RequestHandler):
     def check_admin(self):
         "Check that the current user has the 'admin' role."
         if self.is_admin(): return
-        raise tornado.web.HTTPError(403, reason="Role 'admin' required")
+        raise tornado.web.HTTPError(403, reason="Role 'admin' required.")
 
     def is_curator(self):
         "Does the current user have the 'curator' or 'admin' role?"
@@ -197,9 +198,16 @@ class RequestHandler(tornado.web.RequestHandler):
     def check_curator(self):
         "Check that the current user has the 'curator' or 'admin' role."
         if self.is_curator(): return
-        raise tornado.web.HTTPError(403, reason="Role 'curator' required")
+        raise tornado.web.HTTPError(403, reason="Role 'curator' required.")
 
     def is_owner(self, doc):
-        "Is the current user the owner of the document?"
+        """Is the current user the owner of the document?
+        Role 'admin' is also allowed."""
         return bool(self.current_user) and \
-               self.current_user['email'] == doc['owner']
+               (self.current_user['email'] == doc['owner'] or
+                self.is_admin())
+
+    def check_owner(self, doc):
+        "Check that the current user is the owner of the document."
+        if self.is_owner(doc): return
+        raise tornado.web.HTTPError(403, reason="You are not the owner.")

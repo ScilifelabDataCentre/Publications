@@ -13,11 +13,11 @@ class Logs(RequestHandler):
 
     @tornado.web.authenticated
     def get(self, iuid):
-        self.check_admin()
         try:
             doc = self.get_doc(iuid)
         except KeyError:
             raise tornado.web.HTTPError(404, reason='No such entity.')
+        self.check_owner(doc)
         if doc[constants.DOCTYPE] == constants.PUBLICATION:
             title = doc['title']
             href = self.reverse_url('publication', doc['_id'])
@@ -25,8 +25,8 @@ class Logs(RequestHandler):
             title = doc['email']
             href = self.reverse_url('account', doc['email'])
         else:
-            raise NotImplementedError("logs for %s" % doc[constants.DOCTYPE])
+            raise NotImplementedError
         self.render('logs.html',
                     title=title,
                     href=href,
-                    logs=self.get_logs(iuid))
+                    logs=self.get_logs(doc['_id']))

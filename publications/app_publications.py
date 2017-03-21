@@ -16,7 +16,7 @@ from publications.requesthandler import RequestHandler
 
 from publications.home import Home
 from publications.login import Login, Logout
-from publications.account import Account
+from publications.account import Account, Accounts
 from publications.publication import (Publication,
                                       PublicationFetch,
                                       PublicationEdit,
@@ -55,7 +55,8 @@ def main():
                     PublicationTrash, name='publication_trash'),
                 url(r'/login', Login, name='login'),
                 url(r'/logout', Logout, name='logout'),
-                url(r'/account/([^/]+)', Dummy, name='account'),
+                url(r'/account/([^/]+)', Account, name='account'),
+                url(r'/accounts', Accounts, name='accounts'),
                 url(r'/search', Search, name='search'),
                 url(r'/logs/([^/]+)', Logs, name='logs'),
                 ]
