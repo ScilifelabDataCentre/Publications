@@ -1,5 +1,7 @@
 "Publications: Simple publications reference database with web interface."
 
+from __future__ import print_function
+
 import os
 
 __version__ = '0.1.0'

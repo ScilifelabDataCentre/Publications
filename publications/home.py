@@ -1,5 +1,7 @@
 "Home page."
 
+from __future__ import print_function
+
 import logging
 
 from . import constants
