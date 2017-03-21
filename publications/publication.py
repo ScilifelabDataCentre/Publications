@@ -192,7 +192,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 journal[key] = self.get_argument(key, '') or None
             saver['journal'] = journal
             saver['abstract'] = self.get_argument('abstract', '') or None
-        self.see_other('publication', iuid)
+        self.see_other('publication', publication['_id'])
 
 
 class PublicationTrash(PublicationMixin, RequestHandler):

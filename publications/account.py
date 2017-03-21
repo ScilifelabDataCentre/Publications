@@ -76,13 +76,46 @@ class Account(AccountMixin, RequestHandler):
         try:
             account = self.get_account(email)
             self.check_readable(account)
-        except ValueError, msg:
+        except (KeyError, ValueError), msg:
             self.see_other('home', error=str(msg))
             return
-        self.render('account.html',
-                    title=account['email'],
-                    account=account)
+        self.render('account.html', account=account)
 
+
+class AccountEdit(AccountMixin, RequestHandler):
+    "Account edit page."
+
+    @tornado.web.authenticated
+    def get(self, email):
+        try:
+            account = self.get_account(email)
+        except KeyError, msg:
+            self.see_other('home', error=str(msg))
+            return
+        try:
+            self.check_editable(account)
+        except ValueError, msg:
+            self.see_other('account', account['email'], error=str(msg))
+            return
+        self.render('account_edit.html', account=account)
+
+    @tornado.web.authenticated
+    def get(self, email):
+        try:
+            account = self.get_account(email)
+        except KeyError, msg:
+            self.see_other('home', error=str(msg))
+            return
+        try:
+            self.check_editable(account)
+        except ValueError, msg:
+            self.see_other('account', account['email'], error=str(msg))
+            return
+        with AccountSaver(account, rqh=self) as saver:
+            if self.is_admin():
+                saver['role'] = self.get_argument('role', account['role'])
+        self.see_other('account', account['email'])
+        
 
 class AccountLogs(AccountMixin, RequestHandler):
     "Account log entries page."

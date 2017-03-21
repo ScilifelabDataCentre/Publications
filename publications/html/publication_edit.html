@@ -2,6 +2,15 @@
 
 {% extends "base.html" %}
 
+{% block head_title %}
+Edit publication {{ publication['title'][:20] }}...
+{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-edit"></span>
+Edit publication {{ publication['title'][:20] }}...
+{% end %} {# block body_title #}
+
 {% block main_content %}
 <form action="{{ reverse_url('publication_edit', publication['_id']) }}"
       role="form"

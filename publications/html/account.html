@@ -2,6 +2,13 @@
 
 {% extends "base.html" %}
 
+{% block head_title %}{{ account['email'] }}{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-user"></span>
+{{ account['email'] }}
+{% end %} {# block body_title #}
+
 {% block main_content %}
 <br>
 <table class="table">
@@ -31,6 +38,14 @@
 {% end %} {# block main_content #}
 
 {% block meta_content %}
+<p>
+  <a href="{{ reverse_url('account_edit', account['email']) }}"
+     class="btn btn-primary"
+     role="button">
+    <span class="glyphicon glyphicon-edit"></span>
+    Edit
+  </a>
+</p>
 <p>
   <a href="{{ reverse_url('logs', account['_id']) }}">
     <span class="badge">

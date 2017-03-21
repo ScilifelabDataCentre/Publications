@@ -2,7 +2,7 @@ Publications
 ============
 
 Simple web-based publications reference database where publications can
-be grouped by e.g.research group, facility, or some other classification.
+be grouped by e.g. research group, facility, or some other classification.
 
 Features
 --------

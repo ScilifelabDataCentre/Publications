@@ -1,0 +1,67 @@
+{# Account edit page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}
+Edit account {{ account['email'] }}
+{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-edit"></span>
+Edit account {{ account['email'] }}
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<form action="{{ reverse_url('account_edit', account['email']) }}"
+      role="form"
+      class="form-horizontal"
+      method="POST">
+  {% module xsrf_form_html() %}
+
+  {% if is_admin %}
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="role">Role</label>
+    <div class="col-sm-11">
+      {% for role in constants.ROLES %}
+      {% set checked = role == account['role'] and 'checked' or '' %}
+      <label class="radio-inline">
+	<input type="radio" name="role"
+	       value="{{ role }}" {{ checked }}>{{ role }}
+      </label>
+      {% end %}
+      <span class="help-block">
+	<strong>admin</strong> may do anything, including adding accounts, 
+	changing account role and editing publications.
+	<br>
+	<strong>curator</strong> may add publications, and edit publications
+	in their groups.
+      </span>
+    </div>
+  </div>
+  {% end %} {# if is_admin #}
+
+  <div class="form-group">
+    <div class="col-md-11 col-md-offset-1">
+      <button type="submit" class="btn btn-success">
+	<span class="glyphicon glyphicon-save"></span>
+	Save
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<form action="{{ reverse_url('account', account['email']) }}"
+      role="form"
+      method="GET">
+  <div class="form-group">
+    <label class="control-label"></label>
+    <button type="submit" class="btn btn-default">
+      <span class="glyphicon glyphicon-remove"></span>
+      Cancel
+    </button>
+  </div>
+</form>
+{% end %} {# block meta_content #}
