@@ -10,6 +10,20 @@ Fetch publication
 {% end %} {# block body_title #}
 
 {% block main_content %}
+<p>
+  Fetch a publication reference from:
+  <ul>
+    <li>
+      <a href="https://www.ncbi.nlm.nih.gov/pubmed">PubMed</a>
+      using a PubMed identifier (PMID), e.g. <strong>25613900</strong>.
+    </li>
+    <li>
+      <a href="https://www.crossref.org/">Crossref</a>
+      using a Digital Object Identifier (DOI), e.g.
+      <strong>10.1126/science.1260419</strong>.
+    </li>
+  </ul>
+</p>
 <form action="{{ reverse_url('publication_fetch') }}"
       role="form"
       class="form-horizontal"
@@ -26,20 +40,9 @@ Fetch publication
       <input type="text" class="form-control"
 	     name="identifier" id="identifier"
 	     value="{{ id }}">
-      <span class="help-block">
-	Specify a valid publication identifier:
-	<ul>
-	  <li> Digital Object Identifier (DOI), e.g.
-	    <strong>10.1126/science.1260419</strong>.
-	  </li>
-	  <li>PubMed identifier (PMID), e.g.
-	    <strong>25613900</strong>.
-	  </li>
-	</ul>
-      </span>
     </div>
     <div class="col-sm-3">
-      <button type="submit" class="btn btn-default">
+      <button type="submit" class="btn btn-success">
 	<span class="glyphicon glyphicon-cloud-download"></span>
 	Fetch
       </button>
@@ -50,7 +53,7 @@ Fetch publication
     <div class="col-sm-8 checkbox">
       <label>
 	<input type="checkbox" name="force" id="force" value="true">
-	Force fetch, even if the publication has been trashed.
+	Force fetch, even if the publication was trashed at some earlier time.
       </label>
     </div>
   </div>
@@ -58,6 +61,6 @@ Fetch publication
 {% end %} {# block main_content #}
 
 {% block sub_content %}
-<h3>Recently added publications</h3>
+<h3>Recently modified publications</h3>
 {% include 'publications_list.html' %}
 {% end %} {# block sub_content #}

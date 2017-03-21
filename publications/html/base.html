@@ -39,14 +39,28 @@
 		<span class="glyphicon glyphicon-home"></span>
 	      </a>
 	    </li>
-	    {% if is_curator %}
-	    <li>
-	      <a href="{{ reverse_url('publication_fetch') }}">
-		<span class="glyphicon glyphicon-cloud-download"></span>
-		Fetch publication
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+		Publications
+		<span class="caret"></span>
 	      </a>
+              <ul class="dropdown-menu">
+		<li>
+		  <a href="#">
+		    <span class="glyphicon glyphicon-list"></span>
+		    List
+		  </a>
+		</li>
+		{% if is_curator %}
+		<li>
+		  <a href="{{ reverse_url('publication_fetch') }}">
+		    <span class="glyphicon glyphicon-cloud-download"></span>
+		    Fetch
+		  </a>
+		</li>
+		{% end %} {# if is_curator #}
+	      </ul>
 	    </li>
-	    {% end %} {# if is_curator #}
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">
 		About

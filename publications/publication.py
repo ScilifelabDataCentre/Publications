@@ -61,7 +61,7 @@ class PublicationFetch(RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_curator()
-        docs = self.get_docs('publication/created',
+        docs = self.get_docs('publication/modified',
                              key=constants.CEILING,
                              last='',
                              descending=True,
@@ -82,13 +82,14 @@ class PublicationFetch(RequestHandler):
         # Check if identifier is present in trash registry
         force = utils.to_bool(self.get_argument('force', False))
         trashed = self.get_trashed(identifier)
+        trashed_msg = 'Article was trashed at some earlier time.'
         if trashed:
             if force:
                 del self.db[trashed]
             else:
                 self.see_other('publication_fetch',
                                identifier=identifier,
-                               error='Article has been trashed.')
+                               error=trashed_msg)
                 return
         try:
             old = self.get_publication(identifier)
@@ -128,16 +129,18 @@ class PublicationFetch(RequestHandler):
                 else:
                     self.see_other('publication_fetch',
                                    identifier=identifier,
-                                   error='Article has been trashed.')
+                                   error=trashed_msg)
                     return
         if old:
             with PublicationSaver(old, rqh=self) as saver:
                 for key in new:
                     saver[key] = new[key]
+            publication = old
         else:
             with PublicationSaver(new, rqh=self):
                 pass
-        self.see_other('publication_fetch')
+            publication = new
+        self.see_other('publication', publication['_id'])
 
 
 class PublicationEdit(PublicationMixin, RequestHandler):
