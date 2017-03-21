@@ -32,7 +32,7 @@ class AccountSaver(Saver):
     def set_password(self, new):
         utils.check_password(new)
         self['code'] = None
-        # Bypass ordinary 'set'; avoid logging password, even if hashed.
+        # Bypass ordinary 'set'; avoid logging password.
         self.doc['password'] = utils.hashed_password(new)
         self.changed['password'] = '******'
 
@@ -43,7 +43,7 @@ class AccountSaver(Saver):
 
 
 class AccountMixin(object):
-    "Mixin of various useful methods."
+    "Mixin with access check methods."
 
     def is_readable(self, account):
         "Is the account readable by the current user?"

@@ -19,7 +19,8 @@ from publications.login import Login, Logout
 from publications.account import Account
 from publications.publication import (Publication,
                                       PublicationFetch,
-                                      PublicationEdit)
+                                      PublicationEdit,
+                                      PublicationTrash)
 from publications.search import Search
 from publications.logs import Logs
 
@@ -45,11 +46,13 @@ def main():
     handlers = [url(r'/', Home, name='home'),
                 url(r'/site/([^/]+)', tornado.web.StaticFileHandler,
                     {'path': settings['SITE_DIR']}, name='site'),
-                url(r'/publication/([^/]+)', Publication, name='publication'),
-                url(r'/publication/([^/]+)/edit',
+                url(r'/publ/([^/]+)', Publication, name='publication'),
+                url(r'/edit/([^/]+)',
                     PublicationEdit, name='publication_edit'),
                 url(r'/fetch',
                     PublicationFetch, name='publication_fetch'),
+                url(r'/trash/([^/]+)',
+                    PublicationTrash, name='publication_trash'),
                 url(r'/login', Login, name='login'),
                 url(r'/logout', Logout, name='logout'),
                 url(r'/account/([^/]+)', Dummy, name='account'),

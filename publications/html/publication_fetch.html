@@ -18,8 +18,14 @@ Fetch publication
   <div class="form-group">
     <label class="col-sm-1 control-label" for="identifier">Identifier</label>
     <div class="col-sm-8">
+      {% try %}
+      {% set id = identifier %}
+      {% except NameError %}
+      {% set id = '' %}
+      {% end %}
       <input type="text" class="form-control"
-	     name="identifier" id="identifier">
+	     name="identifier" id="identifier"
+	     value="{{ id }}">
       <span class="help-block">
 	Specify a valid publication identifier:
 	<ul>
@@ -37,6 +43,16 @@ Fetch publication
 	<span class="glyphicon glyphicon-cloud-download"></span>
 	Fetch
       </button>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-1 control-label" for="force">Force</label>
+    <div class="col-sm-8 checkbox">
+      <label>
+	<input type="checkbox" name="force" id="force" value="true">
+	Force fetch, even if the publication has been trashed.
+      </label>
+    </div>
   </div>
 </form>
 {% end %} {# block main_content #}

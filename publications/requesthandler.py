@@ -103,6 +103,17 @@ class RequestHandler(tornado.web.RequestHandler):
             raise KeyError
         return doc
 
+    def get_trashed(self, identifier):
+        """Get the trash document id if the publication with
+        the external identifier has been trashed.
+        """
+        for viewname in ['trash/doi', 'trash/pmid']:
+            try:
+                return list(self.db.view(viewname)[identifier])[0].id
+            except IndexError:
+                pass
+        return None
+
     def get_account(self, email):
         """Get the account identified by the email address.
         Raise KeyError if no such account.
@@ -169,12 +180,26 @@ class RequestHandler(tornado.web.RequestHandler):
                              descending=True)
 
     def is_admin(self):
-        "Does the current user have 'admin' role?"
+        "Does the current user have the 'admin' role?"
         return bool(self.current_user) and \
                self.current_user['role'] == constants.ADMIN
 
     def check_admin(self):
-        "Check that the current user has 'admin' role."
-        if not self.is_admin():
-            raise tornado.web.HTTPError(403, reason="Role 'admin' required")
+        "Check that the current user has the 'admin' role."
+        if self.is_admin(): return
+        raise tornado.web.HTTPError(403, reason="Role 'admin' required")
 
+    def is_curator(self):
+        "Does the current user have the 'curator' or 'admin' role?"
+        return bool(self.current_user) and \
+               self.current_user['role'] in (constants.CURATOR, constants.ADMIN)
+        
+    def check_curator(self):
+        "Check that the current user has the 'curator' or 'admin' role."
+        if self.is_curator(): return
+        raise tornado.web.HTTPError(403, reason="Role 'curator' required")
+
+    def is_owner(self, doc):
+        "Is the current user the owner of the document?"
+        return bool(self.current_user) and \
+               self.current_user['email'] == doc['owner']

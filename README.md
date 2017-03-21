@@ -1,7 +1,21 @@
 Publications
 ============
 
-Simple publications reference database with web interface.
+Simple web-based publications reference database where publications can
+be grouped by e.g.research group, facility, or some other classification.
+
+Features
+--------
+
+- Direct fetch of publications by PMID or DOI from
+  [PubMed](https://www.ncbi.nlm.nih.gov/pubmed) or
+  [Crossref](https://www.crossref.org/).
+
+- Manual edit of publication entry.
+
+- Trash registry to keep track of publications that have been deleted.
+
+- Ability to override trash registry manually.
 
 Implementation
 --------------
