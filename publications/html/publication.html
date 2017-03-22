@@ -17,9 +17,9 @@
 </h4>
 
 <p>
-  {% module Pubmed(publication['pmid']) %}
-  <span class="spacer">{% module Doi(publication['doi']) %}</span>
-  <span class="spacer">{% module Crossref(publication['doi']) %}</span>
+  {% module Pubmed(publication['pmid'], full=True) %}
+  <span class="spacer">{% module Doi(publication['doi'], full=True) %}</span>
+  <span class="spacer">{% module Crossref(publication['doi'], full=True) %}</span>
 </p>
 
 {% if publication['abstract'] %}

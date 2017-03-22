@@ -2,13 +2,20 @@
 
 {% for publication in publications %}
 <div class="well well-sm">
+  <div style="float: right">
+    {% module Pubmed(publication['pmid']) %}
+    </br>
+    {% module Doi(publication['doi']) %}
+    </br>
+    {% module Crossref(publication['doi']) %}
+  </div>
   <div>
     <a href="{{ reverse_url('publication', publication['_id']) }}">
       <span class="glyphicon glyphicon-file"></span>
       {{ publication['title'] }}
     </a>
   </div>
-  <div style="float: left">
+  <div>
     {% if len(publication['authors']) > 4 %}
     {{ ', '.join(["%s %s" % (a['family'], a['initials']) for a in publication['authors'][0:3]]) }}
     ...
@@ -17,17 +24,12 @@
     {{ ', '.join(["%s %s" % (a['family'], a['initials']) for a in publication['authors']]) }}
     {% end %} {# if len #}
   </div>
-  <div class="right">
+  <div>
     {{ publication['journal'].get('title') or '-' }}
     <strong>{{ publication['journal'].get('volume') or '-' }}</strong>
     ({{ publication['journal'].get('issue') or '-' }})
     {{ publication['journal'].get('pages') or '-' }}
     [{{ publication['published'] }}]
-  </div>
-  <div>
-    {% module Pubmed(publication['pmid']) %}
-    <span class="spacer">{% module Doi(publication['doi']) %}</span>
-    <span class="spacer">{% module Crossref(publication['doi']) %}</span>
   </div>
 </div>
 {% end %} {# for #}

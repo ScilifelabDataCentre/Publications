@@ -17,13 +17,18 @@ class External(tornado.web.UIModule):
     NAME = None
     URL = None
 
-    def render(self, key):
+    def render(self, key, full=False):
         name = self.NAME or self.__class__.__name__
         if key:
             url = self.URL % key
-            return '<a href="%s">%s:&nbsp;%s</a>' % (url, name, key)
-        else:
+            if full:
+                return '<a href="%s">%s:&nbsp;%s</a>' % (url, name, key)
+            else:
+                return '<a href="%s">%s</a>' % (url, name)
+        elif full:
             return "%s:&nbsp-" % name
+        else:
+            return ''
 
 class Pubmed(External):
     "HTML for link to the PubMed item."
