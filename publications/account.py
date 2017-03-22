@@ -154,11 +154,16 @@ class AccountAdd(RequestHandler):
                     link=self.absolute_reverse_url('account_password',
                                                    account=account['email'],
                                                    code=account['code']))
-        server = utils.EmailServer()
-        server.send(account['email'],
-                    "A new account in the website %s" % settings['SITE_NAME'],
-                    ADD_TEXT % data)
-        self.see_other('account', email)
+        try:
+            server = utils.EmailServer()
+        except ValueError:
+            self.see_other('account', email,
+                           message='Could not send email to user!')
+        else:
+            server.send(account['email'],
+                        "A new account in the website %s" % settings['SITE_NAME'],
+                        ADD_TEXT % data)
+            self.see_other('account', email)
 
 
 class AccountEdit(AccountMixin, RequestHandler):
@@ -204,7 +209,10 @@ class AccountReset(RequestHandler):
             email = self.current_user['email']
         else:
             email = None
-        self.render('account_reset.html', email=email)
+        if settings['EMAIL']['HOST']:
+            self.render('account_reset.html', email=email)
+        else:
+            self.see_other('home', message='Cannot reset password; no email host server defined.')
 
     def post(self):
         try:
@@ -226,15 +234,21 @@ class AccountReset(RequestHandler):
                     link=self.absolute_reverse_url('account_password',
                                                    account=account['email'],
                                                    code=account['code']))
-        server = utils.EmailServer()
-        server.send(account['email'],
-                    "Reset your password in website %s" % settings['SITE_NAME'],
-                    RESET_TEXT % data)
-        self.see_other('home')
-        
+        try:
+            server = utils.EmailServer()
+        except ValueError:
+            self.see_other('home', error='Could not send email! Contact the administrator.')
+        else:
+            server.send(account['email'],
+                        "Reset your password in website %s" % settings['SITE_NAME'],
+                        RESET_TEXT % data)
+            self.see_other('home')
+
 
 class AccountPassword(RequestHandler):
-    "Set the password of the account; requires a one-time code."
+    """Set the password of the account; requires a one-time code.
+    The admin does not need the one-time code.
+    """
 
     def get(self):
         self.render('account_password.html',
@@ -245,16 +259,19 @@ class AccountPassword(RequestHandler):
         try:
             email = self.get_argument('account')
             password = self.get_argument('password')
-            code = self.get_argument('code')
+            code = self.get_argument('code', '')
             account = self.get_account(email)
-            if code != account.get('code'): raise ValueError
+            if not self.is_admin() and code != account.get('code'):
+                raise ValueError
             with AccountSaver(account, rqh=self) as saver:
                 saver.set_password(password)
-                # Login directly
-                self.set_secure_cookie(constants.USER_COOKIE,
-                                       account['email'],
-                                       expires_days=settings['LOGIN_MAX_AGE_DAYS'])
-                saver['login'] = utils.timestamp() # Set last login timestamp.
+                # Login directly if not already logged in
+                if not self.current_user:
+                    self.set_secure_cookie(
+                        constants.USER_COOKIE,
+                        account['email'],
+                        expires_days=settings['LOGIN_MAX_AGE_DAYS'])
+                    saver['login'] = utils.timestamp()
         except (tornado.web.MissingArgumentError, KeyError, ValueError):
             self.see_other('account_password',
                            error='Missing or wrong data in one or more fields.')

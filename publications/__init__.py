@@ -17,7 +17,7 @@ settings = dict(
     DATABASE_NAME='publications',
     COOKIE_SECRET=None,         # Must be set!
     PASSWORD_SALT=None,         # Must be set!
-    EMAIL=dict(HOST=None,       # At least HOST must be set!
+    EMAIL=dict(HOST=None,       # No emails can be sent unless this is set.
                PORT=None,
                TLS=False,
                USER=None,

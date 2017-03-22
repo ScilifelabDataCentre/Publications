@@ -237,8 +237,12 @@ class EmailServer(object):
     "A connection to an email server for sending emails."
 
     def __init__(self):
-        "Open the connection to the email server."
+        """Open the connection to the email server.
+        Raise ValueError if no email server host has been defined.
+        """
         host = settings['EMAIL']['HOST']
+        if not host:
+            raise ValueError('no email server host defined')
         try:
             port = settings['EMAIL']['PORT']
         except KeyError:

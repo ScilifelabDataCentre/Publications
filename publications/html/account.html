@@ -45,14 +45,26 @@
     Edit
   </a>
 </p>
+{% if settings['EMAIL']['HOST'] %}
 <p>
-  <a href="{{ reverse_url('account_reset', email=account['email']) }}"
+  <a href="{{ reverse_url('account_reset', account=account['email']) }}"
      class="btn btn-warning"
      role="button">
     <span class="glyphicon glyphicon-repeat"></span>
     Reset password
   </a>
 </p>
+{% end %}
+{% if is_admin %}
+<p>
+  <a href="{{ reverse_url('account_password', account=account['email']) }}"
+     class="btn btn-success"
+     role="button">
+    <span class="glyphicon glyphicon-arrow-down"></span>
+    Set password
+  </a>
+</p>
+{% end %}
 <p>
   <a href="{{ reverse_url('logs', account['_id']) }}">
     <span class="badge">
