@@ -9,21 +9,29 @@
 Login
 {% end %} {# block body_title #}
 
-{% block content %}
+{% block main_content %}
 <div class="row">
-  <div class="col-md-6">
+  <div class="col-md-5">
     <form action="{{ reverse_url('login') }}"
 	  role="form"
 	  method="POST">
       {% module xsrf_form_html() %}
-      <div class="form-group">
+      <div class="form-group has-feedback">
 	<label for="email">Email</label>
 	<input type="text" class="form-control" name="email"
-	       placeholder="Email address of account">
+	       placeholder="Email address of account"
+	       autocomplete="email">
+	<span class="glyphicon glyphicon-star text-danger form-control-feedback"></span>
       </div>
-      <div class="form-group">
+      <div class="form-group has-feedback">
 	<label for="password">Password</label>
-	<input type="password" class="form-control" name="password">
+	<input type="password" class="form-control" name="password"
+	       autocomplete="password">
+	<span class="glyphicon glyphicon-star text-danger form-control-feedback"></span>
+	<span class="help-block">
+	  Forgotten your password?
+	  <a href="{{ reverse_url('account_reset') }}">Reset it here</a>.
+	</span>
       </div>
       <input type="hidden" name="next" value="{{ next }}">
       <div class="form-group"> 

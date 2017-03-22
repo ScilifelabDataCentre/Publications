@@ -17,3 +17,10 @@ class Home(RequestHandler):
                              key=constants.CEILING, last='', descending=True,
                              limit=settings['MOST_RECENT_LIMIT'])
         self.render('home.html', publications=docs)
+
+
+class Contact(RequestHandler):
+    "Contact page."
+
+    def get(self):
+        self.render('contact.html', contact=settings['SITE_CONTACT'])

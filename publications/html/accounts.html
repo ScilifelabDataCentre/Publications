@@ -6,11 +6,11 @@
 
 {% block body_title %}
 <span class="glyphicon glyphicon-user"></span>
+<span class="glyphicon glyphicon-list"></span>
 Accounts
 {% end %}
 
 {% block main_content %}
-<br>
 <table class="table table-striped table-condensed">
   <tr>
     <th>Account</th>
@@ -26,7 +26,7 @@ Accounts
     </td>
     <td>{{ account['role'] }}</td>
     <td>
-      {% if account['login'] %}
+      {% if account.get('login') %}
       <span class="localtime">{{ account['login'] }}</span>
       {% else %}
       -

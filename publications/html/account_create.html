@@ -1,30 +1,38 @@
-{# Account edit page. #}
+{# Account creation page. #}
 
 {% extends "base.html" %}
 
-{% block head_title %}
-Edit account {{ account['email'] }}
-{% end %}
+{% block head_title %}Create account{% end %}
 
 {% block body_title %}
-<span class="glyphicon glyphicon-edit"></span>
 <span class="glyphicon glyphicon-user"></span>
-Edit '{{ account['email'] }}'
+<span class="glyphicon glyphicon-plus"></span>
+Create account
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<form action="{{ reverse_url('account_edit', account['email']) }}"
+<form action="{{ reverse_url('account_create') }}"
       role="form"
       class="form-horizontal"
       method="POST">
   {% module xsrf_form_html() %}
 
-  {% if is_admin %}
-  <div class="form-group">
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="account">Account</label>
+    <div class="col-sm-5">
+      <input type="account" name="account" class="form-control">
+      <span class="glyphicon glyphicon-star text-danger form-control-feedback"></span>
+      <span class="help-block">
+	The user's email address is the identifier for the account.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="role">Role</label>
     <div class="col-sm-11">
       {% for role in constants.ROLES %}
-      {% set checked = role == account['role'] and 'checked' or '' %}
+      {% set checked = role == constants.CURATOR and 'checked' or '' %}
       <label class="radio-inline">
 	<input type="radio" name="role"
 	       value="{{ role }}" {{ checked }}>{{ role }}
@@ -34,12 +42,11 @@ Edit '{{ account['email'] }}'
 	<strong>admin</strong> may do anything, including adding accounts, 
 	changing account role and editing publications.
 	<br>
-	<strong>curator</strong> may add publications, and edit publications
+	<strong>curator</strong> may add publications and edit publications
 	in their groups.
       </span>
     </div>
   </div>
-  {% end %} {# if is_admin #}
 
   <div class="form-group">
     <div class="col-md-11 col-md-offset-1">
@@ -47,6 +54,10 @@ Edit '{{ account['email'] }}'
 	<span class="glyphicon glyphicon-save"></span>
 	Save
       </button>
+      <span class="help-block">
+	An email message will be sent to the address given above,
+	containing instructions for the user to set the password.
+      </span>
     </div>
   </div>
 
@@ -54,7 +65,7 @@ Edit '{{ account['email'] }}'
 {% end %} {# block main_content #}
 
 {% block meta_content %}
-<form action="{{ reverse_url('account', account['email']) }}"
+<form action="{{ reverse_url('home') }}"
       role="form"
       method="GET">
   <div class="form-group">

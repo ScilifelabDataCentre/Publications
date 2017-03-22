@@ -32,6 +32,7 @@
 		 alt="{{ settings['SITE_NAME'] }}">
 	  </a>
 	</div>
+
 	<div class="collapse navbar-collapse" id="myNavbar">
 	  <ul class="nav navbar-nav">
 	    <li>
@@ -41,6 +42,7 @@
 	    </li>
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+		<span class="glyphicon glyphicon-file"></span>
 		Publications
 		<span class="caret"></span>
 	      </a>
@@ -61,38 +63,52 @@
 		{% end %} {# if is_curator #}
 	      </ul>
 	    </li>
-            <li class="dropdown">
-              <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-		About
-		<span class="caret"></span>
-	      </a>
-              <ul class="dropdown-menu">
-		<li>
-		  <a href="#">Version {{ settings['SOURCE_VERSION'] }}</a>
-		</li>
-		<li>
-		  <a href="{{ settings['SOURCE_HOME'] }}">
-		    Software repo
-		  </a>
-		</li>
-	      </ul>
-	    </li>
+
 	    {% if is_admin %}
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-		Admin
+		<span class="glyphicon glyphicon-user"></span>
+		Accounts
 		<span class="caret"></span>
 	      </a>
               <ul class="dropdown-menu">
 		<li>
 		  <a href="{{ reverse_url('accounts') }}">
-		    <span class="glyphicon glyphicon-user"></span>
-		    Accounts
+		    <span class="glyphicon glyphicon-list"></span>
+		    List
+		  </a>
+		</li>
+		<li>
+		  <a href="{{ reverse_url('account_create') }}">
+		    <span class="glyphicon glyphicon-plus"></span>
+		    Create
 		  </a>
 		</li>
 	      </ul>
 	    </li>
 	    {% end %} {# if is_admin #}
+
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+		<span class="glyphicon glyphicon-info-sign"></span>
+		About
+		<span class="caret"></span>
+	      </a>
+              <ul class="dropdown-menu">
+		<li>
+		  <a href="{{ settings['SOURCE_HOME'] }}">
+		    <span class="glyphicon glyphicon-cog"></span>
+		    Software v{{ settings['SOURCE_VERSION'] }}
+		  </a>
+		</li>
+		<li>
+		  <a href="{{ reverse_url('contact') }}">
+		    <span class="glyphicon glyphicon-earphone"></span>
+		    Contact
+		  </a>
+		</li>
+	      </ul>
+	    </li>
 	  </ul>
 
 	  <div>
@@ -165,6 +181,7 @@
 	  <h1>{% block body_title %}{{ title }}{% end %}</h1>
 	</div>
       </div>
+      <br>
       {% end %} {# block body_header #}
 
       {% block error %}

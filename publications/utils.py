@@ -3,11 +3,13 @@
 from __future__ import print_function
 
 import datetime
+import email.mime.text
 import hashlib
 import logging
 import optparse
 import os
 import socket
+import smtplib
 import urlparse
 import uuid
 import unicodedata
@@ -153,7 +155,7 @@ def check_password(password):
     """Check that the password is long and complex enough.
     Raise ValueError otherwise."""
     if len(password) < settings['MIN_PASSWORD_LENGTH']:
-        raise ValueError("Password must be at least {0} characters long.".
+        raise ValueError("Password must be at least {0} characters.".
                          format(settings['MIN_PASSWORD_LENGTH']))
 
 def timestamp(days=None):
@@ -229,3 +231,42 @@ def write_log(db, rqh, doc, changed=dict()):
     except (AttributeError, TypeError, KeyError):
         pass
     db.save(entry)
+
+
+class EmailServer(object):
+    "A connection to an email server for sending emails."
+
+    def __init__(self):
+        "Open the connection to the email server."
+        host = settings['EMAIL']['HOST']
+        try:
+            port = settings['EMAIL']['PORT']
+        except KeyError:
+            self.server = smtplib.SMTP(host)
+        else:
+            self.server = smtplib.SMTP(host, port=port)
+        if settings['EMAIL'].get('TLS'):
+            self.server.starttls()
+        try:
+            user = settings['EMAIL']['USER']
+            password = settings['EMAIL']['PASSWORD']
+        except KeyError:
+            pass
+        else:
+            self.email = settings.get('SITE_EMAIL') or settings['EMAIL']['USER']
+            self.server.login(user, password)
+
+    def __del__(self):
+        "Close the connection to the email server."
+        try:
+            self.server.quit()
+        except AttributeError:
+            pass
+
+    def send(self, recipient, subject, text):
+        "Send an email."
+        mail = email.mime.text.MIMEText(text, 'plain', 'utf-8')
+        mail['Subject'] = subject
+        mail['From'] = self.email
+        mail['To'] = recipient
+        self.server.sendmail(self.email, [recipient], mail.as_string())

@@ -14,20 +14,20 @@ from publications import uimodules
 from publications import utils
 from publications.requesthandler import RequestHandler
 
-from publications.home import Home
+from publications.home import Home, Contact
 from publications.login import Login, Logout
-from publications.account import Account, AccountEdit, Accounts
+from publications.account import (Account,
+                                  Accounts,
+                                  AccountCreate,
+                                  AccountEdit,
+                                  AccountReset,
+                                  AccountPassword)
 from publications.publication import (Publication,
                                       PublicationFetch,
                                       PublicationEdit,
                                       PublicationTrash)
 from publications.search import Search
 from publications.logs import Logs
-
-
-class Dummy(RequestHandler):
-    def get(self, *args, **kwargs):
-        raise NotImplementedError
 
 
 def get_args():
@@ -44,6 +44,7 @@ def main():
 
     url = tornado.web.url
     handlers = [url(r'/', Home, name='home'),
+                url(r'/contact', Contact, name='contact'),
                 url(r'/site/([^/]+)', tornado.web.StaticFileHandler,
                     {'path': settings['SITE_DIR']}, name='site'),
                 url(r'/publ/([^/]+)', Publication, name='publication'),
@@ -55,9 +56,14 @@ def main():
                     PublicationTrash, name='publication_trash'),
                 url(r'/login', Login, name='login'),
                 url(r'/logout', Logout, name='logout'),
+                url(r'/account/reset', AccountReset, name='account_reset'),
+                url(r'/account/password',
+                    AccountPassword, name='account_password'),
                 url(r'/account/([^/]+)', Account, name='account'),
-                url(r'/account/([^/]+)/edit', AccountEdit, name='account_edit'),
+                url(r'/account/([^/]+)/edit',
+                    AccountEdit, name='account_edit'),
                 url(r'/accounts', Accounts, name='accounts'),
+                url(r'/account', AccountCreate, name='account_create'),
                 url(r'/search', Search, name='search'),
                 url(r'/logs/([^/]+)', Logs, name='logs'),
                 ]

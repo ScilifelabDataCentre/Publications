@@ -21,7 +21,7 @@ def create_admin(email, password):
         saver['owner'] = email
         saver.set_password(password)
         saver['role'] = constants.ADMIN
-    print('Created admin account', email)
+    print("Created 'admin' role account", email)
 
 
 if __name__ == '__main__':

@@ -10,7 +10,6 @@
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<br>
 <table class="table">
   <tr>
     <th>Role</th>
@@ -19,7 +18,7 @@
   <tr>
     <th>Last login</th>
     <td>
-      {% if account['login'] %}
+      {% if account.get('login') %}
       <span class="localtime">{{ account['login'] }}</span>
       {% else %}
       -
@@ -44,6 +43,14 @@
      role="button">
     <span class="glyphicon glyphicon-edit"></span>
     Edit
+  </a>
+</p>
+<p>
+  <a href="{{ reverse_url('account_reset', email=account['email']) }}"
+     class="btn btn-warning"
+     role="button">
+    <span class="glyphicon glyphicon-repeat"></span>
+    Reset password
   </a>
 </p>
 <p>

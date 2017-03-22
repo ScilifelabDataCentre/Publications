@@ -8,7 +8,13 @@ Edit publication {{ publication['title'][:20] }}...
 
 {% block body_title %}
 <span class="glyphicon glyphicon-edit"></span>
-Edit publication {{ publication['title'][:20] }}...
+<span class="glyphicon glyphicon-file"></span>
+Edit
+{% if len(publication['title']) < 30 %}
+'{{ publication['title'] }}'
+{% else %}
+'{{ publication['title'][:28] }}...'
+{% end %}
 {% end %} {# block body_title #}
 
 {% block main_content %}
