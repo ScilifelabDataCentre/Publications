@@ -21,9 +21,9 @@ class External(tornado.web.UIModule):
         name = self.NAME or self.__class__.__name__
         if key:
             url = self.URL % key
-            return '<a href="%s">%s: %s</a>' % (url, name, key)
+            return '<a href="%s">%s:&nbsp;%s</a>' % (url, name, key)
         else:
-            return "%s: -" % name
+            return "%s:&nbsp-" % name
 
 class Pubmed(External):
     "HTML for link to the PubMed item."

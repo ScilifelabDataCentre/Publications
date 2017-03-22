@@ -14,7 +14,9 @@ class Home(RequestHandler):
 
     def get(self):
         docs = self.get_docs('publication/published',
-                             key=constants.CEILING, last='', descending=True,
+                             key=constants.CEILING,
+                             last='',
+                             descending=True,
                              limit=settings['MOST_RECENT_LIMIT'])
         self.render('home.html', publications=docs)
 

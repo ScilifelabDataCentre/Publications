@@ -55,6 +55,17 @@ class Publication(RequestHandler):
                     publication=publication)
 
 
+class Publications(RequestHandler):
+    "Publications list page."
+
+    def get(self):
+        docs = self.get_docs('publication/published',
+                             key=constants.CEILING,
+                             last='',
+                             descending=True)
+        self.render('publications.html', publications=docs)
+
+
 class PublicationFetch(RequestHandler):
     "Fetch a publication given its DOI or PMID."
 

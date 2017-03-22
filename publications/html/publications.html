@@ -1,0 +1,14 @@
+{# Publicatons list page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Publications{% end %}
+{% block body_title %}
+<span class="glyphicon glyphicon-file"></span>
+<span class="glyphicon glyphicon-list"></span>
+Publications
+{% end %}
+
+{% block main_content %}
+{% include 'publications_list.html' %}
+{% end %} {# block main_content #}

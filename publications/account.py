@@ -12,7 +12,7 @@ from . import utils
 from .saver import Saver
 from .requesthandler import RequestHandler
 
-CREATE_TEXT = """A new account %(email)s in the website %(site)s has been created.
+ADD_TEXT = """A new account %(email)s in the website %(site)s has been created.
 
 To set the password, go to %(link)s and provide it.
 
@@ -110,13 +110,13 @@ class Accounts(RequestHandler):
         self.render('accounts.html', accounts=accounts)
 
 
-class AccountCreate(RequestHandler):
-    "Account creation page."
+class AccountAdd(RequestHandler):
+    "Account addition page."
 
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        self.render('account_create.html')
+        self.render('account_add.html')
 
     @tornado.web.authenticated
     def post(self):
@@ -124,7 +124,7 @@ class AccountCreate(RequestHandler):
         try:
             email = self.get_argument('account')
         except tornado.web.MissingArgumentError:
-            self.see_other('account_create', error='No account email provided.')
+            self.see_other('account_add', error='No account email provided.')
             return
         try:
             account = self.get_account(email)
@@ -145,7 +145,7 @@ class AccountCreate(RequestHandler):
                 saver.reset_password()
             account = saver.doc
         except ValueError, msg:
-            self.see_other('account_create', error=str(msg))
+            self.see_other('account_add', error=str(msg))
             return
         data = dict(site=settings['SITE_NAME'],
                     email=account['email'],
@@ -156,8 +156,8 @@ class AccountCreate(RequestHandler):
                                                    code=account['code']))
         server = utils.EmailServer()
         server.send(account['email'],
-                    "A new account in website %s" % settings['SITE_NAME'],
-                    CREATE_TEXT % data)
+                    "A new account in the website %s" % settings['SITE_NAME'],
+                    ADD_TEXT % data)
         self.see_other('account', email)
 
 

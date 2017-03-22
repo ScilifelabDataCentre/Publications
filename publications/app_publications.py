@@ -18,11 +18,12 @@ from publications.home import Home, Contact
 from publications.login import Login, Logout
 from publications.account import (Account,
                                   Accounts,
-                                  AccountCreate,
+                                  AccountAdd,
                                   AccountEdit,
                                   AccountReset,
                                   AccountPassword)
 from publications.publication import (Publication,
+                                      Publications,
                                       PublicationFetch,
                                       PublicationEdit,
                                       PublicationTrash)
@@ -48,6 +49,7 @@ def main():
                 url(r'/site/([^/]+)', tornado.web.StaticFileHandler,
                     {'path': settings['SITE_DIR']}, name='site'),
                 url(r'/publ/([^/]+)', Publication, name='publication'),
+                url(r'/publ', Publications, name='publications'),
                 url(r'/edit/([^/]+)',
                     PublicationEdit, name='publication_edit'),
                 url(r'/fetch',
@@ -63,7 +65,7 @@ def main():
                 url(r'/account/([^/]+)/edit',
                     AccountEdit, name='account_edit'),
                 url(r'/accounts', Accounts, name='accounts'),
-                url(r'/account', AccountCreate, name='account_create'),
+                url(r'/account', AccountAdd, name='account_add'),
                 url(r'/search', Search, name='search'),
                 url(r'/logs/([^/]+)', Logs, name='logs'),
                 ]

@@ -1,17 +1,17 @@
-{# Account creation page. #}
+{# Account addition page. #}
 
 {% extends "base.html" %}
 
-{% block head_title %}Create account{% end %}
+{% block head_title %}Add account{% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-user"></span>
 <span class="glyphicon glyphicon-plus"></span>
-Create account
+Add account
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<form action="{{ reverse_url('account_create') }}"
+<form action="{{ reverse_url('account_add') }}"
       role="form"
       class="form-horizontal"
       method="POST">
@@ -51,8 +51,8 @@ Create account
   <div class="form-group">
     <div class="col-md-11 col-md-offset-1">
       <button type="submit" class="btn btn-success">
-	<span class="glyphicon glyphicon-save"></span>
-	Save
+	<span class="glyphicon glyphicon-plus"></span>
+	Add
       </button>
       <span class="help-block">
 	An email message will be sent to the address given above,

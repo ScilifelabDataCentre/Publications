@@ -48,7 +48,7 @@
 	      </a>
               <ul class="dropdown-menu">
 		<li>
-		  <a href="#">
+		  <a href="{{ reverse_url('publications') }}">
 		    <span class="glyphicon glyphicon-list"></span>
 		    List
 		  </a>
@@ -79,9 +79,9 @@
 		  </a>
 		</li>
 		<li>
-		  <a href="{{ reverse_url('account_create') }}">
+		  <a href="{{ reverse_url('account_add') }}">
 		    <span class="glyphicon glyphicon-plus"></span>
-		    Create
+		    Add
 		  </a>
 		</li>
 	      </ul>
@@ -96,15 +96,15 @@
 	      </a>
               <ul class="dropdown-menu">
 		<li>
-		  <a href="{{ settings['SOURCE_HOME'] }}">
-		    <span class="glyphicon glyphicon-cog"></span>
-		    Software v{{ settings['SOURCE_VERSION'] }}
-		  </a>
-		</li>
-		<li>
 		  <a href="{{ reverse_url('contact') }}">
 		    <span class="glyphicon glyphicon-earphone"></span>
 		    Contact
+		  </a>
+		</li>
+		<li>
+		  <a href="{{ settings['SOURCE_HOME'] }}">
+		    <span class="glyphicon glyphicon-link"></span>
+		    Software v{{ settings['SOURCE_VERSION'] }}
 		  </a>
 		</li>
 	      </ul>
