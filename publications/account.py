@@ -11,6 +11,7 @@ from . import settings
 from . import utils
 from .saver import Saver
 from .requesthandler import RequestHandler
+from .label import LabelSaver
 
 ADD_TEXT = """A new account %(email)s in the website %(site)s has been created.
 
@@ -96,9 +97,7 @@ class Account(AccountMixin, RequestHandler):
         except (KeyError, ValueError), msg:
             self.see_other('home', error=str(msg))
             return
-        self.render('account.html',
-                    account=account,
-                    labels=self.get_labels(account))
+        self.render('account.html', account=account)
 
 
 class Accounts(RequestHandler):
@@ -117,7 +116,8 @@ class AccountAdd(RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        self.render('account_add.html')
+        self.render('account_add.html',
+                    all_labels=[l['value'] for l in self.get_labels()])
 
     @tornado.web.authenticated
     def post(self):
@@ -143,6 +143,9 @@ class AccountAdd(RequestHandler):
                 saver.set_email(email)
                 saver['owner'] = email
                 saver['role'] = role
+                all_labels = set([l['value'] for l in self.get_labels()])
+                saver['labels'] = [l for l in self.get_arguments('labels')
+                                   if l in all_labels]
                 saver.reset_password()
             account = saver.doc
         except ValueError, msg:
@@ -182,7 +185,12 @@ class AccountEdit(AccountMixin, RequestHandler):
         except ValueError, msg:
             self.see_other('account', account['email'], error=str(msg))
             return
-        self.render('account_edit.html', account=account)
+        if self.is_admin():
+            self.render('account_edit.html',
+                        account=account,
+                        labels=[l['value'] for l in self.get_labels()])
+        else:
+            self.render('account_edit.html', account=account)
 
     @tornado.web.authenticated
     def post(self, email):
@@ -199,8 +207,11 @@ class AccountEdit(AccountMixin, RequestHandler):
         with AccountSaver(account, rqh=self) as saver:
             if self.is_admin():
                 saver['role'] = self.get_argument('role', account['role'])
+                all_labels = set([l['value'] for l in self.get_labels()])
+                saver['labels'] = [l for l in self.get_arguments('labels')
+                                   if l in all_labels]
         self.see_other('account', account['email'])
-        
+
 
 class AccountReset(RequestHandler):
     "Reset the password of the account; send an email with the one-time code."

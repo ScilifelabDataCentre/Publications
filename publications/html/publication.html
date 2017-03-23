@@ -19,18 +19,18 @@
   <span class="spacer">{% module Crossref(publication['doi'], full=True) %}</span>
 </p>
 <p>
+  {{ publication['abstract'] or ''}}
+</p>
+<p>
   {% for label in publication['labels'] %}
   <a class="label label-default"
      href="{{ reverse_url('label', label) }}">{{ label }}</a>
   {% end %}
 </p>
-<p>
-  {{ publication['abstract'] or ''}}
-</p>
 {% end %} {# block main_content #}
 
 {% block meta_content %}
-{% if is_admin %}
+{% if is_editable %}
 <p>
   <a href="{{ reverse_url('publication_edit', publication['_id']) }}"
      class="btn btn-primary"

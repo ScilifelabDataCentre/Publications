@@ -13,9 +13,15 @@
 {% if current_user %}
 <h3>Curators</h3>
 <p>
-{% for email in label['accounts'] %}
-<a href="{{ reverse_url('account', email) }}">{{ email }}</a>
-{% end %} {# for email #}
+{% if accounts %}
+{% for account in accounts %}
+<a href="{{ reverse_url('account', account['email']) }}">
+  {{ account['email'] }}
+</a>
+{% end %} {# for account #}
+{% else %}
+<i>None</i>
+{% end %}
 </p>
 {% end %} {# if current_user #}
 <h3>Publications</h3>

@@ -15,6 +15,7 @@ Labels
   <thead>
     <tr>
       <th>Label</th>
+      <th># Publications</th>
       <th>Curators</th>
     </tr>
   </thead>
@@ -27,7 +28,10 @@ Labels
 	</a>
       </td>
       <td>
-	{% for email in label['accounts'] %}
+	<span class="badge">{{ label_counts.get(label['value'], 0) }}</span>
+      </td>
+      <td>
+	{% for email in sorted(label_accounts[label['value']]) %}
 	<a href="{{ reverse_url('account', email) }}">{{ email }}</a>
 	<br>
 	{% end %}
@@ -37,3 +41,6 @@ Labels
   </tbody>
 </table>
 {% end %}
+
+{% block meta_content %}
+{% end %} {# block meta_content #}

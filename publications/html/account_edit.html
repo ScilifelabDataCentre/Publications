@@ -41,6 +41,27 @@ Edit '{{ account['email'] }}'
   </div>
   {% end %} {# if is_admin #}
 
+  {% if is_admin %}
+  <div class="form-group">
+    <label class="control-label col-sm-1" for="labels">Labels</label>
+    <div class=" col-sm-6">
+      <select multiple class="form-control" name="labels" id="labels">
+	{% for label in labels %}
+	{% if label in account['labels'] %}
+	<option selected>{{ label }}</option>
+	{% else %}
+	<option>{{ label }}</option>
+	{% end %} {# if label #}
+	{% end %} {# for label #}
+      </select>
+      <span class="help-block">
+	Multiple select list; hold ctrl or shift (or drag with the mouse)
+	to select more than one.
+      </span>
+    </div>
+  </div>
+  {% end %} {# if is_admin #}
+
   <div class="form-group">
     <div class="col-md-11 col-md-offset-1">
       <button type="submit" class="btn btn-success">

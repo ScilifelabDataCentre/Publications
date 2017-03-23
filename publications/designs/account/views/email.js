@@ -1,5 +1,4 @@
-/* Publications
-   Account documents indexed by email address.
+/* Account documents indexed by email address.
    Value: first and last names.
 */
 function(doc) {

@@ -49,6 +49,21 @@ Add account
   </div>
 
   <div class="form-group">
+    <label class="control-label col-sm-1" for="labels">Labels</label>
+    <div class=" col-sm-6">
+      <select multiple class="form-control" name="labels" id="labels">
+	{% for label in all_labels %}
+	<option>{{ label }}</option>
+	{% end %} {# for label #}
+      </select>
+      <span class="help-block">
+	Multiple select list; hold ctrl or shift (or drag with the mouse)
+	to select more than one.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
     <div class="col-md-11 col-md-offset-1">
       <button type="submit" class="btn btn-success">
 	<span class="glyphicon glyphicon-plus"></span>

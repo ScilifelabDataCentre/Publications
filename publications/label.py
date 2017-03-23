@@ -36,10 +36,14 @@ class Label(RequestHandler):
         except KeyError, msg:
             self.see_other('home', error=str(msg))
             return
-        publications = self.get_docs('publication/label', key=label['value'])
+        accounts = self.get_docs('account/label', key=label['value'])
+        publications = self.get_docs('publication/label',
+                                     key=label['value'],
+                                     reduce=False)
         publications.sort(key=lambda i: i['published'], reverse=True)
         self.render('label.html',
                     label=label,
+                    accounts=accounts,
                     publications=publications)
 
 
@@ -47,7 +51,17 @@ class Labels(RequestHandler):
     "Labels list page."
 
     def get(self):
-        self.render('labels.html', labels=self.get_labels())
+        labels = self.get_labels()
+        label_accounts = dict([(l['value'], []) for l in labels])
+        for account in self.get_docs('account/email'):
+            for label in account['labels']:
+                label_accounts[label].append(account['email'])
+        view = self.db.view('publication/label', group=True)
+        label_counts = dict([(r.key, r.value) for r in view])
+        self.render('labels.html',
+                    labels=labels,
+                    label_accounts=label_accounts,
+                    label_counts=label_counts)
 
 
 class LabelAdd(RequestHandler):
@@ -70,7 +84,6 @@ class LabelAdd(RequestHandler):
             with LabelSaver(rqh=self) as saver:
                 saver['value'] = value
                 saver['value_normalized'] = utils.to_ascii(value)
-                saver['accounts'] = []
             label = saver.doc
         except ValueError, msg:
             self.see_other('label_add', error=str(msg))

@@ -21,10 +21,8 @@
       {% if account['role'] == constants.ADMIN %}
       <i>any</i>
       {% else %}
-      {% for label in labels %}
-      <a href="{{ reverse_url('label', label['value']) }}">
-	{{ label['value'] }}
-      </a>
+      {% for label in account['labels'] %}
+      <a href="{{ reverse_url('label', label) }}">{{ label }}</a>
       <br>
       {% end %} {# for label #}
       {% end %} {# if #}

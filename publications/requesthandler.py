@@ -101,7 +101,7 @@ class RequestHandler(tornado.web.RequestHandler):
         return doc
 
     def get_label(self, identifier):
-        """Get the label by its IUID or value.
+        """Get the label document by its IUID or value.
         Raise KeyError if no such publication.
         """
         if not identifier: raise KeyError
@@ -114,19 +114,9 @@ class RequestHandler(tornado.web.RequestHandler):
             raise KeyError
         return doc
 
-    def get_labels(self, account=None):
-        """Get the list of labels.
-        If account is given, then only those that the account can assign.
-        """
-        if account:
-            if account['role'] == constants.ADMIN:
-                return self.get_labels()
-            elif account['role'] == constants.CURATOR:
-                return self.get_docs('label/account', key=account['email'])
-            else:
-                return []
-        else:
-            return self.get_docs('label/value')
+    def get_labels(self):
+        "Get the list of label documents."
+        return self.get_docs('label/value')
 
     def get_trashed(self, identifier):
         """Get the trash document id if the publication with

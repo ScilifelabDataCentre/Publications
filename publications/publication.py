@@ -41,7 +41,7 @@ class PublicationMixin(object):
         raise ValueError('You may not trash the publication.')
 
 
-class Publication(RequestHandler):
+class Publication(PublicationMixin, RequestHandler):
     "Display the publication."
 
     def get(self, identifier):
@@ -52,7 +52,8 @@ class Publication(RequestHandler):
             raise tornado.web.HTTPError(404, reason='No such publication.')
         self.render('publication.html',
                     title=publication['title'],
-                    publication=publication)
+                    publication=publication,
+                    is_editable=self.is_editable(publication))
 
 
 class Publications(RequestHandler):
@@ -168,9 +169,14 @@ class PublicationEdit(PublicationMixin, RequestHandler):
         except KeyError:
             raise tornado.web.HTTPError(404, reason='No such publication.')
         self.check_editable(publication)
+        if self.is_admin():
+            labels = [l['value'] for l in self.get_labels()]
+        else:
+            labels = self.current_user['labels']
         self.render('publication_edit.html',
                     title='Edit publication',
-                    publication=publication)
+                    publication=publication,
+                    labels=labels)
 
     @tornado.web.authenticated
     def post(self, iuid):
@@ -179,6 +185,10 @@ class PublicationEdit(PublicationMixin, RequestHandler):
         except KeyError:
             raise tornado.web.HTTPError(404, reason='No such publication.')
         self.check_editable(publication)
+        if self.is_admin():
+            allowed_labels = set([l['value'] for l in self.get_labels()])
+        else:
+            allowed_labels = set(self.current_user['labels'])
         with PublicationSaver(doc=publication, rqh=self) as saver:
             saver['title'] = self.get_argument('title', '') or '[no title]'
             authors = []
@@ -210,6 +220,8 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 journal[key] = self.get_argument(key, '') or None
             saver['journal'] = journal
             saver['abstract'] = self.get_argument('abstract', '') or None
+            saver['labels'] = [l for l in self.get_arguments('labels')
+                               if l in allowed_labels]
         self.see_other('publication', publication['_id'])
 
 

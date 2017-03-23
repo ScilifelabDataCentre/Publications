@@ -1,5 +1,6 @@
 {# Display list of publications. #}
 
+{% if publications %}
 {% for publication in publications %}
 <div class="well well-sm">
   <div style="float: right">
@@ -33,3 +34,6 @@
   </div>
 </div>
 {% end %} {# for #}
+{% else %}
+<i>None</i>
+{% end %}
