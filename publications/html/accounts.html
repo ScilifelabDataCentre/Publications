@@ -1,4 +1,4 @@
-{# Accounts list page. #}
+{# Accounts table page. #}
 
 {% extends "base.html" %}
 
@@ -10,7 +10,7 @@
 
 {% block body_title %}
 <span class="glyphicon glyphicon-user"></span>
-<span class="glyphicon glyphicon-list"></span>
+<span class="glyphicon glyphicon-list-alt"></span>
 Accounts
 {% end %}
 
@@ -20,7 +20,7 @@ Accounts
     <tr>
       <th>Account</th>
       <th>Role</th>
-      <th>Login</th>
+      <th width="25%">Login</th>
     </tr>
   </thead>
   <tbody>
@@ -32,7 +32,7 @@ Accounts
 	</a>
       </td>
       <td>{{ account['role'] }}</td>
-      <td>
+      <td class="nobr" width="25%">
 	{% if account.get('login') %}
 	<span class="localtime">{{ account['login'] }}</span>
 	{% else %}

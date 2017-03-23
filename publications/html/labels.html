@@ -1,4 +1,4 @@
-{# Labels list page. #}
+{# Labels table page. #}
 
 {% extends "base.html" %}
 
@@ -6,7 +6,7 @@
 
 {% block body_title %}
 <span class="glyphicon glyphicon-user"></span>
-<span class="glyphicon glyphicon-list"></span>
+<span class="glyphicon glyphicon-list-alt"></span>
 Labels
 {% end %}
 
@@ -20,7 +20,7 @@ Labels
     <tr>
       <th>Label</th>
       <th># Publications</th>
-      <th>Curators</th>
+      <th width="40%">Curators</th>
     </tr>
   </thead>
   <tbody>
@@ -34,7 +34,7 @@ Labels
       <td>
 	<span class="badge">{{ label_counts.get(label['value'], 0) }}</span>
       </td>
-      <td>
+      <td width="40%">
 	{% for email in sorted(label_accounts[label['value']]) %}
 	<a href="{{ reverse_url('account', email) }}">{{ email }}</a>
 	<br>
