@@ -1,9 +1,10 @@
 Publications
 ============
 
-Simple web-based publications reference database system. Curators may add or
-fetch publications. Publications can be grouped by e.g. research group,
-facility, or some other classification.
+Simple web-based publications reference database system.
+Curators may add or fetch publications.
+Publications can be labeled to indicate e.g. research group, facility,
+or some other classification.
 
 Features
 --------
@@ -21,7 +22,6 @@ Features
 Implementation
 --------------
 
-Front-end: tornado, Bootstrap 3, jQuery
+Front-end: Bootstrap 3, jQuery, jQuery UI, DataTables
 
-Back-end: Python 2.6 or 2.7, CouchDB, pyyaml, requests
-
+Back-end: Python 2.6 or 2.7, tornado, CouchDB, pyyaml, requests
