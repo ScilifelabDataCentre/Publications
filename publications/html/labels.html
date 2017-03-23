@@ -2,16 +2,16 @@
 
 {% extends "base.html" %}
 
-{% block header_css %}
-{% include 'datatables_css.html' %}
-{% end %}
-
 {% block head_title %}Labels{% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-user"></span>
 <span class="glyphicon glyphicon-list"></span>
 Labels
+{% end %}
+
+{% block header_css %}
+{% include 'datatables_css.html' %}
 {% end %}
 
 {% block main_content %}
@@ -46,14 +46,11 @@ Labels
 </table>
 {% end %}
 
-{% block meta_content %}
-{% end %} {# block meta_content #}
-
 {% block javascript_code %}
 {% include 'datatables_js.html' %}
 <script>
   $(document).ready(function() {
-  $('#labels').DataTable();
+    $('#labels').DataTable();
   } );
 </script>
 {% end %}

@@ -9,6 +9,31 @@ from . import settings
 from . import utils
 
 
+class Authors(tornado.web.UIModule):
+    "HTML for authors list."
+
+    def render(self, publication, full=False):
+        authors = publication['authors']
+        if full or len(authors) <= 4:
+            result = ["%s %s" % (a['family'], a['initials']) for a in authors]
+        else:
+            result = ["%s %s" % (a['family'], a['initials'])
+                      for a in authors[:3]]
+            result.append('...')
+            a = authors[-1]
+            result.append("%s %s" % (a['family'], a['initials']))
+        return ', '.join(result)
+
+
+class Journal(tornado.web.UIModule):
+    "HTML for authors list."
+
+    def render(self, publication):
+        journal = publication['journal']
+        return ' '.join([journal.get('title') or '-',
+                         "<strong>%s</strong>" % (journal.get('volume') or '-'),
+                         "(%s)" % (journal.get('issue') or '-'),
+                         journal.get('pages') or '-'])
 
 
 class External(tornado.web.UIModule):

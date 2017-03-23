@@ -3,11 +3,8 @@
 /* The icon image padding must be adjusted for the navbar */
 .navbar-brand {padding: 9px; }
 
-/* Reduce empty space below navbar. */
-.navbar {margin-bottom: 0; }
-
-/* Remove border from panel. */
-.panel-noborder {border: 0; }
+/* Less empty space below navbar. */
+.navbar {margin-bottom: 10px; }
 
 /* Pre-formatted text variants. */
 .pre    {white-space: pre; }

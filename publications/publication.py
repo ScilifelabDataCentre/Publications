@@ -67,6 +67,15 @@ class Publications(RequestHandler):
         self.render('publications.html', publications=docs)
 
 
+class PublicationsYear(RequestHandler):
+    "Publications for a year."
+
+    def get(self, year):
+        docs = self.get_docs('publication/year', key=year, reduce=False)
+        docs.sort(key=lambda i: i['published'])
+        self.render('publications_year.html', publications=docs, year=year)
+
+
 class PublicationFetch(RequestHandler):
     "Fetch a publication given its DOI or PMID."
 

@@ -31,6 +31,10 @@ class RequestHandler(tornado.web.RequestHandler):
         result['is_curator'] = self.is_curator()
         result['error'] = self.get_argument('error', None)
         result['message'] = self.get_argument('message', None)
+        result['year_counts'] = [(r.key, r.value) for r in 
+                                 self.db.view('publication/year',
+                                              descending=True,
+                                              group_level=1)]
         return result
 
     def see_other(self, name, *args, **query):

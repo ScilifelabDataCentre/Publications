@@ -17,19 +17,10 @@
     </a>
   </div>
   <div>
-    {% if len(publication['authors']) > 4 %}
-    {{ ', '.join(["%s %s" % (a['family'], a['initials']) for a in publication['authors'][0:3]]) }}
-    ...
-    {{ "%s %s" % (publication['authors'][-1]['family'], publication['authors'][-1]['initials']) }}
-    {% else %}
-    {{ ', '.join(["%s %s" % (a['family'], a['initials']) for a in publication['authors']]) }}
-    {% end %} {# if len #}
+    {% module Authors(publication) %}
   </div>
   <div>
-    {{ publication['journal'].get('title') or '-' }}
-    <strong>{{ publication['journal'].get('volume') or '-' }}</strong>
-    ({{ publication['journal'].get('issue') or '-' }})
-    {{ publication['journal'].get('pages') or '-' }}
+    {% module Journal(publication) %}
     [{{ publication['published'] }}]
   </div>
 </div>
