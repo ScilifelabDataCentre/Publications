@@ -22,14 +22,15 @@ CEILING = 'ZZZZZZZZ'
 DOCTYPE     = 'publications_doctype'
 PUBLICATION = 'publication'
 ACCOUNT     = 'account'
+LABEL       = 'label'
 TRASH       = 'trash'
 LOG         = 'log'
-ENTITIES    = (PUBLICATION, ACCOUNT)
+ENTITIES    = (PUBLICATION, ACCOUNT, LABEL)
 
 # Account roles
-ADMIN = 'admin'
+ADMIN    = 'admin'
 CURATOR  = 'curator'
-ROLES = (ADMIN, CURATOR)
+ROLES    = (ADMIN, CURATOR)
 
 # Boolean string values
 TRUE  = frozenset(['true', 'yes', 't', 'y', '1'])

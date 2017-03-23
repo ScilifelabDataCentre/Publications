@@ -1,0 +1,32 @@
+{# Labels list page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Labels{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-user"></span>
+<span class="glyphicon glyphicon-list"></span>
+Labels
+{% end %}
+
+{% block main_content %}
+<table class="table table-striped table-condensed">
+  <thead>
+    <tr>
+      <th>Label</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for label in labels %}
+    <tr>
+      <td>
+	<a href="{{ reverse_url('label', label['value']) }}">
+	  {{ label['value'] }}
+	</a>
+      </td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+{% end %}

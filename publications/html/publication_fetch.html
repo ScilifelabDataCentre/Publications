@@ -65,3 +65,17 @@ Fetch publication
 <h3>Recently modified publications</h3>
 {% include 'publications_list.html' %}
 {% end %} {# block sub_content #}
+
+{% block meta_content %}
+<form action="{{ reverse_url('home') }}"
+      role="form"
+      method="GET">
+  <div class="form-group">
+    <label class="control-label"></label>
+    <button type="submit" class="btn btn-default">
+      <span class="glyphicon glyphicon-ban-circle"></span>
+      Cancel
+    </button>
+  </div>
+</form>
+{% end %} {# block meta_content #}

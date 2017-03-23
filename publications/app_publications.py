@@ -27,6 +27,11 @@ from publications.publication import (Publication,
                                       PublicationFetch,
                                       PublicationEdit,
                                       PublicationTrash)
+from publications.label import (Label,
+                                Labels,
+                                LabelAdd,
+                                LabelEdit,
+                                LabelDelete)
 from publications.search import Search
 from publications.logs import Logs
 
@@ -45,17 +50,21 @@ def main():
 
     url = tornado.web.url
     handlers = [url(r'/', Home, name='home'),
-                url(r'/contact', Contact, name='contact'),
                 url(r'/site/([^/]+)', tornado.web.StaticFileHandler,
                     {'path': settings['SITE_DIR']}, name='site'),
                 url(r'/publ/([^/]+)', Publication, name='publication'),
-                url(r'/publ', Publications, name='publications'),
+                url(r'/publs', Publications, name='publications'),
                 url(r'/edit/([^/]+)',
                     PublicationEdit, name='publication_edit'),
                 url(r'/fetch',
                     PublicationFetch, name='publication_fetch'),
                 url(r'/trash/([^/]+)',
                     PublicationTrash, name='publication_trash'),
+                url(r'/label/([^/]+)', Label, name='label'),
+                url(r'/labels', Labels, name='labels'),
+                url(r'/label', LabelAdd, name='label_add'),
+                url(r'/label/([^/]+)/edit', LabelEdit, name='label_edit'),
+                url(r'/label/([^/]+)/delete', LabelDelete, name='label_delete'),
                 url(r'/login', Login, name='login'),
                 url(r'/logout', Logout, name='logout'),
                 url(r'/account/reset', AccountReset, name='account_reset'),
@@ -68,6 +77,7 @@ def main():
                 url(r'/account', AccountAdd, name='account_add'),
                 url(r'/search', Search, name='search'),
                 url(r'/logs/([^/]+)', Logs, name='logs'),
+                url(r'/contact', Contact, name='contact'),
                 ]
 
     application = tornado.web.Application(

@@ -88,6 +88,30 @@
 	    </li>
 	    {% end %} {# if is_admin #}
 
+	    {% if is_admin %}
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+		<span class="glyphicon glyphicon-tag"></span>
+		Labels
+		<span class="caret"></span>
+	      </a>
+              <ul class="dropdown-menu">
+		<li>
+		  <a href="{{ reverse_url('labels') }}">
+		    <span class="glyphicon glyphicon-list"></span>
+		    List
+		  </a>
+		</li>
+		<li>
+		  <a href="{{ reverse_url('label_add') }}">
+		    <span class="glyphicon glyphicon-plus"></span>
+		    Add
+		  </a>
+		</li>
+	      </ul>
+	    </li>
+	    {% end %} {# if is_admin #}
+
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">
 		<span class="glyphicon glyphicon-info-sign"></span>

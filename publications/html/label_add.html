@@ -1,0 +1,55 @@
+{# Label addition page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Add label{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-tag"></span>
+<span class="glyphicon glyphicon-plus"></span>
+Add label
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<form action="{{ reverse_url('label_add') }}"
+      role="form"
+      class="form-horizontal"
+      method="POST">
+  {% module xsrf_form_html() %}
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="value">Label</label>
+    <div class="col-sm-5">
+      <input type="value" name="value" class="form-control">
+      <span class="glyphicon glyphicon-star text-danger form-control-feedback"></span>
+      <span class="help-block">
+	The label value, which must be unique.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-11 col-md-offset-1">
+      <button type="submit" class="btn btn-success">
+	<span class="glyphicon glyphicon-plus"></span>
+	Add
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<form action="{{ reverse_url('home') }}"
+      role="form"
+      method="GET">
+  <div class="form-group">
+    <label class="control-label"></label>
+    <button type="submit" class="btn btn-default">
+      <span class="glyphicon glyphicon-ban-circle"></span>
+      Cancel
+    </button>
+  </div>
+</form>
+{% end %} {# block meta_content #}

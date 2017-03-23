@@ -56,7 +56,7 @@ class Publication(RequestHandler):
 
 
 class Publications(RequestHandler):
-    "Publications list page."
+    "Publications list page. XXX Currently complete list without paging."
 
     def get(self):
         docs = self.get_docs('publication/published',

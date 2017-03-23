@@ -93,8 +93,7 @@ class RequestHandler(tornado.web.RequestHandler):
         """Get the publication given its IUID, DOI or PMID.
         Raise KeyError if no such publication.
         """
-        if not identifier:
-            raise KeyError
+        if not identifier: raise KeyError
         try:
             doc = self.get_doc(identifier)
         except KeyError:
@@ -103,6 +102,19 @@ class RequestHandler(tornado.web.RequestHandler):
             except KeyError:
                 doc = self.get_doc(identifier, 'publication/pmid')
         if doc[constants.DOCTYPE] != constants.PUBLICATION:
+            raise KeyError
+        return doc
+
+    def get_label(self, identifier):
+        """Get the label by its IUID or value.
+        Raise KeyError if no such publication.
+        """
+        if not identifier: raise KeyError
+        try:
+            doc = self.get_doc(identifier)
+        except KeyError:
+            doc = self.get_doc(identifier, 'label/value')
+        if doc[constants.DOCTYPE] != constants.LABEL:
             raise KeyError
         return doc
 
