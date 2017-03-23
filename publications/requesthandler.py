@@ -71,9 +71,10 @@ class RequestHandler(tornado.web.RequestHandler):
                 raise KeyError
             return result[0].doc
 
-    def get_docs(self, viewname, key, last=None, distinct=True, **kwargs):
-        """Get the list of documents using the named view and
-        the given key or interval."""
+    def get_docs(self, viewname, key=None, last=None, **kwargs):
+        """Get the list of documents using the named view
+        and the given key or interval.
+        """
         view = self.db.view(viewname, include_docs=True, **kwargs)
         if key is None:
             iterator = view
@@ -81,13 +82,7 @@ class RequestHandler(tornado.web.RequestHandler):
             iterator = view[key]
         else:
             iterator = view[key:last]
-        result = []
-        lookup = set()
-        for item in iterator:
-            if distinct and item.id in lookup: continue
-            result.append(item.doc)
-            lookup.add(item.id)
-        return result
+        return [i.doc for i in iterator]
 
     def get_publication(self, identifier):
         """Get the publication given its IUID, DOI or PMID.
@@ -113,10 +108,25 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             doc = self.get_doc(identifier)
         except KeyError:
-            doc = self.get_doc(identifier, 'label/value')
+            identifier = utils.to_ascii(identifier).lower()
+            doc = self.get_doc(identifier, 'label/value_normalized')
         if doc[constants.DOCTYPE] != constants.LABEL:
             raise KeyError
         return doc
+
+    def get_labels(self, account=None):
+        """Get the list of labels.
+        If account is given, then only those that the account can assign.
+        """
+        if account:
+            if account['role'] == constants.ADMIN:
+                return self.get_labels()
+            elif account['role'] == constants.CURATOR:
+                return self.get_docs('label/account', key=account['email'])
+            else:
+                return []
+        else:
+            return self.get_docs('label/value')
 
     def get_trashed(self, identifier):
         """Get the trash document id if the publication with

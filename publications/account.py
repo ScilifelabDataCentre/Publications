@@ -60,7 +60,7 @@ class AccountSaver(Saver):
 
 
 class AccountMixin(object):
-    "Mixin with access check methods."
+    "Mixin with access check methods and some others."
 
     def is_readable(self, account):
         "Is the account readable by the current user?"
@@ -90,14 +90,15 @@ class Account(AccountMixin, RequestHandler):
 
     @tornado.web.authenticated
     def get(self, email):
-        logging.debug(">>> Account")
         try:
             account = self.get_account(email)
             self.check_readable(account)
         except (KeyError, ValueError), msg:
             self.see_other('home', error=str(msg))
             return
-        self.render('account.html', account=account)
+        self.render('account.html',
+                    account=account,
+                    labels=self.get_labels(account))
 
 
 class Accounts(RequestHandler):
@@ -106,7 +107,7 @@ class Accounts(RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        accounts = self.get_docs('account/email', key=None)
+        accounts = self.get_docs('account/email')
         self.render('accounts.html', accounts=accounts)
 
 

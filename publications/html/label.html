@@ -10,4 +10,14 @@
 {% end %} {# block body_title #}
 
 {% block main_content %}
+{% if current_user %}
+<h3>Curators</h3>
+<p>
+{% for email in label['accounts'] %}
+<a href="{{ reverse_url('account', email) }}">{{ email }}</a>
+{% end %} {# for email #}
+</p>
+{% end %} {# if current_user #}
+<h3>Publications</h3>
+{% include 'publications_list.html' %}
 {% end %} {# block main_content #}

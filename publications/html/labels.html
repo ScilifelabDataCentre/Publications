@@ -15,6 +15,7 @@ Labels
   <thead>
     <tr>
       <th>Label</th>
+      <th>Curators</th>
     </tr>
   </thead>
   <tbody>
@@ -24,6 +25,12 @@ Labels
 	<a href="{{ reverse_url('label', label['value']) }}">
 	  {{ label['value'] }}
 	</a>
+      </td>
+      <td>
+	{% for email in label['accounts'] %}
+	<a href="{{ reverse_url('account', email) }}">{{ email }}</a>
+	<br>
+	{% end %}
       </td>
     </tr>
     {% end %}

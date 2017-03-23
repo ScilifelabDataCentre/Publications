@@ -16,6 +16,21 @@
     <td>{{ account['role'] }}</td>
   </tr>
   <tr>
+    <th>Labels</th>
+    <td>
+      {% if account['role'] == constants.ADMIN %}
+      <i>any</i>
+      {% else %}
+      {% for label in labels %}
+      <a href="{{ reverse_url('label', label['value']) }}">
+	{{ label['value'] }}
+      </a>
+      <br>
+      {% end %} {# for label #}
+      {% end %} {# if #}
+    </td>
+  </tr>
+  <tr>
     <th>Last login</th>
     <td>
       {% if account.get('login') %}

@@ -3,11 +3,9 @@
 {% extends "base.html" %}
 
 {% block main_content %}
-
 <p>
   {{ ', '.join(["%s %s" % (a['family'], a['initials']) for a in publication['authors']]) }}
 </p>
-
 <h4>
   {{ publication['journal'].get('title') or '-' }}
   <strong>{{ publication['journal'].get('volume') or '-' }}</strong>
@@ -15,19 +13,20 @@
   {{ publication['journal'].get('pages') or '-' }}
   [{{ publication['published'] }}]
 </h4>
-
 <p>
   {% module Pubmed(publication['pmid'], full=True) %}
   <span class="spacer">{% module Doi(publication['doi'], full=True) %}</span>
   <span class="spacer">{% module Crossref(publication['doi'], full=True) %}</span>
 </p>
-
-{% if publication['abstract'] %}
 <p>
-  {{ publication['abstract'] }}
+  {% for label in publication['labels'] %}
+  <a class="label label-default"
+     href="{{ reverse_url('label', label) }}">{{ label }}</a>
+  {% end %}
 </p>
-{% end %}
-
+<p>
+  {{ publication['abstract'] or ''}}
+</p>
 {% end %} {# block main_content #}
 
 {% block meta_content %}

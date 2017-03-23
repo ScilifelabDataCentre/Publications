@@ -20,6 +20,7 @@ class LabelSaver(Saver):
         "Value must be unique."
         try:
             label = self.rqh.get_label(value)
+            if label['_id'] == self.doc.get('_id'): return
         except KeyError:
             pass
         else:
@@ -35,17 +36,18 @@ class Label(RequestHandler):
         except KeyError, msg:
             self.see_other('home', error=str(msg))
             return
-        self.render('label.html', label=label)
+        publications = self.get_docs('publication/label', key=label['value'])
+        publications.sort(key=lambda i: i['published'], reverse=True)
+        self.render('label.html',
+                    label=label,
+                    publications=publications)
 
 
 class Labels(RequestHandler):
     "Labels list page."
 
-    @tornado.web.authenticated
     def get(self):
-        self.check_admin()
-        labels = self.get_docs('label/value', key=None)
-        self.render('labels.html', labels=labels)
+        self.render('labels.html', labels=self.get_labels())
 
 
 class LabelAdd(RequestHandler):
@@ -68,6 +70,7 @@ class LabelAdd(RequestHandler):
             with LabelSaver(rqh=self) as saver:
                 saver['value'] = value
                 saver['value_normalized'] = utils.to_ascii(value)
+                saver['accounts'] = []
             label = saver.doc
         except ValueError, msg:
             self.see_other('label_add', error=str(msg))
@@ -77,6 +80,30 @@ class LabelAdd(RequestHandler):
 
 class LabelEdit(RequestHandler):
     "Label edit page."
+
+    @tornado.web.authenticated
+    def get(self, identifier):
+        self.check_admin()
+        try:
+            label = self.get_label(identifier)
+        except KeyError, msg:
+            self.see_other('labels', error=str(msg))
+            return
+        self.render('label_edit.html', label=label)
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        self.check_admin()
+        try:
+            label = self.get_label(identifier)
+        except KeyError, msg:
+            self.see_other('labels', error=str(msg))
+            return
+        old_value = label['value']
+        with LabelSaver(label, rqh=self) as saver:
+            saver['value'] = self.get_argument('value')
+        # XXX Change all publications with this label
+        self.see_other('label', label['email'])
 
 
 class LabelDelete(RequestHandler):

@@ -3,5 +3,5 @@
 */
 function(doc) {
     if (doc.publications_doctype !== 'label') return;
-    emit(doc.value.toLowerCase(), 1);
+    emit(doc.value.toLowerCase(), null);
 }
