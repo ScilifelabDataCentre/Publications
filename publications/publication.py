@@ -56,15 +56,15 @@ class Publication(PublicationMixin, RequestHandler):
                     is_editable=self.is_editable(publication))
 
 
-class Publications(RequestHandler):
-    "Publications list page. XXX Currently complete list without paging."
+class PublicationsTable(RequestHandler):
+    "Publications table page."
 
     def get(self):
-        docs = self.get_docs('publication/published',
-                             key=constants.CEILING,
-                             last='',
-                             descending=True)
-        self.render('publications.html', publications=docs)
+        publications = self.get_docs('publication/published',
+                                     key=constants.CEILING,
+                                     last='',
+                                     descending=True)
+        self.render('publications_table.html', publications=publications)
 
 
 class PublicationsYear(RequestHandler):

@@ -1,0 +1,55 @@
+{# Labels list page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Labels{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-tag"></span>
+Labels
+{% end %}
+
+{% block main_content %}
+<div class="row">
+  <ul class="col-sm-3 list-unstyled">
+    {% for label in labels[0::4] %}
+      <li class="well well-default well-sm">
+	<a href="{{ reverse_url('label', label['value']) }}">
+	  {{ label['value'] }}
+	  ({{ label_counts.get(label['value'], 0) }})
+	</a>
+      </li>
+      {% end %}
+  </ul>
+  <ul class="col-sm-3 list-unstyled">
+    {% for label in labels[1::4] %}
+      <li class="well well-default well-sm">
+	<a href="{{ reverse_url('label', label['value']) }}">
+	  {{ label['value'] }}
+	  ({{ label_counts.get(label['value'], 0) }})
+	</a>
+      </li>
+      {% end %}
+  </ul>
+  <ul class="col-sm-3 list-unstyled">
+    {% for label in labels[2::4] %}
+      <li class="well well-default well-sm">
+	<a href="{{ reverse_url('label', label['value']) }}">
+	  {{ label['value'] }}
+	  ({{ label_counts.get(label['value'], 0) }})
+	</a>
+      </li>
+      {% end %}
+  </ul>
+  <ul class="col-sm-3 list-unstyled">
+    {% for label in labels[3::4] %}
+      <li class="well well-default well-sm">
+	<a href="{{ reverse_url('label', label['value']) }}">
+	  {{ label['value'] }}
+	  ({{ label_counts.get(label['value'], 0) }})
+	</a>
+      </li>
+      {% end %}
+  </ul>
+</div>
+{% end %} {# block main_content #}

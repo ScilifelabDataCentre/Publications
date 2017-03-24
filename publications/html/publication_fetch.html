@@ -11,20 +11,25 @@ Fetch publication
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<p>
-  Fetch a publication reference from:
-  <ul>
-    <li>
-      <a href="https://www.ncbi.nlm.nih.gov/pubmed">PubMed</a>
-      using a PubMed identifier (PMID), e.g. <strong>25613900</strong>.
-    </li>
-    <li>
-      <a href="https://www.crossref.org/">Crossref</a>
-      using a Digital Object Identifier (DOI), e.g.
-      <strong>10.1126/science.1260419</strong>.
-    </li>
-  </ul>
-</p>
+<div class="row">
+  <div class="col-md-11 col-md-offset-1">
+    <p>
+      Fetch a publication reference from:
+    </p>
+    <ul>
+      <li>
+	<a href="https://www.ncbi.nlm.nih.gov/pubmed">PubMed</a>
+	using a PubMed identifier (PMID), e.g. <strong>25613900</strong>.
+      </li>
+      <li>
+	<a href="https://www.crossref.org/">Crossref</a>
+	using a Digital Object Identifier (DOI), e.g.
+	<strong>10.1126/science.1260419</strong>.
+      </li>
+    </ul>
+  </div>
+</div>
+
 <form action="{{ reverse_url('publication_fetch') }}"
       role="form"
       class="form-horizontal"
@@ -59,12 +64,14 @@ Fetch publication
     </div>
   </div>
 </form>
-{% end %} {# block main_content #}
 
-{% block sub_content %}
-<h3>Recently modified publications</h3>
-{% include 'publications_list.html' %}
-{% end %} {# block sub_content #}
+<div class="row">
+  <div class="col-md-11 col-md-offset-1">
+    <h3>Recently modified publications</h3>
+    {% include 'publications_list.html' %}
+  </div>
+</div>
+{% end %} {# block main_content #}
 
 {% block meta_content %}
 <form action="{{ reverse_url('home') }}"
@@ -79,3 +86,9 @@ Fetch publication
   </div>
 </form>
 {% end %} {# block meta_content #}
+
+{% block autofocus %}
+<script>
+  $(document).ready(function(){ $("#identifier").focus(); });
+</script>
+{% end %}

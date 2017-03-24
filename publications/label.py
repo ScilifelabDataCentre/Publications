@@ -47,8 +47,20 @@ class Label(RequestHandler):
                     publications=publications)
 
 
-class Labels(RequestHandler):
+class LabelsList(RequestHandler):
     "Labels list page."
+
+    def get(self):
+        labels = self.get_labels()
+        view = self.db.view('publication/label', group=True)
+        label_counts = dict([(r.key, r.value) for r in view])
+        self.render('labels_list.html',
+                    labels=labels,
+                    label_counts=label_counts)
+
+
+class LabelsTable(RequestHandler):
+    "Labels table page."
 
     def get(self):
         labels = self.get_labels()
@@ -58,7 +70,7 @@ class Labels(RequestHandler):
                 label_accounts[label].append(account['email'])
         view = self.db.view('publication/label', group=True)
         label_counts = dict([(r.key, r.value) for r in view])
-        self.render('labels.html',
+        self.render('labels_table.html',
                     labels=labels,
                     label_accounts=label_accounts,
                     label_counts=label_counts)
