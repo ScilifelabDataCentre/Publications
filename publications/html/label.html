@@ -27,3 +27,28 @@
 <h3>Publications</h3>
 {% include 'publications_list.html' %}
 {% end %} {# block main_content #}
+
+{% block meta_content %}
+{% if is_admin %}
+<p>
+  <a href="{{ reverse_url('label_edit', label['value']) }}"
+     class="btn btn-primary"
+     role="button">
+    <span class="glyphicon glyphicon-edit"></span>
+    Edit
+  </a>
+</p>
+<p>
+  <form action="{{ reverse_url('label_delete', label['value']) }}"
+	role="form"
+	method="POST">
+    {% module xsrf_form_html() %}
+    <button type="submit" class="btn btn-danger"
+	    onclick="return confirm('Really delete this label?');">
+      <span class="glyphicon glyphicon-trash"></span>
+      Delete
+    </button>
+  </form>
+</p>
+{% end %} {# if is_admin #}
+{% end %} {# block meta_content #}

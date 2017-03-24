@@ -160,8 +160,8 @@ class PublicationFetch(RequestHandler):
         else:
             with PublicationSaver(new, rqh=self) as saver:
                 if self.current_user['role'] == constants.CURATOR:
-                    saver['labels'] = [l['value'] for l in 
-                                       self.get_labels(self.current_user)]
+                    saver['labels'] = sorted(l['value'] for l in 
+                                             self.get_labels(self.current_user))
                 else:
                     saver['labels'] = []
             publication = new
@@ -179,9 +179,9 @@ class PublicationEdit(PublicationMixin, RequestHandler):
             raise tornado.web.HTTPError(404, reason='No such publication.')
         self.check_editable(publication)
         if self.is_admin():
-            labels = [l['value'] for l in self.get_labels()]
+            labels = sorted(l['value'] for l in self.get_labels())
         else:
-            labels = self.current_user['labels']
+            labels = sorted(self.current_user['labels'])
         self.render('publication_edit.html',
                     title='Edit publication',
                     publication=publication,
@@ -229,8 +229,8 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 journal[key] = self.get_argument(key, '') or None
             saver['journal'] = journal
             saver['abstract'] = self.get_argument('abstract', '') or None
-            saver['labels'] = [l for l in self.get_arguments('labels')
-                               if l in allowed_labels]
+            saver['labels'] = sorted(l for l in self.get_arguments('labels')
+                                     if l in allowed_labels)
         self.see_other('publication', publication['_id'])
 
 

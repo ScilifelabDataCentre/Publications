@@ -26,7 +26,7 @@ Edit '{{ account['email'] }}'
       {% for role in constants.ROLES %}
       {% set checked = role == account['role'] and 'checked' or '' %}
       <label class="radio-inline">
-	<input type="radio" name="role"
+	<input type="radio" name="role" id="role"
 	       value="{{ role }}" {{ checked }}>{{ role }}
       </label>
       {% end %}
@@ -87,3 +87,9 @@ Edit '{{ account['email'] }}'
   </div>
 </form>
 {% end %} {# block meta_content #}
+
+{% block autofocus %}
+<script>
+  $(document).ready(function(){ $("#role").focus(); });
+</script>
+{% end %}

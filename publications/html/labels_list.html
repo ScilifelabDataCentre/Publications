@@ -11,40 +11,33 @@ Labels
 
 {% block main_content %}
 <div class="row">
-  <ul class="col-sm-3 list-unstyled">
-    {% for label in labels[0::4] %}
-      <li class="well well-default well-sm">
-	<a href="{{ reverse_url('label', label['value']) }}">
+  <ul class="col-md-4 list-unstyled">
+    {% for label in labels[0::3] %}
+      <li>
+	<a href="{{ reverse_url('label', label['value']) }}"
+	   class="btn btn-default btn-block left margin10">
 	  {{ label['value'] }}
 	  ({{ label_counts.get(label['value'], 0) }})
 	</a>
       </li>
       {% end %}
   </ul>
-  <ul class="col-sm-3 list-unstyled">
-    {% for label in labels[1::4] %}
-      <li class="well well-default well-sm">
-	<a href="{{ reverse_url('label', label['value']) }}">
+  <ul class="col-md-4 list-unstyled">
+    {% for label in labels[1::3] %}
+      <li>
+	<a href="{{ reverse_url('label', label['value']) }}"
+	   class="btn btn-default btn-block left margin10">
 	  {{ label['value'] }}
 	  ({{ label_counts.get(label['value'], 0) }})
 	</a>
       </li>
       {% end %}
   </ul>
-  <ul class="col-sm-3 list-unstyled">
-    {% for label in labels[2::4] %}
-      <li class="well well-default well-sm">
-	<a href="{{ reverse_url('label', label['value']) }}">
-	  {{ label['value'] }}
-	  ({{ label_counts.get(label['value'], 0) }})
-	</a>
-      </li>
-      {% end %}
-  </ul>
-  <ul class="col-sm-3 list-unstyled">
-    {% for label in labels[3::4] %}
-      <li class="well well-default well-sm">
-	<a href="{{ reverse_url('label', label['value']) }}">
+  <ul class="col-md-4 list-unstyled">
+    {% for label in labels[2::3] %}
+      <li>
+	<a href="{{ reverse_url('label', label['value']) }}"
+	   class="btn btn-default btn-block left margin10">
 	  {{ label['value'] }}
 	  ({{ label_counts.get(label['value'], 0) }})
 	</a>

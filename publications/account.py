@@ -11,7 +11,6 @@ from . import settings
 from . import utils
 from .saver import Saver
 from .requesthandler import RequestHandler
-from .label import LabelSaver
 
 ADD_TEXT = """A new account %(email)s in the website %(site)s has been created.
 
@@ -144,8 +143,8 @@ class AccountAdd(RequestHandler):
                 saver['owner'] = email
                 saver['role'] = role
                 all_labels = set([l['value'] for l in self.get_labels()])
-                saver['labels'] = [l for l in self.get_arguments('labels')
-                                   if l in all_labels]
+                saver['labels'] = sorted(l for l in self.get_arguments('labels')
+                                         if l in all_labels)
                 saver.reset_password()
             account = saver.doc
         except ValueError, msg:
@@ -208,8 +207,8 @@ class AccountEdit(AccountMixin, RequestHandler):
             if self.is_admin():
                 saver['role'] = self.get_argument('role', account['role'])
                 all_labels = set([l['value'] for l in self.get_labels()])
-                saver['labels'] = [l for l in self.get_arguments('labels')
-                                   if l in all_labels]
+                saver['labels'] = sorted(l for l in self.get_arguments('labels')
+                                         if l in all_labels)
         self.see_other('account', account['email'])
 
 

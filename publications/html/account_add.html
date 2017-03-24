@@ -20,7 +20,7 @@ Add account
   <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="account">Account</label>
     <div class="col-sm-5">
-      <input type="account" name="account" class="form-control">
+      <input type="account" name="account" id="account" class="form-control">
       <span class="glyphicon glyphicon-star text-danger form-control-feedback"></span>
       <span class="help-block">
 	The user's email address is the identifier for the account.
@@ -34,7 +34,7 @@ Add account
       {% for role in constants.ROLES %}
       {% set checked = role == constants.CURATOR and 'checked' or '' %}
       <label class="radio-inline">
-	<input type="radio" name="role"
+	<input type="radio" name="role" id="role"
 	       value="{{ role }}" {{ checked }}>{{ role }}
       </label>
       {% end %}
@@ -92,3 +92,9 @@ Add account
   </div>
 </form>
 {% end %} {# block meta_content #}
+
+{% block autofocus %}
+<script>
+  $(document).ready(function(){ $("#account").focus(); });
+</script>
+{% end %}

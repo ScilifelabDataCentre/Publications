@@ -11,6 +11,8 @@ from . import settings
 from . import utils
 from .requesthandler import RequestHandler
 from .saver import Saver
+from .account import AccountSaver
+from .publication import PublicationSaver
 
 
 class LabelSaver(Saver):
@@ -125,11 +127,50 @@ class LabelEdit(RequestHandler):
             self.see_other('labels', error=str(msg))
             return
         old_value = label['value']
+        new_value = self.get_argument('value')
         with LabelSaver(label, rqh=self) as saver:
-            saver['value'] = self.get_argument('value')
-        # XXX Change all publications with this label
-        self.see_other('label', label['email'])
+            saver['value'] = new_value
+            saver['value_normalized'] = utils.to_ascii(new_value)
+        for account in self.get_docs('account/label', key=old_value):
+            with AccountSaver(account, rqh=self) as saver:
+                labels = set(account['labels'])
+                labels.discard(old_value)
+                labels.add(new_value)
+                saver['labels'] = sorted(labels)
+        for publication in self.get_docs('publication/label',
+                                         key=old_value,
+                                         reduce=False):
+            with PublicationSaver(publication, rqh=self) as saver:
+                labels = set(publication['labels'])
+                labels.discard(old_value)
+                labels.add(new_value)
+                saver['labels'] = sorted(labels)
+        self.see_other('label', label['value'])
 
 
 class LabelDelete(RequestHandler):
-    "Label Delete page."
+    "Label delete."
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        self.check_admin()
+        try:
+            label = self.get_label(identifier)
+        except KeyError, msg:
+            self.see_other('labels', error=str(msg))
+            return
+        value = label['value']
+        self.db.delete(label)
+        for account in self.get_docs('account/label', key=value):
+            with AccountSaver(account, rqh=self) as saver:
+                labels = set(account['labels'])
+                labels.discard(value)
+                saver['labels'] = sorted(labels)
+        for publication in self.get_docs('publication/label',
+                                         key=value,
+                                         reduce=False):
+            with PublicationSaver(publication, rqh=self) as saver:
+                labels = set(publication['labels'])
+                labels.discard(value)
+                saver['labels'] = sorted(labels)
+        self.see_other('labels_list')
