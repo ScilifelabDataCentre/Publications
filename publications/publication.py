@@ -51,7 +51,6 @@ class Publication(PublicationMixin, RequestHandler):
         except KeyError:
             raise tornado.web.HTTPError(404, reason='No such publication.')
         self.render('publication.html',
-                    title=publication['title'],
                     publication=publication,
                     is_editable=self.is_editable(publication))
 

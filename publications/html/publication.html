@@ -2,6 +2,22 @@
 
 {% extends "base.html" %}
 
+{% block head_title %}{{ publication['title'] }}{% end %}
+
+{% block body_header %}
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <h2>
+      <span class="glyphicon glyphicon-file"></span>
+      {{ publication['title'] }}
+    </h2>
+  </div>
+  <div class="col-md-1">
+  </div>
+</div>
+{% end %} {# block body_header #}
+
+
 {% block main_content %}
 <p>
   {{ ', '.join(["%s %s" % (a['family'], a['initials']) for a in publication['authors']]) }}
