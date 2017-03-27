@@ -134,8 +134,7 @@ class LabelEdit(RequestHandler):
                 saver['value'] = new_value
                 saver['value_normalized'] = utils.to_ascii(new_value)
         except SaverError:
-            self.see_other('label', label['value'],
-                           error="Has been edited by someone else; cannot overwrite.")
+            self.see_other('label', label['value'], error=utils.REV_ERROR)
             return
         for account in self.get_docs('account/label', key=old_value):
             with AccountSaver(account, rqh=self) as saver:

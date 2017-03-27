@@ -15,6 +15,9 @@ from .saver import Saver, SaverError
 from .requesthandler import RequestHandler
 
 
+FETCH_ERROR = 'Could not fetch article for some reason.'
+TRASHED_MSG = 'Article was trashed at some earlier time.'
+
 class PublicationSaver(Saver):
     doctype = constants.PUBLICATION
 
@@ -65,7 +68,7 @@ class Publications(RequestHandler):
             publications = self.get_docs('publication/year',
                                          key=year,
                                          reduce=False)
-            publications.sort(key=lambda i: i['published'])
+            publications.sort(key=lambda i: i['published'], reverse=True)
         else:
             publications = self.get_docs('publication/published',
                                          key=constants.CEILING,
@@ -82,6 +85,31 @@ class PublicationsTable(Publications):
     TEMPLATE = 'publications_table.html'
 
 
+class PublicationsUnverified(RequestHandler):
+    """Unverified publications page.
+    List according to which labels the account may use.
+    """
+
+    def get(self):
+        if self.is_admin():
+            publications = self.get_docs('publication/unverified',
+                                         key=constants.CEILING,
+                                         last='',
+                                         limit=settings['SHORTLIST_LIMIT'],
+                                         descending=True)
+        else:
+            lookup = {}
+            for label in self.get_labels():
+                docs = self.get_docs('publication/label_unverified',
+                                     key=label['value'])
+                for doc in docs:
+                    lookup[doc['_id']] = doc
+                publications = lookup.values()
+                publications.sort(key=lambda i: i['published'], reverse=True)
+                # XXX All unverified are returned.
+        self.render('publications_unverified.html', publications=publications)
+
+
 class PublicationFetch(RequestHandler):
     "Fetch a publication given its DOI or PMID."
 
@@ -92,7 +120,7 @@ class PublicationFetch(RequestHandler):
                              key=constants.CEILING,
                              last='',
                              descending=True,
-                             limit=settings['MOST_RECENT_LIMIT'])
+                             limit=settings['SHORTLIST_LIMIT'])
         self.render('publication_fetch.html',
                     publications=docs,
                     identifier=self.get_argument('identifier', ''))
@@ -109,25 +137,24 @@ class PublicationFetch(RequestHandler):
         # Check if identifier is present in trash registry
         force = utils.to_bool(self.get_argument('force', False))
         trashed = self.get_trashed(identifier)
-        trashed_msg = 'Article was trashed at some earlier time.'
         if trashed:
             if force:
                 del self.db[trashed]
             else:
                 self.see_other('publication_fetch',
                                identifier=identifier,
-                               error=trashed_msg)
+                               message=TRASHED_MSG)
                 return
+        # Has it already been fetched?
         try:
-            old = self.get_publication(identifier)
+            old = self.get_publication(identifier, unverified=True)
         except KeyError:
             old = None
         if constants.PMID_RX.match(identifier):
             try:
                 new = pubmed.fetch(identifier)
             except (IOError, requests.exceptions.Timeout):
-                self.see_other('publication_fetch',
-                               error='could not fetch article')
+                self.see_other('publication_fetch', error=FETCH_ERROR)
             else:
                 if old is None:
                     try:
@@ -138,8 +165,7 @@ class PublicationFetch(RequestHandler):
             try:
                 new = crossref.fetch(identifier)
             except (IOError, requests.exceptions.Timeout):
-                self.see_other('publication_fetch',
-                               error='could not fetch article')
+                self.see_other('publication_fetch', error=FETCH_ERROR)
             else:
                 if old is None:
                     try:
@@ -156,12 +182,13 @@ class PublicationFetch(RequestHandler):
                 else:
                     self.see_other('publication_fetch',
                                    identifier=identifier,
-                                   error=trashed_msg)
+                                   message=TRASHED_MSG)
                     return
         if old:
             with PublicationSaver(old, rqh=self) as saver:
                 for key in new:
                     saver[key] = new[key]
+                saver['verified'] = True
             publication = old
         else:
             with PublicationSaver(new, rqh=self) as saver:
@@ -170,6 +197,7 @@ class PublicationFetch(RequestHandler):
                                              self.get_labels(self.current_user))
                 else:
                     saver['labels'] = []
+                saver['verified'] = True
             publication = new
         self.see_other('publication', publication['_id'])
 
@@ -239,10 +267,30 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver['abstract'] = self.get_argument('abstract', '') or None
                 saver['labels'] = sorted(l for l in self.get_arguments('labels')
                                          if l in allowed_labels)
+                # Edit should not do verify! It must be possible for admin
+                # change labels in order to challenge the relevant
+                # curators to verify or trash.
         except SaverError, msg:
             self.see_other('publication', publication['_id'],
-                           error="Has been edited by someone else; cannot overwrite.")
+                           error=utils.REV_ERROR)
         else:
+            self.see_other('publication', publication['_id'])
+
+
+class PublicationVerify(PublicationMixin, RequestHandler):
+    "Verify publication."
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        try:
+            publication = self.get_publication(identifier)
+        except KeyError:
+            raise tornado.web.HTTPError(404, reason='No such publication.')
+        with PublicationSaver(publication, rqh=self) as saver:
+            saver['verified'] = True
+        try:
+            self.redirect(self.get_argument('next'))
+        except tornado.web.MissingArgumentError:
             self.see_other('publication', publication['_id'])
 
 
@@ -267,7 +315,10 @@ class PublicationTrash(PublicationMixin, RequestHandler):
                  'owner': self.current_user['email']}
         self.db[utils.get_iuid()] = trash
         self.db.delete(publication)
-        self.see_other('home')
+        try:
+            self.redirect(self.get_argument('next'))
+        except tornado.web.MissingArgumentError:
+            self.see_other('home')
 
 
 class PublicationLabels(PublicationMixin, RequestHandler):

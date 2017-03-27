@@ -1,0 +1,30 @@
+{# Publication display. #}
+
+<div class="well well-sm">
+  <div style="float: right">
+    {% module Pubmed(publication['pmid']) %}
+    </br>
+    {% module Doi(publication['doi']) %}
+    </br>
+    {% module Crossref(publication['doi']) %}
+  </div>
+  <div>
+    <a href="{{ reverse_url('publication', publication['_id']) }}">
+      <span class="glyphicon glyphicon-file"></span>
+      {{ publication['title'] }}
+    </a>
+  </div>
+  <div>
+    {% module Authors(publication) %}
+  </div>
+  <div>
+    {% module Journal(publication) %}
+    [{{ publication['published'] }}]
+  </div>
+  <div>
+    {% for l in publication['labels'] %}
+    <a class="label label-default"
+       href="{{ reverse_url('label', l) }}">{{ l }}</a>
+    {% end %}
+  </div>
+</div>

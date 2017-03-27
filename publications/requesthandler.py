@@ -88,18 +88,28 @@ class RequestHandler(tornado.web.RequestHandler):
             iterator = view[key:last]
         return [i.doc for i in iterator]
 
-    def get_publication(self, identifier):
+    def get_publication(self, identifier, unverified=False):
         """Get the publication given its IUID, DOI or PMID.
+        If unverified is True, then search also among such publications.
         Raise KeyError if no such publication.
         """
         if not identifier: raise KeyError
         try:
             doc = self.get_doc(identifier)
         except KeyError:
-            try:
-                doc = self.get_doc(identifier, 'publication/doi')
-            except KeyError:
-                doc = self.get_doc(identifier, 'publication/pmid')
+            viewnames = ['publication/doi', 'publication/pmid']
+            if unverified:
+                viewnames.append('publication/doi_unverified')
+                viewnames.append('publication/pmid_unverified')
+            doc = None
+            for viewname in viewnames:
+                try:
+                    doc = self.get_doc(identifier, viewname=viewname)
+                    break
+                except KeyError:
+                    pass
+            else:
+                raise KeyError
         if doc[constants.DOCTYPE] != constants.PUBLICATION:
             raise KeyError
         return doc

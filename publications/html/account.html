@@ -10,7 +10,9 @@
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<table class="table">
+<div class="row">
+<div class="col-md-6">
+<table class="table table-striped">
   <tr>
     <th>Role</th>
     <td>{{ account['role'] }}</td>
@@ -47,6 +49,8 @@
     <td class="localtime">{{ account['created'] }}</td>
   </tr>
 </table>
+</div>
+</div>
 {% end %} {# block main_content #}
 
 {% block meta_content %}

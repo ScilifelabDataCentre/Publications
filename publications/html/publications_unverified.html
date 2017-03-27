@@ -1,0 +1,51 @@
+{# Unverified publications page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Unverified publications{% end %}
+{% block body_title %}
+<span class="glyphicon glyphicon-question-sign"></span>
+<span class="glyphicon glyphicon-file"></span>
+Unverified publications
+{% end %}
+
+{% block main_content %}
+{% if publications %}
+{% for publication in publications %}
+<div class="row">
+  <div class="col-md-10">
+    {% include 'publication_display.html' %}
+  </div>
+  <div class="col-md-2">
+    <form action="{{ reverse_url('publication_verify', publication['_id']) }}"
+	  role="form"
+	  method="POST">
+      {% module xsrf_form_html() %}
+      <input type="hidden" name="next"
+	     value="{{ reverse_url('publications_unverified') }}">
+      <button type="submit" class="btn btn-success btn-block left">
+	<span class="glyphicon glyphicon-ok"></span>
+	Verify
+      </button>
+    </form>
+    <p>
+      <form action="{{ reverse_url('publication_trash', publication['_id']) }}"
+	    role="form"
+	    method="POST">
+	{% module xsrf_form_html() %}
+	<input type="hidden" name="next"
+	       value="{{ reverse_url('publications_unverified') }}">
+	<button type="submit" class="btn btn-danger btn-block left"
+		onclick="return confirm('Really trash this publication?');">
+	  <span class="glyphicon glyphicon-trash"></span>
+	  Trash
+	</button>
+      </form>
+    </p>
+  </div>
+</div>
+{% end %} {# for #}
+{% else %}
+<i>None</i>
+{% end %}
+{% end %} {# block main_content #}

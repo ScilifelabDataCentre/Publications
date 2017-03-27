@@ -49,6 +49,12 @@
 		    Fetch
 		  </a>
 		</li>
+		<li>
+		  <a href="{{ reverse_url('publications_unverified') }}">
+		    <span class="glyphicon glyphicon-question-sign"></span>
+		    Unverified
+		  </a>
+		</li>
 		{% end %} {# if is_curator #}
 
 		<li class="dropdown-header">Lists</li>
@@ -274,11 +280,11 @@
 	  </p>
 	  {% end %} {# block menu_content #}
 	</div>
-	<div class="col-md-9 col-md-offset-1">
+	<div class="col-md-9">
 	  {% block main_content %}
 	  {% end %} {# block main_content #}
 	</div>
-	<div class="col-md-1">
+	<div class="col-md-2">
 	  {% block meta_content %}
 	  {% end %} {# block meta_content #}
 	</div>
@@ -293,15 +299,6 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="{{ static_url('jquery.localtime-0.9.1.min.js') }}"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-    <script>
-      $(document).ready(function(){
-        $('.dropdown-submenu a.submenu').on("click", function(e){
-          $(this).next('ul').toggle();
-          e.stopPropagation();
-          e.preventDefault();
-        });
-      });
-    </script>
     <script>
       $.datepicker.setDefaults({dateFormat: "yy-mm-dd"});
       $(document).ready(function(){ $(".datepicker").datepicker(); });

@@ -3,5 +3,6 @@
 */
 function(doc) {
     if (doc.publications_doctype !== 'publication') return;
+    if (!doc.verified) return;
     for (var i in doc.labels) emit(doc.labels[i], 1);
 }

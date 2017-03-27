@@ -22,6 +22,8 @@ from . import constants
 from . import settings
 
 
+REV_ERROR   = 'Has been edited by someone else; cannot overwrite.'
+
 def get_command_line_parser(description=None):
     "Get the base command line argument parser."
     # optparse is used (rather than argparse) since

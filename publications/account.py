@@ -212,8 +212,7 @@ class AccountEdit(AccountMixin, RequestHandler):
                                              in self.get_arguments('labels')
                                              if l in all_labels)
         except SaverError, msg:
-            self.see_other('account', account['email'],
-                           error="Has been edited by someone else; cannot overwrite.")
+            self.see_other('account', account['email'], error=utils.REV_ERROR)
         else:
             self.see_other('account', account['email'])
 

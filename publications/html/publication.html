@@ -6,13 +6,13 @@
 
 {% block body_header %}
 <div class="row">
-  <div class="col-md-10 col-md-offset-1">
+  <div class="col-md-9 col-md-offset-1">
     <h2>
       <span class="glyphicon glyphicon-file"></span>
       {{ publication['title'] }}
     </h2>
   </div>
-  <div class="col-md-1">
+  <div class="col-md-2">
   </div>
 </div>
 {% end %} {# block body_header #}
@@ -51,18 +51,31 @@
 {% if is_editable %}
 <p>
   <a href="{{ reverse_url('publication_edit', publication['_id']) }}"
-     class="btn btn-primary"
+     class="btn btn-primary left"
      role="button">
     <span class="glyphicon glyphicon-edit"></span>
     Edit
   </a>
 </p>
+{% if not publication.get('verified') %}
+<p>
+  <form action="{{ reverse_url('publication_verify', publication['_id']) }}"
+	role="form"
+	method="POST">
+    {% module xsrf_form_html() %}
+    <button type="submit" class="btn btn-success left">
+      <span class="glyphicon glyphicon-ok"></span>
+      Verify
+    </button>
+  </form>
+</p>
+{% end %} {# if not #}
 <p>
   <form action="{{ reverse_url('publication_trash', publication['_id']) }}"
 	role="form"
 	method="POST">
     {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-danger"
+    <button type="submit" class="btn btn-danger left"
 	    onclick="return confirm('Really trash this publication?');">
       <span class="glyphicon glyphicon-trash"></span>
       Trash

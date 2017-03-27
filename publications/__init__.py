@@ -32,5 +32,5 @@ settings = dict(
     SITE_CONTACT='<p><i>No contact information available.</i></p>',
     SOURCE_HOME='https://github.com/pekrau/Publications',
     SOURCE_VERSION=__version__,
-    MOST_RECENT_LIMIT=10,
+    SHORTLIST_LIMIT=10,
     )

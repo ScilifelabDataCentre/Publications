@@ -3,5 +3,6 @@
 */
 function(doc) {
     if (doc.publications_doctype !== 'publication') return;
+    if (!doc.verified) return;
     emit(doc.modified, doc.title);
 }
