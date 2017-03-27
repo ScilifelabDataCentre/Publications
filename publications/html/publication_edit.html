@@ -23,6 +23,7 @@ Edit
       class="form-horizontal"
       method="POST">
   {% module xsrf_form_html() %}
+  <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
 
   <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="title">Title</label>

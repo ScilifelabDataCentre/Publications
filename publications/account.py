@@ -9,7 +9,7 @@ import tornado.web
 from . import constants
 from . import settings
 from . import utils
-from .saver import Saver
+from .saver import Saver, SaverError
 from .requesthandler import RequestHandler
 
 ADD_TEXT = """A new account %(email)s in the website %(site)s has been created.
@@ -203,13 +203,19 @@ class AccountEdit(AccountMixin, RequestHandler):
         except ValueError, msg:
             self.see_other('account', account['email'], error=str(msg))
             return
-        with AccountSaver(account, rqh=self) as saver:
-            if self.is_admin():
-                saver['role'] = self.get_argument('role', account['role'])
-                all_labels = set([l['value'] for l in self.get_labels()])
-                saver['labels'] = sorted(l for l in self.get_arguments('labels')
-                                         if l in all_labels)
-        self.see_other('account', account['email'])
+        try:
+            with AccountSaver(account, rqh=self) as saver:
+                if self.is_admin():
+                    saver['role'] = self.get_argument('role', account['role'])
+                    all_labels = set([l['value'] for l in self.get_labels()])
+                    saver['labels'] = sorted(l for l
+                                             in self.get_arguments('labels')
+                                             if l in all_labels)
+        except SaverError, msg:
+            self.see_other('account', account['email'],
+                           error="Has been edited by someone else; cannot overwrite.")
+        else:
+            self.see_other('account', account['email'])
 
 
 class AccountReset(RequestHandler):

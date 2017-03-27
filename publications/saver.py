@@ -11,6 +11,11 @@ from publications import constants
 from publications import utils
 
 
+class SaverError(Exception):
+    "Revision mismatch error."
+    pass
+
+
 class Saver(object):
     "Context manager saving the data for the document."
 
@@ -45,7 +50,7 @@ class Saver(object):
         try:
             self.db.save(self.doc)
         except couchdb.http.ResourceConflict:
-            raise IOError('document revision update conflict')
+            raise SaverError
         self.post_process()
         self.write_log()
 
@@ -98,6 +103,19 @@ class Saver(object):
     def setup(self):
         "Any additional setup. To be redefined."
         pass
+
+    def check_revision(self):
+        """If the document is not new, check that the form field
+        argument '_rev', if it exists, matches the document.
+        Raise Saverrror if incorrect.
+        """
+        old_rev = self.doc.get('_rev')
+        if not old_rev: return
+        if self.rqh is None: return
+        new_rev = self.rqh.get_argument('_rev', None)
+        if not new_rev: return
+        if old_rev != new_rev:
+            raise SaverError
 
     def finalize(self):
         "Perform any final modifications before saving the document."

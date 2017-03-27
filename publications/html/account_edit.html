@@ -18,6 +18,7 @@ Edit '{{ account['email'] }}'
       class="form-horizontal"
       method="POST">
   {% module xsrf_form_html() %}
+  <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
 
   {% if is_admin %}
   <div class="form-group">

@@ -11,7 +11,7 @@ from . import crossref
 from . import pubmed
 from . import settings
 from . import utils
-from .saver import Saver
+from .saver import Saver, SaverError
 from .requesthandler import RequestHandler
 
 
@@ -197,40 +197,46 @@ class PublicationEdit(PublicationMixin, RequestHandler):
             allowed_labels = set([l['value'] for l in self.get_labels()])
         else:
             allowed_labels = set(self.current_user['labels'])
-        with PublicationSaver(doc=publication, rqh=self) as saver:
-            saver['title'] = self.get_argument('title', '') or '[no title]'
-            authors = []
-            for author in self.get_argument('authors', '').split('\n'):
-                author = author.strip()
-                if not author: continue
-                try:
-                    family, given = author.split(',', 1)
-                    family = family.strip()
-                    if not family: raise IndexError
-                    given = given.strip()
-                except IndexError:
-                    family = author
-                    given = ''
-                else:
-                    initials = ''.join([c[0] for c in given.split()])
-                    authors.append(
-                        dict(family=family,
-                             family_normalized=utils.to_ascii(family),
-                             given=given,
-                             given_normalized=utils.to_ascii(given),
-                             initials=initials,
-                             initials_normalized=utils.to_ascii(initials)))
-            saver['authors'] = authors
-            saver['pmid'] = self.get_argument('pmid', '') or None
-            saver['doi'] = self.get_argument('doi', '') or None
-            journal = dict(title=self.get_argument('journal', '') or None)
-            for key in ['issn', 'volume', 'issue', 'pages']:
-                journal[key] = self.get_argument(key, '') or None
-            saver['journal'] = journal
-            saver['abstract'] = self.get_argument('abstract', '') or None
-            saver['labels'] = sorted(l for l in self.get_arguments('labels')
-                                     if l in allowed_labels)
-        self.see_other('publication', publication['_id'])
+        try:
+            with PublicationSaver(doc=publication, rqh=self) as saver:
+                saver.check_revision()
+                saver['title'] = self.get_argument('title', '') or '[no title]'
+                authors = []
+                for author in self.get_argument('authors', '').split('\n'):
+                    author = author.strip()
+                    if not author: continue
+                    try:
+                        family, given = author.split(',', 1)
+                        family = family.strip()
+                        if not family: raise IndexError
+                        given = given.strip()
+                    except IndexError:
+                        family = author
+                        given = ''
+                    else:
+                        initials = ''.join([c[0] for c in given.split()])
+                        authors.append(
+                            dict(family=family,
+                                 family_normalized=utils.to_ascii(family),
+                                 given=given,
+                                 given_normalized=utils.to_ascii(given),
+                                 initials=initials,
+                                 initials_normalized=utils.to_ascii(initials)))
+                saver['authors'] = authors
+                saver['pmid'] = self.get_argument('pmid', '') or None
+                saver['doi'] = self.get_argument('doi', '') or None
+                journal = dict(title=self.get_argument('journal', '') or None)
+                for key in ['issn', 'volume', 'issue', 'pages']:
+                    journal[key] = self.get_argument(key, '') or None
+                saver['journal'] = journal
+                saver['abstract'] = self.get_argument('abstract', '') or None
+                saver['labels'] = sorted(l for l in self.get_arguments('labels')
+                                         if l in allowed_labels)
+        except SaverError, msg:
+            self.see_other('publication', publication['_id'],
+                           error="Has been edited by someone else; cannot overwrite.")
+        else:
+            self.see_other('publication', publication['_id'])
 
 
 class PublicationTrash(PublicationMixin, RequestHandler):

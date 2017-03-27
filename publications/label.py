@@ -10,7 +10,7 @@ from . import constants
 from . import settings
 from . import utils
 from .requesthandler import RequestHandler
-from .saver import Saver
+from .saver import Saver, SaverError
 from .account import AccountSaver
 from .publication import PublicationSaver
 
@@ -128,9 +128,15 @@ class LabelEdit(RequestHandler):
             return
         old_value = label['value']
         new_value = self.get_argument('value')
-        with LabelSaver(label, rqh=self) as saver:
-            saver['value'] = new_value
-            saver['value_normalized'] = utils.to_ascii(new_value)
+        try:
+            with LabelSaver(label, rqh=self) as saver:
+                saver.check_revision()
+                saver['value'] = new_value
+                saver['value_normalized'] = utils.to_ascii(new_value)
+        except SaverError:
+            self.see_other('label', label['value'],
+                           error="Has been edited by someone else; cannot overwrite.")
+            return
         for account in self.get_docs('account/label', key=old_value):
             with AccountSaver(account, rqh=self) as saver:
                 labels = set(account['labels'])
