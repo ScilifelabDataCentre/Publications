@@ -50,10 +50,36 @@
 		  </a>
 		</li>
 		{% end %} {# if is_curator #}
+
+		<li class="dropdown-header">Lists</li>
+		{% for y, c in year_counts %}
+		<li>
+		  <a href="{{ reverse_url('publications_year', y) }}">
+		    <span class="glyphicon glyphicon-file"></span>
+		    {{ y }} ({{ c }})
+		  </a>
+		</li>
+		{% end %} {# for y, c #}
+		<li>
+		  <a href="{{ reverse_url('publications') }}">
+		    <span class="glyphicon glyphicon-file"></span>
+		    All ({{ sum([c for y, c in year_counts]) }})
+		  </a>
+		</li>
+
+		<li class="dropdown-header">Tables</li>
+		{% for y, c in year_counts %}
+		<li>
+		  <a href="{{ reverse_url('publications_table_year', y) }}">
+		    <span class="glyphicon glyphicon-list-alt"></span>
+		    {{ y }} ({{ c }})
+		  </a>
+		</li>
+		{% end %} {# for y, c #}
 		<li>
 		  <a href="{{ reverse_url('publications_table') }}">
 		    <span class="glyphicon glyphicon-list-alt"></span>
-		    Table
+		    All ({{ sum([c for y, c in year_counts]) }})
 		  </a>
 		</li>
 	      </ul>
@@ -70,7 +96,7 @@
 		<li>
 		  <a href="{{ reverse_url('accounts') }}">
 		    <span class="glyphicon glyphicon-list-alt"></span>
-		    Table
+		    All
 		  </a>
 		</li>
 		<li>
@@ -96,7 +122,7 @@
 		<li>
 		  <a href="{{ reverse_url('labels_table') }}">
 		    <span class="glyphicon glyphicon-list-alt"></span>
-		    Table
+		    Table: All
 		  </a>
 		</li>
 		<li>
@@ -201,7 +227,7 @@
       {% try %}
       {% if error %}
       <div class="row">
-	<div class="col-md-10 col-md-offset-1 lead alert alert-danger">
+	<div class="col-md-9 col-md-offset-2 lead alert alert-danger">
 	  <strong>Error:</strong> {{ error }}
 	</div>
       </div>
@@ -214,7 +240,7 @@
       {% try %}
       {% if message %}
       <div class="row">
-	<div class="col-md-10 col-md-offset-1 lead alert alert-warning">
+	<div class="col-md-9 col-md-offset-2 lead alert alert-warning">
 	  {# Allow links in message #}
 	  <strong>Message:</strong> {% raw message %}
 	</div>
@@ -231,7 +257,7 @@
 	  {% for y, c in year_counts %}
 	  <p>
 	    <a href="{{ reverse_url('publications_year', y) }}"
-	       class="btn btn-default btn-sm btn left"
+	       class="btn btn-default btn-sm btn-block left"
 	       role="button">
 	      <span class="glyphicon glyphicon-file"></span>
 	      {{ y }} ({{ c }})
@@ -240,7 +266,7 @@
 	  {% end %} {# for y, c #}
 	  <p>
 	    <a href="{{ reverse_url('labels_list') }}"
-	       class="btn btn-default btn-sm btn left"
+	       class="btn btn-default btn-sm btn-block left"
 	       role="button">
 	      <span class="glyphicon glyphicon-tag"></span>
 	      Labels
@@ -248,7 +274,7 @@
 	  </p>
 	  {% end %} {# block menu_content #}
 	</div>
-	<div class="col-md-10">
+	<div class="col-md-9 col-md-offset-1">
 	  {% block main_content %}
 	  {% end %} {# block main_content #}
 	</div>

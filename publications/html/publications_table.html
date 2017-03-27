@@ -2,11 +2,11 @@
 
 {% extends "base.html" %}
 
-{% block head_title %}Publications table{% end %}
+{% block head_title %}Publications  {{ year or '' }}{% end %}
 {% block body_title %}
 <span class="glyphicon glyphicon-file"></span>
 <span class="glyphicon glyphicon-list-alt"></span>
-Publications table
+Publications  {{ year or '' }}
 {% end %}
 
 {% block header_css %}

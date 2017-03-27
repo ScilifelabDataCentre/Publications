@@ -55,24 +55,31 @@ class Publication(PublicationMixin, RequestHandler):
                     is_editable=self.is_editable(publication))
 
 
-class PublicationsTable(RequestHandler):
+class Publications(RequestHandler):
+    "Publications page."
+
+    TEMPLATE = 'publications.html'
+
+    def get(self, year=None):
+        if year:
+            publications = self.get_docs('publication/year',
+                                         key=year,
+                                         reduce=False)
+            publications.sort(key=lambda i: i['published'])
+        else:
+            publications = self.get_docs('publication/published',
+                                         key=constants.CEILING,
+                                         last='',
+                                         descending=True)
+        self.render(self.TEMPLATE,
+                    publications=publications,
+                    year=year)
+
+
+class PublicationsTable(Publications):
     "Publications table page."
 
-    def get(self):
-        publications = self.get_docs('publication/published',
-                                     key=constants.CEILING,
-                                     last='',
-                                     descending=True)
-        self.render('publications_table.html', publications=publications)
-
-
-class PublicationsYear(RequestHandler):
-    "Publications for a year."
-
-    def get(self, year):
-        docs = self.get_docs('publication/year', key=year, reduce=False)
-        docs.sort(key=lambda i: i['published'])
-        self.render('publications_year.html', publications=docs, year=year)
+    TEMPLATE = 'publications_table.html'
 
 
 class PublicationFetch(RequestHandler):
