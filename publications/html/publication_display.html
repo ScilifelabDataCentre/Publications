@@ -22,7 +22,7 @@
     [{{ publication['published'] }}]
   </div>
   <div>
-    {% for l in publication['labels'] %}
+    {% for l in publication.get('labels', []) %}
     <a class="label label-default"
        href="{{ reverse_url('label', l) }}">{{ l }}</a>
     {% end %}
