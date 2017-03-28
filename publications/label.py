@@ -53,7 +53,7 @@ class LabelsList(RequestHandler):
     "Labels list page."
 
     def get(self):
-        labels = self.get_labels()
+        labels = self.get_docs('label/value')
         view = self.db.view('publication/label', group=True)
         label_counts = dict([(r.key, r.value) for r in view])
         self.render('labels_list.html',
@@ -65,7 +65,7 @@ class LabelsTable(RequestHandler):
     "Labels table page."
 
     def get(self):
-        labels = self.get_labels()
+        labels = self.get_docs('label/value')
         label_accounts = dict([(l['value'], []) for l in labels])
         for account in self.get_docs('account/email'):
             for label in account['labels']:

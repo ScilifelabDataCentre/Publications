@@ -116,7 +116,8 @@ class AccountAdd(RequestHandler):
     def get(self):
         self.check_admin()
         self.render('account_add.html',
-                    all_labels=[l['value'] for l in self.get_labels()])
+                    all_labels=[l['value'] for l in
+                                self.get_docs('label/value')])
 
     @tornado.web.authenticated
     def post(self):
@@ -142,9 +143,9 @@ class AccountAdd(RequestHandler):
                 saver.set_email(email)
                 saver['owner'] = email
                 saver['role'] = role
-                all_labels = set([l['value'] for l in self.get_labels()])
+                labels = set([l['value'] for l in self.get_docs('label/value')])
                 saver['labels'] = sorted(l for l in self.get_arguments('labels')
-                                         if l in all_labels)
+                                         if l in labels)
                 saver.reset_password()
             account = saver.doc
         except ValueError, msg:
@@ -187,7 +188,8 @@ class AccountEdit(AccountMixin, RequestHandler):
         if self.is_admin():
             self.render('account_edit.html',
                         account=account,
-                        labels=[l['value'] for l in self.get_labels()])
+                        labels=[l['value'] for l in
+                                self.get_docs('label/value')])
         else:
             self.render('account_edit.html', account=account)
 
@@ -207,10 +209,11 @@ class AccountEdit(AccountMixin, RequestHandler):
             with AccountSaver(account, rqh=self) as saver:
                 if self.is_admin():
                     saver['role'] = self.get_argument('role', account['role'])
-                    all_labels = set([l['value'] for l in self.get_labels()])
+                    labels = set([l['value'] for l in
+                                  self.get_docs('label/value')])
                     saver['labels'] = sorted(l for l
                                              in self.get_arguments('labels')
-                                             if l in all_labels)
+                                             if l in labels)
         except SaverError, msg:
             self.see_other('account', account['email'], error=utils.REV_ERROR)
         else:

@@ -90,6 +90,7 @@ class PublicationsUnverified(RequestHandler):
     List according to which labels the account may use.
     """
 
+    @tornado.web.authenticated
     def get(self):
         if self.is_admin():
             publications = self.get_docs('publication/unverified',
@@ -99,14 +100,14 @@ class PublicationsUnverified(RequestHandler):
                                          descending=True)
         else:
             lookup = {}
-            for label in self.get_labels():
+            for label in self.current_account.get('labels'):
                 docs = self.get_docs('publication/label_unverified',
-                                     key=label['value'])
+                                     key=label)
                 for doc in docs:
                     lookup[doc['_id']] = doc
-                publications = lookup.values()
-                publications.sort(key=lambda i: i['published'], reverse=True)
-                # XXX All unverified are returned.
+            publications = lookup.values()
+            publications.sort(key=lambda i: i['published'], reverse=True)
+            # XXX All unverified are returned.
         self.render('publications_unverified.html', publications=publications)
 
 
@@ -193,8 +194,7 @@ class PublicationFetch(RequestHandler):
         else:
             with PublicationSaver(new, rqh=self) as saver:
                 if self.current_user['role'] == constants.CURATOR:
-                    saver['labels'] = sorted(l['value'] for l in 
-                                             self.get_labels(self.current_user))
+                    saver['labels'] = sorted(self.current_user['labels'])
                 else:
                     saver['labels'] = []
                 saver['verified'] = True
@@ -213,9 +213,9 @@ class PublicationEdit(PublicationMixin, RequestHandler):
             raise tornado.web.HTTPError(404, reason='No such publication.')
         self.check_editable(publication)
         if self.is_admin():
-            labels = sorted(l['value'] for l in self.get_labels())
+            labels = [l['value'] for l in self.get_docs('label/value')]
         else:
-            labels = sorted(self.current_user['labels'])
+            labels = self.current_user['labels']
         self.render('publication_edit.html',
                     title='Edit publication',
                     publication=publication,
@@ -229,7 +229,8 @@ class PublicationEdit(PublicationMixin, RequestHandler):
             raise tornado.web.HTTPError(404, reason='No such publication.')
         self.check_editable(publication)
         if self.is_admin():
-            allowed_labels = set([l['value'] for l in self.get_labels()])
+            allowed_labels = set([l['value'] for l in
+                                  self.get_docs('label/value')])
         else:
             allowed_labels = set(self.current_user['labels'])
         try:
@@ -331,10 +332,14 @@ class PublicationLabels(PublicationMixin, RequestHandler):
         except KeyError:
             raise tornado.web.HTTPError(404, reason='No such publication.')
         self.check_editable(publication)
+        if self.is_admin():
+            labels = [l['value'] for l in self.get_docs('label/value')]
+        else:
+            labels = self.current_account['labels']
         self.render('publication_labels.html',
                     title='Edit publication labels',
                     publication=publication,
-                    labels=[l.value for l in self.get_labels(assignable=True)])
+                    labels=labels)
 
     @tornado.web.authenticated
     def post(self, iuid):

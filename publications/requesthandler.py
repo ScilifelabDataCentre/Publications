@@ -61,32 +61,16 @@ class RequestHandler(tornado.web.RequestHandler):
         return url
 
     def get_doc(self, key, viewname=None):
-        """Get the document with the given id, or from the view if given.
+        """Get the document with the given id, or from the given view.
         Raise KeyError if not found.
         """
-        if viewname is None:
-            try:
-                return self.db[key]
-            except couchdb.ResourceNotFound:
-                raise KeyError
-        else:
-            result = list(self.db.view(viewname, include_docs=True)[key])
-            if len(result) != 1:
-                raise KeyError
-            return result[0].doc
+        return utils.get_doc(self.db, key, viewname=viewname)
 
     def get_docs(self, viewname, key=None, last=None, **kwargs):
         """Get the list of documents using the named view
         and the given key or interval.
         """
-        view = self.db.view(viewname, include_docs=True, **kwargs)
-        if key is None:
-            iterator = view
-        elif last is None:
-            iterator = view[key]
-        else:
-            iterator = view[key:last]
-        return [i.doc for i in iterator]
+        return utils.get_docs(self.db, viewname, key=key, last=last, **kwargs)
 
     def get_publication(self, identifier, unverified=False):
         """Get the publication given its IUID, DOI or PMID.
@@ -127,10 +111,6 @@ class RequestHandler(tornado.web.RequestHandler):
         if doc[constants.DOCTYPE] != constants.LABEL:
             raise KeyError
         return doc
-
-    def get_labels(self):
-        "Get the list of label documents."
-        return self.get_docs('label/value')
 
     def get_trashed(self, identifier):
         """Get the trash document id if the publication with

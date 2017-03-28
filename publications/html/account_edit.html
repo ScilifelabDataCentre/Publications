@@ -46,7 +46,7 @@ Edit '{{ account['email'] }}'
   <div class="form-group">
     <label class="control-label col-sm-1" for="labels">Labels</label>
     <div class=" col-sm-6">
-      <select multiple class="form-control" name="labels" id="labels">
+      <select multiple size="8" class="form-control" name="labels" id="labels">
 	{% for label in labels %}
 	{% if label in account['labels'] %}
 	<option selected>{{ label }}</option>

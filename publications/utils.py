@@ -142,6 +142,34 @@ def get_db(create=False):
         else:
             raise KeyError("CouchDB database '%s' does not exist." % name)
 
+def get_doc(db, key, viewname=None):
+    """Get the document with the given i, or from the given view.
+    Raise KeyError if not found.
+    """
+    if viewname is None:
+        try:
+            return db[key]
+        except couchdb.ResourceNotFound:
+            raise KeyError
+    else:
+        result = list(db.view(viewname, include_docs=True)[key])
+        if len(result) != 1:
+            raise KeyError
+        return result[0].doc
+
+def get_docs(db, viewname, key=None, last=None, **kwargs):
+    """Get the list of documents using the named view and
+    the given key or interval.
+    """
+    view = db.view(viewname, include_docs=True, **kwargs)
+    if key is None:
+        iterator = view
+    elif last is None:
+        iterator = view[key]
+    else:
+        iterator = view[key:last]
+    return [i.doc for i in iterator]
+
 def get_iuid():
     "Return a unique instance identifier."
     return uuid.uuid4().hex
