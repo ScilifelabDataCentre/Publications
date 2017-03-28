@@ -6,7 +6,6 @@ The publications are set as verified.
 from __future__ import print_function
 
 import sys
-import getpass
 
 import requests
 
@@ -26,7 +25,7 @@ def get_args():
         sys.exit(1)
     return (options, args)
 
-def fetch_pmid(db, pmid, account):
+def fetch_pmid(db, account, pmid):
     """Fetch the publication reference given the PMID and the account.
     Update the existing record, if any. 
     Labels are applied according to the account.
@@ -82,7 +81,7 @@ if __name__ == '__main__':
         sys.exit("Error: no such account: %s" % args[0])
     for pmid in args[1:]:
         if constants.PMID_RX.match(pmid):
-            fetch_pmid(db, pmid, account)
+            fetch_pmid(db, account, pmid)
         else:
             print('Error:', pmid, 'is not a PMID')
 
