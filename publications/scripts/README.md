@@ -23,3 +23,9 @@ dump.py
 
 Dumps the entires contents of the database in CouchDB, except for the
 design documents.
+
+search_pubmed.py
+----------------
+
+Search PubMed using specified criteria and fetch the references
+setting them as unverified. Labels may be applied.

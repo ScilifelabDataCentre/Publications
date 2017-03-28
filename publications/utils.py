@@ -24,12 +24,11 @@ from . import settings
 
 REV_ERROR   = 'Has been edited by someone else; cannot overwrite.'
 
-def get_command_line_parser(description=None):
+def get_command_line_parser(usage='usage: %prog [options]', description=None):
     "Get the base command line argument parser."
     # optparse is used (rather than argparse) since
     # this code must be possible to run under Python 2.6
-    parser = optparse.OptionParser(usage='usage: %prog [options]',
-                                   description=description)
+    parser = optparse.OptionParser(usage=usage, description=description)
     parser.add_option('-s', '--settings',
                       action='store', dest='settings', default=None,
                       metavar="FILE", help="filename of settings YAML file")
@@ -210,29 +209,6 @@ def to_bool(value):
     if lowvalue in constants.TRUE: return True
     if lowvalue in constants.FALSE: return False
     raise ValueError(u"invalid boolean: '{}'".format(value))
-
-def write_log(db, rqh, doc, changed=dict()):
-    "Add a log entry for the change of the given entity."
-    assert doc[constants.DOCTYPE] in constants.ENTITIES
-    entry = dict(_id=get_iuid(),
-                 doc=doc['_id'],
-                 doctype=doc[constants.DOCTYPE],
-                 changed=changed,
-                 modified=timestamp())
-    entry[constants.DOCTYPE] = constants.LOG
-    if rqh:
-        # xheaders argument to HTTPServer takes care of X-Real-Ip
-        # and X-Forwarded-For
-        entry['remote_ip'] = rqh.request.remote_ip
-        try:
-            entry['user_agent'] = rqh.request.headers['User-Agent']
-        except KeyError:
-            pass
-    try:
-        entry['account'] = rqh.current_user['email']
-    except (AttributeError, TypeError, KeyError):
-        pass
-    db.save(entry)
 
 
 class EmailServer(object):

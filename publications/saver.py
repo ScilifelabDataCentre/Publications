@@ -21,14 +21,16 @@ class Saver(object):
 
     doctype = None
 
-    def __init__(self, doc=None, rqh=None, db=None):
-        assert self.doctype
+    def __init__(self, doc=None, rqh=None, db=None, account=None):
+        assert self.doctype in constants.ENTITIES
         if rqh is not None:
             self.rqh = rqh
             self.db = rqh.db
+            self.account = account or rqh.current_user
         elif db is not None:
             self.rqh = None
             self.db = db
+            self.account = account
         else:
             raise AttributeError('neither db nor rqh given')
         self.doc = doc or dict()
@@ -126,5 +128,25 @@ class Saver(object):
         pass
 
     def write_log(self):
-        "Create a log entry for the change."
-        utils.write_log(self.db, self.rqh, self.doc, changed=self.changed)
+        "Write a log entry for the change."
+        # utils.write_log(self.db, self.rqh, self.doc, changed=self.changed)
+        log = dict(_id=utils.get_iuid(),
+                   doc=self.doc['_id'],
+                   doctype=self.doc[constants.DOCTYPE],
+                   changed=self.changed,
+                   modified=utils.timestamp())
+        log[constants.DOCTYPE] = constants.LOG
+        if self.rqh:
+            # xheaders argument to HTTPServer takes care of X-Real-Ip
+            # and X-Forwarded-For
+            log['remote_ip'] = self.rqh.request.remote_ip
+            try:
+                log['user_agent'] = self.rqh.request.headers['User-Agent']
+            except KeyError:
+                pass
+        if self.account:
+            try:
+                log['account'] = self.account['email']
+            except KeyError:
+                pass
+        self.db.save(log)
