@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 "Web application server for a simple publications database."
 
 from __future__ import print_function

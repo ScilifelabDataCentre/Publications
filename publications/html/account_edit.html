@@ -20,6 +20,14 @@ Edit '{{ account['email'] }}'
   {% module xsrf_form_html() %}
   <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
 
+  <div class="form-group">
+    <label class="control-label col-sm-1" for="name">Name</label>
+    <div class="col-sm-11">
+      <input type="text" name="name" id="name" size="40"
+	     value="{{ account.get('name') or '' }}">
+    </div>
+  </div>
+
   {% if is_admin %}
   <div class="form-group">
     <label class="control-label col-sm-1" for="role">Role</label>

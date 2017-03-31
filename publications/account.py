@@ -214,6 +214,7 @@ class AccountEdit(AccountMixin, RequestHandler):
                     saver['labels'] = sorted(l for l
                                              in self.get_arguments('labels')
                                              if l in labels)
+                saver['name'] = self.get_argument('name', None)
         except SaverError, msg:
             self.see_other('account', account['email'], error=utils.REV_ERROR)
         else:

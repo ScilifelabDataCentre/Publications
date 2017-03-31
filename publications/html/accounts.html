@@ -19,6 +19,7 @@ Accounts
   <thead>
     <tr>
       <th>Account</th>
+      <th>Name</th>
       <th>Role</th>
       <th width="25%">Login</th>
     </tr>
@@ -31,6 +32,7 @@ Accounts
 	  {{ account['email'] }}
 	</a>
       </td>
+      <td>{{ account.get('name') or '-' }}</td>
       <td>{{ account['role'] }}</td>
       <td class="nobr" width="25%">
 	{% if account.get('login') %}

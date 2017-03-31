@@ -1,5 +1,11 @@
-python==2.7
-tornado>=4.0
-couchdb>=1.1
-pyyaml>=3.12
-requests>=2.2.1
+appdirs==1.4.3
+backports-abc==0.5
+certifi==2017.1.23
+CouchDB==1.1
+packaging==16.8
+pyparsing==2.2.0
+PyYAML==3.12
+requests==2.13.0
+singledispatch==3.4.0.3
+six==1.10.0
+tornado==4.4.3
