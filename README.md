@@ -33,9 +33,11 @@ Installation
 
 - Create the database in the CouchDB system.
 
-- $ python scripts/init_database.py
+- Run the following scripts to initialize and to create the first account.
 
-- $ python scripts/create_admin.py
+      $ python scripts/init_database.py
+      $ python scripts/create_admin.py
+
 
 Implementation
 --------------
