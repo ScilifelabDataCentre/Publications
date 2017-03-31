@@ -13,18 +13,20 @@
 {% if current_user %}
 <h3>Curators</h3>
 <p>
-{% if accounts %}
-{% for account in accounts %}
-<a href="{{ reverse_url('account', account['email']) }}">
-  {{ account['email'] }}
-</a>
-{% end %} {# for account #}
-{% else %}
-<i>None</i>
-{% end %}
+  {% if accounts %}
+  {% for account in accounts %}
+  <a href="{{ reverse_url('account', account['email']) }}">
+    {{ account['email'] }}
+  </a>
+  {% end %} {# for account #}
+  {% else %}
+  <i>None</i>
+  {% end %}
 </p>
+
 <h3>Publications</h3>
 {% end %} {# if current_user #}
+
 {% include 'publications_list.html' %}
 {% end %} {# block main_content #}
 
