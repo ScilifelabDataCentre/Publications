@@ -1,4 +1,4 @@
-python>=3.4
+python==2.7
 tornado>=4.0
 couchdb>=1.1
 pyyaml>=3.12

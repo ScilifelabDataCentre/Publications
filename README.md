@@ -24,6 +24,19 @@ Features
 - Script to search PubMed, fetching the publication references, setting them
   as unverified. A curator will have to verify each publication manually.
 
+Installation
+------------
+
+- Install the required software.
+
+- Edit your settings file.
+
+- Create the database in the CouchDB system.
+
+- $ python scripts/init_database.py
+
+- $ python scripts/create_admin.py
+
 Implementation
 --------------
 
