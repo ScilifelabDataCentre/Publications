@@ -86,7 +86,7 @@ def search_pubmed(db, email,
             print(publication['title'])
             print(utils.get_formatted_authors(publication))
             print(utils.get_formatted_journal(publication, html=False))
-            answer = raw_input('import this publication ? [Y/n]')
+            answer = raw_input('import this publication ? [Y/n] > ')
             if answer and answer.lower()[0] != 'y':
                 continue
         with PublicationSaver(doc=publication, db=db, account=account) as saver:
