@@ -85,7 +85,7 @@ def search_pubmed(db, email,
             print()
             print(publication['title'])
             print(utils.get_formatted_authors(publication))
-            print(utils.get_formatted_journal(publication))
+            print(utils.get_formatted_journal(publication, html=False))
             answer = raw_input('import this publication ? [Y/n]')
             if answer and answer.lower()[0] != 'y':
                 continue

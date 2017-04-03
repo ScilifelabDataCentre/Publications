@@ -232,13 +232,17 @@ def get_formatted_authors(publication, full=False):
         result.append("%s %s" % (a['family'], a['initials']))
     return ', '.join(result)
 
-def get_formatted_journal(publication):
+def get_formatted_journal(publication, html=True):
     "Return a formatted journal specification."
     journal = publication['journal']
-    return ' '.join([journal.get('title') or '-',
-                     "<strong>%s</strong>" % (journal.get('volume') or '-'),
-                     "(%s)" % (journal.get('issue') or '-'),
-                     journal.get('pages') or '-'])
+    result = [journal.get('title') or '-']
+    if html:
+        result.append("<strong>%s</strong>" % (journal.get('volume') or '-'))
+    else:
+        result.append(journal.get('volume') or '-')
+    result.append("(%s)" % (journal.get('issue') or '-'))
+    result.append(journal.get('pages') or '-')
+    return ' '.join(result)
 
 def get_iuid():
     "Return a unique instance identifier."
