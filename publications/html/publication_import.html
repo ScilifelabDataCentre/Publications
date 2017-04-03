@@ -1,20 +1,20 @@
-{# Fetch publication given its DOI or PMID. #}
+{# Import publication given its DOI or PMID. #}
 
 {% extends "base.html" %}
 
-{% block head_title %}Fetch publication{% end %}
+{% block head_title %}Import publication{% end %}
 
 {% block body_title %}
-<span class="glyphicon glyphicon-file"></span>
 <span class="glyphicon glyphicon-cloud-download"></span>
-Fetch publication
+<span class="glyphicon glyphicon-file"></span>
+Import publication
 {% end %} {# block body_title #}
 
 {% block main_content %}
 <div class="row">
   <div class="col-md-11 col-md-offset-1">
     <p>
-      Fetch a publication reference from:
+      Import a publication reference from:
     </p>
     <ul>
       <li>
@@ -30,7 +30,7 @@ Fetch publication
   </div>
 </div>
 
-<form action="{{ reverse_url('publication_fetch') }}"
+<form action="{{ reverse_url('publication_import') }}"
       role="form"
       class="form-horizontal"
       method="POST">
@@ -50,7 +50,7 @@ Fetch publication
     <div class="col-sm-3">
       <button type="submit" class="btn btn-success">
 	<span class="glyphicon glyphicon-cloud-download"></span>
-	Fetch
+	Import
       </button>
     </div>
   </div>
@@ -59,7 +59,7 @@ Fetch publication
     <div class="col-sm-8 checkbox">
       <label>
 	<input type="checkbox" name="force" id="force" value="true">
-	Force fetch, even if the publication was trashed at some earlier time.
+	Force import, even if the publication was trashed at some earlier time.
       </label>
     </div>
   </div>

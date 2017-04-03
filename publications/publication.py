@@ -15,7 +15,7 @@ from .saver import Saver, SaverError
 from .requesthandler import RequestHandler
 
 
-FETCH_ERROR = 'Could not fetch article for some reason.'
+IMPORT_ERROR = 'Could not import article for some reason.'
 TRASHED_MSG = 'Article was trashed at some earlier time.'
 
 class PublicationSaver(Saver):
@@ -111,8 +111,8 @@ class PublicationsUnverified(RequestHandler):
         self.render('publications_unverified.html', publications=publications)
 
 
-class PublicationFetch(RequestHandler):
-    "Fetch a publication given its DOI or PMID."
+class PublicationImport(RequestHandler):
+    "Import a publication given its DOI or PMID."
 
     @tornado.web.authenticated
     def get(self):
@@ -122,7 +122,7 @@ class PublicationFetch(RequestHandler):
                              last='',
                              descending=True,
                              limit=settings['SHORTLIST_LIMIT'])
-        self.render('publication_fetch.html',
+        self.render('publication_import.html',
                     publications=docs,
                     identifier=self.get_argument('identifier', ''))
 
@@ -133,7 +133,7 @@ class PublicationFetch(RequestHandler):
             identifier = self.get_argument('identifier')
             if not identifier: raise ValueError
         except (tornado.web.MissingArgumentError, ValueError):
-            self.see_other('publication_fetch')
+            self.see_other('publication_import')
             return
         # Check if identifier is present in trash registry
         force = utils.to_bool(self.get_argument('force', False))
@@ -142,11 +142,11 @@ class PublicationFetch(RequestHandler):
             if force:
                 del self.db[trashed]
             else:
-                self.see_other('publication_fetch',
+                self.see_other('publication_import',
                                identifier=identifier,
                                message=TRASHED_MSG)
                 return
-        # Has it already been fetched?
+        # Has it already been imported?
         try:
             old = self.get_publication(identifier, unverified=True)
         except KeyError:
@@ -155,7 +155,7 @@ class PublicationFetch(RequestHandler):
             try:
                 new = pubmed.fetch(identifier)
             except (IOError, requests.exceptions.Timeout):
-                self.see_other('publication_fetch', error=FETCH_ERROR)
+                self.see_other('publication_import', error=IMPORT_ERROR)
             else:
                 if old is None:
                     try:
@@ -166,7 +166,7 @@ class PublicationFetch(RequestHandler):
             try:
                 new = crossref.fetch(identifier)
             except (IOError, requests.exceptions.Timeout):
-                self.see_other('publication_fetch', error=FETCH_ERROR)
+                self.see_other('publication_import', error=IMPORT_ERROR)
             else:
                 if old is None:
                     try:
@@ -181,7 +181,7 @@ class PublicationFetch(RequestHandler):
                 if force:
                     del self.db[trashed]
                 else:
-                    self.see_other('publication_fetch',
+                    self.see_other('publication_import',
                                    identifier=identifier,
                                    message=TRASHED_MSG)
                     return
