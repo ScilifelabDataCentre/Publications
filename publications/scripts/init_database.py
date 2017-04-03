@@ -21,10 +21,10 @@ def get_args():
     parser = utils.get_command_line_parser(description=
         'Initialize the database, deleting all old data,'
         ' optionally load from dump file.')
-    parser.add_option("-L", "--load",
+    parser.add_option('-L', '--load',
                       action='store', dest='FILE', default='dump.tar.gz',
                       metavar="FILE", help="filepath of dump file to load")
-    parser.add_option("-f", "--force",
+    parser.add_option('-f', '--force',
                       action='store_true', dest='force', default=False,
                       help='force deletion; skip question')
     return parser.parse_args()

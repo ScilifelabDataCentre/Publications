@@ -170,6 +170,76 @@ def get_docs(db, viewname, key=None, last=None, **kwargs):
         iterator = view[key:last]
     return [i.doc for i in iterator]
 
+def get_account(db, email):
+    """Get the account identified by the email address.
+    Raise KeyError if no such account.
+    """
+    try:
+        doc = get_doc(db, email.strip().lower(), 'account/email')
+    except KeyError:
+        raise KeyError("no such account %s" % email)
+    if doc[constants.DOCTYPE] != constants.ACCOUNT:
+        raise KeyError("document %s is not an account" % email)
+    return doc
+
+def get_publication(db, identifier, unverified=False):
+    """Get the publication given its IUID, DOI or PMID.
+    Search among unverified if that flag is set to True.
+    Raise KeyError if no such publication.
+    """
+    if not identifier: raise KeyError
+    try:
+        doc = get_doc(db, identifier)
+    except KeyError:
+        viewnames = ['publication/doi', 'publication/pmid']
+        if unverified:
+            viewnames.append('publication/doi_unverified')
+            viewnames.append('publication/pmid_unverified')
+        doc = None
+        for viewname in viewnames:
+            try:
+                doc = get_doc(db, identifier, viewname=viewname)
+                break
+            except KeyError:
+                pass
+        else:
+            raise KeyError("no such publication %s" % identifier)
+    if doc[constants.DOCTYPE] != constants.PUBLICATION:
+        raise KeyError("document %s is not a publication" % identifier)
+    return doc
+
+def get_trashed(db, identifier):
+    """Get the trash document id if the publication with
+    the external identifier has been trashed.
+    """
+    for viewname in ['trash/doi', 'trash/pmid']:
+        try:
+            return list(db.view(viewname)[identifier])[0].id
+        except IndexError:
+            pass
+    return None
+
+def get_formatted_authors(publication, full=False):
+    "Return a formatted list for the authors of the given publication."
+    authors = publication['authors']
+    if full or len(authors) <= 4:
+        result = ["%s %s" % (a['family'], a['initials']) for a in authors]
+    else:
+        result = ["%s %s" % (a['family'], a['initials'])
+                  for a in authors[:3]]
+        result.append('...')
+        a = authors[-1]
+        result.append("%s %s" % (a['family'], a['initials']))
+    return ', '.join(result)
+
+def get_formatted_journal(publication):
+    "Return a formatted journal specification."
+    journal = publication['journal']
+    return ' '.join([journal.get('title') or '-',
+                     "<strong>%s</strong>" % (journal.get('volume') or '-'),
+                     "(%s)" % (journal.get('issue') or '-'),
+                     journal.get('pages') or '-'])
+
 def get_iuid():
     "Return a unique instance identifier."
     return uuid.uuid4().hex

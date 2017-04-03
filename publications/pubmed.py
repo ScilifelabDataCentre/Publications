@@ -42,15 +42,28 @@ def search(author=None, published=None, journal=None,
     root = xml.etree.ElementTree.fromstring(response.content)
     return [e.text for e in root.findall('IdList/Id')]
 
-def fetch(pmid):
-    "Fetch publication XML from PubMed and parse into a dictionary."
-    url = PUBMED_FETCH_URL % pmid
-    response = session.get(url, timeout=TIMEOUT)
-    if response.status_code != 200:
-        raise IOError("HTTP status %s, %s " % (response.status_code, url))
-    with open(pmid + '.xml', 'w') as outfile:
-        outfile.write(response.content)
-    return parse(response.content)
+def fetch(pmid, dirname=None):
+    """Fetch publication XML from PubMed and parse into a dictionary.
+    Use the file cache directory if given.
+    """
+    filename = pmid + '.xml'
+    content = None
+    if dirname:
+        try:
+            with open(os.path.join(dirname, filename)) as infile:
+                content = infile.read()
+        except IOError:
+            pass
+    if not content:
+        url = PUBMED_FETCH_URL % pmid
+        response = session.get(url, timeout=TIMEOUT)
+        if response.status_code != 200:
+            raise IOError("HTTP status %s, %s " % (response.status_code, url))
+        content = response.content
+        if dirname:
+            with open(os.path.join(dirname, filename), 'w') as outfile:
+                outfile.write(content)
+    return parse(content)
 
 def parse(data):
     "Parse XML text data for a publication into a dictionary."
@@ -192,9 +205,13 @@ def get_published(article):
 
 def get_abstract(article):
     "Get the abstract from the article XML tree."
-    element = get_element(article, 'MedlineCitation/Article/Abstract')
-    return '\n\n'.join([e.text for e in
-                        element.findall('AbstractText')])
+    try:
+        element = get_element(article, 'MedlineCitation/Article/Abstract')
+    except ValueError:
+        return None
+    else:
+        return '\n\n'.join([e.text for e in
+                            element.findall('AbstractText')])
 
 def get_xrefs(article):
     "Get the list of cross-references from the article XML tree."

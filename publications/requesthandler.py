@@ -74,29 +74,10 @@ class RequestHandler(tornado.web.RequestHandler):
 
     def get_publication(self, identifier, unverified=False):
         """Get the publication given its IUID, DOI or PMID.
-        If unverified is True, then search also among such publications.
+        Search among unverified if that flag is set to True.
         Raise KeyError if no such publication.
         """
-        if not identifier: raise KeyError
-        try:
-            doc = self.get_doc(identifier)
-        except KeyError:
-            viewnames = ['publication/doi', 'publication/pmid']
-            if unverified:
-                viewnames.append('publication/doi_unverified')
-                viewnames.append('publication/pmid_unverified')
-            doc = None
-            for viewname in viewnames:
-                try:
-                    doc = self.get_doc(identifier, viewname=viewname)
-                    break
-                except KeyError:
-                    pass
-            else:
-                raise KeyError
-        if doc[constants.DOCTYPE] != constants.PUBLICATION:
-            raise KeyError
-        return doc
+        return utils.get_publication(self.db, identifier, unverified=unverified)
 
     def get_label(self, identifier):
         """Get the label document by its IUID or value.
@@ -116,21 +97,13 @@ class RequestHandler(tornado.web.RequestHandler):
         """Get the trash document id if the publication with
         the external identifier has been trashed.
         """
-        for viewname in ['trash/doi', 'trash/pmid']:
-            try:
-                return list(self.db.view(viewname)[identifier])[0].id
-            except IndexError:
-                pass
-        return None
+        return utils.get_trashed(self.db, identifier)
 
     def get_account(self, email):
         """Get the account identified by the email address.
         Raise KeyError if no such account.
         """
-        doc = self.get_doc(email.strip().lower(), 'account/email')
-        if doc[constants.DOCTYPE] != constants.ACCOUNT:
-            raise KeyError
-        return doc
+        return utils.get_account(self.db, email)
 
     def get_current_user(self):
         """Get the currently logged-in user account, if any.

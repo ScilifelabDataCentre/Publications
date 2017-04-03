@@ -107,7 +107,7 @@ class PublicationsUnverified(RequestHandler):
                     lookup[doc['_id']] = doc
             publications = lookup.values()
             publications.sort(key=lambda i: i['published'], reverse=True)
-            # XXX All unverified are returned.
+            # XXX All unverified are returned. Should be paged?
         self.render('publications_unverified.html', publications=publications)
 
 

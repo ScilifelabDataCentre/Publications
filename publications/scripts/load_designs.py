@@ -75,8 +75,8 @@ def regenerate_views(db, root=None):
         
 
 def get_args():
-    parser = utils.get_command_line_parser(description=
-        'Reload all CouchDB design documents.')
+    parser = utils.get_command_line_parser(
+        description='Reload all CouchDB design documents.')
     return parser.parse_args()
 
 
