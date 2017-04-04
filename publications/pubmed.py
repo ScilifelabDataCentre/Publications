@@ -22,17 +22,19 @@ MONTHS = dict(jan=1, feb=2, mar=3, apr=4, may=5, jun=6,
 session = requests.Session()
 
 def search(author=None, published=None, journal=None, 
-           affiliation=None, words=None, retmax=100):
+           affiliation=None, title=None, words=None, retmax=100):
     "Get list of PMIDs for PubMed hits given the data."
     parts = []
     if author:
-        parts.append("%s[Author]" % to_ascii(to_unicode(author)))
+        parts.append("%s[AU]" % to_ascii(to_unicode(author)))
     if published:
-        parts.append("%s[PDAT]" % published)
+        parts.append("%s[DP]" % published)
     if journal:
-        parts.append("%s[Journal]" % journal)
+        parts.append("%s[TA]" % journal)
     if affiliation:
-        parts.append("%s[Affiliation]" % to_ascii(to_unicode(affiliation)))
+        parts.append("%s[AD]" % to_ascii(to_unicode(affiliation)))
+    if title:
+        parts.append("%s[TI]" % to_ascii(to_unicode(title)))
     if words:
         parts.append(words.replace(' ', '+'))
     url = PUBMED_SEARCH_URL % (retmax, ' AND '.join(parts))
