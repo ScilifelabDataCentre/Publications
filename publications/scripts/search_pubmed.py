@@ -1,10 +1,12 @@
 """Search PubMed using specified criteria and import the references
-setting them as unverified. Labels may be applied.
+setting them as unverified.
+Labels are applied according to the specified account.
 """
 
 from __future__ import print_function
 
 import sys
+import time
 
 import requests
 
@@ -13,17 +15,22 @@ from publications import pubmed
 from publications import utils
 from publications.publication import PublicationSaver
 
+DELAY = 1.0
+
 
 def get_args():
     parser = utils.get_command_line_parser(
         usage='usage: %prog [options] account',
         description='Search PubMed and import references.')
-    parser.add_option('-i', '--interactive',
-                      action='store_true', dest='interactive', default=False,
-                      help='ask for each publication')
+    parser.add_option('-n', '--noninteractive',
+                      action='store_false', dest='interactive', default=True,
+                      help='do not ask for confirmation for each publication')
     parser.add_option('-d', '--dry-run',
                       action='store_true', dest='dry_run', default=False,
                       help='search but do not import')
+    parser.add_option('-y', '--delay',
+                      action='store', dest='delay', default=DELAY,
+                      help='delay between each PubMed fetch (seconds)')
     parser.add_option('-a', '--author',
                       action='store', dest='author', default=None,
                       metavar='AUTHOR', help='author, e.g. "Kraulis P"')
@@ -34,9 +41,12 @@ def get_args():
     parser.add_option('-p', '--published',
                       action='store', dest='published', default=None,
                       metavar='DATE', help='publication date')
-    parser.add_option('-w', '--words',
-                      action='store', dest='words', default=None,
-                      metavar='WORDS', help='words (unspecified type)')
+    parser.add_option('-t', '--title',
+                      action='store', dest='title', default=None,
+                      metavar='TITLE', help='title of publication')
+    parser.add_option('-x', '--exclude_title',
+                      action='store', dest='exclude_title', default=None,
+                      metavar='TITLE', help='require not in title')
     parser.add_option('-j', '--journal',
                       action='store', dest='journal', default=None,
                       metavar='JOURNAL', help='journal name')
@@ -49,17 +59,20 @@ def get_args():
 def search_pubmed(db, email,
                   interactive=False,
                   dry_run=False,
+                  delay=DELAY,
                   author=None,
                   affiliation=None,
                   published=None,
                   journal=None,
-                  words=None):
+                  title=None,
+                  exclude_title=None):
     account = utils.get_account(db, email)
     pmids = set(pubmed.search(author=author,
                               affiliation=affiliation,
                               published=published,
                               journal=journal,
-                              words=words))
+                              title=title,
+                              exclude_title=exclude_title))
     if interactive:
         print(len(pmids), 'publications found in PubMed search')
     trashed = set()
@@ -76,10 +89,18 @@ def search_pubmed(db, email,
         except KeyError:
             not_imported.add(pmid)
     if interactive:
-        print(len(pmids) - len(not_imported), 'already in database')
+        print(len(pmids) - len(not_imported), 'already imported')
     if dry_run:
         return
+    try:
+        delay = -abs(float(delay))
+    except (TypeError, ValueError):
+        delay = -DELAY
     for pmid in not_imported:
+        if delay > 0.0:
+            time.sleep(delay)
+        elif delay < 0.0:
+            delay = -delay
         publication = pubmed.fetch(pmid)
         if interactive:
             print()
@@ -106,9 +127,12 @@ if __name__ == '__main__':
         search_pubmed(db, args[0],
                       interactive=options.interactive,
                       dry_run=options.dry_run,
+                      delay=options.delay,
                       author=options.author,
                       affiliation=options.affiliation,
                       published=options.published,
-                      journal=options.journal)
+                      journal=options.journal,
+                      title=options.title,
+                      exclude_title=options.exclude_title)
     except KeyError, msg:
         sys.exit("Error: %s" % msg)

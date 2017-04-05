@@ -22,7 +22,8 @@ MONTHS = dict(jan=1, feb=2, mar=3, apr=4, may=5, jun=6,
 session = requests.Session()
 
 def search(author=None, published=None, journal=None, 
-           affiliation=None, title=None, words=None, retmax=100):
+           affiliation=None, title=None, exclude_title=None,
+           retmax=100):
     "Get list of PMIDs for PubMed hits given the data."
     parts = []
     if author:
@@ -35,9 +36,10 @@ def search(author=None, published=None, journal=None,
         parts.append("%s[AD]" % to_ascii(to_unicode(affiliation)))
     if title:
         parts.append("%s[TI]" % to_ascii(to_unicode(title)))
-    if words:
-        parts.append(words.replace(' ', '+'))
-    url = PUBMED_SEARCH_URL % (retmax, ' AND '.join(parts))
+    query = ' AND '.join(parts)
+    if exclude_title:
+        query += " NOT %s[TI]" % to_ascii(to_unicode(exclude_title))
+    url = PUBMED_SEARCH_URL % (retmax, query)
     response = session.get(url, timeout=TIMEOUT)
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
