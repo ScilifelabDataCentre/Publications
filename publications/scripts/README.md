@@ -18,6 +18,11 @@ create_admin.py
 
 Create an account with the 'admin' role.
 
+set_password.py
+---------------
+
+Set the password for an existing account.
+
 dump.py
 -------
 

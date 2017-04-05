@@ -1,4 +1,4 @@
-"Create an admin account."
+"Set the password for an account."
 
 from __future__ import print_function
 
@@ -12,28 +12,28 @@ from publications.account import AccountSaver
 
 def get_args():
     parser = utils.get_command_line_parser(
-        description='Create a new admin account account.')
-    return parser.parse_args()
+        usage='usage: %prog [options] account',
+        description='Set the password for an account.')
+    (options, args) = parser.parse_args()
+    if len(args) != 1:
+        parser.print_help()
+        sys.exit()
+    return (options, args)
 
-def create_admin(db, email, password):
-    with AccountSaver(db=db) as saver:
-        saver.set_email(email)
-        saver['owner'] = email
+def set_password(db, email, password):
+    account = utils.get_account(db, email)
+    with AccountSaver(doc=account, db=db) as saver:
         saver.set_password(password)
-        saver['role'] = constants.ADMIN
-    print("Created 'admin' role account", email)
+    print("Set password for", email)
 
 
 if __name__ == '__main__':
     (options, args) = get_args()
     utils.load_settings(filepath=options.settings)
     db = utils.get_db()
-    email = raw_input('Email address (=account identifier) > ')
-    if not email:
-        sys.exit('Error: no email address provided')
     password = getpass.getpass('Password > ')
     if not password:
         sys.exit('Error: no password provided')
     if password != getpass.getpass('Password again > '):
         sys.exit('Error: passwords did not match')
-    create_admin(email, password)
+    set_password(db, args[0], password)
