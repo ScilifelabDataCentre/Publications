@@ -208,6 +208,20 @@ def get_publication(db, identifier, unverified=False):
         raise KeyError("document %s is not a publication" % identifier)
     return doc
 
+def get_label(db, identifier):
+    """Get the label document by its IUID or value.
+    Raise KeyError if no such publication.
+    """
+    if not identifier: raise KeyError
+    try:
+        doc = get_doc(db, identifier)
+    except KeyError:
+        identifier = to_ascii(identifier).lower()
+        doc = get_doc(db, identifier, 'label/value_normalized')
+    if doc[constants.DOCTYPE] != constants.LABEL:
+        raise KeyError
+    return doc
+
 def get_trashed(db, identifier):
     """Get the trash document id if the publication with
     the external identifier has been trashed.

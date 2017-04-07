@@ -87,15 +87,6 @@ def undump(db, filepath):
                 rows = db.view('account/email', key=doc['email'])
                 if len(list(rows)) != 0: continue
             atts = doc.pop('_attachments', dict())
-            # Overwrite meta documents
-            if doc[constants.DOCTYPE] == constants.META:
-                try:
-                    doc2 = db[doc['_id']]
-                except couchdb.ResourceNotFound:
-                    pass
-                else:
-                    doc2.update(doc)
-                    doc = doc2
             db.save(doc)
             count_items += 1
             for attname, attinfo in atts.items():

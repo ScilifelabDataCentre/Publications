@@ -18,10 +18,14 @@ from .publication import PublicationSaver
 class LabelSaver(Saver):
     doctype = constants.LABEL
 
+    def set_value(self, value):
+        self['value'] = value
+        self['normalized_value'] = utils.to_ascii(value).lower()
+
     def check_value(self, value):
         "Value must be unique."
         try:
-            label = self.rqh.get_label(value)
+            label = utils.get_label(self.db, value)
             if label['_id'] == self.doc.get('_id'): return
         except KeyError:
             pass
@@ -96,8 +100,7 @@ class LabelAdd(RequestHandler):
             return
         try:
             with LabelSaver(rqh=self) as saver:
-                saver['value'] = value
-                saver['value_normalized'] = utils.to_ascii(value)
+                saver.set_value(value)
             label = saver.doc
         except ValueError, msg:
             self.see_other('label_add', error=str(msg))
@@ -131,8 +134,7 @@ class LabelEdit(RequestHandler):
         try:
             with LabelSaver(label, rqh=self) as saver:
                 saver.check_revision()
-                saver['value'] = new_value
-                saver['value_normalized'] = utils.to_ascii(new_value)
+                saver.set_value(new_value)
         except SaverError:
             self.see_other('label', label['value'], error=utils.REV_ERROR)
             return

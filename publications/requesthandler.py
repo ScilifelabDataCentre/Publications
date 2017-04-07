@@ -83,15 +83,7 @@ class RequestHandler(tornado.web.RequestHandler):
         """Get the label document by its IUID or value.
         Raise KeyError if no such publication.
         """
-        if not identifier: raise KeyError
-        try:
-            doc = self.get_doc(identifier)
-        except KeyError:
-            identifier = utils.to_ascii(identifier).lower()
-            doc = self.get_doc(identifier, 'label/value_normalized')
-        if doc[constants.DOCTYPE] != constants.LABEL:
-            raise KeyError
-        return doc
+        return utils.get_label(self.db, identifier)
 
     def get_trashed(self, identifier):
         """Get the trash document id if the publication with

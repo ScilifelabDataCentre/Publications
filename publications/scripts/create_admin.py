@@ -21,6 +21,7 @@ def create_admin(db, email, password):
         saver['owner'] = email
         saver.set_password(password)
         saver['role'] = constants.ADMIN
+        saver['labels'] = []
     print("Created 'admin' role account", email)
 
 
@@ -36,4 +37,4 @@ if __name__ == '__main__':
         sys.exit('Error: no password provided')
     if password != getpass.getpass('Password again > '):
         sys.exit('Error: passwords did not match')
-    create_admin(email, password)
+    create_admin(db, email, password)

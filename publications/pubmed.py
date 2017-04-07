@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 from collections import OrderedDict
+import os
 import time
 import unicodedata
 import xml.etree.ElementTree
@@ -18,8 +19,6 @@ TIMEOUT = 5.0
 MONTHS = dict(jan=1, feb=2, mar=3, apr=4, may=5, jun=6,
               jul=7, aug=8, sep=9, oct=10, nov=11, dec=12)
 
-
-session = requests.Session()
 
 def search(author=None, published=None, journal=None, 
            affiliation=None, title=None, exclude_title=None,
@@ -40,15 +39,16 @@ def search(author=None, published=None, journal=None,
     if exclude_title:
         query += " NOT %s[TI]" % to_ascii(to_unicode(exclude_title))
     url = PUBMED_SEARCH_URL % (retmax, query)
-    response = session.get(url, timeout=TIMEOUT)
+    response = requests.get(url, timeout=TIMEOUT)
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
     root = xml.etree.ElementTree.fromstring(response.content)
     return [e.text for e in root.findall('IdList/Id')]
 
-def fetch(pmid, dirname=None):
+def fetch(pmid, dirname=None, delay=None):
     """Fetch publication XML from PubMed and parse into a dictionary.
     Use the file cache directory if given.
+    Delay the HTTP request if positive value (seconds).
     """
     filename = pmid + '.xml'
     content = None
@@ -60,7 +60,9 @@ def fetch(pmid, dirname=None):
             pass
     if not content:
         url = PUBMED_FETCH_URL % pmid
-        response = session.get(url, timeout=TIMEOUT)
+        if delay:
+            time.sleep(delay)
+        response = requests.get(url, timeout=TIMEOUT)
         if response.status_code != 200:
             raise IOError("HTTP status %s, %s " % (response.status_code, url))
         content = response.content
