@@ -6,13 +6,22 @@
     <title>{% block head_title %}{{ title }}{% end %}</title>
     <link rel="shortcut icon" type="image/png"
 	  href="{{ reverse_url('site', 'logo32.png') }}">
-    <link rel="stylesheet" type="text/css"
-	  href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ settings['JQUERY_CSS'] }}">
+    <link rel="stylesheet" href="{{ settings['BOOTSTRAP_CSS'] }}">
+    <link rel="stylesheet" href="{{ settings['BOOTSTRAP_THEME_CSS'] }}">
+    <link rel="stylesheet" href="{{ settings['DATATABLES_CSS'] }}">
     <link rel="stylesheet" href="{{ static_url('publications.css') }}">
-    {% block header_css %}
-    {% end %}
+    {# NOTE: jQuery JS has to be loaded before bootstrap JS! #}
+    <script src="{{ settings['JQUERY_JS'] }}"></script>
+    <script src="{{ settings['JQUERY_UI_JS'] }}"></script>
+    <script src="{{ static_url('jquery.localtime-0.9.1.min.js') }}"></script>
+    <script>
+      $.datepicker.setDefaults({dateFormat: "yy-mm-dd"});
+      $(function(){ $(".datepicker").datepicker(); });
+    </script>
+    <script defer src="{{ settings['BOOTSTRAP_JS'] }}"></script>
+    <script defer src="{{ settings['DATATABLES_JQUERY_JS'] }}"></script>
+    <script defer src="{{ settings['DATATABLES_BOOTSTRAP_JS'] }}"></script>
   </head>
 
   <body>
@@ -125,6 +134,12 @@
 		<span class="caret"></span>
 	      </a>
               <ul class="dropdown-menu">
+		<li>
+		  <a href="{{ reverse_url('labels_list') }}">
+		    <span class="glyphicon glyphicon-tag"></span>
+		    List: All
+		  </a>
+		</li>
 		<li>
 		  <a href="{{ reverse_url('labels_table') }}">
 		    <span class="glyphicon glyphicon-list-alt"></span>
@@ -293,21 +308,9 @@
 
     </div>
 
-    {% block javascript_standard %}
-    {# NOTE: jQuery has to be loaded before bootstrap! #}
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <script src="{{ static_url('jquery.localtime-0.9.1.min.js') }}"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-    <script>
-      $.datepicker.setDefaults({dateFormat: "yy-mm-dd"});
-      $(document).ready(function(){ $(".datepicker").datepicker(); });
-    </script>
-    {% end %} {# block javascript_standard #}
-
     {% block autofocus %}
     <script>
-      $(document).ready(function(){ $("#terms").focus(); });
+      $(function(){ $("#terms").focus(); });
     </script>
     {% end %}
 

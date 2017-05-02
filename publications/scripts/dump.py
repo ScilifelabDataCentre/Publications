@@ -20,13 +20,13 @@ from publications import settings
 from publications import utils
 
 
-def get_command_line_parser():
+def get_args():
     parser = utils.get_command_line_parser(description=
         'Dump all data into a tar file.')
-    parser.add_option('-d', '--dumpfile',
+    parser.add_argument('-d', '--dumpfile',
                       action='store', dest='dumpfile',
                       metavar='DUMPFILE', help='name of dump file')
-    return parser
+    return parser.parse_args()
 
 def dump(db, filepath):
     """Dump contents of the database to a tar file, optionally gzip compressed.
@@ -99,12 +99,11 @@ def undump(db, filepath):
 
 
 if __name__ == '__main__':
-    parser = get_command_line_parser()
-    (options, args) = parser.parse_args()
-    utils.load_settings(filepath=options.settings)
+    args = get_args()
+    utils.load_settings(filepath=args.settings)
     db = utils.get_db()
-    if options.dumpfile:
-        filepath = options.dumpfile
+    if args.dumpfile:
+        filepath = args.dumpfile
     else:
         filepath = "dump_{0}.tar.gz".format(time.strftime("%Y-%m-%d"))
     dump(db, filepath)

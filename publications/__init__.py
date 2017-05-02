@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -33,4 +33,13 @@ settings = dict(
     SOURCE_HOME='https://github.com/pekrau/Publications',
     SOURCE_VERSION=__version__,
     SHORTLIST_LIMIT=10,
+    JQUERY_CSS='https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css',
+    JQUERY_JS='https://code.jquery.com/jquery-1.12.4.min.js',
+    JQUERY_UI_JS='https://code.jquery.com/ui/1.12.1/jquery-ui.min.js',
+    BOOTSTRAP_CSS='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css',
+    BOOTSTRAP_THEME_CSS='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css',
+    BOOTSTRAP_JS='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js',
+    DATATABLES_CSS='https://cdn.datatables.net/1.10.13/css/dataTables.bootstrap.min.css',
+    DATATABLES_JQUERY_JS='https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js',
+    DATATABLES_BOOTSTRAP_JS='https://cdn.datatables.net/1.10.13/js/dataTables.bootstrap.min.js',
     )

@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 
-import sys
 import getpass
 
 from publications import constants
@@ -12,28 +11,25 @@ from publications.account import AccountSaver
 
 def get_args():
     parser = utils.get_command_line_parser(
-        usage='usage: %prog [options] account',
         description='Set the password for an account.')
-    (options, args) = parser.parse_args()
-    if len(args) != 1:
-        parser.print_help()
-        sys.exit()
-    return (options, args)
+    parser.add_argument('account', action='store',
+                        help='Account to set password for.')
+    return parser.parse_args()
 
-def set_password(db, email, password):
+def set_password(db, email):
     account = utils.get_account(db, email)
+    password = getpass.getpass('Password > ')
+    if not password:
+        raise ValueError('Error: no password provided')
+    if password != getpass.getpass('Password again > '):
+        raise ValueError('Error: passwords did not match')
     with AccountSaver(doc=account, db=db) as saver:
         saver.set_password(password)
     print("Set password for", email)
 
 
 if __name__ == '__main__':
-    (options, args) = get_args()
-    utils.load_settings(filepath=options.settings)
+    args = get_args()
+    utils.load_settings(filepath=args.settings)
     db = utils.get_db()
-    password = getpass.getpass('Password > ')
-    if not password:
-        sys.exit('Error: no password provided')
-    if password != getpass.getpass('Password again > '):
-        sys.exit('Error: passwords did not match')
-    set_password(db, args[0], password)
+    set_password(db, args.account)

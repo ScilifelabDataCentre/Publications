@@ -9,6 +9,12 @@ import couchdb
 
 from publications import settings
 from publications import utils
+        
+
+def get_args():
+    parser = utils.get_command_line_parser(
+        description='Reload all CouchDB design documents.')
+    return parser.parse_args()
 
 
 def load_designs(db, root=None):
@@ -72,17 +78,11 @@ def regenerate_views(db, root=None):
         view = db.view(viewname)
         for row in view:
             break
-        
-
-def get_args():
-    parser = utils.get_command_line_parser(
-        description='Reload all CouchDB design documents.')
-    return parser.parse_args()
 
 
 if __name__ == '__main__':
-    (options, args) = get_args()
-    utils.load_settings(filepath=options.settings)
+    args = get_args()
+    utils.load_settings(filepath=args.settings)
     db = utils.get_db()
     load_designs(db)
     regenerate_views(db)

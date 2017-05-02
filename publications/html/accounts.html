@@ -2,10 +2,6 @@
 
 {% extends "base.html" %}
 
-{% block header_css %}
-{% include 'datatables_css.html' %}
-{% end %}
-
 {% block head_title %}Accounts{% end %}
 
 {% block body_title %}
@@ -14,7 +10,7 @@
 Accounts
 {% end %}
 
-{% block main_content %}
+{% block content %}
 <table id="accounts" class="table table-striped table-condensed">
   <thead>
     <tr>
@@ -53,13 +49,14 @@ Accounts
     {% end %}
   </tbody>
 </table>
-{% end %}
+{% end %} {# block content #}
 
 {% block javascript_code %}
-{% include 'datatables_js.html' %}
 <script>
-  $(document).ready(function() {
-  $('#accounts').DataTable();
-  } );
+  $(function() {
+    $("#accounts").DataTable( {
+      "pagingType": "full_numbers",
+    });
+  });
 </script>
 {% end %}

@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import argparse
 import datetime
 import email.mime.text
 import hashlib
@@ -24,14 +25,12 @@ from . import settings
 
 REV_ERROR   = 'Has been edited by someone else; cannot overwrite.'
 
-def get_command_line_parser(usage='usage: %prog [options]', description=None):
+def get_command_line_parser(description=None):
     "Get the base command line argument parser."
-    # optparse is used (rather than argparse) since
-    # this code must be possible to run under Python 2.6
-    parser = optparse.OptionParser(usage=usage, description=description)
-    parser.add_option('-s', '--settings',
-                      action='store', dest='settings', default=None,
-                      metavar="FILE", help="filename of settings YAML file")
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('-s', '--settings',
+                        action='store', dest='settings', default=None,
+                        metavar='FILE', help='filename of settings YAML file')
     return parser
 
 def load_settings(filepath=None):
@@ -210,16 +209,16 @@ def get_publication(db, identifier, unverified=False):
 
 def get_label(db, identifier):
     """Get the label document by its IUID or value.
-    Raise KeyError if no such publication.
+    Raise KeyError if no such label.
     """
-    if not identifier: raise KeyError
+    if not identifier: raise KeyError('no identifier provided')
     try:
         doc = get_doc(db, identifier)
     except KeyError:
         identifier = to_ascii(identifier).lower()
-        doc = get_doc(db, identifier, 'label/value_normalized')
+        doc = get_doc(db, identifier, 'label/normalized_value')
     if doc[constants.DOCTYPE] != constants.LABEL:
-        raise KeyError
+        raise KeyError("wrong document type '%s'", doc[constants.DOCTYPE])
     return doc
 
 def get_trashed(db, identifier):

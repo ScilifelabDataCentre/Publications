@@ -42,14 +42,14 @@ from publications.logs import Logs
 def get_args():
     parser = utils.get_command_line_parser(description=
         'Publications web server')
-    parser.add_option('-p', '--pidfile',
-                      action='store', dest='pidfile', default=None,
-                      metavar="FILE", help="filename of file containing PID")
+    parser.add_argument('-p', '--pidfile',
+                        action='store', dest='pidfile', default=None,
+                        metavar="FILE", help="filename of file containing PID")
     return parser.parse_args()
 
 def main():
-    (options, args) = get_args()
-    utils.load_settings(filepath=options.settings)
+    args = get_args()
+    utils.load_settings(filepath=args.settings)
 
     url = tornado.web.url
     handlers = [url(r'/', Home, name='home'),
@@ -74,7 +74,7 @@ def main():
                 url(r'/trash/([^/]+)',
                     PublicationTrash, name='publication_trash'),
                 url(r'/labels', LabelsList, name='labels_list'),
-                url(r'/labelstable', LabelsTable, name='labels_table'),
+                url(r'/labels/table', LabelsTable, name='labels_table'),
                 url(r'/label/([^/]+)', Label, name='label'),
                 url(r'/label', LabelAdd, name='label_add'),
                 url(r'/label/([^/]+)/edit', LabelEdit, name='label_edit'),
@@ -106,8 +106,8 @@ def main():
     application.listen(settings['PORT'], xheaders=True)
     pid = os.getpid()
     logging.info("web server PID %s at %s", pid, settings['BASE_URL'])
-    if options.pidfile:
-        with open(options.pidfile, 'w') as pf:
+    if args.pidfile:
+        with open(args.pidfile, 'w') as pf:
             pf.write(str(pid))
     tornado.ioloop.IOLoop.instance().start()
 

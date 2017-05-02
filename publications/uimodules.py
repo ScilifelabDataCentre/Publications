@@ -32,11 +32,16 @@ class External(tornado.web.UIModule):
     def render(self, key, full=False):
         name = self.NAME or self.__class__.__name__
         if key:
-            url = self.URL % key
             if full:
-                return '<a href="%s">%s:&nbsp;%s</a>' % (url, name, key)
+                attrs = 'class="margin10" target="_"'
             else:
-                return '<a href="%s">%s</a>' % (url, name)
+                attrs = 'class="btn btn-default btn-block btn-xs" role="button" target="_"'
+            url = self.URL % key
+            span = '<span class="glyphicon glyphicon-link"></span>'
+            if full:
+                return '<a %s href="%s">%s %s:&nbsp;%s</a>' % (attrs, url, span, name, key)
+            else:
+                return '<a %s href="%s">%s %s</a>' % (attrs, url, span, name)
         elif full:
             return "%s:&nbsp-" % name
         else:

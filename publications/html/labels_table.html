@@ -10,10 +10,6 @@
 Labels table
 {% end %}
 
-{% block header_css %}
-{% include 'datatables_css.html' %}
-{% end %}
-
 {% block content %}
 <div class="row">
   <div class="col-md-12">
@@ -51,10 +47,11 @@ Labels table
 {% end %} {# block content #}
 
 {% block javascript_code %}
-{% include 'datatables_js.html' %}
 <script>
-  $(document).ready(function() {
-    $('#labels').DataTable();
-  } );
+  $(function() {
+    $("#labels").DataTable( {
+      "pagingType": "full_numbers",
+    });
+  });
 </script>
 {% end %}

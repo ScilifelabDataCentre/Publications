@@ -26,8 +26,8 @@ def create_admin(db, email, password):
 
 
 if __name__ == '__main__':
-    (options, args) = get_args()
-    utils.load_settings(filepath=options.settings)
+    args = get_args()
+    utils.load_settings(filepath=args.settings)
     db = utils.get_db()
     email = raw_input('Email address (=account identifier) > ')
     if not email:

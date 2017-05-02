@@ -44,4 +44,12 @@ Implementation
 
 Front-end: Bootstrap 3, jQuery, jQuery UI, DataTables
 
-Back-end: Python 2.6 or 2.7, tornado, CouchDB, pyyaml, requests
+Back-end: Python 2.7, tornado, CouchDB, pyyaml, requests
+
+
+Data for SciLifeLab
+-------------------
+
+Instructions for loading the data for SciLifeLab are given
+in this [README](publications/scilifelab/README.md) and its
+links.
