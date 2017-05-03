@@ -1,18 +1,9 @@
 Publication data for SciLifeLab
 ===============================
 
-This is the dataset for the Publications instance this system
-was implemented for.
+These are publications from scientists that have used SciLifeLab
+facilities. This is the dataset the Publications system was implemented for.
 
-2014
-----
-
-
-2015
-----
-
-See [README for 2015](2015/README.md)
-
-
-2016
-----
+- [2014](2014/README.md)
+- [2015](2015/README.md)
+- [2016](2016/README.md)

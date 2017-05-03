@@ -15,9 +15,13 @@ Search
       class="form-horizontal"
       method="GET">
     <div class="form-group">
-      <div class="col-sm-10">
+      <div class="col-sm-8">
 	<input type="search" id="terms" name="terms"
 	       class="form-control", value="{{ terms }}">
+	<span class="help-block">
+	  Search in publication fields for title, authors, pmid, doi,
+	  published and labels.
+	</span>
       </div>
       <div class="col-sm-2">
 	<button type="submit" class="btn btn-default">

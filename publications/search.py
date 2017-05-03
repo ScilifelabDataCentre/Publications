@@ -1,4 +1,4 @@
-"Search to terms in title and authors of publications."
+"Search in publications for title, authors, pmid, doi, published and labels."
 
 from __future__ import print_function
 
@@ -9,8 +9,10 @@ from publications import settings
 from publications import utils
 from publications.requesthandler import RequestHandler
 
-# Must be kept in sync with designs/publication/views/title.js
-RSTRIP = '-\.:,?'
+# Must be kept in sync with
+#  designs/publication/views/title.js
+#  designs/publication/views/label_parts.js
+REMOVE = set('-\.:,?()$')
 IGNORE = {
     'a': 1,
     'an': 1,
@@ -41,16 +43,18 @@ class Search(RequestHandler):
     "Search publications for authors or words in title."
 
     def get(self):
-        terms = self.get_argument('terms', '').split()
-        terms = [t.rstrip(RSTRIP) for t in terms]
-        term = [t for t in terms if t]
+        terms = []
+        for term in self.get_argument('terms', '').split():
+            term = ''.join([c for c in term if c not in REMOVE])
+            if term: terms.append(term)
         if terms:
             hits = dict()
             for viewname in ['publication/author',
                              'publication/title',
                              'publication/pmid',
                              'publication/doi',
-                             'publication/published']:
+                             'publication/published',
+                             'publication/label_parts']:
                 view = self.db.view(viewname)
                 for term in terms:
                     name = utils.to_ascii(term)

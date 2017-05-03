@@ -39,7 +39,11 @@ def search(author=None, published=None, journal=None,
     if exclude_title:
         query += " NOT %s[TI]" % to_ascii(to_unicode(exclude_title))
     url = PUBMED_SEARCH_URL % (retmax, query)
-    response = requests.get(url, timeout=TIMEOUT)
+    try:
+        response = requests.get(url, timeout=TIMEOUT)
+    except (requests.exceptions.ReadTimeout,
+            requests.exceptions.ConnectionError):
+        raise IOError('timeout')
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
     root = xml.etree.ElementTree.fromstring(response.content)

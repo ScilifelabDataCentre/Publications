@@ -15,12 +15,14 @@ TIMEOUT = 5.0
 
 session = requests.Session()
 
-def fetch(doi):
+def fetch(doi, debug=False):
     "Fetch publication JSON data from Crossref and parse into a dictionary."
     url = CROSSREF_FETCH_URL % doi
     response = session.get(url, timeout=TIMEOUT)
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
+    if debug:
+        print(json.dumps(response.json(), indent=2))
     return parse(response.json())
 
 def parse(data):
@@ -57,12 +59,13 @@ def get_pmid(data):
 def get_authors(data):
     "Get the list of authors from the article JSON."
     result = []
-    for item in data['message']['author']:
+    for item in data['message'].get('author', []):
         author = OrderedDict()
         author['family'] = item.get('family')
         author['family_normalized'] = to_ascii(author['family'])
-        # Remove dots and dashes and replace weird blank characters
-        given = item['given'].replace('.', ' ').replace('-', ' ')
+        # Remove dots and dashes
+        given = item.get('given', '').replace('.', ' ').replace('-', ' ')
+        # Replace weird blank characters
         author['given'] = ' '.join(given.split())
         author['given_normalized'] = to_ascii(author['given'])
         author['initials'] = ''.join([n[0] for n in given.split()])
@@ -121,7 +124,10 @@ def get_xrefs(data):
 
 def to_ascii(value):
     "Convert any non-ASCII character to its closest equivalent."
-    return unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    if value:
+        return unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    else:
+        return ''
 
 
 def test_fetch():

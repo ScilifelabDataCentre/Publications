@@ -1,4 +1,4 @@
-/* Index publication documents by title words, ignoring common short words.
+/* Index publication documents by label parts, ignoring common short words.
    Value: null.
 */
 
@@ -32,13 +32,16 @@ var IGNORE = {
 function(doc) {
     if (doc.publications_doctype !== 'publication') return;
     if (!doc.verified) return;
-    var words = doc.title.split(/\s+/);
-    var word;
-    for (var i in words) {
-	word = words[i].toLowerCase();
-	word = word.replace(REMOVE, '');
-	if (!word) continue;
-	if (IGNORE[word]) continue;
-	emit(word, null);
+    var label, parts, part;
+    for (var i in doc.labels) {
+	label = doc.labels[i].toLowerCase();
+	label = label.replace(REMOVE, ' ');
+	parts = label.split(/\s+/);
+	for (var j in parts) {
+	    part = parts[j];
+	    if (!part) continue;
+	    if (IGNORE[part]) continue;
+	    emit(part, null);
+	}
     }
 }
