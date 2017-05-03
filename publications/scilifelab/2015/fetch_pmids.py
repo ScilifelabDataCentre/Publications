@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import csv
+import os
 
 from publications import pubmed
 
@@ -12,6 +13,9 @@ DIRNAME = 'entries'
 DELAY = 1.0
 
 with open(INFILENAME, 'rb') as infile:
+    if not os.path.exists(DIRNAME):
+        print('creating', DIRNAME)
+        os.makedirs(DIRNAME)
     reader = csv.reader(infile)
     reader.next()
     count = 0
