@@ -2,27 +2,31 @@ Publications
 ============
 
 Simple web-based publications reference database system.
-Curators may add or fetch publications.
-Publications can be labeled to indicate e.g. research group, facility
-or some other classification.
 
 Features
 --------
 
-- Direct fetch of publications by PMID or DOI from
-  [PubMed](https://www.ncbi.nlm.nih.gov/pubmed) or
-  [Crossref](https://www.crossref.org/).
+- Publications can be labeled to indicate e.g. research group, facility
+  or some other classification.
 
-- Manual edit of publication entry.
+- Direct import of publications from
+  [PubMed](https://www.ncbi.nlm.nih.gov/pubmed) (with PMID) or
+  [Crossref](https://www.crossref.org/) (with DOI).
 
-- A curator is assigned the privilege to apply a certain label to
+- Script to search PubMed and fetch the publication references.
+  Such publications are set as unverified.
+
+- Curator accounts for editing the publication entries.
+
+- Curators must verify publications that have been imported by scripts.
+
+- Manual import, entry and/or edit of publication entries by curators.
+
+- Curators can be assigned the privilege to apply a certain label to
   any publication.
 
 - Trash registry to keep track of publications that have been deleted
-  and should not be fetched again. This can be overriden manually.
-
-- Script to search PubMed, fetching the publication references, setting them
-  as unverified. A curator will have to verify each publication manually.
+  by curators as being irrelevant, and which should not be fetched again.
 
 Installation
 ------------
@@ -38,6 +42,10 @@ Installation
       $ python scripts/init_database.py
       $ python scripts/create_admin.py
 
+- Set up the tornado web server to start on boot.
+
+- Set a proxy from your outward-facing web server (Apache, nginx, etc)
+  for the tornado server.
 
 Implementation
 --------------
