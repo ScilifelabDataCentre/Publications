@@ -73,7 +73,7 @@ class LabelsTable(RequestHandler):
         label_accounts = dict([(l['value'], []) for l in labels])
         for account in self.get_docs('account/email'):
             for label in account['labels']:
-                label_accounts[label].append(account['email'])
+                label_accounts.setdefault(label, []).append(account['email'])
         view = self.db.view('publication/label', group=True)
         label_counts = dict([(r.key, r.value) for r in view])
         self.render('labels_table.html',

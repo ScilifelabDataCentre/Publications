@@ -21,7 +21,7 @@ from publications import utils
 
 
 def get_args():
-    parser = utils.get_command_line_parser(description=
+    parser = utils.get_command_line_parser(
         'Dump all data into a tar file.')
     parser.add_argument('-d', '--dumpfile',
                       action='store', dest='dumpfile',
