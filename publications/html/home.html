@@ -21,5 +21,6 @@
 {% end %} {# block body_header #}
 
 {% block main_content %}
+{% set list_title = "The %s most recent publications" % settings['SHORT_PUBLICATIONS_LIST_LIMIT'] %}
 {% include 'publications_list.html' %}
 {% end %} {# block main_content #}

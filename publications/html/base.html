@@ -273,12 +273,12 @@
 
       {% block content %}
       <div class="row">
-	<div class="col-md-1">
+	<div class="col-md-2">
 	  {% block menu_content %}
 	  {% for y, c in year_counts %}
 	  <p>
 	    <a href="{{ reverse_url('publications_year', y) }}"
-	       class="btn btn-default btn-sm btn-block left"
+	       class="btn btn-default btn-sm menu_button"
 	       role="button">
 	      <span class="glyphicon glyphicon-file"></span>
 	      {{ y }} ({{ c }})
@@ -287,7 +287,7 @@
 	  {% end %} {# for y, c #}
 	  <p>
 	    <a href="{{ reverse_url('labels_list') }}"
-	       class="btn btn-default btn-sm btn-block left"
+	       class="btn btn-default btn-sm menu_button"
 	       role="button">
 	      <span class="glyphicon glyphicon-tag"></span>
 	      Labels
@@ -299,13 +299,33 @@
 	  {% block main_content %}
 	  {% end %} {# block main_content #}
 	</div>
-	<div class="col-md-2">
+	<div class="col-md-1">
 	  {% block meta_content %}
 	  {% end %} {# block meta_content #}
 	</div>
       </div>
       {% end %} {# block content #}
 
+      {% block footer %}
+      <div class="row">
+	<div class="col-md-12">
+	  <hr>
+	  <div class="pull-left">
+	    <a href="{{ reverse_url('home') }}">
+	      <span class="glyphicon glyphicon-home"></span>
+	      {{ settings['SITE_NAME'] }}
+	    </a>
+	  </div>
+	  <div class="pull-right">
+	    <a href="{{ settings['SOURCE_HOME'] }}" target="_">
+	      <span class="glyphicon glyphicon-link"></span>
+	      Software v{{ settings['SOURCE_VERSION'] }}
+	    </a>
+	  </div>
+	</div>
+      </div>
+      {% end %} {# block footer #}
+      
     </div>
 
     {% block autofocus %}

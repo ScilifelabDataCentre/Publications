@@ -39,6 +39,7 @@ def init_database(dumpfilepath=None):
     if dumpfilepath:
         dumpfilepath = utils.expand_filepath(dumpfilepath)
         try:
+            print('loading dump file', filepath)
             undump(db, dumpfilepath)
         except IOError:
             print('Warning: could not load', dumpfilepath)

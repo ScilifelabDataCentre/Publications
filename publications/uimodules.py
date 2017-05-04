@@ -33,7 +33,7 @@ class External(tornado.web.UIModule):
         name = self.NAME or self.__class__.__name__
         if key:
             if full:
-                attrs = 'class="margin10" target="_"'
+                attrs = 'class="nobr margin10" target="_"'
             else:
                 attrs = 'class="btn btn-default btn-block btn-xs" role="button" target="_"'
             url = self.URL % key

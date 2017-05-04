@@ -235,11 +235,11 @@ def get_trashed(db, identifier):
 def get_formatted_authors(publication, full=False):
     "Return a formatted list for the authors of the given publication."
     authors = publication['authors']
-    if full or len(authors) <= 4:
+    if full or len(authors) <= settings['SHORT_AUTHORS_LIST_LIMIT']:
         result = ["%s %s" % (a['family'], a['initials']) for a in authors]
     else:
         result = ["%s %s" % (a['family'], a['initials'])
-                  for a in authors[:3]]
+                  for a in authors[:settings['SHORT_AUTHORS_LIST_LIMIT']-1]]
         result.append('...')
         a = authors[-1]
         result.append("%s %s" % (a['family'], a['initials']))

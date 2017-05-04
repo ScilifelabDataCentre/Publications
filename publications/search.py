@@ -37,6 +37,7 @@ IGNORE = {
     'using': 1,
     'with': 1
     }
+PREFIXES = ['doi:', 'pmid:', 'pubmed:', 'http://doi.org/', 'https://doi.org/']
 
 
 class Search(RequestHandler):
@@ -45,8 +46,14 @@ class Search(RequestHandler):
     def get(self):
         terms = []
         for term in self.get_argument('terms', '').split():
+            lowcase = term.lower()
+            for prefix in PREFIXES:
+                if lowcase.startswith(prefix):
+                    term = term[len(prefix)-1:]
+                    break
             term = ''.join([c for c in term if c not in REMOVE])
             if term: terms.append(term)
+        logging.debug("search: %s", terms)
         if terms:
             hits = dict()
             for viewname in ['publication/author',

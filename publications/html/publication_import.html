@@ -65,11 +65,9 @@ Import publication
   </div>
 </form>
 
-<div class="row">
-  <div class="col-md-11 col-md-offset-1">
-    <h3>Recently modified publications</h3>
-    {% include 'publications_list.html' %}
-  </div>
+<div>
+  {% set list_title = "The %s most recent publications" % settings['SHORT_PUBLICATIONS_LIST_LIMIT'] %}
+  {% include 'publications_list.html' %}
 </div>
 {% end %} {# block main_content #}
 

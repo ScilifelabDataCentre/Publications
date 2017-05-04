@@ -17,7 +17,7 @@ class Home(RequestHandler):
                              key=constants.CEILING,
                              last='',
                              descending=True,
-                             limit=settings['SHORTLIST_LIMIT'])
+                             limit=settings['SHORT_PUBLICATIONS_LIST_LIMIT'])
         self.render('home.html', publications=docs)
 
 

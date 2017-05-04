@@ -1,9 +1,11 @@
 {# List of publications. #}
 
-{% if publications %}
+{% try %}
+<h3>{{ list_title }}</h3>
+{% except NameError %}
+<h3>{{ len(publications) }} publications</h3>
+{% end %}
+
 {% for publication in publications %}
 {% include 'publication_display.html' %}
 {% end %} {# for #}
-{% else %}
-<i>None</i>
-{% end %}

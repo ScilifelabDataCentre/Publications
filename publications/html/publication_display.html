@@ -20,6 +20,9 @@
     [{{ publication['published'] }}]
   </div>
   <div>
+    {% if not publication.get('verified') %}
+    <span class="label label-warning">Unverified</span>
+    {% end %}
     {% for l in publication.get('labels', []) %}
     <a class="label label-default"
        href="{{ reverse_url('label', l) }}">{{ l }}</a>

@@ -94,10 +94,8 @@ class PublicationsUnverified(RequestHandler):
     def get(self):
         if self.is_admin():
             publications = self.get_docs('publication/unverified',
-                                         key=constants.CEILING,
-                                         last='',
-                                         limit=settings['SHORTLIST_LIMIT'],
                                          descending=True)
+            # XXX All unverified are returned. Should be paged?
         else:
             lookup = {}
             for label in self.current_account.get('labels'):
@@ -121,7 +119,7 @@ class PublicationImport(RequestHandler):
                              key=constants.CEILING,
                              last='',
                              descending=True,
-                             limit=settings['SHORTLIST_LIMIT'])
+                             limit=settings['SHORT_PUBLICATIONS_LIST_LIMIT'])
         self.render('publication_import.html',
                     publications=docs,
                     identifier=self.get_argument('identifier', ''))
