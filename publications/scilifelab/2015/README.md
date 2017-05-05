@@ -3,13 +3,12 @@ Load data for publication year 2015
 
 The database must have been initialized and the admin account created.
 
+All missing PMIDs were identified by DOI.
 
 To do
 -----
 
 - Add labels for service, tech devel, collaboration?
-- Add those with DOI but not PMID.
-- Resolve the rest.
 
 
 Main loading scripts

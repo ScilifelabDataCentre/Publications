@@ -326,7 +326,8 @@ def to_bool(value):
     raise ValueError(u"invalid boolean: '{}'".format(value))
 
 
-PREFIXES = ['doi:', 'pmid:', 'pubmed:', 'http://doi.org/', 'https://doi.org/']
+PREFIXES = ['doi:', 'pmid:', 'pubmed:', 
+            'http://doi.org/', 'https://doi.org/', 'http://dx.doi.org/']
 
 def strip_prefix(value):
     "Strip any prefix from the string value."
