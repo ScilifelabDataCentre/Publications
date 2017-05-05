@@ -3,8 +3,11 @@ Load data for publication year 2017
 
 The database must have been initialized and the admin account created.
 
-The v2 file was copied to v3 and edited manually to include more PMIDs
+The v3 file was copied from v2 and edited manually to include more PMIDs
 found by manual searches.
+
+The DOIs in the v3 file were imported manually.
+
 
 To do
 -----

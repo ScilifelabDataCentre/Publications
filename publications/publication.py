@@ -241,24 +241,28 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                     if not author: continue
                     try:
                         family, given = author.split(',', 1)
-                        family = family.strip()
-                        if not family: raise IndexError
-                        given = given.strip()
-                    except IndexError:
-                        family = author
-                        given = ''
+                    except ValueError:
+                        parts = author.split()
+                        family = parts[-1]
+                        given = ' '.join(parts[:-1])
                     else:
-                        initials = ''.join([c[0] for c in given.split()])
-                        authors.append(
-                            dict(family=family,
-                                 family_normalized=utils.to_ascii(family),
-                                 given=given,
-                                 given_normalized=utils.to_ascii(given),
-                                 initials=initials,
-                                 initials_normalized=utils.to_ascii(initials)))
+                        family = family.strip()
+                        if not family:
+                            family = author
+                            given = ''
+                        given = given.strip()
+                    initials = ''.join([c[0] for c in given.split()])
+                    authors.append(
+                        dict(family=family,
+                             family_normalized=utils.to_ascii(family),
+                             given=given,
+                             given_normalized=utils.to_ascii(given),
+                             initials=initials,
+                             initials_normalized=utils.to_ascii(initials)))
                 saver['authors'] = authors
                 saver['pmid'] = self.get_argument('pmid', '') or None
                 saver['doi'] = self.get_argument('doi', '') or None
+                saver['published'] = self.get_argument('published', '') or None
                 journal = dict(title=self.get_argument('journal', '') or None)
                 for key in ['issn', 'volume', 'issue', 'pages']:
                     journal[key] = self.get_argument(key, '') or None
