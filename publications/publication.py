@@ -129,6 +129,7 @@ class PublicationImport(RequestHandler):
         self.check_curator()
         try:
             identifier = self.get_argument('identifier')
+            identifier = utils.strip_prefix(identifier)
             if not identifier: raise ValueError
         except (tornado.web.MissingArgumentError, ValueError):
             self.see_other('publication_import')

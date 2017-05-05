@@ -23,7 +23,7 @@ from . import constants
 from . import settings
 
 
-REV_ERROR   = 'Has been edited by someone else; cannot overwrite.'
+REV_ERROR = 'Has been edited by someone else; cannot overwrite.'
 
 def get_command_line_parser(description=None):
     "Get the base command line argument parser."
@@ -324,6 +324,18 @@ def to_bool(value):
     if lowvalue in constants.TRUE: return True
     if lowvalue in constants.FALSE: return False
     raise ValueError(u"invalid boolean: '{}'".format(value))
+
+
+PREFIXES = ['doi:', 'pmid:', 'pubmed:', 'http://doi.org/', 'https://doi.org/']
+
+def strip_prefix(value):
+    "Strip any prefix from the string value."
+    value = value.strip()
+    lowcase = value.lower()
+    for prefix in PREFIXES:
+        if lowcase.startswith(prefix):
+            return value[len(prefix)-1:].strip()
+    return value
 
 
 class EmailServer(object):
