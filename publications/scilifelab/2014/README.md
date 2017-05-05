@@ -8,11 +8,37 @@ found by manual searches.
 
 The DOIs in the v3 file were imported manually.
 
+Publications requiring explicit addition:
+
+Book: 
+Bioinformatics Bioinformatics Short-term Support and Infrastructure (BILS) 
+Anna Edberg, Eva Freyhult, Salomon Sand, Sisse
+Fagt, Vibeke Kildegaard Knudsen, Lene Frost Andersen, Anna Karin
+Lindroos, Daniel Soeria-Atmadja, Mats G. Gustafsson, Hammerling, Ulf
+Discovery and characterisation of dietary patterns in two Nordic
+countries: Using non-supervised and supervised multivariate
+statistical techniques to analyse dietary survey data
+ TemaNord 548 2013 no N/A
+
+DOI-less: http://imsear.hellis.org/handle/123456789/164367
+
+U.S. Patent No. 20,130,004,512.
+U.S. Patent No. 20,130,034,560.
+US Patent Application 14/196,228
+US Patent No 8,703,432 22 Apr 2014
+
+Book:
+Clinical Proteomics Mass spectrometry
+Helena Bäckvall & Janne Lehtiö
+The Low Molecular Weight Proteome
+Methods and Protocols Series: Methods in Molecular Biology 1023
+223 pages 2013 no N/A
+
 
 To do
 -----
 
-- Input the few remaining by hand. A few patents.
+- Input the few remaining by hand, when possible.
 
 
 Main loading scripts
