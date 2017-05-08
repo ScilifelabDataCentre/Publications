@@ -43,33 +43,37 @@ class Search(RequestHandler):
     "Search publications for authors or words in title."
 
     def get(self):
-        terms = []
+        self.hits = dict()
+        self.terms = []
+        # Get search terms, removing first only DOI and PMID prefixes.
         for term in self.get_argument('terms', '').split():
             term = utils.strip_prefix(term)
+            if term: self.terms.append(term.lower())
+        self.search('publication/doi')
+        terms = self.terms
+        self.terms = []
+        for term in terms:
             term = ''.join([c for c in term if c not in REMOVE])
-            if term: terms.append(term)
-        if terms:
-            hits = dict()
-            for viewname in ['publication/author',
-                             'publication/title',
-                             'publication/pmid',
-                             'publication/doi',
-                             'publication/published',
-                             'publication/label_parts']:
-                view = self.db.view(viewname)
-                for term in terms:
-                    name = utils.to_ascii(term)
-                    for item in view[name : name + constants.CEILING]:
-                        try:
-                            hits[item.id] += 1
-                        except KeyError:
-                            hits[item.id] = 1
-            publications = [self.get_publication(id) for id in hits]
-            scores = [(hits[p['_id']], p['published'], p)
-                      for p in publications]
-            publications = [s[2] for s in sorted(scores, reverse=True)]
-        else:
-            publications = []
+            if term: self.terms.append(term)
+        for viewname in ['publication/author',
+                         'publication/title',
+                         'publication/pmid',
+                         'publication/published',
+                         'publication/label_parts']:
+            self.search(viewname)
+        publications = [self.get_publication(id) for id in self.hits]
+        scores = [(self.hits[p['_id']], p['published'], p)
+                  for p in publications]
+        publications = [s[2] for s in sorted(scores, reverse=True)]
         self.render('search.html',
                     publications=publications,
                     terms=self.get_argument('terms', ''))
+
+    def search(self, viewname):
+        view = self.db.view(viewname)
+        for term in self.terms:
+            for item in view[term : term + constants.CEILING]:
+                try:
+                    self.hits[item.id] += 1
+                except KeyError:
+                    self.hits[item.id] = 1

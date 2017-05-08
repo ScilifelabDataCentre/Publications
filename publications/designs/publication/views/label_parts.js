@@ -1,4 +1,4 @@
-/* Index publication documents by label parts, ignoring common short words.
+/* Index publication documents by lowercase label parts, ignoring short words.
    Value: null.
 */
 

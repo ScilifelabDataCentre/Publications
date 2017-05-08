@@ -1,4 +1,4 @@
-/* Index publication document by author's normalized names.
+/* Index publication document by author's normalized lowercase names.
    Value: null.
 */
 function(doc) {
