@@ -10,7 +10,7 @@ Unverified publications
 {% end %}
 
 {% block main_content %}
-{% if publications %}
+<h3>{{ len(publications) }} publications</h3>
 {% for publication in publications %}
 <div class="row">
   <div class="col-md-10">
@@ -45,7 +45,4 @@ Unverified publications
   </div>
 </div>
 {% end %} {# for #}
-{% else %}
-<i>None</i>
-{% end %}
 {% end %} {# block main_content #}

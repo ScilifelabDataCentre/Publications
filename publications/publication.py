@@ -155,8 +155,10 @@ class PublicationImport(RequestHandler):
                 new = pubmed.fetch(identifier)
             except (IOError, requests.exceptions.Timeout):
                 self.see_other('publication_import', error=IMPORT_ERROR)
+                return
             else:
                 if old is None:
+                    # Maybe the publication has been loaded by DOI?
                     try:
                         old = self.get_publication(new.get('doi'))
                     except KeyError:
@@ -166,13 +168,15 @@ class PublicationImport(RequestHandler):
                 new = crossref.fetch(identifier)
             except (IOError, requests.exceptions.Timeout):
                 self.see_other('publication_import', error=IMPORT_ERROR)
+                return
             else:
                 if old is None:
+                    # Maybe the publication has been loaded by PMID?
                     try:
                         old = self.get_publication(new.get('pmid'))
                     except KeyError:
                         pass
-        # Check trash registry again; the other external identifier may be there
+        # Check trash registry again; the other external identifier maybe there
         for id in [new.get('pmid'), new.get('doi')]:
             if not id: continue
             trashed = self.get_trashed(id)
@@ -188,6 +192,10 @@ class PublicationImport(RequestHandler):
             with PublicationSaver(old, rqh=self) as saver:
                 for key in new:
                     saver[key] = new[key]
+                if self.current_user['role'] == constants.CURATOR:
+                    labels = set(old.get('labels', []))
+                    labels.update(self.current_user['labels'])
+                    saver['labels'] = sorted(labels)
                 saver['verified'] = True
             publication = old
         else:
