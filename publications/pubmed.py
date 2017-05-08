@@ -20,7 +20,7 @@ MONTHS = dict(jan=1, feb=2, mar=3, apr=4, may=5, jun=6,
               jul=7, aug=8, sep=9, oct=10, nov=11, dec=12)
 
 
-def search(author=None, published=None, journal=None, 
+def search(author=None, published=None, journal=None, doi=None,
            affiliation=None, title=None, exclude_title=None,
            retmax=100):
     "Get list of PMIDs for PubMed hits given the data."
@@ -31,6 +31,8 @@ def search(author=None, published=None, journal=None,
         parts.append("%s[DP]" % published)
     if journal:
         parts.append("%s[TA]" % journal)
+    if doi:
+        parts.append("%s[LID]" % doi)
     if affiliation:
         parts.append("%s[AD]" % to_ascii(to_unicode(affiliation)))
     if title:

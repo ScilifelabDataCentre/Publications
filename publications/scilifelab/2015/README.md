@@ -9,6 +9,7 @@ To do
 -----
 
 - Add labels for service, tech devel, collaboration?
+- Why are there fewer 2015 entries than 2016 and 2014?
 
 
 Main loading scripts
