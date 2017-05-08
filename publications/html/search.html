@@ -9,6 +9,9 @@
 Search
 {% end %} {# block body_title #}
 
+{% block search_field %}
+{% end %}
+
 {% block main_content %}
 <form action="{{ reverse_url('search') }}"
       role="form"
