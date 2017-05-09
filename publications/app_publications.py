@@ -29,6 +29,7 @@ from publications.publication import (Publication,
                                       PublicationImport,
                                       PublicationEdit,
                                       PublicationTrash)
+from publications.journal import (Journals, )
 from publications.label import (Label,
                                 LabelsList,
                                 LabelsTable,
@@ -73,6 +74,7 @@ def main():
                     PublicationImport, name='publication_import'),
                 url(r'/trash/([^/]+)',
                     PublicationTrash, name='publication_trash'),
+                url(r'/journals', Journals, name='journals'),
                 url(r'/labels', LabelsList, name='labels_list'),
                 url(r'/labels/table', LabelsTable, name='labels_table'),
                 url(r'/label/([^/]+)', Label, name='label'),

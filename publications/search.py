@@ -13,30 +13,30 @@ from publications.requesthandler import RequestHandler
 #  designs/publication/views/title.js
 #  designs/publication/views/label_parts.js
 REMOVE = set('-\.:,?()$')
-IGNORE = {
-    'a': 1,
-    'an': 1,
-    'and': 1,
-    'are': 1,
-    'as': 1,
-    'at': 1,
-    'but': 1,
-    'by': 1,
-    'can': 1,
-    'for': 1,
-    'from': 1,
-    'into': 1,
-    'in': 1,
-    'is': 1,
-    'of': 1,
-    'on': 1,
-    'or': 1,
-    'that': 1,
-    'the': 1,
-    'to': 1,
-    'using': 1,
-    'with': 1
-    }
+IGNORE = set([
+    'a',
+    'an',
+    'and',
+    'are',
+    'as',
+    'at',
+    'but',
+    'by',
+    'can',
+    'for',
+    'from',
+    'into',
+    'in',
+    'is',
+    'of',
+    'on',
+    'or',
+    'that',
+    'the',
+    'to',
+    'using',
+    'with',
+    ])
 
 
 class Search(RequestHandler):
@@ -44,12 +44,23 @@ class Search(RequestHandler):
 
     def get(self):
         self.hits = dict()
-        self.terms = []
-        # Get search terms, removing first only DOI and PMID prefixes.
-        for term in self.get_argument('terms', '').split():
-            term = utils.strip_prefix(term)
-            if term: self.terms.append(term.lower())
-        self.search('publication/doi')
+        terms = self.get_argument('terms', '')
+        # The search term as a phrase.
+        if terms.startswith('"') and terms.endswith('"'):
+            self.terms = [terms[1:-1]]
+        # Split up into separate terms.
+        else:
+            self.terms = []
+            # Remove DOI and PMID prefixes.
+            for term in self.get_argument('terms', '').split():
+                term = utils.strip_prefix(term)
+                if term: self.terms.append(term.lower())
+        for viewname in ['publication/doi',
+                         'publication/published',
+                         'publication/issn',
+                         'publication/journal']:
+            self.search(viewname)
+        # Now remove set of insignificant characters.
         terms = self.terms
         self.terms = []
         for term in terms:
@@ -58,7 +69,6 @@ class Search(RequestHandler):
         for viewname in ['publication/author',
                          'publication/title',
                          'publication/pmid',
-                         'publication/published',
                          'publication/label_parts']:
             self.search(viewname)
         publications = [self.get_publication(id) for id in self.hits]
@@ -70,8 +80,9 @@ class Search(RequestHandler):
                     terms=self.get_argument('terms', ''))
 
     def search(self, viewname):
-        view = self.db.view(viewname)
+        view = self.db.view(viewname, reduce=False)
         for term in self.terms:
+            if term in IGNORE: continue
             for item in view[term : term + constants.CEILING]:
                 try:
                     self.hits[item.id] += 1

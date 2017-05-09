@@ -21,11 +21,12 @@ CEILING = 'ZZZZZZZZ'
 # Entity documents
 DOCTYPE     = 'publications_doctype'
 PUBLICATION = 'publication'
+JOURNAL     = 'journal'
 ACCOUNT     = 'account'
 LABEL       = 'label'
 TRASH       = 'trash'
 LOG         = 'log'
-ENTITIES    = (PUBLICATION, ACCOUNT, LABEL)
+ENTITIES    = (PUBLICATION, JOURNAL, ACCOUNT, LABEL)
 
 # Account roles
 ADMIN    = 'admin'

@@ -59,7 +59,7 @@ class Publication(PublicationMixin, RequestHandler):
 
 
 class Publications(RequestHandler):
-    "Publications page."
+    "Publications list page."
 
     TEMPLATE = 'publications.html'
 
