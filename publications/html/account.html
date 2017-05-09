@@ -11,49 +11,49 @@
 
 {% block main_content %}
 <div class="row">
-<div class="col-md-6">
-<table class="table table-striped">
-  <tr>
-    <th>Name</th>
-    <td>{{ account.get('name') or '-' }}</td>
-  </tr>
-  <tr>
-    <th>Role</th>
-    <td>{{ account['role'] }}</td>
-  </tr>
-  <tr>
-    <th>Labels</th>
-    <td>
-      {% if account['role'] == constants.ADMIN %}
-      <i>any</i>
-      {% else %}
-      {% for label in account['labels'] %}
-      <a href="{{ reverse_url('label', label) }}">{{ label }}</a>
-      <br>
-      {% end %} {# for label #}
-      {% end %} {# if #}
-    </td>
-  </tr>
-  <tr>
-    <th>Last login</th>
-    <td>
-      {% if account.get('login') %}
-      <span class="localtime">{{ account['login'] }}</span>
-      {% else %}
-      -
-      {% end %}
-    </td>
-  </tr>
-  <tr>
-    <th>Modified</th>
-    <td class="localtime">{{ account['modified'] }}</td>
-  </tr>
-  <tr>
-    <th>Created</th>
-    <td class="localtime">{{ account['created'] }}</td>
-  </tr>
-</table>
-</div>
+  <div class="col-md-6">
+    <table class="table table-striped">
+      <tr>
+	<th>Name</th>
+	<td>{{ account.get('name') or '-' }}</td>
+      </tr>
+      <tr>
+	<th>Role</th>
+	<td>{{ account['role'] }}</td>
+      </tr>
+      <tr>
+	<th>Labels</th>
+	<td>
+	  {% if account['role'] == constants.ADMIN %}
+	  <i>any</i>
+	  {% else %}
+	  {% for label in account['labels'] %}
+	  <a href="{{ reverse_url('label', label) }}">{{ label }}</a>
+	  <br>
+	  {% end %} {# for label #}
+	  {% end %} {# if #}
+	</td>
+      </tr>
+      <tr>
+	<th>Last login</th>
+	<td>
+	  {% if account.get('login') %}
+	  <span class="localtime">{{ account['login'] }}</span>
+	  {% else %}
+	  -
+	  {% end %}
+	</td>
+      </tr>
+      <tr>
+	<th>Modified</th>
+	<td class="localtime">{{ account['modified'] }}</td>
+      </tr>
+      <tr>
+	<th>Created</th>
+	<td class="localtime">{{ account['created'] }}</td>
+      </tr>
+    </table>
+  </div>
 </div>
 {% end %} {# block main_content #}
 

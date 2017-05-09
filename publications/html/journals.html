@@ -9,7 +9,7 @@
 Journals
 {% end %}
 
-{% block content %}
+{% block main_content %}
 <div class="row">
   <div class="col-md-12">
     <table id="journals" class="table table-striped table-condensed">
@@ -24,18 +24,20 @@ Journals
 	{% for journal in journals %}
 	<tr>
 	  <td>
-	    <span class="glyphicon glyphicon-book"></span>
-	    {{ journal['title'] }}
+	    <a href="{{ reverse_url('journal', journal['title']) }}">
+	      <span class="glyphicon glyphicon-book"></span>
+	      {{ journal['title'] }}
+	    </a>
 	  </td>
 	  <td>{{ journal['issn'] }}</td>
-	  <td>{{ journal['count'] }}</td>
+	  <td><span class="badge">{{ journal['count'] }}</span></td>
 	</tr>
 	{% end %}
       </tbody>
     </table>
   </div>
 </div>
-{% end %} {# block content #}
+{% end %} {# block main_content #}
 
 {% block javascript_code %}
 <script>

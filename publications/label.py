@@ -43,9 +43,7 @@ class Label(RequestHandler):
             self.see_other('home', error=str(msg))
             return
         accounts = self.get_docs('account/label', key=label['value'])
-        publications = self.get_docs('publication/label',
-                                     key=label['value'],
-                                     reduce=False)
+        publications = self.get_docs('publication/label', key=label['value'])
         publications.sort(key=lambda i: i['published'], reverse=True)
         self.render('label.html',
                     label=label,
@@ -144,9 +142,7 @@ class LabelEdit(RequestHandler):
                 labels.discard(old_value)
                 labels.add(new_value)
                 saver['labels'] = sorted(labels)
-        for publication in self.get_docs('publication/label',
-                                         key=old_value,
-                                         reduce=False):
+        for publication in self.get_docs('publication/label', key=old_value):
             with PublicationSaver(publication, rqh=self) as saver:
                 labels = set(publication['labels'])
                 labels.discard(old_value)
@@ -167,15 +163,13 @@ class LabelDelete(RequestHandler):
             self.see_other('labels', error=str(msg))
             return
         value = label['value']
-        self.db.delete(label)
+        self.delete_entity(label)
         for account in self.get_docs('account/label', key=value):
             with AccountSaver(account, rqh=self) as saver:
                 labels = set(account['labels'])
                 labels.discard(value)
                 saver['labels'] = sorted(labels)
-        for publication in self.get_docs('publication/label',
-                                         key=value,
-                                         reduce=False):
+        for publication in self.get_docs('publication/label', key=value):
             with PublicationSaver(publication, rqh=self) as saver:
                 labels = set(publication['labels'])
                 labels.discard(value)

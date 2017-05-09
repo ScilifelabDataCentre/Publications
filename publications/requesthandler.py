@@ -184,3 +184,11 @@ class RequestHandler(tornado.web.RequestHandler):
         "Check that the current user is the owner of the document."
         if self.is_owner(doc): return
         raise tornado.web.HTTPError(403, reason="You are not the owner.")
+
+    def delete_entity(self, doc):
+        "Delete the entity and its log entries."
+        assert constants.DOCTYPE in doc, 'doctype must be defined'
+        assert doc[constants.DOCTYPE] in constants.ENTITIES, 'must be an entity'
+        for log in self.get_logs(doc['_id']):
+            self.db.delete(log)
+        self.db.delete(doc)

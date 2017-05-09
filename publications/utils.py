@@ -151,16 +151,16 @@ def get_doc(db, key, viewname=None):
         except couchdb.ResourceNotFound:
             raise KeyError
     else:
-        result = list(db.view(viewname, include_docs=True)[key])
+        result = list(db.view(viewname, include_docs=True, reduce=False)[key])
         if len(result) != 1:
-            raise KeyError
+            raise KeyError("%i items found", len(result))
         return result[0].doc
 
 def get_docs(db, viewname, key=None, last=None, **kwargs):
     """Get the list of documents using the named view and
     the given key or interval.
     """
-    view = db.view(viewname, include_docs=True, **kwargs)
+    view = db.view(viewname, include_docs=True, reduce=False, **kwargs)
     if key is None:
         iterator = view
     elif last is None:

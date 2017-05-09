@@ -23,7 +23,7 @@ class PublicationSaver(Saver):
 
 
 class PublicationMixin(object):
-    "Mixin of access check methods."
+    "Mixin for access check methods."
 
     def is_editable(self, publication):
         "Is the publication editable by the current user?"
@@ -34,14 +34,14 @@ class PublicationMixin(object):
         if self.is_editable(publication): return
         raise ValueError('You many not edit the publication.')
 
-    def is_trashable(self, publication):
-        "Is the publication trashable by the current user?"
+    def is_deletable(self, publication):
+        "Is the publication deletable by the current user?"
         return self.is_curator()
 
-    def check_trashable(self, publication):
-        "Check that the publication is trashable by the current user."
-        if self.is_trashable(publication): return
-        raise ValueError('You may not trash the publication.')
+    def check_deletable(self, publication):
+        "Check that the publication is deletable by the current user."
+        if self.is_deletable(publication): return
+        raise ValueError('You may not delete the publication.')
 
 
 class Publication(PublicationMixin, RequestHandler):
@@ -55,7 +55,29 @@ class Publication(PublicationMixin, RequestHandler):
             raise tornado.web.HTTPError(404, reason='No such publication.')
         self.render('publication.html',
                     publication=publication,
-                    is_editable=self.is_editable(publication))
+                    is_editable=self.is_editable(publication),
+                    is_deletable=self.is_deletable(publication))
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        if self.get_argument('_http_method', None) == 'delete':
+            self.delete(identifier)
+            return
+        raise tornado.web.HTTPError(
+            405, reason='Internal problem; POST only allowed for DELETE.')
+
+    @tornado.web.authenticated
+    def delete(self, identifier):
+        try:
+            publication = self.get_publication(identifier)
+        except KeyError:
+            raise tornado.web.HTTPError(404, reason='No such publication.')
+        self.check_deletable(publication)
+        # Delete log entries
+        for log in self.get_logs(publication['_id']):
+            self.db.delete(log)
+        self.db.delete(publication)
+        self.see_other('home')
 
 
 class Publications(RequestHandler):
@@ -65,9 +87,7 @@ class Publications(RequestHandler):
 
     def get(self, year=None):
         if year:
-            publications = self.get_docs('publication/year',
-                                         key=year,
-                                         reduce=False)
+            publications = self.get_docs('publication/year', key=year)
             publications.sort(key=lambda i: i['published'], reverse=True)
         else:
             publications = self.get_docs('publication/published',
@@ -315,10 +335,7 @@ class PublicationTrash(PublicationMixin, RequestHandler):
             publication = self.get_publication(identifier)
         except KeyError:
             raise tornado.web.HTTPError(404, reason='No such publication.')
-        self.check_trashable(publication)
-        # Delete log entries
-        for log in self.get_logs(publication['_id']):
-            self.db.delete(log)
+        self.check_deletable(publication)
         trash = {constants.DOCTYPE: constants.TRASH,
                  'title': publication['title'],
                  'pmid': publication.get('pmid'),
@@ -326,7 +343,7 @@ class PublicationTrash(PublicationMixin, RequestHandler):
                  'created': utils.timestamp(),
                  'owner': self.current_user['email']}
         self.db[utils.get_iuid()] = trash
-        self.db.delete(publication)
+        self.delete_entity(publication)
         try:
             self.redirect(self.get_argument('next'))
         except tornado.web.MissingArgumentError:

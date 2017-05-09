@@ -1,0 +1,72 @@
+{# Journal page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}{{ journal.get('title') or journal.get('issn') }}{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-book"></span>
+{{ journal.get('title') or journal.get('issn') }}
+{% end %}
+
+{% block main_content %}
+<div class="row">
+  <div class="col-md-6">
+    <table class="table table-striped">
+      <tr>
+	<th>ISSN</th>
+	<td>{{ journal.get('issn') or '-' }}</td>
+      </tr>
+      {% if duplicates %}
+      <tr>
+	<th>Duplicates</th>
+	<td>
+	  {% for duplicate in duplicates %}
+	  <a href="{{ reverse_url('journal', duplicate['title'])}}">
+	    <span class="glyphicon glyphicon-book"></span>
+	    {{ duplicate['title']}} ({{ duplicate['issn'] or '-' }})
+	  </a>
+	  <br>
+	  {% end %}
+	</td>
+      </tr>
+      {% end %}
+      <tr>
+	<th>IUID</th>
+	<td>{{ journal['_id'] }}</td>
+      </tr>
+      <tr>
+	<th>Modified</th>
+	<td class="localtime">{{ journal['modified'] }}</td>
+      </tr>
+      <tr>
+	<th>Created</th>
+	<td class="localtime">{{ journal['created'] }}</td>
+      </tr>
+    </table>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    {% include 'publications_list.html' %}
+  </div>
+</div>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+{% if is_deletable %}
+<p>
+  <form action="{{ reverse_url('journal', journal['title']) }}"
+	role="form"
+	method="POST">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_http_method" value="delete">
+    <button type="submit" class="btn btn-danger btn-block"
+	    onclick="return confirm('Really delete this journal?');">
+      <span class="glyphicon glyphicon-remove"></span>
+      Delete
+    </button>
+  </form>
+</p>
+{% end %} {# if is_deletable #}
+{% end %} {# block meta_content #}

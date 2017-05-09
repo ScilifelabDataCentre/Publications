@@ -19,11 +19,11 @@ class Logs(RequestHandler):
             doc = self.get_doc(iuid)
         except KeyError:
             raise tornado.web.HTTPError(404, reason='No such entity.')
-        self.check_owner(doc)
         if doc[constants.DOCTYPE] == constants.PUBLICATION:
             title = doc['title']
             href = self.reverse_url('publication', doc['_id'])
         elif doc[constants.DOCTYPE] == constants.ACCOUNT:
+            self.check_owner(doc)
             title = doc['email']
             href = self.reverse_url('account', doc['email'])
         else:
