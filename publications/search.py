@@ -55,7 +55,8 @@ class Search(RequestHandler):
             for term in self.get_argument('terms', '').split():
                 term = utils.strip_prefix(term)
                 if term: self.terms.append(term.lower())
-        for viewname in ['publication/doi',
+        for viewname in [None,
+                         'publication/doi',
                          'publication/published',
                          'publication/issn',
                          'publication/journal']:
@@ -80,11 +81,19 @@ class Search(RequestHandler):
                     terms=self.get_argument('terms', ''))
 
     def search(self, viewname):
-        view = self.db.view(viewname, reduce=False)
-        for term in self.terms:
-            if term in IGNORE: continue
-            for item in view[term : term + constants.CEILING]:
-                try:
-                    self.hits[item.id] += 1
-                except KeyError:
-                    self.hits[item.id] = 1
+        if viewname is None:
+            for term in self.terms:
+                if term in self.db:
+                    self.add_hit(term)
+        else:
+            view = self.db.view(viewname, reduce=False)
+            for term in self.terms:
+                if term in IGNORE: continue
+                for item in view[term : term + constants.CEILING]:
+                    self.add_hit(item.id)
+
+    def add_hit(self, id):
+        try:
+            self.hits[id] += 1
+        except KeyError:
+            self.hits[id] = 1
