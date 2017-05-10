@@ -97,6 +97,17 @@ class Journal(JournalMixin, RequestHandler):
         self.see_other('journals')
 
 
+class JournalEdit(JournalMixin, RequestHandler):
+
+    @tornado.web.authenticated
+    def get(self, title):
+        pass
+
+    @tornado.web.authenticated
+    def post(self, title):
+        pass
+
+    
 class Journals(RequestHandler):
     "Journals table page."
 

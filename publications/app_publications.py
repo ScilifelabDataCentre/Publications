@@ -29,14 +29,14 @@ from publications.publication import (Publication,
                                       PublicationImport,
                                       PublicationEdit,
                                       PublicationTrash)
-from publications.journal import (Journal, 
+from publications.journal import (Journal,
+                                  JournalEdit,
                                   Journals)
 from publications.label import (Label,
                                 LabelsList,
                                 LabelsTable,
                                 LabelAdd,
-                                LabelEdit,
-                                LabelDelete)
+                                LabelEdit)
 from publications.search import Search
 from publications.logs import Logs
 
@@ -77,12 +77,12 @@ def main():
                     PublicationTrash, name='publication_trash'),
                 url(r'/journals', Journals, name='journals'),
                 url(r'/journal/([^/]+)', Journal, name='journal'),
-                url(r'/labels', LabelsList, name='labels_list'),
+                url(r'/journal/([^/]+)/edit', JournalEdit,name='journal_edit'),
+                url(r'/labels', LabelsList, name='labels'),
                 url(r'/labels/table', LabelsTable, name='labels_table'),
                 url(r'/label/([^/]+)', Label, name='label'),
                 url(r'/label', LabelAdd, name='label_add'),
                 url(r'/label/([^/]+)/edit', LabelEdit, name='label_edit'),
-                url(r'/label/([^/]+)/delete', LabelDelete, name='label_delete'),
                 url(r'/account/reset', AccountReset, name='account_reset'),
                 url(r'/account/password',
                     AccountPassword, name='account_password'),

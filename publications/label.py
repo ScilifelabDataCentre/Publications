@@ -36,9 +36,9 @@ class LabelSaver(Saver):
 class Label(RequestHandler):
     "Label page."
 
-    def get(self, value):
+    def get(self, identifier):
         try:
-            label = self.get_label(value)
+            label = self.get_label(identifier)
         except KeyError, msg:
             self.see_other('home', error=str(msg))
             return
@@ -50,6 +50,36 @@ class Label(RequestHandler):
                     accounts=accounts,
                     publications=publications)
 
+    @tornado.web.authenticated
+    def post(self, identifier):
+        if self.get_argument('_http_method', None) == 'delete':
+            self.delete(identifier)
+            return
+        raise tornado.web.HTTPError(
+            405, reason='Internal problem; POST only allowed for DELETE.')
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        self.check_admin()
+        try:
+            label = self.get_label(identifier)
+        except KeyError, msg:
+            self.see_other('labels', error=str(msg))
+            return
+        value = label['value']
+        self.delete_entity(label)
+        for account in self.get_docs('account/label', key=value):
+            with AccountSaver(account, rqh=self) as saver:
+                labels = set(account['labels'])
+                labels.discard(value)
+                saver['labels'] = sorted(labels)
+        for publication in self.get_docs('publication/label', key=value):
+            with PublicationSaver(publication, rqh=self) as saver:
+                labels = set(publication['labels'])
+                labels.discard(value)
+                saver['labels'] = sorted(labels)
+        self.see_other('labels')
+
 
 class LabelsList(RequestHandler):
     "Labels list page."
@@ -58,7 +88,7 @@ class LabelsList(RequestHandler):
         labels = self.get_docs('label/value')
         view = self.db.view('publication/label', group=True)
         label_counts = dict([(r.key, r.value) for r in view])
-        self.render('labels_list.html',
+        self.render('labels.html',
                     labels=labels,
                     label_counts=label_counts)
 
@@ -149,29 +179,3 @@ class LabelEdit(RequestHandler):
                 labels.add(new_value)
                 saver['labels'] = sorted(labels)
         self.see_other('label', label['value'])
-
-
-class LabelDelete(RequestHandler):
-    "Label delete."
-
-    @tornado.web.authenticated
-    def post(self, identifier):
-        self.check_admin()
-        try:
-            label = self.get_label(identifier)
-        except KeyError, msg:
-            self.see_other('labels', error=str(msg))
-            return
-        value = label['value']
-        self.delete_entity(label)
-        for account in self.get_docs('account/label', key=value):
-            with AccountSaver(account, rqh=self) as saver:
-                labels = set(account['labels'])
-                labels.discard(value)
-                saver['labels'] = sorted(labels)
-        for publication in self.get_docs('publication/label', key=value):
-            with PublicationSaver(publication, rqh=self) as saver:
-                labels = set(publication['labels'])
-                labels.discard(value)
-                saver['labels'] = sorted(labels)
-        self.see_other('labels_list')

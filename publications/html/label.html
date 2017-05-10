@@ -40,10 +40,11 @@
   </a>
 </p>
 <p>
-  <form action="{{ reverse_url('label_delete', label['value']) }}"
+  <form action="{{ reverse_url('label', label['value']) }}"
 	role="form"
 	method="POST">
     {% module xsrf_form_html() %}
+    <input type="hidden" name="_http_method" value="delete">
     <button type="submit" class="btn btn-danger"
 	    onclick="return confirm('Really delete this label?');">
       <span class="glyphicon glyphicon-trash"></span>
