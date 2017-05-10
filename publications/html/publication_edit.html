@@ -149,21 +149,19 @@ Edit
   </div>
 
   <div class="form-group">
-    <label class="control-label col-sm-1" for="labels">Labels</label>
+    <label class="control-label col-sm-1">Labels</label>
     <div class=" col-sm-6">
-      <select multiple size="8" class="form-control" name="labels" id="labels">
-	{% for label in labels %}
-	{% if label in publication['labels'] %}
-	<option selected>{{ label }}</option>
-	{% else %}
-	<option>{{ label }}</option>
-	{% end %} {# if label #}
-	{% end %} {# for label #}
-      </select>
-      <span class="help-block">
-	Multiple select list; hold ctrl or shift (or drag with the mouse)
-	to select more than one.
-      </span>
+      {% for label in labels %}
+      <div class="checkbox">
+	<label>
+	  {% if label in publication['labels'] %}
+	  <input type="checkbox" name="labels" checked value="{{ label }}">{{ label }}
+	  {% else %}
+	  <input type="checkbox" name="labels" value="{{ label }}">{{ label }}
+	  {% end %} {# if label #}
+	</label>
+      </div>
+      {% end %} {# for label #}
     </div>
   </div>
 
