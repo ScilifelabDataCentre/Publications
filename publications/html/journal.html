@@ -54,6 +54,16 @@
 {% end %} {# block main_content #}
 
 {% block meta_content %}
+{% if is_editable %}
+<p>
+  <a href="{{ reverse_url('journal_edit', journal['title']) }}"
+     class="btn btn-primary left"
+     role="button">
+    <span class="glyphicon glyphicon-edit"></span>
+    Edit
+  </a>
+</p>
+{% end %} {# if is_editable #}
 {% if is_deletable %}
 <p>
   <form action="{{ reverse_url('journal', journal['title']) }}"

@@ -244,7 +244,6 @@ class PublicationEdit(PublicationMixin, RequestHandler):
         else:
             labels = self.current_user['labels']
         self.render('publication_edit.html',
-                    title='Edit publication',
                     publication=publication,
                     labels=labels)
 

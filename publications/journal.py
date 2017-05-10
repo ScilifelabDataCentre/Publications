@@ -11,6 +11,7 @@ from . import settings
 from . import utils
 from .saver import Saver, SaverError
 from .requesthandler import RequestHandler
+from .publication import PublicationSaver
 
 
 class JournalSaver(Saver):
@@ -19,6 +20,16 @@ class JournalSaver(Saver):
 
 class JournalMixin(object):
     "Mixin for access check methods."
+
+    def get_journal(self, title):
+        "Get the journal given title or ISSN."
+        try:
+            return self.get_doc(title, 'journal/title')
+        except KeyError:
+            try:
+                return self.get_doc(title, 'journal/issn')
+            except KeyError:
+                raise tornado.web.HTTPError(404, reason='No such journal.')
 
     def is_editable(self, journal):
         return self.is_admin()
@@ -98,14 +109,44 @@ class Journal(JournalMixin, RequestHandler):
 
 
 class JournalEdit(JournalMixin, RequestHandler):
+    "Edit the journal title or ISSN. Modifies affected publications."
 
     @tornado.web.authenticated
     def get(self, title):
-        pass
+        journal = self.get_journal(title)
+        self.check_editable(journal)
+        self.render('journal_edit.html',
+                    is_editable=self.is_editable(journal),
+                    is_deletable=self.is_deletable(journal),
+                    journal=journal)
 
     @tornado.web.authenticated
     def post(self, title):
-        pass
+        journal = self.get_journal(title)
+        self.check_editable(journal)
+        old_title = journal['title']
+        old_issn = journal.get('issn')
+        with JournalSaver(doc=journal, rqh=self) as saver:
+            saver.check_revision()
+            try:
+                title = self.get_argument('title')
+            except tornado.web.MissingArgumentError:
+                self.see_other('journal', error='No title provided.')
+                return
+            saver['title'] = title
+            saver['issn'] = issn = self.get_argument('issn', None) or None
+        if old_title != title or old_issn != issn:
+            view = self.db.view('publication/journal',
+                                key=old_title,
+                                include_docs=True,
+                                reduce=False)
+            for row in view:
+                with PublicationSaver(doc=row.doc, rqh=self) as saver:
+                    journal  = saver['journal'].copy()
+                    journal['title'] = title
+                    journal['issn'] = issn
+                    saver['journal'] = journal
+        self.see_other('journal', journal['title'])
 
     
 class Journals(RequestHandler):
