@@ -21,6 +21,37 @@ TRASHED_MSG = 'Article was trashed at some earlier time.'
 class PublicationSaver(Saver):
     doctype = constants.PUBLICATION
 
+    def fix_journal(self):
+        """Set the appropriate journal title and ISSN if not done.
+        Creates the journal entity if it does not exist."""
+        # Done here to avoid circular import
+        from publications.journal import JournalSaver
+        journal = self['journal'].copy()
+        issn = journal.get('issn')
+        title = journal.get('title')
+        if issn:
+            try:
+                doc = self.rqh.get_doc(issn, 'journal/issn')
+            except KeyError:
+                doc = None
+            else:
+                if title != doc['title']:
+                    journal['title'] = doc['title']
+        if title:
+            try:
+                doc = self.rqh.get_doc(title, 'journal/title')
+            except KeyError:
+                doc = None
+            else:
+                if issn != doc['issn']:
+                    journal['issn'] = doc['issn']
+        self['journal'] = journal
+        # Create journal entity if it does not exist, and sufficient data.
+        if doc is None and issn and title:
+            with JournalSaver(db=self.db) as saver:
+                saver['issn'] = issn
+                saver['title'] = title
+
 
 class PublicationMixin(object):
     "Mixin for access check methods."
@@ -209,9 +240,11 @@ class PublicationImport(RequestHandler):
                                    message=TRASHED_MSG)
                     return
         if old:
+            # Update everything
             with PublicationSaver(old, rqh=self) as saver:
                 for key in new:
                     saver[key] = new[key]
+                saver.fix_journal()
                 if self.current_user['role'] == constants.CURATOR:
                     labels = set(old.get('labels', []))
                     labels.update(self.current_user['labels'])
@@ -224,6 +257,7 @@ class PublicationImport(RequestHandler):
                     saver['labels'] = sorted(self.current_user['labels'])
                 else:
                     saver['labels'] = []
+                saver.fix_journal()
                 saver['verified'] = True
             publication = new
         self.see_other('publication', publication['_id'])
