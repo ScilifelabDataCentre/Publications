@@ -11,3 +11,13 @@ Publications {{ year or '' }}
 {% block main_content %}
 {% include 'publications_list.html' %}
 {% end %} {# block main_content #}
+
+{% block alt_format %}
+<p>
+  {% if year %}
+  <a href="{{ reverse_url('publications_table_year', year) }}">Show in table</a>
+  {% else %}
+  <a href="{{ reverse_url('publications_table') }}">Show in table</a>
+  {% end %}
+</p>
+{% end %} {# block alt_format #}

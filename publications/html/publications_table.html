@@ -41,6 +41,16 @@ Publications  {{ year or '' }}
 </div>
 {% end %} {# block content #}
 
+{% block alt_format %}
+<p>
+  {% if year %}
+  <a href="{{ reverse_url('publications_year', year) }}">Show in list</a>
+  {% else %}
+  <a href="{{ reverse_url('publications') }}">Show in list</a>
+  {% end %}
+</p>
+{% end %} {# block alt_format #}
+
 {% block javascript_code %}
 <script>
   $(function() {

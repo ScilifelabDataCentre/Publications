@@ -11,11 +11,12 @@
 .nobr   {white-space:nowrap; }
 .number {text-align: right; font-family: monospace; }
 
-/* Button */
-.menu_button {text-align: left; width:10em; }
+/* Label */
+.label-special {margin: 10px;
+		text-align: left;
+		white-space: normal; }
 
 /* Various */
 .top      {vertical-align: top; }
 .left     {text-align: left; }
 .right    {text-align: right; }
-.margin10 {margin: 10px; }

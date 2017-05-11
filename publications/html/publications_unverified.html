@@ -23,7 +23,7 @@ Unverified publications
       {% module xsrf_form_html() %}
       <input type="hidden" name="next"
 	     value="{{ reverse_url('publications_unverified') }}">
-      <button type="submit" class="btn btn-success btn-block left">
+      <button type="submit" class="btn btn-success left">
 	<span class="glyphicon glyphicon-ok"></span>
 	Verify
       </button>
@@ -35,7 +35,7 @@ Unverified publications
 	{% module xsrf_form_html() %}
 	<input type="hidden" name="next"
 	       value="{{ reverse_url('publications_unverified') }}">
-	<button type="submit" class="btn btn-danger btn-block left"
+	<button type="submit" class="btn btn-danger left"
 		onclick="return confirm('Really trash this publication?');">
 	  <span class="glyphicon glyphicon-trash"></span>
 	  Trash

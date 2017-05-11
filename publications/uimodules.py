@@ -35,7 +35,7 @@ class External(tornado.web.UIModule):
             if full:
                 attrs = 'class="nobr margin10" target="_"'
             else:
-                attrs = 'class="btn btn-default btn-block btn-xs" role="button" target="_"'
+                attrs = 'class="btn btn-default btn-block btn-xs left" role="button" target="_"'
             url = self.URL % key
             span = '<span class="glyphicon glyphicon-link"></span>'
             if full:
