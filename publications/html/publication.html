@@ -4,21 +4,13 @@
 
 {% block head_title %}{{ publication['title'] }}{% end %}
 
-{% block body_header %}
-<div class="row">
-  <div class="col-md-9 col-md-offset-2">
-    <h2>
-      {% if not publication.get('verified') %}
-      <span class="glyphicon glyphicon-question-sign"></span>
-      {% end %}
-      <span class="glyphicon glyphicon-file"></span>
-      {{ publication['title'] }}
-    </h2>
-  </div>
-  <div class="col-md-2">
-  </div>
-</div>
-{% end %} {# block body_header #}
+{% block body_title %}
+{% if not publication.get('verified') %}
+<span class="glyphicon glyphicon-question-sign"></span>
+{% end %}
+<span class="glyphicon glyphicon-file"></span>
+{{ publication['title'] }}
+{% end %} {# block body_title #}
 
 
 {% block main_content %}

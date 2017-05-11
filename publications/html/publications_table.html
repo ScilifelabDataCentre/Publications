@@ -44,10 +44,14 @@ Publications  {{ year or '' }}
 {% block alt_format %}
 <p>
   {% if year %}
-  <a href="{{ reverse_url('publications_year', year) }}">Show in list</a>
+  {% set url = reverse_url('publications_year', year) %}
   {% else %}
-  <a href="{{ reverse_url('publications') }}">Show in list</a>
+  {% set url = reverse_url('publications') %}
   {% end %}
+  <a href="{{ url }}">
+    <span class="glyphicon glyphicon-list"></span>
+    List
+  </a>
 </p>
 {% end %} {# block alt_format #}
 

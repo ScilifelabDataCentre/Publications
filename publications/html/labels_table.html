@@ -18,7 +18,9 @@ Labels table
 	<tr>
 	  <th>Label</th>
 	  <th># Publications</th>
-	  <th width="40%">Curators</th>
+	  {% if is_curator %}
+	  <th>Curators</th>
+	  {% end %}
 	</tr>
       </thead>
       <tbody>
@@ -30,14 +32,17 @@ Labels table
 	    </a>
 	  </td>
 	  <td>
-	    <span class="badge">{{ label_counts.get(label['value'], 0) }}</span>
+	    
+	    <span class="badge">{{ label['count'] }}</span>
 	  </td>
-	  <td width="40%">
-	    {% for email in sorted(label_accounts[label['value']]) %}
+	  {% if is_curator %}
+	  <td>
+	    {% for email in label['accounts'] %}
 	    <a href="{{ reverse_url('account', email) }}">{{ email }}</a>
 	    <br>
 	    {% end %}
 	  </td>
+	  {% end %}
 	</tr>
 	{% end %}
       </tbody>
@@ -45,6 +50,15 @@ Labels table
   </div>
 </div>
 {% end %} {# block main_content #}
+
+{% block alt_format %}
+<p>
+  <a href="{{ reverse_url('labels') }}">
+    <span class="glyphicon glyphicon-list"></span>
+    List
+  </a>
+</p>
+{% end %} {# block alt_format #}
 
 {% block javascript_code %}
 <script>

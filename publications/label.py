@@ -86,11 +86,7 @@ class LabelsList(RequestHandler):
 
     def get(self):
         labels = self.get_docs('label/value')
-        view = self.db.view('publication/label', group=True)
-        label_counts = dict([(r.key, r.value) for r in view])
-        self.render('labels.html',
-                    labels=labels,
-                    label_counts=label_counts)
+        self.render('labels.html', labels=labels)
 
 
 class LabelsTable(RequestHandler):
@@ -98,16 +94,18 @@ class LabelsTable(RequestHandler):
 
     def get(self):
         labels = self.get_docs('label/value')
-        label_accounts = dict([(l['value'], []) for l in labels])
-        for account in self.get_docs('account/email'):
-            for label in account['labels']:
-                label_accounts.setdefault(label, []).append(account['email'])
+        if self.is_curator():
+            accounts = dict([(l['value'], []) for l in labels])
+            for account in self.get_docs('account/email'):
+                for label in account['labels']:
+                    accounts.setdefault(label, []).append(account['email'])
+            for label in labels:
+                label['accounts'] = sorted(accounts.get(label['value'], []))
         view = self.db.view('publication/label', group=True)
-        label_counts = dict([(r.key, r.value) for r in view])
-        self.render('labels_table.html',
-                    labels=labels,
-                    label_accounts=label_accounts,
-                    label_counts=label_counts)
+        counts = dict([(r.key, r.value) for r in view])
+        for label in labels:
+            label['count'] = counts.get(label['value'], 0)
+        self.render('labels_table.html', labels=labels)
 
 
 class LabelAdd(RequestHandler):

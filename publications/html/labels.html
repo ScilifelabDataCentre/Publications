@@ -2,11 +2,11 @@
 
 {% extends "base.html" %}
 
-{% block head_title %}Labels{% end %}
+{% block head_title %}Labels list{% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-tag"></span>
-Labels
+Labels list
 {% end %}
 
 {% block main_content %}
@@ -17,7 +17,6 @@ Labels
 	<a href="{{ reverse_url('label', label['value']) }}"
 	   class="btn btn-default btn-block label-special">
 	  {{ label['value'] }}
-	  ({{ label_counts.get(label['value'], 0) }})
 	</a>
       </li>
       {% end %}
@@ -28,10 +27,18 @@ Labels
 	<a href="{{ reverse_url('label', label['value']) }}"
 	   class="btn btn-default btn-block label-special">
 	  {{ label['value'] }}
-	  ({{ label_counts.get(label['value'], 0) }})
 	</a>
       </li>
       {% end %}
   </ul>
 </div>
 {% end %} {# block main_content #}
+
+{% block alt_format %}
+<p>
+  <a href="{{ reverse_url('labels_table') }}">
+    <span class="glyphicon glyphicon-list-alt"></span>
+    Table
+  </a>
+</p>
+{% end %} {# block alt_format #}
