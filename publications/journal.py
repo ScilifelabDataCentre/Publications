@@ -81,7 +81,7 @@ class Journal(JournalMixin, RequestHandler):
                 except KeyError:
                     publications[row.id] = 1
         publications = [self.db[i] for i in publications]
-        publications.sort(key=lambda p: p['published'])
+        publications.sort(key=lambda p: p['published'], reverse=True)
         self.render('journal.html',
                     journal=journal,
                     is_editable=self.is_editable(journal),
