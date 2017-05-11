@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import logging
+from collections import OrderedDict as OD
 
 import tornado.web
 
@@ -147,10 +148,10 @@ class PublicationsJson(Publications):
 
     def render(self, template, **kwargs):
         publications = kwargs['publications']
-        result['timestamp'] = utils.timestamp()
-        year = kwargs['year']
         result = OD()
         result['type'] = 'publications'
+        result['timestamp'] = utils.timestamp()
+        year = kwargs['year']
         if year:
             result['year'] = year
         result['count'] = len(publications)
