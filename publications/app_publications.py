@@ -16,7 +16,9 @@ from publications.requesthandler import RequestHandler
 from publications.home import Home, Contact
 from publications.login import Login, Logout
 from publications.account import (Account,
+                                  AccountJson,
                                   Accounts,
+                                  AccountsJson,
                                   AccountAdd,
                                   AccountEdit,
                                   AccountReset,
@@ -96,10 +98,12 @@ def main():
                 url(r'/account/reset', AccountReset, name='account_reset'),
                 url(r'/account/password',
                     AccountPassword, name='account_password'),
+                url(r'/account/([^/]+).json', AccountJson,name='account_json'),
                 url(r'/account/([^/]+)', Account, name='account'),
                 url(r'/account/([^/]+)/edit',
                     AccountEdit, name='account_edit'),
                 url(r'/accounts', Accounts, name='accounts'),
+                url(r'/accounts.json', AccountsJson, name='accounts_json'),
                 url(r'/account', AccountAdd, name='account_add'),
                 url(r'/search', Search, name='search'),
                 url(r'/logs/([^/]+)', Logs, name='logs'),

@@ -194,12 +194,15 @@ class RequestHandler(tornado.web.RequestHandler):
             self.db.delete(log)
         self.db.delete(doc)
 
-    def get_publication_json(self, publication):
+    def get_publication_json(self, publication, full=False):
         "Format publication for JSON."
         URL = self.absolute_reverse_url
         result = OD()
-        result['type'] = 'publication'
+        result['entity'] = 'publication'
+        result['iuid'] = publication['_id']
         result['title'] = publication['title']
+        if full:
+            result['timestamp'] = utils.timestamp()
         result['authors'] = []
         for author in publication['authors']:
             au = OD()
@@ -210,24 +213,59 @@ class RequestHandler(tornado.web.RequestHandler):
         for key in ['type', 'published', 'journal', 'abstract',
                     'doi', 'pmid', 'labels', 'xrefs', 'verified']:
             result[key] = publication.get(key)
-        result['iuid'] = publication['_id']
         result['links'] = OD([
-            ('json', { 'href': URL('publication_json', publication['_id'])}),
-            ('html', {'href': URL('publication', publication['_id'])})])
-        result['created'] = publication['created']
-        result['modified'] = publication['modified']
+            ('self', { 'href': URL('publication_json', publication['_id'])}),
+            ('display', {'href': URL('publication', publication['_id'])})])
+        if full:
+            result['created'] = publication['created']
+            result['modified'] = publication['modified']
         return result
 
-    def get_account_json(self, account):
+    def get_account_json(self, account, full=False):
         "Format account for JSON."
         URL = self.absolute_reverse_url
         result = OD()
-        result['type'] = 'account'
-        result['email'] = account['email']
+        result['entity'] = 'account'
         result['iuid'] = account['_id']
+        result['email'] = account['email']
+        if full:
+            result['timestamp'] = utils.timestamp()
+            result['labels'] = labels = []
+            for label in account['labels']:
+                links = OD()
+                links['self'] = {'href': URL('label_json', label)}
+                links['display'] = {'href': URL('label', label)}
+                labels.append(OD([('value', label),
+                                  ('links', links)]))
         result['links'] = OD([
-            # ('json', { 'href': URL('account_json', account['email'])}),
-            ('html', {'href': URL('account', account['email'])})])
-        result['created'] = account['created']
-        result['modified'] = account['modified']
+            ('self', { 'href': URL('account_json', account['email'])}),
+            ('display', {'href': URL('account', account['email'])})])
+        if full:
+            result['created'] = account['created']
+            result['modified'] = account['modified']
+        return result
+
+    def get_label_json(self, label, 
+                       full=False, publications=None, accounts=None):
+        "Format label for JSON."
+        URL = self.absolute_reverse_url
+        result = OD()
+        result['entity'] = 'label'
+        result['iuid'] = label['_id']
+        result['value'] = label['value']
+        if full:
+            result['timestamp'] = utils.timestamp()
+        result['links'] = links = OD()
+        links['self'] = {'href': URL('label_json', label['value'])}
+        links['display'] = {'href': URL('label', label['value'])}
+        if full:
+            result['created'] = label['created']
+            result['modified'] = label['modified']
+        if accounts is not None:
+            result['accounts'] = [self.get_account_json(account)
+                                  for account in accounts]
+        if publications is not None:
+            result['publications_count'] = len(publications)
+            result['publications'] = [self.get_publication_json(publication)
+                                      for publication in publications]
         return result

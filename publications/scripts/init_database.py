@@ -14,7 +14,7 @@ from publications import constants
 from publications import settings
 from publications import utils
 from publications.scripts.dump import undump
-from publications.scripts.load_designs import load_designs
+from publications.scripts.load_designs import load_designs, regenerate_views
 
 
 def get_args():
@@ -39,10 +39,11 @@ def init_database(dumpfilepath=None):
     if dumpfilepath:
         dumpfilepath = utils.expand_filepath(dumpfilepath)
         try:
-            print('loading dump file', filepath)
+            print('loading dump file', dumpfilepath)
             undump(db, dumpfilepath)
         except IOError:
             print('Warning: could not load', dumpfilepath)
+        regenerate_views(db)
     else:
         print('no dump file loaded')
 

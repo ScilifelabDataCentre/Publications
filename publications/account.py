@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import logging
+from collections import OrderedDict as OD
 
 import tornado.web
 
@@ -99,6 +100,13 @@ class Account(AccountMixin, RequestHandler):
         self.render('account.html', account=account)
 
 
+class AccountJson(Account):
+    "Account JSON data."
+
+    def render(self, template, **kwargs):
+        self.write(self.get_account_json(kwargs['account'], full=True))
+
+
 class Accounts(RequestHandler):
     "List of accounts."
 
@@ -107,6 +115,21 @@ class Accounts(RequestHandler):
         self.check_admin()
         accounts = self.get_docs('account/email')
         self.render('accounts.html', accounts=accounts)
+
+
+class AccountsJson(Accounts):
+    "Accounts JSON data."
+
+    def render(self, template, **kwargs):
+        URL = self.absolute_reverse_url
+        accounts = kwargs['accounts']
+        result = OD()
+        result['entity'] = 'accounts'
+        result['timestamp'] = utils.timestamp()
+        result['accounts_count'] = len(accounts)
+        result['accounts'] = [self.get_account_json(account)
+                                  for account in accounts]
+        self.write(result)
 
 
 class AccountAdd(RequestHandler):

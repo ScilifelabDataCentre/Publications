@@ -3,7 +3,6 @@
 from __future__ import print_function
 
 import logging
-from collections import OrderedDict as OD
 
 import tornado.web
 
@@ -83,25 +82,13 @@ class Label(RequestHandler):
 
 
 class LabelJson(Label):
-    "Label JSON file."
+    "Label JSON data."
 
     def render(self, template, **kwargs):
-        label = kwargs['label']
-        result = OD()
-        result['type'] = 'label'
-        result['value'] = label['value']
-        result['timestamp'] = utils.timestamp()
-        result['iuid'] = label['_id']
-        result['created'] = label['created']
-        result['modified'] = label['modified']
-        if self.is_curator():
-            result['accounts'] = [self.get_account_json(account)
-                                  for account in kwargs['accounts']]
-        publications = kwargs['publications']
-        result['publications_count'] = len(publications)
-        result['publications'] = [self.get_publication_json(publication)
-                                  for publication in publications]
-        self.write(result)
+        self.write(self.get_label_json(kwargs['label'],
+                                       full=True,
+                                       publications=kwargs['publications'],
+                                       accounts=kwargs['accounts']))
 
 
 class LabelsList(RequestHandler):
