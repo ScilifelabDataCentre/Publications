@@ -6,6 +6,7 @@ import base64
 import json
 import logging
 import urllib
+from collections import OrderedDict as OD
 
 import couchdb
 import tornado.web
@@ -192,3 +193,41 @@ class RequestHandler(tornado.web.RequestHandler):
         for log in self.get_logs(doc['_id']):
             self.db.delete(log)
         self.db.delete(doc)
+
+    def get_publication_json(self, publication):
+        "Format publication for JSON."
+        URL = self.absolute_reverse_url
+        result = OD()
+        result['type'] = 'publication'
+        result['title'] = publication['title']
+        result['authors'] = []
+        for author in publication['authors']:
+            au = OD()
+            au['family'] = author.get('family')
+            au['given'] = author.get('given')
+            au['initials'] = author.get('initials')
+            result['authors'].append(au)
+        for key in ['type', 'published', 'journal', 'abstract',
+                    'doi', 'pmid', 'labels', 'xrefs', 'verified']:
+            result[key] = publication.get(key)
+        result['iuid'] = publication['_id']
+        result['links'] = OD([
+            ('json', { 'href': URL('publication_json', publication['_id'])}),
+            ('html', {'href': URL('publication', publication['_id'])})])
+        result['created'] = publication['created']
+        result['modified'] = publication['modified']
+        return result
+
+    def get_account_json(self, account):
+        "Format account for JSON."
+        URL = self.absolute_reverse_url
+        result = OD()
+        result['type'] = 'account'
+        result['email'] = account['email']
+        result['iuid'] = account['_id']
+        result['links'] = OD([
+            # ('json', { 'href': URL('account_json', account['email'])}),
+            ('html', {'href': URL('account', account['email'])})])
+        result['created'] = account['created']
+        result['modified'] = account['modified']
+        return result

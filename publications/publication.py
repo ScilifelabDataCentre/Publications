@@ -80,6 +80,7 @@ class Publication(PublicationMixin, RequestHandler):
 
     def get(self, identifier):
         "Display the publication."
+        logging.debug("publication > %s", identifier)
         try:
             publication = self.get_publication(identifier)
         except KeyError:
@@ -111,6 +112,13 @@ class Publication(PublicationMixin, RequestHandler):
         self.see_other('home')
 
 
+class PublicationJson(Publication):
+    "Publication JSON file."
+
+    def render(self, template, **kwargs):
+        self.write(self.get_publication_json(kwargs['publication']))
+
+
 class Publications(RequestHandler):
     "Publications list page."
 
@@ -125,15 +133,30 @@ class Publications(RequestHandler):
                                          key=constants.CEILING,
                                          last='',
                                          descending=True)
-        self.render(self.TEMPLATE,
-                    publications=publications,
-                    year=year)
+        self.render(self.TEMPLATE, publications=publications, year=year)
 
 
 class PublicationsTable(Publications):
     "Publications table page."
 
     TEMPLATE = 'publications_table.html'
+
+
+class PublicationsJson(Publications):
+    "Publications JSON file."
+
+    def render(self, template, **kwargs):
+        publications = kwargs['publications']
+        result['timestamp'] = utils.timestamp()
+        year = kwargs['year']
+        result = OD()
+        result['type'] = 'publications'
+        if year:
+            result['year'] = year
+        result['count'] = len(publications)
+        result['publications'] = [self.get_publication_json(publication)
+                                  for publication in publications]
+        self.write(result)
 
 
 class PublicationsUnverified(RequestHandler):
@@ -146,7 +169,6 @@ class PublicationsUnverified(RequestHandler):
         if self.is_admin():
             publications = self.get_docs('publication/unverified',
                                          descending=True)
-            # XXX All unverified are returned. Should be paged?
         else:
             lookup = {}
             for label in self.current_account.get('labels'):
@@ -156,7 +178,6 @@ class PublicationsUnverified(RequestHandler):
                     lookup[doc['_id']] = doc
             publications = lookup.values()
             publications.sort(key=lambda i: i['published'], reverse=True)
-            # XXX All unverified are returned. Should be paged?
         self.render('publications_unverified.html', publications=publications)
 
 

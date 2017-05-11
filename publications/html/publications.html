@@ -24,4 +24,15 @@ Publications {{ year or '' }}
     Table
   </a>
 </p>
+<p>
+  {% if year %}
+  {% set url = reverse_url('publications_year_json', year) %}
+  {% else %}
+  {% set url = reverse_url('publications_json') %}
+  {% end %}
+  <a href="{{ url }}">
+    <img src="{{ static_url('json.png') }}">
+    JSON
+  </a>
+</p>
 {% end %} {# block alt_format #}
