@@ -125,7 +125,7 @@ def get_authors(article):
             if not value: continue
             value = to_unicode(value)
             author[jkey] = value
-            author[jkey + '_normalized'] = to_ascii(value)
+            author[jkey + '_normalized'] = to_ascii(value).lower()
         # For consortia and such, names are a mess. Try to sort out.
         if not author.get('family'):
             try:
@@ -137,13 +137,13 @@ def get_authors(article):
                 author['family'] = value
             author['given'] = None
             author['initials'] = None
-            author['family_normalized'] = to_ascii(author['family'])
+            author['family_normalized'] = to_ascii(author['family']).lower()
             try:
                 author.pop('given_normalized')
             except KeyError:
                 pass
-            author['given_normalized'] = None
-            author['initials_normalized'] = None
+            author['given_normalized'] = ''
+            author['initials_normalized'] = ''
         if author:
             try:                    # Give up if this doesn't work
                 key = "%(family)s %(given)s" % author
@@ -274,7 +274,10 @@ def to_unicode(value):
 
 def to_ascii(value):
     "Convert any non-ASCII character to its closest equivalent."
-    return unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    if value:
+        return unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    else:
+        return ''
 
 
 def test_fetch():

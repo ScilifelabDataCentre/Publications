@@ -62,14 +62,14 @@ def get_authors(data):
     for item in data['message'].get('author', []):
         author = OrderedDict()
         author['family'] = item.get('family')
-        author['family_normalized'] = to_ascii(author['family'])
+        author['family_normalized'] = to_ascii(author['family']).lower()
         # Remove dots and dashes
         given = item.get('given', '').replace('.', ' ').replace('-', ' ')
         # Replace weird blank characters
         author['given'] = ' '.join(given.split())
-        author['given_normalized'] = to_ascii(author['given'])
+        author['given_normalized'] = to_ascii(author['given']).lower()
         author['initials'] = ''.join([n[0] for n in given.split()])
-        author['initials_normalized'] = to_ascii(author['initials'])
+        author['initials_normalized'] = to_ascii(author['initials']).lower()
         try:
             author['orcid'] = item['ORCID']
         except KeyError:
