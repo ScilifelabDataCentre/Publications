@@ -34,6 +34,19 @@ Labels list
 </div>
 {% end %} {# block main_content #}
 
+{% block meta_content %}
+{% if is_admin %}
+<p>
+  <a href="{{ reverse_url('label_add') }}"
+     class="btn btn-success left"
+     role="button">
+    <span class="glyphicon glyphicon-plus"></span>
+    Add
+  </a>
+</p>
+{% end %} {# if is_admin #}
+{% end %} {# block meta_content #}
+
 {% block alt_format %}
 <p>
   <a href="{{ reverse_url('labels_table') }}">

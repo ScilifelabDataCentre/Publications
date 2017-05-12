@@ -187,6 +187,7 @@ def get_publication(db, identifier, unverified=False):
     Raise KeyError if no such publication.
     """
     if not identifier: raise KeyError
+    identifier = identifier.lower()
     try:
         doc = get_doc(db, identifier)
     except KeyError:

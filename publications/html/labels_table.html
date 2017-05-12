@@ -37,9 +37,13 @@ Labels table
 	  </td>
 	  {% if is_curator %}
 	  <td>
+	    {% if len(label['accounts']) > 4 %}
+	    <i>[many]</i>
+	    {% else %}
 	    {% for email in label['accounts'] %}
 	    <a href="{{ reverse_url('account', email) }}">{{ email }}</a>
 	    <br>
+	    {% end %} {# for #}
 	    {% end %}
 	  </td>
 	  {% end %}
@@ -50,6 +54,19 @@ Labels table
   </div>
 </div>
 {% end %} {# block main_content #}
+
+{% block meta_content %}
+{% if is_admin %}
+<p>
+  <a href="{{ reverse_url('label_add') }}"
+     class="btn btn-success left"
+     role="button">
+    <span class="glyphicon glyphicon-plus"></span>
+    Add
+  </a>
+</p>
+{% end %} {# if is_admin #}
+{% end %} {# block meta_content #}
 
 {% block alt_format %}
 <p>
