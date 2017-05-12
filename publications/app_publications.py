@@ -42,7 +42,8 @@ from publications.label import (Label,
                                 LabelsTable,
                                 LabelAdd,
                                 LabelEdit)
-from publications.search import Search
+from publications.search import (Search,
+                                 SearchJson)
 from publications.logs import Logs
 
 
@@ -106,6 +107,7 @@ def main():
                 url(r'/accounts.json', AccountsJson, name='accounts_json'),
                 url(r'/account', AccountAdd, name='account_add'),
                 url(r'/search', Search, name='search'),
+                url(r'/search.json', SearchJson, name='search_json'),
                 url(r'/logs/([^/]+)', Logs, name='logs'),
                 url(r'/contact', Contact, name='contact'),
                 url(r'/login', Login, name='login'),

@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import logging
+from collections import OrderedDict as OD
 
 from publications import constants
 from publications import settings
@@ -45,7 +46,7 @@ class Search(RequestHandler):
     def get(self):
         self.hits = dict()
         terms = self.get_argument('terms', '')
-        # The search term as a phrase.
+        # The search term is quoted; consider a single phrase.
         if terms.startswith('"') and terms.endswith('"'):
             self.terms = [terms[1:-1]]
         # Split up into separate terms.
@@ -97,3 +98,23 @@ class Search(RequestHandler):
             self.hits[id] += 1
         except KeyError:
             self.hits[id] = 1
+
+
+class SearchJson(Search):
+    "Output search results in JSON."
+
+    def render(self, template, **kwargs):
+        URL = self.absolute_reverse_url
+        publications = kwargs['publications']
+        terms = kwargs['terms']
+        result = OD()
+        result['entity'] = 'publications search'
+        result['timestamp'] = utils.timestamp()
+        result['terms'] = terms
+        result['links'] = links = OD()
+        links['self'] = {'href': URL('search_json', terms=terms)}
+        links['display'] = {'href': URL('search', terms=terms)}
+        result['publications_count'] = len(publications)
+        result['publications'] = [self.get_publication_json(publication)
+                                  for publication in publications]
+        self.write(result)

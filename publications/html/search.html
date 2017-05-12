@@ -36,3 +36,12 @@ Search
 </form>
 {% include 'publications_list.html' %}
 {% end %} {# block main_content #}
+
+{% block alt_format %}
+<p>
+  <a href="{{ reverse_url('search_json', terms=terms) }}">
+    <img src="{{ static_url('json.png') }}">
+    JSON
+  </a>
+</p>
+{% end %} {# block alt_format #}
