@@ -232,31 +232,6 @@ def get_trashed(db, identifier):
             pass
     return None
 
-def get_formatted_authors(publication, full=False):
-    "Return a formatted list for the authors of the given publication."
-    authors = publication['authors']
-    if full or len(authors) <= settings['SHORT_AUTHORS_LIST_LIMIT']:
-        result = ["%s %s" % (a['family'], a['initials']) for a in authors]
-    else:
-        result = ["%s %s" % (a['family'], a['initials'])
-                  for a in authors[:settings['SHORT_AUTHORS_LIST_LIMIT']-1]]
-        result.append('...')
-        a = authors[-1]
-        result.append("%s %s" % (a['family'], a['initials']))
-    return ', '.join(result)
-
-def get_formatted_journal(publication, html=True):
-    "Return a formatted journal specification."
-    journal = publication['journal']
-    result = [journal.get('title') or '-']
-    if html:
-        result.append("<strong>%s</strong>" % (journal.get('volume') or '-'))
-    else:
-        result.append(journal.get('volume') or '-')
-    result.append("(%s)" % (journal.get('issue') or '-'))
-    result.append(journal.get('pages') or '-')
-    return ' '.join(result)
-
 def get_iuid():
     "Return a unique instance identifier."
     return uuid.uuid4().hex
