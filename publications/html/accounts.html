@@ -6,11 +6,10 @@
 
 {% block body_title %}
 <span class="glyphicon glyphicon-user"></span>
-<span class="glyphicon glyphicon-list-alt"></span>
 Accounts
 {% end %}
 
-{% block content %}
+{% block main_content %}
 <table id="accounts" class="table table-striped table-condensed">
   <thead>
     <tr>
@@ -49,7 +48,7 @@ Accounts
     {% end %}
   </tbody>
 </table>
-{% end %} {# block content #}
+{% end %} {# block main_content #}
 
 {% block javascript_code %}
 <script>
@@ -60,6 +59,17 @@ Accounts
   });
 </script>
 {% end %}
+
+{% block meta_content %}
+<p>
+  <a href="{{ reverse_url('account_add') }}"
+     class="btn btn-success"
+     role="button">
+    <span class="glyphicon glyphicon-plus"></span>
+    Add account
+  </a>
+</p>
+{% end %} {# block meta_content #}
 
 {% block alt_format %}
 <p>

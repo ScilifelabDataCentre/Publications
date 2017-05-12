@@ -80,17 +80,12 @@ Add account
 {% end %} {# block main_content #}
 
 {% block meta_content %}
-<form action="{{ reverse_url('home') }}"
-      role="form"
-      method="GET">
-  <div class="form-group">
-    <label class="control-label"></label>
-    <button type="submit" class="btn btn-default">
-      <span class="glyphicon glyphicon-ban-circle"></span>
-      Cancel
-    </button>
-  </div>
-</form>
+<a href="{{ reverse_url('accounts') }}"
+   class="btn btn-default"
+   role="button">
+  <span class="glyphicon glyphicon-ban-circle"></span>
+  Cancel
+</a>
 {% end %} {# block meta_content #}
 
 {% block autofocus %}

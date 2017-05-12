@@ -84,17 +84,12 @@ Edit '{{ account['email'] }}'
 {% end %} {# block main_content #}
 
 {% block meta_content %}
-<form action="{{ reverse_url('account', account['email']) }}"
-      role="form"
-      method="GET">
-  <div class="form-group">
-    <label class="control-label"></label>
-    <button type="submit" class="btn btn-default">
-      <span class="glyphicon glyphicon-ban-circle"></span>
-      Cancel
-    </button>
-  </div>
-</form>
+<a href="{{ reverse_url('account', account['email']) }}"
+   class="btn btn-default"
+   role="button">
+  <span class="glyphicon glyphicon-ban-circle"></span>
+  Cancel
+</a>
 {% end %} {# block meta_content #}
 
 {% block autofocus %}
