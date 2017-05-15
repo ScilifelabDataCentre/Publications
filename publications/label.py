@@ -205,3 +205,52 @@ class LabelEdit(RequestHandler):
                 labels.add(new_value)
                 saver['labels'] = sorted(labels)
         self.see_other('label', label['value'])
+
+
+class LabelMerge(RequestHandler):
+    "Merge label into another."
+
+    @tornado.web.authenticated
+    def get(self, identifier):
+        self.check_admin()
+        try:
+            label = self.get_label(identifier)
+        except KeyError, msg:
+            self.see_other('labels', error=str(msg))
+            return
+        self.render('label_merge.html',
+                    label=label,
+                    labels=self.get_docs('label/value'))
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        self.check_admin()
+        try:
+            label = self.get_label(identifier)
+        except KeyError, msg:
+            self.see_other('labels', error=str(msg))
+            return
+        try:
+            merge = self.get_label(self.get_argument('merge'))
+        except tornado.web.MissingArgumentError:
+            self.see_other('labels', error='No merge label provided.')
+            return
+        except KeyError, msg:
+            self.see_other('labels', error=str(msg))
+            return
+        old_label = label['value']
+        new_label = merge['value']
+        self.delete_entity(label)
+        for account in self.get_docs('account/label', key=old_label):
+            with AccountSaver(account, rqh=self) as saver:
+                labels = set(account['labels'])
+                labels.discard(old_label)
+                labels.add(new_label)
+                saver['labels'] = sorted(labels)
+        for publication in self.get_docs('publication/label', key=old_label):
+            with PublicationSaver(publication, rqh=self) as saver:
+                labels = set(publication['labels'])
+                labels.discard(old_label)
+                labels.add(new_label)
+                saver['labels'] = sorted(labels)
+        self.see_other('label', new_label)

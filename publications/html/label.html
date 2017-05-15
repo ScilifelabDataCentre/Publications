@@ -41,6 +41,14 @@
   </a>
 </p>
 <p>
+  <a href="{{ reverse_url('label_merge', label['value']) }}"
+     class="btn btn-warning"
+     role="button">
+    <span class="glyphicon glyphicon-resize-small"></span>
+    Merge
+  </a>
+</p>
+<p>
   <form action="{{ reverse_url('label', label['value']) }}"
 	role="form"
 	method="POST">

@@ -44,7 +44,8 @@ from publications.label import (Label,
                                 LabelsTable,
                                 LabelsJson,
                                 LabelAdd,
-                                LabelEdit)
+                                LabelEdit,
+                                LabelMerge)
 from publications.search import (Search,
                                  SearchJson)
 from publications.logs import Logs
@@ -102,6 +103,7 @@ def main():
                 url(r'/label/([^/.]+)', Label, name='label'),
                 url(r'/label', LabelAdd, name='label_add'),
                 url(r'/label/([^/]+)/edit', LabelEdit, name='label_edit'),
+                url(r'/label/([^/]+)/merge', LabelMerge, name='label_merge'),
                 url(r'/account/reset', AccountReset, name='account_reset'),
                 url(r'/account/password',
                     AccountPassword, name='account_password'),
