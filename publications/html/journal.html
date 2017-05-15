@@ -80,3 +80,12 @@
 </p>
 {% end %} {# if is_deletable #}
 {% end %} {# block meta_content #}
+
+{% block alt_format %}
+<p>
+  <a href="{{ reverse_url('journal_json', journal['title']) }}">
+    <img src="{{ static_url('json.png') }}">
+    JSON
+  </a>
+</p>
+{% end %} {# block alt_format #}
