@@ -184,3 +184,29 @@ class Journals(RequestHandler):
         for journal in journals:
             journal['count'] = counts.get(journal['title'], 0)
         self.render('journals.html', journals=journals)
+
+
+class JournalsJson(Journals):
+    "JSON for journals."
+
+    def render(self, template, **kwargs):
+        URL = self.absolute_reverse_url
+        journals = kwargs['journals']
+        result = OD()
+        result['entity'] = 'journals'
+        result['timestamp'] = utils.timestamp()
+        result['links'] = links = OD()
+        links['self'] = {'href': URL('journals_json')}
+        links['display'] = {'href': URL('journals')}
+        result['journals_count'] = len(journals)
+        result['journals'] = items = []
+        for journal in journals:
+            item = OD()
+            item['title'] = journal['title']
+            item['issn'] = journal.get('issn')
+            item['publications_count'] = journal['count']
+            item['links'] = links = OD()
+            links['self'] = {'href': URL('journal_json', journal['title'])}
+            links['display'] = {'href': URL('journal', journal['title'])}
+            items.append(item)
+        self.write(result)

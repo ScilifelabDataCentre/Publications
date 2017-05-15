@@ -36,7 +36,8 @@ from publications.publication import (Publication,
 from publications.journal import (Journal,
                                   JournalJson,
                                   JournalEdit,
-                                  Journals)
+                                  Journals,
+                                  JournalsJson)
 from publications.label import (Label,
                                 LabelJson,
                                 LabelsList,
@@ -89,6 +90,7 @@ def main():
                 url(r'/trash/([^/]+)',
                     PublicationTrash, name='publication_trash'),
                 url(r'/journals', Journals, name='journals'),
+                url(r'/journals.json', JournalsJson, name='journals_json'),
                 url(r'/journal/([^/]+).json', JournalJson,name='journal_json'),
                 url(r'/journal/([^/]+)', Journal, name='journal'),
                 url(r'/journal/([^/]+)/edit', JournalEdit,name='journal_edit'),
