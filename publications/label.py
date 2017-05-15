@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import logging
+from collections import OrderedDict as OD
 
 import tornado.web
 
@@ -116,6 +117,23 @@ class LabelsTable(RequestHandler):
         for label in labels:
             label['count'] = counts.get(label['value'], 0)
         self.render('labels_table.html', labels=labels)
+
+
+class LabelsJson(LabelsTable):
+    "JSON for labels."
+
+    def render(self, template, **kwargs):
+        URL = self.absolute_reverse_url
+        labels = kwargs['labels']
+        result = OD()
+        result['entity'] = 'labels'
+        result['timestamp'] = utils.timestamp()
+        result['links'] = links = OD()
+        links['self'] = {'href': URL('labels_json')}
+        links['display'] = {'href': URL('labels')}
+        result['labels_count'] = len(labels)
+        result['labels'] = [self.get_label_json(l) for l in labels]
+        self.write(result)
 
 
 class LabelAdd(RequestHandler):
