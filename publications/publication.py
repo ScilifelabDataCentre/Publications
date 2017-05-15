@@ -25,8 +25,6 @@ class PublicationSaver(Saver):
     def fix_journal(self):
         """Set the appropriate journal title and ISSN if not done.
         Creates the journal entity if it does not exist."""
-        # Done here to avoid circular import
-        from publications.journal import JournalSaver
         journal = self['journal'].copy()
         issn = journal.get('issn')
         title = journal.get('title')
@@ -34,21 +32,24 @@ class PublicationSaver(Saver):
             try:
                 doc = self.rqh.get_doc(issn, 'journal/issn')
             except KeyError:
-                doc = None
+                if title:
+                    try:
+                        doc = self.rqh.get_doc(title, 'journal/title')
+                    except KeyError:
+                        doc = None
+                    else:
+                        if issn != doc['issn']:
+                            journal['issn'] = doc['issn']
+                else:
+                    doc = None
             else:
                 if title != doc['title']:
                     journal['title'] = doc['title']
-        if title:
-            try:
-                doc = self.rqh.get_doc(title, 'journal/title')
-            except KeyError:
-                doc = None
-            else:
-                if issn != doc['issn']:
-                    journal['issn'] = doc['issn']
         self['journal'] = journal
-        # Create journal entity if it does not exist, and sufficient data.
+        # Create journal entity if it does not exist, and if sufficient data.
         if doc is None and issn and title:
+            # Done here to avoid circular import
+            from publications.journal import JournalSaver
             with JournalSaver(db=self.db) as saver:
                 saver['issn'] = issn
                 saver['title'] = title
