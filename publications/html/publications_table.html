@@ -19,6 +19,7 @@ Publications  {{ year or '' }}
 	  <th>Authors</th>
 	  <th>Journal</th>
 	  <th>Published</th>
+	  <th>Online</th>
 	</tr>
       </thead>
       <tbody>
@@ -33,6 +34,7 @@ Publications  {{ year or '' }}
 	  <td>{% module Authors(publication) %}</td>
 	  <td>{% module Journal(publication) %}</td>
 	  <td class="nobr">{{ publication['published'] }}</td>
+	  <td class="nobr">{{ publication.get('epublished') or '-' }}</td>
 	</tr>
 	{% end %}
       </tbody>

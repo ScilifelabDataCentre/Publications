@@ -82,15 +82,16 @@ def parse(data):
     result = OrderedDict()
     tree = xml.etree.ElementTree.fromstring(data)
     article = get_element(tree, 'PubmedArticle')
-    result['title']     = get_title(article)
-    result['pmid']      = get_pmid(article)
-    result['doi']       = None
-    result['authors']   = get_authors(article)
-    result['journal']   = get_journal(article)
-    result['type']      = get_type(article)
-    result['published'] = get_published(article)
-    result['abstract']  = get_abstract(article)
-    result['xrefs']     = []
+    result['title']      = get_title(article)
+    result['pmid']       = get_pmid(article)
+    result['doi']        = None
+    result['authors']    = get_authors(article)
+    result['journal']    = get_journal(article)
+    result['type']       = get_type(article)
+    result['published']  = get_published(article)
+    result['epublished'] = get_epublished(article)
+    result['abstract']   = get_abstract(article)
+    result['xrefs']      = []
     # Remove PMID from xrefs; get and remove DOI
     for xref in get_xrefs(article):
         if xref['db'] == 'doi':
@@ -215,6 +216,28 @@ def get_published(article):
         date.append(0)
     return "%s-%02i-%02i" % tuple(date)
 
+def get_epublished(article):
+    "Get the online publication date from the article XML tree, or None."
+    date = []
+    elem = article.find('MedlineCitation/Article/ArticleDate')
+    if elem is not None and elem.get('DateType') == 'Electronic':
+        date = get_date(elem)
+    if len(date) < 2:
+        dates = article.findall('PubmedData/History/PubMedPubDate')
+        for status in ['epublish', 'aheadofprint', 'pubmed']:
+            for elem in dates:
+                if elem.get('PubStatus') == status:
+                    date = get_date(elem)
+                    break
+            if len(date) >= 2: break
+    if len(date) == 0:          # No date found
+        return None
+    if len(date) == 1:          # Add dummy month
+        date.append(0)
+    elif len(date) == 2:        # Add dummy day
+        date.append(0)
+    return "%s-%02i-%02i" % tuple(date)
+
 def get_abstract(article):
     "Get the abstract from the article XML tree."
     try:
@@ -290,3 +313,13 @@ def test_search():
     "Search for a specific set of PMIDs."
     result = search(author='Kraulis PJ', published='1994')
     assert set(result) == set(['7525970', '8142349'])
+
+
+if __name__ == '__main__':
+    pmid = '27932482'
+    url = PUBMED_FETCH_URL % pmid
+    response = requests.get(url, timeout=TIMEOUT)
+    if response.status_code != 200:
+        raise IOError("HTTP status %s, %s " % (response.status_code, url))
+    with open('data/%s' % pmid.replace('/', '_'), 'w') as outfile:
+        outfile.write(response.text.encode('utf-8'))

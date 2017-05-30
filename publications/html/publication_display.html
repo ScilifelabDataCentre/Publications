@@ -17,7 +17,7 @@
   </div>
   <div>
     {% module Journal(publication) %}
-    [{{ publication['published'] }}]
+    {% module Published(publication) %}
   </div>
   <div>
     {% if not publication.get('verified') %}

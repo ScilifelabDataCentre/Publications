@@ -43,6 +43,17 @@ class Journal(tornado.web.UIModule):
         return ' '.join(result)
 
 
+class Published(tornado.web.UIModule):
+    "Published date, and online, if present."
+
+    def render(self, publication):
+        result = publication['published']
+        epub = publication.get('epublished')
+        if epub:
+            result += '; online ' + epub
+        return "[%s]" % result
+
+
 class External(tornado.web.UIModule):
     "HTML for an external link."
 

@@ -356,6 +356,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver['pmid'] = self.get_argument('pmid', '') or None
                 saver['doi'] = self.get_argument('doi', '') or None
                 saver['published'] = self.get_argument('published', '') or None
+                saver['epublished'] = self.get_argument('epublished','') or None
                 journal = dict(title=self.get_argument('journal', '') or None)
                 for key in ['issn', 'volume', 'issue', 'pages']:
                     journal[key] = self.get_argument(key, '') or None

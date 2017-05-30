@@ -13,7 +13,7 @@ class Home(RequestHandler):
     "Home page."
 
     def get(self):
-        docs = self.get_docs('publication/published',
+        docs = self.get_docs('publication/first_published',
                              key=constants.CEILING,
                              last='',
                              descending=True,

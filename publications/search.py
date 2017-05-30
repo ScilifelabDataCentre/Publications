@@ -59,6 +59,7 @@ class Search(RequestHandler):
         for viewname in [None,
                          'publication/doi',
                          'publication/published',
+                         'publication/epublished',
                          'publication/issn',
                          'publication/journal']:
             self.search(viewname)

@@ -13,12 +13,10 @@ CROSSREF_FETCH_URL = 'http://api.crossref.org/works/%s'
 TIMEOUT = 5.0
 
 
-session = requests.Session()
-
 def fetch(doi, debug=False):
     "Fetch publication JSON data from Crossref and parse into a dictionary."
     url = CROSSREF_FETCH_URL % doi
-    response = session.get(url, timeout=TIMEOUT)
+    response = requests.get(url, timeout=TIMEOUT)
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
     if debug:
@@ -28,15 +26,16 @@ def fetch(doi, debug=False):
 def parse(data):
     "Parse JSON data for a publication into a dictionary."
     result = OrderedDict()
-    result['title']     = get_title(data)
-    result['doi']       = get_doi(data)
-    result['pmid']      = get_pmid(data)
-    result['authors']   = get_authors(data)
-    result['journal']   = get_journal(data)
-    result['type']      = get_type(data)
-    result['published'] = get_published(data)
-    result['abstract']  = get_abstract(data)
-    result['xrefs']     = get_xrefs(data)
+    result['title']      = get_title(data)
+    result['doi']        = get_doi(data)
+    result['pmid']       = get_pmid(data)
+    result['authors']    = get_authors(data)
+    result['journal']    = get_journal(data)
+    result['type']       = get_type(data)
+    result['published']  = get_published(data)
+    result['epublished'] = get_epublished(data)
+    result['abstract']   = get_abstract(data)
+    result['xrefs']      = get_xrefs(data)
     return result
 
 def get_title(data):
@@ -101,14 +100,32 @@ def get_type(data):
         return None
 
 def get_published(data):
-    "Get the publication date from the article JSON."
-    try:
-        item = data['message']['published-print']
-    except KeyError:
+    "Get the print publication date from the article JSON."
+    # Try in order: print, issued, created
+    for key in ['published-print', 'issued', 'created']:
         try:
-            item = data['message']['issued']
+            item = data['message'][key]
         except KeyError:
-            item = data['message']['created']
+            pass
+        else:
+            break
+    parts = [int(i) for i in item['date-parts'][0]]
+    if len(parts) == 1: parts.append(0)
+    if len(parts) == 2: parts.append(0)
+    return "%s-%02i-%02i" % tuple(parts)
+
+def get_epublished(data):
+    "Get the online publication date from the article JSON, or None."
+    # Try in order: online, issued
+    for key in ['published-online', 'issued']:
+        try:
+            item = data['message'][key]
+        except KeyError:
+            pass
+        else:
+            break
+    else:
+        return None
     parts = [int(i) for i in item['date-parts'][0]]
     if len(parts) == 1: parts.append(0)
     if len(parts) == 2: parts.append(0)
@@ -140,7 +157,7 @@ def test_fetch():
 if __name__ == '__main__':
     doi = '10.1126/science.1260419'
     url = CROSSREF_FETCH_URL % doi
-    response = session.get(url, timeout=TIMEOUT)
+    response = requests.get(url, timeout=TIMEOUT)
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
     with open('data/%s' % doi.replace('/', '_'), 'w') as outfile:

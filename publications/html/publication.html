@@ -22,7 +22,7 @@
   <strong>{{ publication['journal'].get('volume') or '-' }}</strong>
   ({{ publication['journal'].get('issue') or '-' }})
   {{ publication['journal'].get('pages') or '-' }}
-  [{{ publication['published'] }}]
+  {% module Published(publication) %}
   {% module Pubmed(publication['pmid'], full=True) %}
   {% module Doi(publication['doi'], full=True) %}
   {% module Crossref(publication['doi'], full=True) %}
