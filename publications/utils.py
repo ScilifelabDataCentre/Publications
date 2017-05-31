@@ -339,8 +339,8 @@ class EmailServer(object):
         except KeyError:
             pass
         else:
-            self.email = settings.get('SITE_EMAIL') or settings['EMAIL']['USER']
             self.server.login(user, password)
+        self.email = settings.get('SITE_EMAIL') or settings['EMAIL']['SENDER']
 
     def __del__(self):
         "Close the connection to the email server."
