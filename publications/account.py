@@ -248,12 +248,14 @@ class AccountReset(RequestHandler):
     "Reset the password of the account; send an email with the one-time code."
 
     def get(self):
-        if self.current_user:
-            email = self.current_user['email']
+        if self.is_admin():
+            account = self.get_argument('account', self.current_user['email'])
+        elif self.current_user:
+            account = self.current_user['email']
         else:
-            email = None
+            account = None
         if settings['EMAIL']['HOST']:
-            self.render('account_reset.html', email=email)
+            self.render('account_reset.html', account=account)
         else:
             self.see_other('home', message='Cannot reset password; no email host server defined.')
 
