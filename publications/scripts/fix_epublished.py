@@ -26,13 +26,13 @@ def get_epublished_pubmed(db):
         if epublished is not None and epublished <= doc['published']: continue
         if not doc['pmid']: continue
         time.sleep(DELAY)
-        with PublicationSaver(doc=doc, db=db) as saver:
-            published = doc['published']
-            data = pubmed.fetch(doc['pmid'])
-            saver['published'] = data['published']
-            saver['epublished'] = data['epublished']
-            print (published != doc['published'] and 'diff' or 'same',
-                   doc['published'], doc['epublished'])
+        data = pubmed.fetch(doc['pmid'])
+        if data['published'] != doc['published'] or \
+           data['epublished'] != doc['epublished']:
+            with PublicationSaver(doc=doc, db=db) as saver:
+                saver['published'] = data['published']
+                saver['epublished'] = data['epublished']
+                print(saver['published'], saver['epublished'])
 
 def get_epublished_crossref(db):
     "Get the epublished date for all publications from CrossRef."
@@ -41,13 +41,13 @@ def get_epublished_crossref(db):
         if doc.get('epublished'): continue
         if not doc['doi']: continue
         time.sleep(DELAY)
-        with PublicationSaver(doc=doc, db=db) as saver:
-            published = doc['published']
-            data = crossref.fetch(doc['doi'])
-            saver['published'] = data['published']
-            saver['epublished'] = data['epublished']
-            print (published != doc['published'] and 'diff' or 'same',
-                   doc['published'], doc['epublished'])
+        data = crossref.fetch(doc['doi'])
+        if data['published'] != doc['published'] or \
+           data['epublished'] != doc['epublished']:
+            with PublicationSaver(doc=doc, db=db) as saver:
+                saver['published'] = data['published']
+                saver['epublished'] = data['epublished']
+                print(saver['published'], saver['epublished'])
 
 if __name__ == '__main__':
     args = get_args()

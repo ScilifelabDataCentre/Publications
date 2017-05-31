@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -26,7 +26,8 @@ settings = dict(
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
     SITE_NAME='Publications',
-    SITE_TEXT='A simple publications reference database system.',
+    SITE_HOME_TITLE='Publications',
+    SITE_HOME_TEXT='A simple publications reference database system.',
     SITE_DIR='{ROOT}/static',
     SITE_EMAIL=None,
     SITE_CONTACT='<p><i>No contact information available.</i></p>',

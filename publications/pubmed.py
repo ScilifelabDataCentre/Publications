@@ -210,10 +210,9 @@ def get_published(article):
     if len(date) == 0:              # Fallback 3: today's year
         d = time.localtime()
         date = [d.tm_year, 0, 0]
-    elif len(date) == 1:            # Add dummy month
-        date.append(0)
-    elif len(date) == 2:            # Add dummy day
-        date.append(0)
+    # Add dummy values, if missing
+    if len(date) == 1: date.append(0)
+    if len(date) == 2: date.append(0)
     return "%s-%02i-%02i" % tuple(date)
 
 def get_epublished(article):
@@ -232,10 +231,9 @@ def get_epublished(article):
             if len(date) >= 2: break
     if len(date) == 0:          # No date found
         return None
-    if len(date) == 1:          # Add dummy month
-        date.append(0)
-    elif len(date) == 2:        # Add dummy day
-        date.append(0)
+    # Add dummy values, if missing
+    if len(date) == 1: date.append(0)
+    if len(date) == 2: date.append(0)
     return "%s-%02i-%02i" % tuple(date)
 
 def get_abstract(article):

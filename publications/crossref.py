@@ -110,6 +110,7 @@ def get_published(data):
         else:
             break
     parts = [int(i) for i in item['date-parts'][0]]
+    # Add dummy values, if missing
     if len(parts) == 1: parts.append(0)
     if len(parts) == 2: parts.append(0)
     return "%s-%02i-%02i" % tuple(parts)
@@ -127,6 +128,7 @@ def get_epublished(data):
     else:
         return None
     parts = [int(i) for i in item['date-parts'][0]]
+    # Add dummy values, if missing
     if len(parts) == 1: parts.append(0)
     if len(parts) == 2: parts.append(0)
     return "%s-%02i-%02i" % tuple(parts)
