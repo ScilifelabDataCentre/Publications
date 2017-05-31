@@ -30,6 +30,15 @@ Edit '{{ label['value'] }}'
     </div>
   </div>
 
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="description">Description</label>
+    <div class="col-sm-8">
+      <textarea class="form-control" rows="4"
+		name="description" id="description"
+		>{{ label.get('description') or '' }}</textarea>
+    </div>
+  </div>
+
   <div class="form-group">
     <div class="col-md-11 col-md-offset-1">
       <button type="submit" class="btn btn-success">

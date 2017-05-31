@@ -11,6 +11,9 @@
 {% end %} {# block body_title #}
 
 {% block main_content %}
+<p>
+  {{ label.get('description') or '' }}
+</p>
 {% if current_user %}
 <h3>Curators</h3>
 <p>

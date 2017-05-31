@@ -60,7 +60,7 @@ class Label(RequestHandler):
             405, reason='Internal problem; POST only allowed for DELETE.')
 
     @tornado.web.authenticated
-    def post(self, identifier):
+    def delete(self, identifier):
         self.check_admin()
         try:
             label = self.get_label(identifier)
@@ -189,21 +189,23 @@ class LabelEdit(RequestHandler):
             with LabelSaver(label, rqh=self) as saver:
                 saver.check_revision()
                 saver.set_value(new_value)
+                saver['description'] = self.get_argument('description', None)
         except SaverError:
             self.see_other('label', label['value'], error=utils.REV_ERROR)
             return
-        for account in self.get_docs('account/label', key=old_value):
-            with AccountSaver(account, rqh=self) as saver:
-                labels = set(account['labels'])
-                labels.discard(old_value)
-                labels.add(new_value)
-                saver['labels'] = sorted(labels)
-        for publication in self.get_docs('publication/label', key=old_value):
-            with PublicationSaver(publication, rqh=self) as saver:
-                labels = set(publication['labels'])
-                labels.discard(old_value)
-                labels.add(new_value)
-                saver['labels'] = sorted(labels)
+        if new_value != old_value:
+            for account in self.get_docs('account/label', key=old_value):
+                with AccountSaver(account, rqh=self) as saver:
+                    labels = set(account['labels'])
+                    labels.discard(old_value)
+                    labels.add(new_value)
+                    saver['labels'] = sorted(labels)
+            for publ in self.get_docs('publication/label', key=old_value):
+                with PublicationSaver(publ, rqh=self) as saver:
+                    labels = set(publ['labels'])
+                    labels.discard(old_value)
+                    labels.add(new_value)
+                    saver['labels'] = sorted(labels)
         self.see_other('label', label['value'])
 
 
