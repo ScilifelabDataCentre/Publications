@@ -29,15 +29,16 @@ class Login(RequestHandler):
             email = self.get_argument('email')
             password = self.get_argument('password')
         except tornado.web.MissingArgumentError:
-            self.see_other('login', error='Missing email or password argument.')
+            self.set_error_flash('Missing email or password argument.')
+            self.see_other('login')
             return
         try:
             account = self.get_account(email)
             if utils.hashed_password(password) != account.get('password'):
                 raise KeyError
         except KeyError:
-            self.see_other('login',
-                           error='No such account or invalid password.')
+            self.set_error_flash('No such account or invalid password.')
+            self.see_other('login')
         else:
             self.set_secure_cookie(constants.USER_COOKIE,
                                    account['email'],

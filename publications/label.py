@@ -41,7 +41,8 @@ class Label(RequestHandler):
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.see_other('home', error=str(msg))
+            self.set_error_flash("no such label '%s'" % identifier)
+            self.see_other('home')
             return
         accounts = self.get_docs('account/label', key=label['value'])
         publications = self.get_docs('publication/label', key=label['value'])
@@ -65,7 +66,8 @@ class Label(RequestHandler):
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.see_other('labels', error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('labels')
             return
         value = label['value']
         self.delete_entity(label)
@@ -150,14 +152,16 @@ class LabelAdd(RequestHandler):
         try:
             value = self.get_argument('value')
         except tornado.web.MissingArgumentError:
-            self.see_other('label_add', error='No label provided.')
+            self.set_error_flash('no label provided')
+            self.see_other('label_add')
             return
         try:
             with LabelSaver(rqh=self) as saver:
                 saver.set_value(value)
             label = saver.doc
         except ValueError, msg:
-            self.see_other('label_add', error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('label_add')
             return
         self.see_other('label', label['value'])
 
@@ -171,7 +175,8 @@ class LabelEdit(RequestHandler):
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.see_other('labels', error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('labels')
             return
         self.render('label_edit.html', label=label)
 
@@ -181,7 +186,8 @@ class LabelEdit(RequestHandler):
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.see_other('labels', error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('labels')
             return
         old_value = label['value']
         new_value = self.get_argument('value')
@@ -191,7 +197,8 @@ class LabelEdit(RequestHandler):
                 saver.set_value(new_value)
                 saver['description'] = self.get_argument('description', None)
         except SaverError:
-            self.see_other('label', label['value'], error=utils.REV_ERROR)
+            self.set_error_flash(utils.REV_ERROR)
+            self.see_other('label', label['value'])
             return
         if new_value != old_value:
             for account in self.get_docs('account/label', key=old_value):
@@ -218,7 +225,8 @@ class LabelMerge(RequestHandler):
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.see_other('labels', error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('labels')
             return
         self.render('label_merge.html',
                     label=label,
@@ -230,15 +238,18 @@ class LabelMerge(RequestHandler):
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.see_other('labels', error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('labels')
             return
         try:
             merge = self.get_label(self.get_argument('merge'))
         except tornado.web.MissingArgumentError:
-            self.see_other('labels', error='No merge label provided.')
+            self.set_error_flash('no merge label provided')
+            self.see_other('labels')
             return
         except KeyError, msg:
-            self.see_other('labels', error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('labels')
             return
         old_label = label['value']
         new_label = merge['value']

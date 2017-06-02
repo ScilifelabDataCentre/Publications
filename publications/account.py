@@ -31,6 +31,9 @@ Or, go to %(url)s and fill in the one-time code %(code)s manually and provide yo
 /The %(site)s administrator.
 """
 
+EMAIL_ERROR = 'Could not send email! Contact the administrator.'
+
+
 class AccountSaver(Saver):
     doctype = constants.ACCOUNT
 
@@ -95,7 +98,8 @@ class Account(AccountMixin, RequestHandler):
             account = self.get_account(email)
             self.check_readable(account)
         except (KeyError, ValueError), msg:
-            self.see_other('home', error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('home')
             return
         self.render('account.html', account=account)
 
@@ -148,15 +152,16 @@ class AccountAdd(RequestHandler):
         try:
             email = self.get_argument('account')
         except tornado.web.MissingArgumentError:
-            self.see_other('account_add', error='No account email provided.')
+            self.set_error_flash('No account email provided.')
+            self.see_other('account_add')
             return
         try:
             account = self.get_account(email)
         except KeyError:
             pass
         else:
-            self.see_other('account', account['email'],
-                           error='Account already exists.')
+            self.set_error_flash('Account already exists.')
+            self.see_other('account', account['email'])
             return
         role = self.get_argument('role', constants.CURATOR)
         if role not in constants.ROLES:
@@ -172,7 +177,8 @@ class AccountAdd(RequestHandler):
                 saver.reset_password()
             account = saver.doc
         except ValueError, msg:
-            self.see_other('account_add', error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('account_add')
             return
         data = dict(site=settings['SITE_NAME'],
                     email=account['email'],
@@ -184,8 +190,8 @@ class AccountAdd(RequestHandler):
         try:
             server = utils.EmailServer()
         except ValueError:
-            self.see_other('account', email,
-                           message='Could not send email to user!')
+            self.set_error_flash('Could not send email to user!')
+            self.see_other('account', email)
         else:
             server.send(account['email'],
                         "A new account in the website %s" % settings['SITE_NAME'],
@@ -201,12 +207,14 @@ class AccountEdit(AccountMixin, RequestHandler):
         try:
             account = self.get_account(email)
         except KeyError, msg:
-            self.see_other('home', error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('home')
             return
         try:
             self.check_editable(account)
         except ValueError, msg:
-            self.see_other('account', account['email'], error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('account', account['email'])
             return
         if self.is_admin():
             self.render('account_edit.html',
@@ -221,12 +229,14 @@ class AccountEdit(AccountMixin, RequestHandler):
         try:
             account = self.get_account(email)
         except KeyError, msg:
-            self.see_other('home', error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('home')
             return
         try:
             self.check_editable(account)
         except ValueError, msg:
-            self.see_other('account', account['email'], error=str(msg))
+            self.set_error_flash(str(msg))
+            self.see_other('account', account['email'])
             return
         try:
             with AccountSaver(account, rqh=self) as saver:
@@ -239,9 +249,8 @@ class AccountEdit(AccountMixin, RequestHandler):
                                              if l in labels)
                 saver['name'] = self.get_argument('name', None)
         except SaverError, msg:
-            self.see_other('account', account['email'], error=utils.REV_ERROR)
-        else:
-            self.see_other('account', account['email'])
+            self.set_error_flash(utils.REV_ERROR)
+        self.see_other('account', account['email'])
 
 
 class AccountReset(RequestHandler):
@@ -257,7 +266,8 @@ class AccountReset(RequestHandler):
         if settings['EMAIL']['HOST']:
             self.render('account_reset.html', account=account)
         else:
-            self.see_other('home', message='Cannot reset password; no email host server defined.')
+            self.set_error_flash('Cannot reset password; server badly configured.')
+            self.see_other('home')
 
     def post(self):
         try:
@@ -282,7 +292,8 @@ class AccountReset(RequestHandler):
         try:
             server = utils.EmailServer()
         except ValueError:
-            self.see_other('home', error='Could not send email! Contact the administrator.')
+            self.set_error_flash(EMAIL_ERROR)
+            self.see_other('home')
         else:
             server.send(account['email'],
                         "Reset your password in website %s" % settings['SITE_NAME'],
@@ -318,7 +329,7 @@ class AccountPassword(RequestHandler):
                         expires_days=settings['LOGIN_MAX_AGE_DAYS'])
                     saver['login'] = utils.timestamp()
         except (tornado.web.MissingArgumentError, KeyError, ValueError):
-            self.see_other('account_password',
-                           error='Missing or wrong data in one or more fields.')
+            self.set_error_flash('Missing or wrong data in field(s).')
+            self.see_other('account_password')
         else:
             self.see_other('account', account['email'])

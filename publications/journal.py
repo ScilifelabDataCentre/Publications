@@ -156,7 +156,8 @@ class JournalEdit(JournalMixin, RequestHandler):
             try:
                 title = self.get_argument('title')
             except tornado.web.MissingArgumentError:
-                self.see_other('journal', error='No title provided.')
+                self.set_error_flash('no title provided')
+                self.see_other('journal')
                 return
             saver['title'] = title
             saver['issn'] = issn = self.get_argument('issn', None) or None

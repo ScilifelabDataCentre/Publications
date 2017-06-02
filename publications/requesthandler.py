@@ -30,8 +30,10 @@ class RequestHandler(tornado.web.RequestHandler):
         result['settings'] = settings
         result['is_admin'] = self.is_admin()
         result['is_curator'] = self.is_curator()
-        result['error'] = self.get_argument('error', None)
-        result['message'] = self.get_argument('message', None)
+        result['error'] = self.get_cookie('error', '').replace('-', ' ')
+        self.clear_cookie('error')
+        result['message'] = self.get_cookie('message', '').replace('-', ' ')
+        self.clear_cookie('message')
         result['year_counts'] = [(r.key, r.value) for r in 
                                  self.db.view('publication/year',
                                               descending=True,
@@ -60,6 +62,20 @@ class RequestHandler(tornado.web.RequestHandler):
             query = dict([(k, utils.to_utf8(v)) for k,v in query.items()])
             url += '?' + urllib.urlencode(query)
         return url
+
+    def set_message_flash(self, message):
+        "Set message flash cookie."
+        self.set_flash('message', message)
+
+    def set_error_flash(self, message):
+        "Set error flash cookie message."
+        self.set_flash('error', message)
+
+    def set_flash(self, name, message):
+        message = message.replace(' ', '-')
+        message = message.replace(';', '-')
+        message = message.replace(',', '-')
+        self.set_cookie(name, message)
 
     def get_doc(self, key, viewname=None):
         """Get the document with the given id, or from the given view.

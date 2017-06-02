@@ -17,7 +17,7 @@ from .requesthandler import RequestHandler
 
 
 IMPORT_ERROR = 'Could not import article for some reason.'
-TRASHED_MSG = 'Article was trashed at some earlier time.'
+TRASHED_MESSAGE = 'Article was trashed at some earlier time.'
 
 class PublicationSaver(Saver):
     doctype = constants.PUBLICATION
@@ -223,9 +223,8 @@ class PublicationImport(RequestHandler):
             if force:
                 del self.db[trashed]
             else:
-                self.see_other('publication_import',
-                               identifier=identifier,
-                               message=TRASHED_MSG)
+                self.set_message_flash(TRASHED_MESSAGE)
+                self.see_other('publication_import', identifier=identifier)
                 return
         # Has it already been imported?
         try:
@@ -236,7 +235,8 @@ class PublicationImport(RequestHandler):
             try:
                 new = pubmed.fetch(identifier)
             except (IOError, requests.exceptions.Timeout):
-                self.see_other('publication_import', error=IMPORT_ERROR)
+                self.set_error_flash(IMPORT_ERROR)
+                self.see_other('publication_import')
                 return
             else:
                 if old is None:
@@ -249,7 +249,8 @@ class PublicationImport(RequestHandler):
             try:
                 new = crossref.fetch(identifier)
             except (IOError, requests.exceptions.Timeout):
-                self.see_other('publication_import', error=IMPORT_ERROR)
+                self.set_error_flash(IMPORT_ERROR)
+                self.see_other('publication_import')
                 return
             else:
                 if old is None:
@@ -266,9 +267,8 @@ class PublicationImport(RequestHandler):
                 if force:
                     del self.db[trashed]
                 else:
-                    self.see_other('publication_import',
-                                   identifier=identifier,
-                                   message=TRASHED_MSG)
+                    self.set_message_flash(TRASHED_MESSAGE)
+                    self.see_other('publication_import', identifier=identifier)
                     return
         if old:
             # Update everything
@@ -368,10 +368,8 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 # change labels in order to challenge the relevant
                 # curators to verify or trash.
         except SaverError, msg:
-            self.see_other('publication', publication['_id'],
-                           error=utils.REV_ERROR)
-        else:
-            self.see_other('publication', publication['_id'])
+            self.set_error_flash(utils.REV_ERROR)
+        self.see_other('publication', publication['_id'])
 
 
 class PublicationVerify(PublicationMixin, RequestHandler):
