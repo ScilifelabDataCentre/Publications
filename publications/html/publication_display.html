@@ -24,7 +24,7 @@
     <span class="label label-warning">Unverified</span>
     {% end %}
     {% for l in publication.get('labels', []) %}
-    <a class="label label-default"
+    <a class="label label-primary"
        href="{{ reverse_url('label', l) }}">{{ l }}</a>
     {% end %}
   </div>
