@@ -40,9 +40,18 @@ class RequestHandler(tornado.web.RequestHandler):
                                               group_level=1)]
         return result
 
-    def see_other(self, name, *args, **query):
+    def see_other(self, name, *args, **kwargs):
         """Redirect to the absolute URL given by name
         using HTTP status 303 See Other."""
+        query = kwargs.copy()
+        try:
+            self.set_error_flash(query.pop('error'))
+        except KeyError:
+            pass
+        try:
+            self.set_message_flash(query.pop('message'))
+        except KeyError:
+            pass
         url = self.absolute_reverse_url(name, *args, **query)
         self.redirect(url, status=303)
 
@@ -160,7 +169,7 @@ class RequestHandler(tornado.web.RequestHandler):
                 raise ValueError
         except (IndexError, ValueError, TypeError):
             raise KeyError
-        logging.info("Basic auth login: account %s", account['email'])
+        logging.debug("Basic auth login: account %s", account['email'])
         return account
 
     def get_logs(self, iuid):

@@ -19,6 +19,7 @@ from .requesthandler import RequestHandler
 IMPORT_ERROR = 'Could not import article for some reason.'
 TRASHED_MESSAGE = 'Article was trashed at some earlier time.'
 
+
 class PublicationSaver(Saver):
     doctype = constants.PUBLICATION
 
@@ -89,31 +90,29 @@ class Publication(PublicationMixin, RequestHandler):
 
     def get(self, identifier):
         "Display the publication."
-        logging.debug("publication > %s", identifier)
         try:
             publication = self.get_publication(identifier)
-        except KeyError:
-            raise tornado.web.HTTPError(404, reason='No such publication.')
+        except KeyError, msg:
+            self.see_other('home', error=str(msg))
+            return
         self.render('publication.html',
                     publication=publication,
                     is_editable=self.is_editable(publication),
                     is_deletable=self.is_deletable(publication))
 
-    @tornado.web.authenticated
     def post(self, identifier):
         if self.get_argument('_http_method', None) == 'delete':
             self.delete(identifier)
             return
-        raise tornado.web.HTTPError(
-            405, reason='Internal problem; POST only allowed for DELETE.')
+        raise tornado.web.HTTPError(405, reason='POST only allowed for DELETE')
 
-    @tornado.web.authenticated
     def delete(self, identifier):
         try:
             publication = self.get_publication(identifier)
-        except KeyError:
-            raise tornado.web.HTTPError(404, reason='No such publication.')
-        self.check_deletable(publication)
+            self.check_deletable(publication)
+        except (KeyError, ValueError), msg:
+            self.see_other('home', error=str(msg))
+            return
         # Delete log entries
         for log in self.get_logs(publication['_id']):
             self.db.delete(log)
@@ -201,12 +200,10 @@ class PublicationsUnverified(RequestHandler):
 class PublicationAdd(PublicationMixin, RequestHandler):
     "Add a publication by hand."
 
-    @tornado.web.authenticated
     def get(self):
         self.check_curator()
-        self.render('publication_add.html', labels=get_allowed_labels())
+        self.render('publication_add.html', labels=self.get_allowed_labels())
 
-    @tornado.web.authenticated
     def post(self):
         self.check_curator()
         allowed_labels = self.get_allowed_labels()
@@ -256,7 +253,6 @@ class PublicationAdd(PublicationMixin, RequestHandler):
 class PublicationImport(RequestHandler):
     "Import a publication given its DOI or PMID."
 
-    @tornado.web.authenticated
     def get(self):
         self.check_curator()
         docs = self.get_docs('publication/modified',
@@ -268,7 +264,6 @@ class PublicationImport(RequestHandler):
                     publications=docs,
                     identifier=self.get_argument('identifier', ''))
 
-    @tornado.web.authenticated
     def post(self):
         self.check_curator()
         try:
@@ -359,24 +354,24 @@ class PublicationImport(RequestHandler):
 class PublicationEdit(PublicationMixin, RequestHandler):
     "Edit the publication."
 
-    @tornado.web.authenticated
     def get(self, iuid):
         try:
             publication = self.get_publication(iuid)
-        except KeyError:
-            raise tornado.web.HTTPError(404, reason='No such publication.')
-        self.check_editable(publication)
+            self.check_editable(publication)
+        except (KeyError, ValueError), msg:
+            self.see_other('home', error=str(msg))
+            return
         self.render('publication_edit.html',
                     publication=publication,
                     labels=self.get_allowed_labels())
 
-    @tornado.web.authenticated
     def post(self, iuid):
         try:
             publication = self.get_publication(iuid)
-        except KeyError:
-            raise tornado.web.HTTPError(404, reason='No such publication.')
-        self.check_editable(publication)
+            self.check_editable(publication)
+        except (KeyError, ValueError), msg:
+            self.see_other('home', error=str(msg))
+            return
         allowed_labels = self.get_allowed_labels()
         try:
             with PublicationSaver(doc=publication, rqh=self) as saver:
@@ -429,12 +424,13 @@ class PublicationEdit(PublicationMixin, RequestHandler):
 class PublicationVerify(PublicationMixin, RequestHandler):
     "Verify publication."
 
-    @tornado.web.authenticated
     def post(self, identifier):
+        self.check_curator()
         try:
             publication = self.get_publication(identifier)
-        except KeyError:
-            raise tornado.web.HTTPError(404, reason='No such publication.')
+        except KeyError, msg:
+            self.see_other('home', error=str(msg))
+            return
         with PublicationSaver(publication, rqh=self) as saver:
             saver['verified'] = True
         try:
@@ -446,13 +442,13 @@ class PublicationVerify(PublicationMixin, RequestHandler):
 class PublicationTrash(PublicationMixin, RequestHandler):
     "Trash a publication and record its external identifiers."
 
-    @tornado.web.authenticated
     def post(self, identifier):
         try:
             publication = self.get_publication(identifier)
-        except KeyError:
-            raise tornado.web.HTTPError(404, reason='No such publication.')
-        self.check_deletable(publication)
+            self.check_deletable(publication)
+        except (KeyError, ValueError), msg:
+            self.see_other('home', error=str(msg))
+            return
         trash = {constants.DOCTYPE: constants.TRASH,
                  'title': publication['title'],
                  'pmid': publication.get('pmid'),

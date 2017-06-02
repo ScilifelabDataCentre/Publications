@@ -23,19 +23,22 @@ class JournalMixin(object):
     "Mixin for access check methods."
 
     def get_journal(self, title):
-        "Get the journal given title or ISSN."
+        """Get the journal given title or ISSN.
+        Raise KeyError if no such journal.
+        """
         try:
             return self.get_doc(title, 'journal/title')
         except KeyError:
             try:
                 return self.get_doc(title, 'journal/issn')
             except KeyError:
-                raise tornado.web.HTTPError(404, reason='No such journal.')
+                raise KeyError("No such journal '%s'" % title)
 
     def is_editable(self, journal):
         return self.is_admin()
 
     def check_editable(self, journal):
+        "Raise ValueError if not editable."
         if self.is_editable(journal): return
         raise ValueError('You may not edit the journal.')
 
@@ -60,7 +63,8 @@ class Journal(JournalMixin, RequestHandler):
             try:
                 journal = self.get_doc(title, 'journal/issn')
             except KeyError:
-                raise tornado.web.HTTPError(404, reason='No such journal.')
+                self.see_other('home', error='no such journal')
+                return
             else:
                 duplicates = self.get_docs('journal/title', key=title)
         else:
@@ -90,7 +94,6 @@ class Journal(JournalMixin, RequestHandler):
                     publications=publications,
                     duplicates=duplicates)
 
-    @tornado.web.authenticated
     def post(self, title):
         if self.get_argument('_http_method', None) == 'delete':
             self.delete(title)
@@ -98,13 +101,13 @@ class Journal(JournalMixin, RequestHandler):
         raise tornado.web.HTTPError(
             405, reason='Internal problem; POST only allowed for DELETE.')
 
-    @tornado.web.authenticated
     def delete(self, title):
         try:
             journal = self.get_doc(title, 'journal/title')
-        except KeyError:
-            raise tornado.web.HTTPError(404, reason='No such journal.')
-        self.check_deletable(journal)
+            self.check_deletable(journal)
+        except (KeyError, ValueError), msg:
+            self.see_other('journals', error=str(msg))
+            return
         self.delete_entity(journal)
         self.see_other('journals')
 
@@ -138,17 +141,24 @@ class JournalEdit(JournalMixin, RequestHandler):
 
     @tornado.web.authenticated
     def get(self, title):
-        journal = self.get_journal(title)
-        self.check_editable(journal)
+        try:
+            journal = self.get_journal(title)
+            self.check_editable(journal)
+        except (KeyError, ValueError), msg:
+            self.see_other('journals', error=str(msg))
+            return
         self.render('journal_edit.html',
                     is_editable=self.is_editable(journal),
                     is_deletable=self.is_deletable(journal),
                     journal=journal)
 
-    @tornado.web.authenticated
     def post(self, title):
-        journal = self.get_journal(title)
-        self.check_editable(journal)
+        try:
+            journal = self.get_journal(title)
+            self.check_editable(journal)
+        except (KeyError, ValueError), msg:
+            self.see_other('journals', error=str(msg))
+            return
         old_title = journal['title']
         old_issn = journal.get('issn')
         with JournalSaver(doc=journal, rqh=self) as saver:

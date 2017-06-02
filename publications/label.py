@@ -41,8 +41,7 @@ class Label(RequestHandler):
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.set_error_flash("no such label '%s'" % identifier)
-            self.see_other('home')
+            self.see_other('home', error=str(msg))
             return
         accounts = self.get_docs('account/label', key=label['value'])
         publications = self.get_docs('publication/label', key=label['value'])
@@ -66,8 +65,7 @@ class Label(RequestHandler):
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.set_error_flash(str(msg))
-            self.see_other('labels')
+            self.see_other('labels', error=str(msg))
             return
         value = label['value']
         self.delete_entity(label)
@@ -141,19 +139,16 @@ class LabelsJson(LabelsTable):
 class LabelAdd(RequestHandler):
     "Label addition page."
 
-    @tornado.web.authenticated
     def get(self):
         self.check_admin()
         self.render('label_add.html')
 
-    @tornado.web.authenticated
     def post(self):
         self.check_admin()
         try:
             value = self.get_argument('value')
         except tornado.web.MissingArgumentError:
-            self.set_error_flash('no label provided')
-            self.see_other('label_add')
+            self.see_other('label_add', error='no label provided')
             return
         try:
             with LabelSaver(rqh=self) as saver:
@@ -169,25 +164,21 @@ class LabelAdd(RequestHandler):
 class LabelEdit(RequestHandler):
     "Label edit page."
 
-    @tornado.web.authenticated
     def get(self, identifier):
         self.check_admin()
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.set_error_flash(str(msg))
-            self.see_other('labels')
+            self.see_other('labels', error=str(msg))
             return
         self.render('label_edit.html', label=label)
 
-    @tornado.web.authenticated
     def post(self, identifier):
         self.check_admin()
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.set_error_flash(str(msg))
-            self.see_other('labels')
+            self.see_other('labels', error=str(msg))
             return
         old_value = label['value']
         new_value = self.get_argument('value')
@@ -219,27 +210,23 @@ class LabelEdit(RequestHandler):
 class LabelMerge(RequestHandler):
     "Merge label into another."
 
-    @tornado.web.authenticated
     def get(self, identifier):
         self.check_admin()
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.set_error_flash(str(msg))
-            self.see_other('labels')
+            self.see_other('labels', error=str(msg))
             return
         self.render('label_merge.html',
                     label=label,
                     labels=self.get_docs('label/value'))
 
-    @tornado.web.authenticated
     def post(self, identifier):
         self.check_admin()
         try:
             label = self.get_label(identifier)
         except KeyError, msg:
-            self.set_error_flash(str(msg))
-            self.see_other('labels')
+            self.see_other('labels', error=str(msg))
             return
         try:
             merge = self.get_label(self.get_argument('merge'))

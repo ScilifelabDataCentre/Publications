@@ -217,7 +217,10 @@ def get_label(db, identifier):
         doc = get_doc(db, identifier)
     except KeyError:
         identifier = to_ascii(identifier).lower()
-        doc = get_doc(db, identifier, 'label/normalized_value')
+        try:
+            doc = get_doc(db, identifier, 'label/normalized_value')
+        except KeyError:
+            raise KeyError("no such label '%s'" % identifier)
     if doc[constants.DOCTYPE] != constants.LABEL:
         raise KeyError("wrong document type '%s'", doc[constants.DOCTYPE])
     return doc
