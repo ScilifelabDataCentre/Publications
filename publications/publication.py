@@ -23,6 +23,21 @@ TRASHED_MESSAGE = 'Article was trashed at some earlier time.'
 class PublicationSaver(Saver):
     doctype = constants.PUBLICATION
 
+    def check_published(self, value):
+        utils.to_date(value)
+
+    def convert_published(self, value):
+        return utils.to_date(value)
+
+    def check_epublished(self, value):
+        utils.to_date(value)
+
+    def convert_epublished(self, value):
+        if value:
+            return utils.to_date(value)
+        else:
+            return None
+
     def fix_journal(self):
         """Set the appropriate journal title and ISSN if not done.
         Creates the journal entity if it does not exist."""
@@ -195,6 +210,24 @@ class PublicationsUnverified(RequestHandler):
             publications = lookup.values()
             publications.sort(key=lambda i: i['published'], reverse=True)
         self.render('publications_unverified.html', publications=publications)
+
+
+class PublicationsNoPmid(RequestHandler):
+    "Publications lacking PMID."
+
+    def get(self):
+        publications = self.get_docs('publication/no_pmid',
+                                     descending=True)
+        self.render('publications_no_pmid.html', publications=publications)
+
+
+class PublicationsNoDoi(RequestHandler):
+    "Publications lacking DOI."
+
+    def get(self):
+        publications = self.get_docs('publication/no_doi',
+                                     descending=True)
+        self.render('publications_no_doi.html', publications=publications)
 
 
 class PublicationAdd(PublicationMixin, RequestHandler):

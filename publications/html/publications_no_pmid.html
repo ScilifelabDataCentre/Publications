@@ -1,0 +1,14 @@
+{# Publicatons lacking PMID page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Publications lacking PMID{% end %}
+{% block body_title %}
+<span class="glyphicon glyphicon-unchecked"></span>
+<span class="glyphicon glyphicon-file"></span>
+Publications lacking PMID
+{% end %}
+
+{% block main_content %}
+{% include 'publications_list.html' %}
+{% end %} {# block main_content #}

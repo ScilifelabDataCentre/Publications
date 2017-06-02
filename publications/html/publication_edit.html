@@ -101,7 +101,9 @@ Edit
 	     name="published" id="published"
 	     value="{{ publication.get('published') or '' }}">
       <span class="help-block">
-	Date published in print. ISO date format: 'YYYY-MM-DD'.
+	Date published in print. Defaults to today.
+	<br>
+	ISO date format: 'YYYY-MM-DD'.
       </span>
     </div>
   </div>
@@ -113,7 +115,9 @@ Edit
 	     name="epublished" id="epublished"
 	     value="{{ publication.get('epublished') or '' }}">
       <span class="help-block">
-	Date published online. ISO date format: 'YYYY-MM-DD'.
+	Date published online.
+	<br>
+	ISO date format: 'YYYY-MM-DD'.
       </span>
     </div>
   </div>

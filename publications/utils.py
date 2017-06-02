@@ -280,6 +280,33 @@ def today(days=None):
     result = instant.isoformat()
     return result[:result.index('T')]
 
+def to_date(value):
+    """Convert value to proper ISO format date.
+    Return today if None.
+    Raise ValueError if cannot be interpreted.
+    """
+    if not value:
+        return today()
+    result = []
+    parts = value.split('-')
+    try:
+        year = int(parts[0])
+        try:
+            month = int(parts[1])
+            if month < 0: raise ValueError
+            if month > 12: raise ValueError
+        except IndexError:
+            month = 0
+        try:
+            day = int(parts[2])
+            if day < 0: raise ValueError
+            if day > 12: raise ValueError
+        except IndexError:
+            day = 0
+    except (TypeError, ValueError):
+        raise ValueError("invalid date '%s'" % value)
+    return "%s-%02i-%02i" % tuple(year, month, day)
+
 def to_ascii(value):
     "Convert any non-ASCII character to its closest ASCII equivalent."
     if not isinstance(value, unicode):
