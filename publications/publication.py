@@ -76,6 +76,13 @@ class PublicationMixin(object):
         if self.is_deletable(publication): return
         raise ValueError('You may not delete the publication.')
 
+    def get_allowed_labels(self):
+        "Get the set of allowed labels for the account."
+        if self.is_admin():
+            return set([l['value'] for l in self.get_docs('label/value')])
+        else:
+            return set(self.current_user['labels'])
+
 
 class Publication(PublicationMixin, RequestHandler):
     "Display the publication."
@@ -191,6 +198,61 @@ class PublicationsUnverified(RequestHandler):
         self.render('publications_unverified.html', publications=publications)
 
 
+class PublicationAdd(PublicationMixin, RequestHandler):
+    "Add a publication by hand."
+
+    @tornado.web.authenticated
+    def get(self):
+        self.check_curator()
+        self.render('publication_add.html', labels=get_allowed_labels())
+
+    @tornado.web.authenticated
+    def post(self):
+        self.check_curator()
+        allowed_labels = self.get_allowed_labels()
+        with PublicationSaver(rqh=self,account=self.current_user) as saver:
+            saver['title'] = self.get_argument('title', '') or '[no title]'
+            authors = []
+            for author in self.get_argument('authors', '').split('\n'):
+                author = author.strip()
+                if not author: continue
+                try:
+                    family, given = author.split(',', 1)
+                except ValueError:
+                    parts = author.split()
+                    family = parts[-1]
+                    given = ' '.join(parts[:-1])
+                else:
+                    family = family.strip()
+                    if not family:
+                        family = author
+                        given = ''
+                    given = given.strip()
+                initials = ''.join([c[0] for c in given.split()])
+                authors.append(
+                    dict(family=family,
+                         family_normalized=utils.to_ascii(family).lower(),
+                         given=given,
+                         given_normalized=utils.to_ascii(given).lower(),
+                         initials=initials,
+                         initials_normalized=utils.to_ascii(initials).lower()))
+            saver['authors'] = authors
+            saver['published'] = self.get_argument('published', '') or None
+            saver['epublished'] = self.get_argument('epublished','') or None
+            journal = dict(title=self.get_argument('journal', '') or None)
+            for key in ['issn', 'volume', 'issue', 'pages']:
+                journal[key] = self.get_argument(key, '') or None
+            saver['journal'] = journal
+            saver['abstract'] = self.get_argument('abstract', '') or None
+            saver['labels'] = sorted(l for l in self.get_arguments('labels')
+                                     if l in allowed_labels)
+            # Add should not verify the publication!
+            # It must be possible for admin to change labels in order to
+            # challenge the relevant curators to verify or trash.
+            publication = saver.doc
+        self.see_other('publication', publication['_id'])
+
+
 class PublicationImport(RequestHandler):
     "Import a publication given its DOI or PMID."
 
@@ -304,13 +366,9 @@ class PublicationEdit(PublicationMixin, RequestHandler):
         except KeyError:
             raise tornado.web.HTTPError(404, reason='No such publication.')
         self.check_editable(publication)
-        if self.is_admin():
-            labels = [l['value'] for l in self.get_docs('label/value')]
-        else:
-            labels = self.current_user['labels']
         self.render('publication_edit.html',
                     publication=publication,
-                    labels=labels)
+                    labels=self.get_allowed_labels())
 
     @tornado.web.authenticated
     def post(self, iuid):
@@ -319,11 +377,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
         except KeyError:
             raise tornado.web.HTTPError(404, reason='No such publication.')
         self.check_editable(publication)
-        if self.is_admin():
-            allowed_labels = set([l['value'] for l in
-                                  self.get_docs('label/value')])
-        else:
-            allowed_labels = set(self.current_user['labels'])
+        allowed_labels = self.get_allowed_labels()
         try:
             with PublicationSaver(doc=publication, rqh=self) as saver:
                 saver.check_revision()
@@ -364,9 +418,9 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver['abstract'] = self.get_argument('abstract', '') or None
                 saver['labels'] = sorted(l for l in self.get_arguments('labels')
                                          if l in allowed_labels)
-                # Edit should not do verify! It must be possible for admin
-                # change labels in order to challenge the relevant
-                # curators to verify or trash.
+                # Edit should not verify the publication!
+                # It must be possible for admin to change labels in order to
+                # challenge the relevant curators to verify or trash.
         except SaverError, msg:
             self.set_error_flash(utils.REV_ERROR)
         self.see_other('publication', publication['_id'])

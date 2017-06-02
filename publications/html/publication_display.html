@@ -2,9 +2,9 @@
 
 <div class="well well-sm">
   <div style="float: right">
-    {% module Pubmed(publication['pmid']) %}
-    {% module Doi(publication['doi']) %}
-    {% module Crossref(publication['doi']) %}
+    {% module Pubmed(publication.get('pmid')) %}
+    {% module Doi(publication.get('doi')) %}
+    {% module Crossref(publication.get('doi')) %}
   </div>
   <div>
     <a href="{{ reverse_url('publication', publication['_id']) }}">

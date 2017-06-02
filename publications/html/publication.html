@@ -23,9 +23,9 @@
   ({{ publication['journal'].get('issue') or '-' }})
   {{ publication['journal'].get('pages') or '-' }}
   {% module Published(publication) %}
-  {% module Pubmed(publication['pmid'], full=True) %}
-  {% module Doi(publication['doi'], full=True) %}
-  {% module Crossref(publication['doi'], full=True) %}
+  {% module Pubmed(publication.get('pmid'), full=True) %}
+  {% module Doi(publication.get('doi'), full=True) %}
+  {% module Crossref(publication.get('doi'), full=True) %}
 </p>
 <p>
   {{ publication['abstract'] or ''}}
