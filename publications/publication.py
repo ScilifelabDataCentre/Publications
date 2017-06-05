@@ -38,9 +38,75 @@ class PublicationSaver(Saver):
         else:
             return None
 
+    def set_title(self):
+        "Set title from form data."
+        assert self.rqh, 'requires http request context'
+        self['title'] = self.rqh.get_argument('title', '') or '[no title]'
+
+    def set_authors(self):
+        "Set authors list from form data."
+        assert self.rqh, 'requires http request context'
+        authors = []
+        for author in self.rqh.get_argument('authors', '').split('\n'):
+            author = author.strip()
+            if not author: continue
+            try:
+                family, given = author.split(',', 1)
+            except ValueError:
+                parts = author.split()
+                family = parts[-1]
+                given = ' '.join(parts[:-1])
+            else:
+                family = family.strip()
+                if not family:
+                    family = author
+                    given = ''
+                given = given.strip()
+            initials = ''.join([c[0] for c in given.split()])
+            authors.append(
+                dict(family=family,
+                     family_normalized=utils.to_ascii(family).lower(),
+                     given=given,
+                     given_normalized=utils.to_ascii(given).lower(),
+                     initials=initials,
+                     initials_normalized=utils.to_ascii(initials).lower()))
+        self['authors'] = authors
+
+    def set_pmid_doi(self):
+        "Set pmid and doi from form data. No validity checks are made."
+        assert self.rqh, 'requires http request context'
+        self['pmid'] = self.rqh.get_argument('pmid', '') or None
+        self['doi'] = self.rqh.get_argument('doi', '') or None
+
+    def set_published(self):
+        "Set published and epublished from form data."
+        assert self.rqh, 'requires http request context'
+        self['published'] = self.rqh.get_argument('published', '') or None
+        self['epublished'] = self.rqh.get_argument('epublished','') or None
+
+    def set_journal(self):
+        "Set journal from form data."
+        assert self.rqh, 'requires http request context'
+        journal = dict(title=self.rqh.get_argument('journal', '') or None)
+        for key in ['issn', 'volume', 'issue', 'pages']:
+            journal[key] = self.rqh.get_argument(key, '') or None
+        self['journal'] = journal
+
+    def set_abstract(self):
+        "Set abstract from form data."
+        assert self.rqh, 'requires http request context'
+        self['abstract'] = self.rqh.get_argument('abstract', '') or None
+
+    def set_labels(self, allowed_labels):
+        "Set labels from form data."
+        assert self.rqh, 'requires http request context'
+        self['labels'] = sorted(l for l in self.rqh.get_arguments('labels')
+                                if l in allowed_labels)
+
     def fix_journal(self):
         """Set the appropriate journal title and ISSN if not done.
         Creates the journal entity if it does not exist."""
+        assert self.rqh, 'requires http request context'
         journal = self['journal'].copy()
         issn = journal.get('issn')
         title = journal.get('title')
@@ -239,44 +305,14 @@ class PublicationAdd(PublicationMixin, RequestHandler):
 
     def post(self):
         self.check_curator()
-        allowed_labels = self.get_allowed_labels()
         with PublicationSaver(rqh=self,account=self.current_user) as saver:
-            saver['title'] = self.get_argument('title', '') or '[no title]'
-            authors = []
-            for author in self.get_argument('authors', '').split('\n'):
-                author = author.strip()
-                if not author: continue
-                try:
-                    family, given = author.split(',', 1)
-                except ValueError:
-                    parts = author.split()
-                    family = parts[-1]
-                    given = ' '.join(parts[:-1])
-                else:
-                    family = family.strip()
-                    if not family:
-                        family = author
-                        given = ''
-                    given = given.strip()
-                initials = ''.join([c[0] for c in given.split()])
-                authors.append(
-                    dict(family=family,
-                         family_normalized=utils.to_ascii(family).lower(),
-                         given=given,
-                         given_normalized=utils.to_ascii(given).lower(),
-                         initials=initials,
-                         initials_normalized=utils.to_ascii(initials).lower()))
-            saver['authors'] = authors
-            saver['published'] = self.get_argument('published', '') or None
-            saver['epublished'] = self.get_argument('epublished','') or None
-            journal = dict(title=self.get_argument('journal', '') or None)
-            for key in ['issn', 'volume', 'issue', 'pages']:
-                journal[key] = self.get_argument(key, '') or None
-            saver['journal'] = journal
-            saver['abstract'] = self.get_argument('abstract', '') or None
-            saver['labels'] = sorted(l for l in self.get_arguments('labels')
-                                     if l in allowed_labels)
-            # Add should not verify the publication!
+            saver.set_title()
+            saver.set_authors()
+            saver.set_published()
+            saver.set_journal()
+            saver.set_abstract()
+            saver.set_labels(self.get_allowed_labels())
+            # Publication should not be verified automatically by add!
             # It must be possible for admin to change labels in order to
             # challenge the relevant curators to verify or trash.
             publication = saver.doc
@@ -405,48 +441,17 @@ class PublicationEdit(PublicationMixin, RequestHandler):
         except (KeyError, ValueError), msg:
             self.see_other('home', error=str(msg))
             return
-        allowed_labels = self.get_allowed_labels()
         try:
             with PublicationSaver(doc=publication, rqh=self) as saver:
                 saver.check_revision()
-                saver['title'] = self.get_argument('title', '') or '[no title]'
-                authors = []
-                for author in self.get_argument('authors', '').split('\n'):
-                    author = author.strip()
-                    if not author: continue
-                    try:
-                        family, given = author.split(',', 1)
-                    except ValueError:
-                        parts = author.split()
-                        family = parts[-1]
-                        given = ' '.join(parts[:-1])
-                    else:
-                        family = family.strip()
-                        if not family:
-                            family = author
-                            given = ''
-                        given = given.strip()
-                    initials = ''.join([c[0] for c in given.split()])
-                    authors.append(
-                        dict(family=family,
-                             family_normalized=utils.to_ascii(family).lower(),
-                             given=given,
-                             given_normalized=utils.to_ascii(given).lower(),
-                             initials=initials,
-                             initials_normalized=utils.to_ascii(initials).lower()))
-                saver['authors'] = authors
-                saver['pmid'] = self.get_argument('pmid', '') or None
-                saver['doi'] = self.get_argument('doi', '') or None
-                saver['published'] = self.get_argument('published', '') or None
-                saver['epublished'] = self.get_argument('epublished','') or None
-                journal = dict(title=self.get_argument('journal', '') or None)
-                for key in ['issn', 'volume', 'issue', 'pages']:
-                    journal[key] = self.get_argument(key, '') or None
-                saver['journal'] = journal
-                saver['abstract'] = self.get_argument('abstract', '') or None
-                saver['labels'] = sorted(l for l in self.get_arguments('labels')
-                                         if l in allowed_labels)
-                # Edit should not verify the publication!
+                saver.set_title()
+                saver.set_authors()
+                saver.set_pmid_doi()
+                saver.set_published()
+                saver.set_journal()
+                saver.set_abstract()
+                saver.set_labels(self.get_allowed_labels())
+                # Publication should not be verified automatically by edit!
                 # It must be possible for admin to change labels in order to
                 # challenge the relevant curators to verify or trash.
         except SaverError, msg:

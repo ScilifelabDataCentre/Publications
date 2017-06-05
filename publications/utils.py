@@ -300,12 +300,12 @@ def to_date(value):
         try:
             day = int(parts[2])
             if day < 0: raise ValueError
-            if day > 12: raise ValueError
+            if day > 31: raise ValueError
         except IndexError:
             day = 0
     except (TypeError, ValueError):
         raise ValueError("invalid date '%s'" % value)
-    return "%s-%02i-%02i" % tuple(year, month, day)
+    return "%s-%02i-%02i" % (year, month, day)
 
 def to_ascii(value):
     "Convert any non-ASCII character to its closest ASCII equivalent."

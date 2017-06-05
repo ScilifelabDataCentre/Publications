@@ -76,6 +76,10 @@
       <span class="glyphicon glyphicon-remove"></span>
       Delete
     </button>
+    <a href="#" data-toggle="popover" title="What does delete mean?"
+       data-content="Delete simply scraps this publication entry. No memory of it is retained in the database.">
+      <span class="glyphicon glyphicon-question-sign"></span>
+    </a>
   </form>
 </p>
 <p>
@@ -88,6 +92,10 @@
       <span class="glyphicon glyphicon-trash"></span>
       Trash
     </button>
+    <a href="#" data-toggle="popover" title="What does trash mean?"
+       data-content="Trash scraps this publication entry and forbids it from being loaded again. It does this by recording its DOI and/or PMID in a blacklist.">
+      <span class="glyphicon glyphicon-question-sign"></span>
+    </a>
   </form>
 </p>
 {% end %} {# if is_deletable #}
@@ -110,3 +118,9 @@
   </a>
 </p>
 {% end %} {# block alt_format #}
+
+{% block javascript_code %}
+<script>
+$(function(){ $('[data-toggle="popover"]').popover(); });
+</script>
+{% end %}
