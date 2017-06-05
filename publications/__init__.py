@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os
 
-__version__ = '1.5.1'
+__version__ = '1.5.2'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(

@@ -268,7 +268,7 @@ class PublicationsUnverified(RequestHandler):
                                          descending=True)
         else:
             lookup = {}
-            for label in self.current_account.get('labels'):
+            for label in self.current_user.get('labels'):
                 docs = self.get_docs('publication/label_unverified',
                                      key=label)
                 for doc in docs:
