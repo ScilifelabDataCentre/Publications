@@ -4,12 +4,13 @@ from __future__ import print_function
 
 import os
 
-__version__ = '1.5.0'
+__version__ = '1.5.1'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
     ROOT=os.path.dirname(__file__),
     BASE_URL='http://localhost:8885/',
+    PORT=8885,
     TORNADO_DEBUG=False,
     LOGGING_DEBUG=False,
     LOGGING_FORMAT='%(levelname)s [%(asctime)s] %(message)s',
