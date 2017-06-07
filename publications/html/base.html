@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block head_title %}{{ title }}{% end %}</title>
     <link rel="shortcut icon" type="image/png"
-	  href="{{ reverse_url('site', 'logo_small.png') }}">
+	  href="{{ reverse_url('site', 'favicon.png') }}">
     <link rel="stylesheet" href="{{ settings['JQUERY_CSS'] }}">
     <link rel="stylesheet" href="{{ settings['BOOTSTRAP_CSS'] }}">
     <link rel="stylesheet" href="{{ settings['BOOTSTRAP_THEME_CSS'] }}">
@@ -35,10 +35,10 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
 	  </button>
-	  <a class="navbar-brand" href="{{ reverse_url('home') }}">
-	    <img src="{{ reverse_url('site', 'logo_small.png') }}"
-		 title="{{ settings['SITE_NAME'] }}"
-		 alt="{{ settings['SITE_NAME'] }}">
+	  <a href="{{ reverse_url('home') }}"
+	     class="navbar-brand"
+	     title="Home">
+	    <span class="glyphicon glyphicon-home"></span>
 	  </a>
 	</div>
 
@@ -244,8 +244,16 @@
     <div class="container-fluid">
       {% block body_header %}
       <div class="row">
-	<div class="col-sm-8 col-sm-offset-2">
+	<div class="col-md-2">
+	  <img src="{{ reverse_url('site', 'logo.png') }}"
+	       class="img-responsive"
+	       style="padding-bottom: 10px;"
+	       title="{{ settings['SITE_NAME'] }}"
+	       alt="{{ settings['SITE_NAME'] }}">
+	</div>
+	<div class="col-sm-8">
 	  <h2>{% block body_title %}{{ title }}{% end %}</h2>
+	  {% block body_subtitle %}{% end %}
 	</div>
 	<div class="col-sm-2">
 	  {% block alt_format %}

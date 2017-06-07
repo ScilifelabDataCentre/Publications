@@ -4,19 +4,11 @@
 
 {% block head_title %}{{ settings['SITE_NAME'] }}{% end %}
 
-{% block body_header %}
-<div class="row">
-  <div class="col-md-10 col-md-offset-2">
-    <h1>
-      <img src="{{ reverse_url('site', 'logo_large.png') }}"
-	   title="{{ settings['SITE_NAME'] }}"
-	   alt="{{ settings['SITE_NAME'] }}">
-      {{ settings['SITE_HOME_TITLE'] }}
-    </h1>
-    <p>{{ settings['SITE_HOME_TEXT'] }}</p>
-  </div>
-</div>
-{% end %} {# block body_header #}
+{% block body_title %}{{ settings['SITE_HOME_TITLE'] }}{% end %}
+
+{% block body_subtitle %}
+<p>{{ settings['SITE_HOME_TEXT'] }}</p>
+{% end %}
 
 {% block main_content %}
 {% set list_title = "The %s most recent publications" % settings['SHORT_PUBLICATIONS_LIST_LIMIT'] %}
