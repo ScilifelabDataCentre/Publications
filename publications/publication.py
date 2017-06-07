@@ -5,6 +5,7 @@ from __future__ import print_function
 import logging
 from collections import OrderedDict as OD
 
+import requests
 import tornado.web
 
 from . import constants
@@ -16,8 +17,8 @@ from .saver import Saver, SaverError
 from .requesthandler import RequestHandler
 
 
-IMPORT_ERROR = 'Could not import article for some reason.'
-BLACKLISTED_MESSAGE = "Article was not imported since it is in the" \
+FETCH_ERROR = 'Could not fetch article data: '
+BLACKLISTED_MESSAGE = "Article data was not fetched since it is in the" \
                       " blacklist. Check 'override' if desired."
 
 
@@ -320,17 +321,17 @@ class PublicationAdd(PublicationMixin, RequestHandler):
         self.see_other('publication', publication['_id'])
 
 
-class PublicationImport(RequestHandler):
-    "Import a publication given its DOI or PMID."
+class PublicationFetch(RequestHandler):
+    "Fetch a publication given its DOI or PMID."
 
     def get(self):
         self.check_curator()
         docs = self.get_docs('publication/modified',
                              key=constants.CEILING,
-                             last='',
+                             last=utils.today(-1),
                              descending=True,
                              limit=settings['SHORT_PUBLICATIONS_LIST_LIMIT'])
-        self.render('publication_import.html',
+        self.render('publication_fetch.html',
                     publications=docs,
                     identifier=self.get_argument('identifier', ''))
 
@@ -341,7 +342,7 @@ class PublicationImport(RequestHandler):
             identifier = utils.strip_prefix(identifier)
             if not identifier: raise ValueError
         except (tornado.web.MissingArgumentError, ValueError):
-            self.see_other('publication_import')
+            self.see_other('publication_fetch')
             return
         # Check if identifier is present in blacklist registry
         override = utils.to_bool(self.get_argument('override', False))
@@ -350,10 +351,11 @@ class PublicationImport(RequestHandler):
             if override:
                 del self.db[blacklisted]
             else:
-                self.set_message_flash(BLACKLISTED_MESSAGE)
-                self.see_other('publication_import', identifier=identifier)
+                self.see_other('publication_fetch',
+                               identifier=identifier,
+                               message=BLACKLISTED_MESSAGE)
                 return
-        # Has it already been imported?
+        # Has it already been fetched?
         try:
             old = self.get_publication(identifier, unverified=True)
         except KeyError:
@@ -361,9 +363,9 @@ class PublicationImport(RequestHandler):
         if constants.PMID_RX.match(identifier):
             try:
                 new = pubmed.fetch(identifier)
-            except (IOError, requests.exceptions.Timeout):
-                self.set_error_flash(IMPORT_ERROR)
-                self.see_other('publication_import')
+            except (IOError, requests.exceptions.Timeout), msg:
+                self.see_other('publication_fetch',
+                               error=FETCH_ERROR + str(msg))
                 return
             else:
                 if old is None:
@@ -375,9 +377,9 @@ class PublicationImport(RequestHandler):
         else:
             try:
                 new = crossref.fetch(identifier)
-            except (IOError, requests.exceptions.Timeout):
-                self.set_error_flash(IMPORT_ERROR)
-                self.see_other('publication_import')
+            except (IOError, requests.exceptions.Timeout), msg:
+                self.see_other('publication_fetch',
+                               error=FETCH_ERROR + str(msg))
                 return
             else:
                 if old is None:
@@ -394,8 +396,9 @@ class PublicationImport(RequestHandler):
                 if override:
                     del self.db[blacklisted]
                 else:
-                    self.set_message_flash(BLACKLISTED_MESSAGE)
-                    self.see_other('publication_import', identifier=identifier)
+                    self.see_other('publication_fetch',
+                                   identifier=identifier,
+                                   message=BLACKLISTED_MESSAGE)
                     return
         if old:
             # Update everything
@@ -418,7 +421,7 @@ class PublicationImport(RequestHandler):
                 saver.fix_journal()
                 saver['verified'] = True
             publication = new
-        self.see_other('publication', publication['_id'])
+        self.see_other('publication_fetch')
 
 
 class PublicationEdit(PublicationMixin, RequestHandler):

@@ -1,24 +1,24 @@
-{# Publication add page. #}
+{# Add publication manually page. #}
 
 {% extends "base.html" %}
 
 {% block head_title %}
-Add publication
+Add publication manually
 {% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-plus"></span>
+<span class="glyphicon glyphicon-pencil"></span>
 <span class="glyphicon glyphicon-file"></span>
-Add publication
+Add publication manually
 {% end %} {# block body_title #}
 
 {% block message %}
 <div class="row">
   <div class="col-sm-9 col-sm-offset-2 lead alert alert-warning">
     This page must <strong>not</strong> be used for publications which
-    have a PMID or DOI identifier. Use the
-    <a href="{{ reverse_url('publication_import') }}">import page</a>
-    for such publications.
+    have a PMID or DOI identifier. Use the page
+    <a href="{{ reverse_url('publication_fetch') }}">Fetch data</a>.
   </div>
 </div>
 {% end %} {# block message #}

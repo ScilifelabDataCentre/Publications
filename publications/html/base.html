@@ -53,15 +53,15 @@
               <ul class="dropdown-menu">
 		{% if is_curator %}
 		<li>
-		  <a href="{{ reverse_url('publication_import') }}">
+		  <a href="{{ reverse_url('publication_fetch') }}">
 		    <span class="glyphicon glyphicon-cloud-download"></span>
-		    Import
+		    Fetch data
 		  </a>
 		</li>
 		<li>
 		  <a href="{{ reverse_url('publication_add') }}">
 		    <span class="glyphicon glyphicon-plus"></span>
-		    Add
+		    Add data manually
 		  </a>
 		</li>
 		<li>

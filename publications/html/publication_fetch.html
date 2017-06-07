@@ -1,42 +1,24 @@
-{# Import publication given its DOI or PMID. #}
+{# Fetch publication data given its DOI or PMID. #}
 
 {% extends "base.html" %}
 
-{% block head_title %}Import publication{% end %}
+{% block head_title %}Fetch publication data{% end %}
 
 {% block body_title %}
+<span class="glyphicon glyphicon-plus"></span>
 <span class="glyphicon glyphicon-cloud-download"></span>
 <span class="glyphicon glyphicon-file"></span>
-Import publication
+Fetch data for publication
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<div class="row">
-  <div class="col-md-11 col-md-offset-1">
-    <p>
-      Import a publication reference from:
-    </p>
-    <ul>
-      <li>
-	<a href="https://www.ncbi.nlm.nih.gov/pubmed">PubMed</a>
-	using a PubMed identifier (PMID), e.g. <strong>25613900</strong>.
-      </li>
-      <li>
-	<a href="https://www.crossref.org/">Crossref</a>
-	using a Digital Object Identifier (DOI), e.g.
-	<strong>10.1126/science.1260419</strong>.
-      </li>
-    </ul>
-  </div>
-</div>
-
-<form action="{{ reverse_url('publication_import') }}"
+<form action="{{ reverse_url('publication_fetch') }}"
       role="form"
       class="form-horizontal"
       method="POST">
   {% module xsrf_form_html() %}
   <div class="form-group">
-    <label class="col-sm-1 control-label" for="identifier">Identifier</label>
+    <label class="col-sm-2 control-label" for="identifier">PMID or DOI</label>
     <div class="col-sm-8">
       {% try %}
       {% set id = identifier %}
@@ -46,8 +28,15 @@ Import publication
       <input type="text" class="form-control"
 	     name="identifier" id="identifier"
 	     value="{{ id }}">
+      <span class="help-block">
+	Fetch publication data directly from PubMed or Crossref using
+	the PubMed identifier
+	(PMID, e.g. <strong>25613900</strong>)
+	or the Digital Object Identifier
+	(DOI, e.g. <strong>10.1126/science.1260419</strong>).
+      </span>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-2">
       <button type="submit" class="btn btn-success">
 	<span class="glyphicon glyphicon-cloud-download"></span>
 	Import
@@ -55,20 +44,23 @@ Import publication
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-1 control-label" for="override">Override</label>
+    <label class="col-sm-2 control-label" for="override">Override</label>
     <div class="col-sm-8 checkbox">
       <label>
 	<input type="checkbox" name="override" id="override" value="true">
-	Import the publication overriding its current blacklisted status, if any.
+	Fetch the publication data overriding its current blacklisted status,
+	if any.
       </label>
     </div>
   </div>
 </form>
 
+{% if publications %}
 <div>
-  {% set list_title = "The %s most recent publications" % settings['SHORT_PUBLICATIONS_LIST_LIMIT'] %}
+  {% set list_title = "Recently modified publications (max %i shown)" % settings['SHORT_PUBLICATIONS_LIST_LIMIT'] %}
   {% include 'publications_list.html' %}
 </div>
+{% end %} {# if publications #}
 {% end %} {# block main_content #}
 
 {% block meta_content %}
