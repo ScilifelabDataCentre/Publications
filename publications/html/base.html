@@ -52,18 +52,23 @@
 	      </a>
               <ul class="dropdown-menu">
 		{% if is_curator %}
+		<li class="dropdown-header">
+		  <span class="glyphicon glyphicon-plus"></span>
+		  Add publication
+		</li>
 		<li>
 		  <a href="{{ reverse_url('publication_fetch') }}">
 		    <span class="glyphicon glyphicon-cloud-download"></span>
-		    Fetch data
+		    By fetching data
 		  </a>
 		</li>
 		<li>
 		  <a href="{{ reverse_url('publication_add') }}">
-		    <span class="glyphicon glyphicon-plus"></span>
-		    Add data manually
+		    <span class="glyphicon glyphicon-pencil"></span>
+		    By adding manually
 		  </a>
 		</li>
+		<li class="divider"></li>
 		<li>
 		  <a href="{{ reverse_url('publications_unverified') }}">
 		    <span class="glyphicon glyphicon-question-sign"></span>
@@ -90,7 +95,7 @@
 		    List all ({{ sum([c for y, c in year_counts]) }})
 		  </a>
 		</li>
-
+		<li class="divider"></li>
 		<li class="dropdown-header">
 		  <span class="glyphicon glyphicon-list-alt"></span>
 		  Tables
