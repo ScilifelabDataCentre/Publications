@@ -177,8 +177,16 @@
 		    Contact
 		  </a>
 		</li>
+		{% if settings.get('SITE_PARENT_URL') %}
 		<li>
-		  <a href="{{ settings['SOURCE_HOME'] }}" target="_">
+		  <a href="{{ settings['SITE_PARENT_URL'] }}" target="_">
+		    <span class="glyphicon glyphicon-link"></span>
+		    {{ settings.get('SITE_PARENT_NAME') or 'parent site' }}
+		  </a>
+		</li>
+		{% end %}
+		<li>
+		  <a href="{{ settings['SOURCE_URL'] }}" target="_">
 		    <span class="glyphicon glyphicon-link"></span>
 		    Software v{{ settings['SOURCE_VERSION'] }}
 		  </a>
@@ -245,11 +253,16 @@
       {% block body_header %}
       <div class="row">
 	<div class="col-md-2">
+	  {% if settings.get('SITE_PARENT_URL') %}
+	  <a href="{{ settings['SITE_PARENT_URL'] }}">
+	  {% end %}
 	  <img src="{{ reverse_url('site', 'logo.png') }}"
 	       class="img-responsive"
 	       style="padding-bottom: 10px;"
-	       title="{{ settings['SITE_NAME'] }}"
-	       alt="{{ settings['SITE_NAME'] }}">
+	       title="{{ settings.get('SITE_PARENT_NAME') or '' }}">
+	  {% if settings.get('SITE_PARENT_URL') %}
+	  </a>
+	  {% end %}
 	</div>
 	<div class="col-sm-8">
 	  <h2>{% block body_title %}{{ title }}{% end %}</h2>
@@ -333,21 +346,27 @@
       {% end %} {# block content #}
 
       {% block footer %}
+      <hr>
       <div class="row">
-	<div class="col-sm-12">
-	  <hr>
-	  <div class="pull-left">
-	    <a href="{{ reverse_url('home') }}">
-	      <span class="glyphicon glyphicon-home"></span>
-	      {{ settings['SITE_NAME'] }}
-	    </a>
-	  </div>
-	  <div class="pull-right">
-	    <a href="{{ settings['SOURCE_HOME'] }}" target="_">
-	      <span class="glyphicon glyphicon-link"></span>
-	      Software v{{ settings['SOURCE_VERSION'] }}
-	    </a>
-	  </div>
+	<div class="col-sm-2">
+	  <a href="{{ reverse_url('home') }}">
+	    <span class="glyphicon glyphicon-home"></span>
+	    {{ settings['SITE_NAME'] }}
+	  </a>
+	</div>
+	<div class="col-sm-2 col-sm-offset-3">
+	  {% if settings.get('SITE_PARENT_URL') %}
+	  <a href="{{ settings['SITE_PARENT_URL'] }}" target="_">
+	    <span class="glyphicon glyphicon-link"></span>
+	    {{ settings.get('SITE_PARENT_NAME') or 'parent site' }}
+	  </a>
+	  {% end %}
+	</div>
+	<div class="col-sm-2 col-sm-offset-3">
+	  <a href="{{ settings['SOURCE_URL'] }}" target="_">
+	    <span class="glyphicon glyphicon-link"></span>
+	    Software v{{ settings['SOURCE_VERSION'] }}
+	  </a>
 	</div>
       </div>
       {% end %} {# block footer #}
