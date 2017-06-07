@@ -24,7 +24,7 @@ PUBLICATION = 'publication'
 JOURNAL     = 'journal'
 ACCOUNT     = 'account'
 LABEL       = 'label'
-TRASH       = 'trash'
+BLACKLIST   = 'blacklist'
 LOG         = 'log'
 ENTITIES    = (PUBLICATION, JOURNAL, ACCOUNT, LABEL)
 

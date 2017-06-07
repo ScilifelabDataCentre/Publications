@@ -225,11 +225,11 @@ def get_label(db, identifier):
         raise KeyError("wrong document type '%s'", doc[constants.DOCTYPE])
     return doc
 
-def get_trashed(db, identifier):
-    """Get the trash document id if the publication with
-    the external identifier has been trashed.
+def get_blacklisted(db, identifier):
+    """Get the blacklist document id if the publication with
+    the external identifier has been blacklisted.
     """
-    for viewname in ['trash/doi', 'trash/pmid']:
+    for viewname in ['blacklist/doi', 'blacklist/pmid']:
         try:
             return list(db.view(viewname)[identifier])[0].id
         except IndexError:

@@ -73,27 +73,27 @@
     <input type="hidden" name="_http_method" value="delete">
     <button type="submit" class="btn btn-danger"
 	    onclick="return confirm('Really delete this publication?');">
-      <span class="glyphicon glyphicon-remove"></span>
+      <span class="glyphicon glyphicon-trash"></span>
       Delete
     </button>
-    <a href="#" data-toggle="popover" title="What does delete mean?"
-       data-content="Delete simply scraps this publication entry. No memory of it is retained in the database.">
+    <a href="#" data-toggle="popover" title="Delete publication"
+       data-content="Scrap this publication entry. No memory of it is retained in the database.">
       <span class="glyphicon glyphicon-question-sign"></span>
     </a>
   </form>
 </p>
 <p>
-  <form action="{{ reverse_url('publication_trash', publication['_id']) }}"
+  <form action="{{ reverse_url('publication_blacklist', publication['_id']) }}"
 	role="form"
 	method="POST">
     {% module xsrf_form_html() %}
     <button type="submit" class="btn btn-danger left"
-	    onclick="return confirm('Really trash this publication?');">
-      <span class="glyphicon glyphicon-trash"></span>
-      Trash
+	    onclick="return confirm('Really blacklist this publication?');">
+      <span class="glyphicon glyphicon-ban-circle"></span>
+      Blacklist
     </button>
-    <a href="#" data-toggle="popover" title="What does trash mean?"
-       data-content="Trash scraps this publication entry and forbids it from being loaded again. It does this by recording its DOI and/or PMID in a blacklist.">
+    <a href="#" data-toggle="popover" title="Blacklist publication"
+       data-content="Scrap this publication entry and forbid it from being loaded again. The DOI and/or PMID is recorded in a blacklist.">
       <span class="glyphicon glyphicon-question-sign"></span>
     </a>
   </form>

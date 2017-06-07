@@ -111,11 +111,11 @@ class RequestHandler(tornado.web.RequestHandler):
         """
         return utils.get_label(self.db, identifier)
 
-    def get_trashed(self, identifier):
-        """Get the trash document id if the publication with
-        the external identifier has been trashed.
+    def get_blacklisted(self, identifier):
+        """Get the blacklist document id if the publication with
+        the external identifier has been blacklisted.
         """
-        return utils.get_trashed(self.db, identifier)
+        return utils.get_blacklisted(self.db, identifier)
 
     def get_account(self, email):
         """Get the account identified by the email address.

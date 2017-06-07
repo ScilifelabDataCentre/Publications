@@ -55,11 +55,11 @@ Import publication
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-1 control-label" for="force">Force</label>
+    <label class="col-sm-1 control-label" for="override">Override</label>
     <div class="col-sm-8 checkbox">
       <label>
-	<input type="checkbox" name="force" id="force" value="true">
-	Force import, even if the publication was trashed at some earlier time.
+	<input type="checkbox" name="override" id="override" value="true">
+	Import the publication overriding its current blacklisted status, if any.
       </label>
     </div>
   </div>
@@ -75,7 +75,7 @@ Import publication
 <a href="{{ reverse_url('home') }}"
    class="btn btn-default"
    role="button">
-  <span class="glyphicon glyphicon-ban-circle"></span>
+  <span class="glyphicon glyphicon-remove-circle"></span>
   Cancel
 </a>
 {% end %} {# block meta_content #}

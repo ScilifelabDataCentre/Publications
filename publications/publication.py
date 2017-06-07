@@ -17,7 +17,8 @@ from .requesthandler import RequestHandler
 
 
 IMPORT_ERROR = 'Could not import article for some reason.'
-TRASHED_MESSAGE = 'Article was trashed at some earlier time.'
+BLACKLISTED_MESSAGE = "Article was not imported since it is in the" \
+                      " blacklist. Check 'override' if desired."
 
 
 class PublicationSaver(Saver):
@@ -314,7 +315,7 @@ class PublicationAdd(PublicationMixin, RequestHandler):
             saver.set_labels(self.get_allowed_labels())
             # Publication should not be verified automatically by add!
             # It must be possible for admin to change labels in order to
-            # challenge the relevant curators to verify or trash.
+            # challenge the relevant curators to verify or blacklist.
             publication = saver.doc
         self.see_other('publication', publication['_id'])
 
@@ -342,14 +343,14 @@ class PublicationImport(RequestHandler):
         except (tornado.web.MissingArgumentError, ValueError):
             self.see_other('publication_import')
             return
-        # Check if identifier is present in trash registry
-        force = utils.to_bool(self.get_argument('force', False))
-        trashed = self.get_trashed(identifier)
-        if trashed:
-            if force:
-                del self.db[trashed]
+        # Check if identifier is present in blacklist registry
+        override = utils.to_bool(self.get_argument('override', False))
+        blacklisted = self.get_blacklisted(identifier)
+        if blacklisted:
+            if override:
+                del self.db[blacklisted]
             else:
-                self.set_message_flash(TRASHED_MESSAGE)
+                self.set_message_flash(BLACKLISTED_MESSAGE)
                 self.see_other('publication_import', identifier=identifier)
                 return
         # Has it already been imported?
@@ -385,15 +386,15 @@ class PublicationImport(RequestHandler):
                         old = self.get_publication(new.get('pmid'))
                     except KeyError:
                         pass
-        # Check trash registry again; the other external identifier maybe there
+        # Check blacklist registry again; the other external identifier maybe there
         for id in [new.get('pmid'), new.get('doi')]:
             if not id: continue
-            trashed = self.get_trashed(id)
-            if trashed:
-                if force:
-                    del self.db[trashed]
+            blacklisted = self.get_blacklisted(id)
+            if blacklisted:
+                if override:
+                    del self.db[blacklisted]
                 else:
-                    self.set_message_flash(TRASHED_MESSAGE)
+                    self.set_message_flash(BLACKLISTED_MESSAGE)
                     self.see_other('publication_import', identifier=identifier)
                     return
         if old:
@@ -453,7 +454,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.set_labels(self.get_allowed_labels())
                 # Publication should not be verified automatically by edit!
                 # It must be possible for admin to change labels in order to
-                # challenge the relevant curators to verify or trash.
+                # challenge the relevant curators to verify or blacklist.
         except SaverError, msg:
             self.set_error_flash(utils.REV_ERROR)
         self.see_other('publication', publication['_id'])
@@ -477,8 +478,8 @@ class PublicationVerify(PublicationMixin, RequestHandler):
             self.see_other('publication', publication['_id'])
 
 
-class PublicationTrash(PublicationMixin, RequestHandler):
-    "Trash a publication and record its external identifiers."
+class PublicationBlacklist(PublicationMixin, RequestHandler):
+    "Blacklist a publication and record its external identifiers."
 
     def post(self, identifier):
         try:
@@ -487,13 +488,13 @@ class PublicationTrash(PublicationMixin, RequestHandler):
         except (KeyError, ValueError), msg:
             self.see_other('home', error=str(msg))
             return
-        trash = {constants.DOCTYPE: constants.TRASH,
+        blacklist = {constants.DOCTYPE: constants.BLACKLIST,
                  'title': publication['title'],
                  'pmid': publication.get('pmid'),
                  'doi': publication.get('doi'),
                  'created': utils.timestamp(),
                  'owner': self.current_user['email']}
-        self.db[utils.get_iuid()] = trash
+        self.db[utils.get_iuid()] = blacklist
         self.delete_entity(publication)
         try:
             self.redirect(self.get_argument('next'))

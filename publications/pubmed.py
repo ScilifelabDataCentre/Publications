@@ -136,8 +136,8 @@ def get_authors(article):
                 if not value: continue # Give up.
                 value = to_unicode(value)
                 author['family'] = value
-            author['given'] = None
-            author['initials'] = None
+            author['given'] = ''
+            author['initials'] = ''
             author['family_normalized'] = to_ascii(author['family']).lower()
             try:
                 author.pop('given_normalized')
