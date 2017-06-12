@@ -61,9 +61,11 @@ Front-end: Bootstrap 3, jQuery, jQuery UI, DataTables
 Back-end: Python 2.7, tornado, CouchDB, pyyaml, requests
 
 
-Data for SciLifeLab
--------------------
+SciLifeLab
+----------
 
-Instructions for loading the data for SciLifeLab are given
-in this [README](publications/scilifelab/README.md) and its
-links.
+The system was designed for keeping track of the publications
+to which the facilities of SciLifeLab contributed.
+See [SciLifeLab Publications](https://publications.scilifelab.se/).
+
+The data is available at [README](publications/scilifelab/README.md).
