@@ -102,8 +102,11 @@ class PublicationSaver(Saver):
     def set_labels(self, allowed_labels):
         "Set labels from form data."
         assert self.rqh, 'requires http request context'
-        self['labels'] = sorted(l for l in self.rqh.get_arguments('labels')
-                                if l in allowed_labels)
+        labels = dict()
+        for label in self.rqh.get_arguments('labels'):
+            if label not in allowed_labels: continue
+            labels[label] = self.rqh.get_argument("%s_qualifier" % label, None)
+        self['labels'] = labels
 
     def fix_journal(self):
         """Set the appropriate journal title and ISSN if not done.
@@ -407,17 +410,21 @@ class PublicationFetch(RequestHandler):
                     saver[key] = new[key]
                 saver.fix_journal()
                 if self.current_user['role'] == constants.CURATOR:
-                    labels = set(old.get('labels', []))
-                    labels.update(self.current_user['labels'])
-                    saver['labels'] = sorted(labels)
+                    labels = dict([(l, None) for l in 
+                                   self.current_user['labels']])
+                    labels.update(old.get('labels') or {})
+                    saver['labels'] = labels
                 saver['verified'] = True
             publication = old
         else:
             with PublicationSaver(new, rqh=self) as saver:
+                # If curator, set all its labels for this publication
                 if self.current_user['role'] == constants.CURATOR:
-                    saver['labels'] = sorted(self.current_user['labels'])
+                    saver['labels'] = dict([(l, None) for l in 
+                                            self.current_user['labels']])
+                # If admin, do not set any labels
                 else:
-                    saver['labels'] = []
+                    saver['labels'] = {}
                 saver.fix_journal()
                 saver['verified'] = True
             publication = new

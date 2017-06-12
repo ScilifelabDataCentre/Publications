@@ -132,13 +132,23 @@ Add publication manually
 
   <div class="form-group">
     <label class="control-label col-sm-1">Labels</label>
-    <div class=" col-sm-6">
+    <div class=" col-sm-11">
       {% for label in sorted(labels) %}
       <div class="checkbox">
 	<label>
 	  <input type="checkbox" name="labels" value="{{ label }}">{{ label }}
 	</label>
       </div>
+      {% if settings['SITE_LABEL_QUALIFIERS'] %}
+      <div style="padding-left: 2em;">
+	{% for qualifier in settings['SITE_LABEL_QUALIFIERS'] %}
+	<label class="radio-inline">
+	  <input type="radio" name="{{ label }}_qualifier"
+		 value="{{ qualifier }}">{{ qualifier }}
+	</label>
+	{% end %}
+      </div>
+      {% end %} {# if settings['SITE_LABEL_QUALIFIERS'] #}
       {% end %} {# for label #}
     </div>
   </div>
