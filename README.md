@@ -6,36 +6,42 @@ Simple web-based publications reference database system.
 Features
 --------
 
-- Publications can be labeled to indicate e.g. research group, facility
-  or some other classification.
+- Publication references can be added by fetching data from:
 
-- Direct import of publications from
-  [PubMed](https://www.ncbi.nlm.nih.gov/pubmed) (with PMID) or
-  [Crossref](https://www.crossref.org/) (with DOI).
+  - [PubMed](https://www.ncbi.nlm.nih.gov/pubmed)
+    using the PubMed identifier (PMDI).
+  - [Crossref](https://www.crossref.org/)
+     using the Digital Object Identifier (DOI).
 
-- Script to search PubMed and fetch the publication references.
-  Such publications are set as unverified.
+- Publication references can be added manually.
 
-- Curator accounts for editing the publication entries.
+- Publication references can be labeled. The labels can be used to indicate
+  e.g. research group, facility or some other classification.
 
-- Curators must verify publications that have been imported by scripts.
+- There are curator accounts for editing the publication entries.
 
-- Manual import, entry and/or edit of publication entries by curators.
+- Curators can fetch publications or add manually.
 
-- Curators can be assigned the privilege to apply a certain label to
-  any publication.
+- All curators can change every publication reference.
 
-- Trash registry to keep track of publications that have been deleted
-  by curators as being irrelevant, and which should not be fetched again.
+- A curator can assign only the labels that she has been assigned by the
+  admin.
+
+- Publication references can be set as unverified when loading them
+  by automated scripts. A curator must then verify each such publication.
+
+- There is a blacklist registry based on the PMID/DOI of publications that
+  is used to avoid re-importing publications that have already been
+  considered to be irrelevant for the database.
 
 Installation
 ------------
 
 - Install the required software.
 
-- Edit your settings file.
-
 - Create the database in the CouchDB system.
+
+- Edit your settings file, specifying the CouchDB connection, site name, etc.
 
 - Run the following scripts to initialize and to create the first account.
 
