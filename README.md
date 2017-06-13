@@ -9,7 +9,7 @@ Features
 - Publication references can be added by fetching data from:
 
   - [PubMed](https://www.ncbi.nlm.nih.gov/pubmed)
-    using the PubMed identifier (PMDI).
+    using the PubMed identifier (PMID).
   - [Crossref](https://www.crossref.org/)
      using the Digital Object Identifier (DOI).
 
@@ -19,6 +19,8 @@ Features
   e.g. research group, facility or some other classification.
 
 - There are curator accounts for editing the publication entries.
+  Currently, only the admins can create curator accounts;
+   it is not possible to register for one.
 
 - Curators can fetch publications or add manually.
 
@@ -30,14 +32,22 @@ Features
 - Publication references can be set as unverified when loading them
   by automated scripts. A curator must then verify each such publication.
 
-- There is a blacklist registry based on the PMID/DOI of publications that
-  is used to avoid re-importing publications that have already been
-  considered to be irrelevant for the database.
+- There is a blacklist registry based on the PMID and/or DOI of publications.
+  This is used to avoid re-importing publications that have already been
+  determined to be irrelevant for the database.
+
+- The data can be extracted in JSON and CSV formats. The CSV format allows
+  some basic filtering options.
 
 Installation
 ------------
 
-- Install the required software.
+- Install the required software:
+  - Python 2.7
+  - tornado
+  - CouchDB
+  - pyyaml
+  - requests
 
 - Create the database in the CouchDB system.
 
@@ -50,8 +60,8 @@ Installation
 
 - Set up the tornado web server to start on boot.
 
-- Set a proxy from your outward-facing web server (Apache, nginx, etc)
-  for the tornado server.
+- Set a proxy from your outward-facing web server (Apache, nginx, or whatever
+  your site supports) for the tornado server.
 
 Implementation
 --------------
