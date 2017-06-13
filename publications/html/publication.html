@@ -35,9 +35,15 @@
   <span class="label label-warning">Unverified</span>
   {% end %}
   {% for label in sorted(publication['labels']) %}
-  <a class="label label-primary"
-     title="{{ publication['labels'][label] or '' }}",
-     href="{{ reverse_url('label', label) }}">{{ label }}</a>
+  <p>
+    <a class="label label-primary"
+       href="{{ reverse_url('label', label) }}">
+      {{ label }}
+      {% if publication['labels'][label] %}
+      [{{ publication['labels'][label] }}]
+      {% end %}
+    </a>
+  </p>
   {% end %}
 </p>
 {% end %} {# block main_content #}
@@ -78,7 +84,7 @@
       Delete
     </button>
     <a href="#" data-toggle="popover" title="Delete publication"
-       data-content="Scrap this publication entry. No memory of it is retained in the database.">
+       data-content="{{ constants.DELETE_POPOVER }}">
       <span class="glyphicon glyphicon-question-sign"></span>
     </a>
   </form>
@@ -94,7 +100,7 @@
       Blacklist
     </button>
     <a href="#" data-toggle="popover" title="Blacklist publication"
-       data-content="Scrap this publication entry and forbid it from being loaded again. The DOI and/or PMID is recorded in a blacklist.">
+       data-content="{{ constants.BLACKLIST_POPOVER }}">
       <span class="glyphicon glyphicon-question-sign"></span>
     </a>
   </form>

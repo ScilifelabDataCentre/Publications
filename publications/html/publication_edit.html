@@ -168,9 +168,9 @@ Edit
       <div class="checkbox">
 	<label>
 	  {% if label in publication['labels'] %}
-	  <input type="checkbox" name="labels" checked value="{{ label }}">{{ label }}
+	  <input type="checkbox" name="label" checked value="{{ label }}">{{ label }}
 	  {% else %}
-	  <input type="checkbox" name="labels" value="{{ label }}">{{ label }}
+	  <input type="checkbox" name="label" value="{{ label }}">{{ label }}
 	  {% end %} {# if label #}
 	</label>
       </div>

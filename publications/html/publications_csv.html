@@ -1,0 +1,107 @@
+{# Publications CSV setup page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Download Publications CSV{% end %}
+{% block body_title %}
+<span class="glyphicon glyphicon-download-alt"></span>
+<span class="glyphicon glyphicon-file"></span>
+<img src="{{ static_url('csv.png') }}">
+Download Publications CSV
+{% end %}
+
+{% block main_content %}
+<form action="{{ reverse_url('publications_csv') }}"
+      role="form"
+      class="form-horizontal"
+      method="POST">
+  {% module xsrf_form_html() %}
+
+  <div class="form-group">
+    <label class="control-label col-sm-1" for="years">Years</label>
+    <div class="col-sm-3">
+      <select class="form-control" id="years" name="years" multiple>
+	{% for y, c in year_counts %}
+	{% if y == year %}
+	<option selected value="{{ y }}">{{ y }} ({{ c }})</option>
+	{% else %}
+	<option value="{{ y }}">{{ y }} ({{ c }})</option>
+	{% end %}
+	{% end %}
+      </select>
+    </div>
+    <div class="col-sm-6 col-sm-offset-2 help-block">
+      Publication year. 
+      <br>
+      Multiple select list.
+      Hold ctrl or shift (or drag with the mouse) to select more than one.
+      <br>
+      All will be used if none selected.
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-sm-1" for="all_authors">Authors</label>
+    <div class="checkbox col-sm-3">
+      <label>
+	<input type="checkbox" name="all_authors" value="true">Complete list
+      </label>
+    </div>
+    <div class="col-sm-6 col-sm-offset-2 help-block">
+      Check the box to include all authors in the list.
+      Default is an abbreviated list containing at most
+      {{ settings['SHORT_AUTHORS_LIST_LIMIT'] }} authors,
+      omitting the middle authors.
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-sm-1" for="labels">Labels</label>
+    <div class="col-sm-5">
+      <select class="form-control" size="{{ max(2, min(len(all_labels), 12)) }}"
+	      id="labels" name="labels" multiple>
+	{% for label in all_labels %}
+	{% if label in labels %}
+	<option selected value="{{ label }}">{{ label }}</option>
+	{% else %}
+	<option value="{{ label }}">{{ label }}</option>
+	{% end %}
+	{% end %}
+      </select>
+    </div>
+    <div class="col-sm-6 help-block">
+      Multiple select list.
+      Hold ctrl or shift (or drag with the mouse) to select more than one.
+      <br>
+      All will be used if none selected.
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-sm-1" for="single_label">Label output</label>
+    <div class="checkbox col-sm-3">
+      <label>
+	<input type="checkbox" name="single_label" value="true">
+	Single label per record
+      </label>
+    </div>
+    <div class="col-sm-6 col-sm-offset-2 help-block">
+      Check the box to output one single label per record.
+      If a publication is marked by more than one label,
+      it will then be represented by multiple records.
+      Default is to concatenate all labels with comma 
+      in one single record per publication.
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-12">
+      <button type="submit" class="btn btn-success">
+	<span class="glyphicon glyphicon-download-alt"></span>
+	Download
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}

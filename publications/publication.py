@@ -2,8 +2,10 @@
 
 from __future__ import print_function
 
-import logging
 from collections import OrderedDict as OD
+import csv
+import logging
+from cStringIO import StringIO
 
 import requests
 import tornado.web
@@ -15,11 +17,6 @@ from . import settings
 from . import utils
 from .saver import Saver, SaverError
 from .requesthandler import RequestHandler
-
-
-FETCH_ERROR = 'Could not fetch article data: '
-BLACKLISTED_MESSAGE = "Article data was not fetched since it is in the" \
-                      " blacklist. Check 'override' if desired."
 
 
 class PublicationSaver(Saver):
@@ -103,7 +100,7 @@ class PublicationSaver(Saver):
         "Set labels from form data."
         assert self.rqh, 'requires http request context'
         labels = dict()
-        for label in self.rqh.get_arguments('labels'):
+        for label in self.rqh.get_arguments('label'):
             if label not in allowed_labels: continue
             labels[label] = self.rqh.get_argument("%s_qualifier" % label, None)
         self['labels'] = labels
@@ -237,7 +234,7 @@ class PublicationsTable(Publications):
 
 
 class PublicationsJson(Publications):
-    "Publications JSON data."
+    "Publications JSON output."
 
     def render(self, template, **kwargs):
         URL = self.absolute_reverse_url
@@ -259,6 +256,112 @@ class PublicationsJson(Publications):
         result['publications'] = [self.get_publication_json(publication)
                                   for publication in publications]
         self.write(result)
+
+
+class PublicationsCsv(Publications):
+    "Publications CSV output."
+
+    def get(self):
+        "Show output selection page."
+        self.render('publications_csv.html',
+                    year=self.get_argument('year', None),
+                    labels=set(self.get_arguments('label')),
+                    all_labels=sorted([l['value']
+                                       for l in self.get_docs('label/value')]))
+
+    def post(self):
+        "Produce CSV output."
+        publications = []
+        years = self.get_arguments('years')
+        all_authors = utils.to_bool(self.get_argument('all_authors', 'false'))
+        labels = set(self.get_arguments('labels'))
+        single_label = utils.to_bool(self.get_argument('single_label','false'))
+        if years:
+            for year in years:
+                publications.extend(self.get_docs('publication/year',key=year))
+        else:
+            publications = self.get_docs('publication/published',
+                                         key=constants.CEILING,
+                                         last='',
+                                         descending=True)
+        if labels:
+            kept = []
+            for publication in publications:
+                for label in publication.get('labels', {}):
+                    if label in labels:
+                        kept.append(publication)
+                        break
+            publications = kept
+        publications.sort(key=lambda p: p.get('published'), reverse=True)
+        csvbuffer = StringIO()
+        writer = csv.writer(csvbuffer)
+        row = ['Title',
+               'Authors',
+               'Journal', 
+               'Year', 
+               'Published',
+               'E-published',
+               'Volume',
+               'Issue',
+               'Pages',
+               'DOI',
+               'PMID',
+               'Labels',        # pos = 11
+               'Qualifiers',    # pos = 12
+               'IUID',
+               'URL',
+               'DOI URL',
+               'PubMed URL',
+            ]
+        writer.writerow(row)
+        for publication in publications:
+            year = publication.get('published')
+            if year:
+                year = year.split('-')[0]
+            journal = publication.get('journal') or {}
+            pubmed_url = publication.get('pmid')
+            if pubmed_url:
+                pubmed_url = constants.PUBMED_URL % pubmed_url
+            doi_url = publication.get('doi')
+            if doi_url:
+                doi_url = constants.DOI_URL % doi_url
+            lookup = publication.get('labels', {})
+            labels = sorted(lookup.keys())
+            qualifiers = [lookup[k] or '' for k in labels]
+            row = [
+                publication.get('title'),
+                utils.get_formatted_authors(publication['authors'],
+                                            complete=all_authors),
+                journal.get('title'),
+                year,
+                publication.get('published'),
+                publication.get('epublished'),
+                journal.get('volume'),
+                journal.get('issue'),
+                journal.get('pages'),
+                publication.get('doi'),
+                publication.get('pmid'),
+                '',             # pos = 11
+                '',             # pos = 12
+                publication['_id'],
+                self.absolute_reverse_url('publication', publication['_id']),
+                doi_url,
+                pubmed_url,
+            ]
+            row = [(i or '').encode('utf-8') for i in row]
+            if single_label:
+                for label, qualifier in zip(labels, qualifiers):
+                    row[11] = label.encode('utf-8')
+                    row[12] = qualifier.encode('utf-8')
+                    writer.writerow(row)
+            else:
+                row[11] = ', '.join(labels).encode('utf-8')
+                row[12] = ', '.join([q for q in qualifiers if q])
+                writer.writerow(row)
+        self.write(csvbuffer.getvalue())
+        self.set_header('Content-Type', constants.CSV_MIME)
+        self.set_header('Content-Disposition', 
+                        'attachment; filename="publications.csv')
 
 
 class PublicationsUnverified(RequestHandler):
@@ -356,7 +459,7 @@ class PublicationFetch(RequestHandler):
             else:
                 self.see_other('publication_fetch',
                                identifier=identifier,
-                               message=BLACKLISTED_MESSAGE)
+                               message=constants.BLACKLISTED_MESSAGE)
                 return
         # Has it already been fetched?
         try:
@@ -368,7 +471,7 @@ class PublicationFetch(RequestHandler):
                 new = pubmed.fetch(identifier)
             except (IOError, requests.exceptions.Timeout), msg:
                 self.see_other('publication_fetch',
-                               error=FETCH_ERROR + str(msg))
+                               error=constants.FETCH_ERROR + str(msg))
                 return
             else:
                 if old is None:
@@ -382,7 +485,7 @@ class PublicationFetch(RequestHandler):
                 new = crossref.fetch(identifier)
             except (IOError, requests.exceptions.Timeout), msg:
                 self.see_other('publication_fetch',
-                               error=FETCH_ERROR + str(msg))
+                               error=constants.FETCH_ERROR + str(msg))
                 return
             else:
                 if old is None:
@@ -401,7 +504,7 @@ class PublicationFetch(RequestHandler):
                 else:
                     self.see_other('publication_fetch',
                                    identifier=identifier,
-                                   message=BLACKLISTED_MESSAGE)
+                                   message=constants.BLACKLISTED_MESSAGE)
                     return
         if old:
             # Update everything

@@ -13,17 +13,7 @@ class Authors(tornado.web.UIModule):
     "HTML for authors list."
 
     def render(self, publication):
-        authors = publication['authors']
-        limit = settings['SHORT_AUTHORS_LIST_LIMIT']
-        if len(authors) <= limit:
-            result = ["%s %s" % (a['family'], a['initials']) for a in authors]
-        else:
-            result = ["%s %s" % (a['family'], a['initials'])
-                      for a in authors[:limit-1]]
-            result.append('...')
-            a = authors[-1]
-            result.append("%s %s" % (a['family'], a['initials']))
-        return ', '.join(result)
+        return utils.get_formatted_authors(publication['authors'])
 
 
 class Journal(tornado.web.UIModule):
@@ -81,13 +71,13 @@ class External(tornado.web.UIModule):
 class Pubmed(External):
     "HTML for link to the PubMed item."
     NAME = 'PubMed'
-    URL = 'https://www.ncbi.nlm.nih.gov/pubmed/%s'
+    URL = constants.PUBMED_URL
     
 
 class Doi(External):
     "HTML for link to the DOI redirect service."
     NAME = 'DOI'
-    URL = 'https://doi.org/%s'
+    URL = constants.DOI_URL
 
 
 class Crossref(External):

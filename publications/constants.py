@@ -40,3 +40,19 @@ FALSE = frozenset(['false', 'no', 'f', 'n', '0'])
 # User login account
 USER_COOKIE    = 'publications_user'
 API_KEY_HEADER = 'X-Publications-API-key'
+
+# Content types (MIME types)
+HTML_MIME = 'text/html'
+JSON_MIME = 'application/json'
+CSV_MIME  = 'text/csv'
+
+# Various texts.
+FETCH_ERROR = 'Could not fetch article data: '
+BLACKLISTED_MESSAGE = "Article data was not fetched since it is in the" \
+                      " blacklist. Check 'override' if desired."
+DELETE_POPOVER = "Scrap this publication entry. No memory of it is retained in the database."
+BLACKLIST_POPOVER = "Scrap this publication entry and forbid it from being loaded again. The DOI and/or PMID is recorded in a blacklist."
+
+# External URL templates.
+PUBMED_URL = 'https://www.ncbi.nlm.nih.gov/pubmed/%s'
+DOI_URL    = 'https://doi.org/%s'

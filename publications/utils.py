@@ -345,6 +345,19 @@ def strip_prefix(value):
     return value
 
 
+def get_formatted_authors(authors, complete=False):
+    "Get formatted list of authors."
+    limit = settings['SHORT_AUTHORS_LIST_LIMIT']
+    if complete or len(authors) <= limit:
+        result = ["%s %s" % (a['family'], a['initials']) for a in authors]
+    else:
+        result = ["%s %s" % (a['family'], a['initials'])
+                  for a in authors[:limit-1]]
+        result.append('...')
+        a = authors[-1]
+        result.append("%s %s" % (a['family'], a['initials']))
+    return ', '.join(result)
+
 class EmailServer(object):
     "A connection to an email server for sending emails."
 

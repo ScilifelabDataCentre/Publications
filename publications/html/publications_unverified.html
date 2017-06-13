@@ -29,20 +29,30 @@ Unverified publications
       </button>
     </form>
     <p>
-      <form action="{{ reverse_url('publication_trash', publication['_id']) }}"
+      <form action="{{ reverse_url('publication_blacklist', publication['_id']) }}"
 	    role="form"
 	    method="POST">
 	{% module xsrf_form_html() %}
 	<input type="hidden" name="next"
 	       value="{{ reverse_url('publications_unverified') }}">
 	<button type="submit" class="btn btn-danger left"
-		onclick="return confirm('Really trash this publication?');">
-	  <span class="glyphicon glyphicon-trash"></span>
-	  Trash
+		onclick="return confirm('Really blacklist this publication?');">
+	  <span class="glyphicon glyphicon-ban-circle"></span>
+	  Blacklist
 	</button>
+	<a href="#" data-toggle="popover" title="Blacklist publication"
+	   data-content="{{ constants.BLACKLIST_POPOVER }}">
+	  <span class="glyphicon glyphicon-question-sign"></span>
+	</a>
       </form>
     </p>
   </div>
 </div>
 {% end %} {# for #}
 {% end %} {# block main_content #}
+
+{% block javascript_code %}
+<script>
+$(function(){ $('[data-toggle="popover"]').popover(); });
+</script>
+{% end %}

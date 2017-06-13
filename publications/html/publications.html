@@ -1,4 +1,4 @@
-{# Publicatons page. #}
+{# Publications page. #}
 
 {% extends "base.html" %}
 
@@ -33,6 +33,12 @@ Publications {{ year or '' }}
   <a href="{{ url }}">
     <img src="{{ static_url('json.png') }}">
     JSON
+  </a>
+</p>
+<p>
+  <a href="{{ reverse_url('publications_csv', year=year) }}">
+    <img src="{{ static_url('csv.png') }}">
+    CSV
   </a>
 </p>
 {% end %} {# block alt_format #}
