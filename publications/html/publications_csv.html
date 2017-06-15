@@ -31,12 +31,12 @@ Download Publications CSV
       </select>
     </div>
     <div class="col-sm-6 col-sm-offset-2 help-block">
-      Publication year. 
+      Filter publications based on publication year.
       <br>
-      Multiple select list.
-      Hold ctrl or shift (or drag with the mouse) to select more than one.
+      This filter is not applied if none are selected.
       <br>
-      All will be used if none selected.
+      Multiple select list. Hold ctrl or shift (or drag with the mouse)
+      to select more than one.
     </div>
   </div>
 
@@ -70,10 +70,12 @@ Download Publications CSV
       </select>
     </div>
     <div class="col-sm-6 help-block">
-      Multiple select list.
-      Hold ctrl or shift (or drag with the mouse) to select more than one.
+      Filter publications based on the assigned labels.
       <br>
-      All will be used if none selected.
+      This filter is not applied if none are selected.
+      <br>
+      Multiple select list. Hold ctrl or shift (or drag with the mouse)
+      to select more than one.
     </div>
   </div>
 
@@ -87,10 +89,11 @@ Download Publications CSV
     </div>
     <div class="col-sm-6 col-sm-offset-2 help-block">
       Check the box to output one single label per record.
-      If a publication is marked by more than one label,
-      it will then be represented by multiple records.
-      Default is to concatenate all labels with comma 
-      in one single record per publication.
+      If a publication has more than one label, it will then be
+      represented by multiple records.
+      <br>
+      If unchecked, all labels will be concatenated, and 
+      one single record will be output per publication.
     </div>
   </div>
 

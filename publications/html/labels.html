@@ -48,16 +48,12 @@ Labels list
 {% end %} {# block meta_content #}
 
 {% block alt_format %}
-<p>
-  <a href="{{ reverse_url('labels_table') }}">
-    <span class="glyphicon glyphicon-list-alt"></span>
-    Table
-  </a>
-</p>
-<p>
-  <a href="{{ reverse_url('labels_json') }}">
-    <img src="{{ static_url('json.png') }}">
-    JSON
-  </a>
-</p>
+<a href="{{ reverse_url('labels_table') }}">
+  <span class="glyphicon glyphicon-list-alt"></span>
+  Table
+</a>
+<br>
+<a href="{{ reverse_url('labels_json') }}">
+  <img src="{{ static_url('json.png') }}"> JSON
+</a>
 {% end %} {# block alt_format #}

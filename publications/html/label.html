@@ -68,16 +68,11 @@
 {% end %} {# block meta_content #}
 
 {% block alt_format %}
-<p>
-  <a href="{{ reverse_url('label_json', label['value']) }}">
-    <img src="{{ static_url('json.png') }}">
-    JSON
-  </a>
-</p>
-<p>
-  <a href="{{ reverse_url('publications_csv', label=label['value']) }}">
-    <img src="{{ static_url('csv.png') }}">
-    CSV
-  </a>
-</p>
+<a href="{{ reverse_url('label_json', label['value']) }}">
+  <img src="{{ static_url('json.png') }}"> JSON
+</a>
+<br>
+<a href="{{ reverse_url('publications_csv', label=label['value']) }}">
+  <img src="{{ static_url('csv.png') }}"> CSV
+</a>
 {% end %} {# block alt_format #}

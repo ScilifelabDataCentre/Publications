@@ -39,12 +39,9 @@ Journals
 {% end %} {# block main_content #}
 
 {% block alt_format %}
-<p>
-  <a href="{{ reverse_url('journals_json') }}">
-    <img src="{{ static_url('json.png') }}">
-    JSON
-  </a>
-</p>
+<a href="{{ reverse_url('journals_json') }}">
+  <img src="{{ static_url('json.png') }}"> JSON
+</a>
 {% end %} {# block alt_format #}
 
 {% block javascript_code %}

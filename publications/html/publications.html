@@ -13,32 +13,24 @@ Publications {{ year or '' }}
 {% end %} {# block main_content #}
 
 {% block alt_format %}
-<p>
-  {% if year %}
-  {% set url = reverse_url('publications_table_year', year) %}
-  {% else %}
-  {% set url = reverse_url('publications_table') %}
-  {% end %}
-  <a href="{{ url }}">
-    <span class="glyphicon glyphicon-list-alt"></span>
-    Table
-  </a>
-</p>
-<p>
-  {% if year %}
-  {% set url = reverse_url('publications_year_json', year) %}
-  {% else %}
-  {% set url = reverse_url('publications_json') %}
-  {% end %}
-  <a href="{{ url }}">
-    <img src="{{ static_url('json.png') }}">
-    JSON
-  </a>
-</p>
-<p>
-  <a href="{{ reverse_url('publications_csv', year=year) }}">
-    <img src="{{ static_url('csv.png') }}">
-    CSV
-  </a>
-</p>
+{% if year %}
+{% set url = reverse_url('publications_table_year', year) %}
+{% else %}
+{% set url = reverse_url('publications_table') %}
+{% end %}
+<a href="{{ url }}">
+  <span class="glyphicon glyphicon-list-alt"></span>
+  Table
+</a>
+<br>
+{% if year %}
+{% set url = reverse_url('publications_year_json', year) %}
+{% else %}
+{% set url = reverse_url('publications_json') %}
+{% end %}
+<a href="{{ url }}"><img src="{{ static_url('json.png') }}"> JSON</a>
+<br>
+<a href="{{ reverse_url('publications_csv', year=year) }}">
+  <img src="{{ static_url('csv.png') }}"> CSV
+</a>
 {% end %} {# block alt_format #}
