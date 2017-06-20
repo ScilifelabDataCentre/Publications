@@ -5,8 +5,8 @@
 {% block head_title %}Download Publications CSV{% end %}
 {% block body_title %}
 <span class="glyphicon glyphicon-download-alt"></span>
-<span class="glyphicon glyphicon-file"></span>
 <img src="{{ static_url('csv.png') }}">
+<span class="glyphicon glyphicon-file"></span>
 Download Publications CSV
 {% end %}
 
@@ -35,7 +35,7 @@ Download Publications CSV
       <br>
       This filter is not applied if none are selected.
       <br>
-      Multiple select list. Hold ctrl or shift (or drag with the mouse)
+      Multiple select allowed. Hold ctrl or shift (or drag with the mouse)
       to select more than one.
     </div>
   </div>
@@ -48,7 +48,7 @@ Download Publications CSV
       </label>
     </div>
     <div class="col-sm-6 col-sm-offset-2 help-block">
-      Check the box to include all authors in the list.
+      Check the box to include all authors.
       Default is an abbreviated list containing at most
       {{ settings['SHORT_AUTHORS_LIST_LIMIT'] }} authors,
       omitting the middle authors.
@@ -74,7 +74,7 @@ Download Publications CSV
       <br>
       This filter is not applied if none are selected.
       <br>
-      Multiple select list. Hold ctrl or shift (or drag with the mouse)
+      Multiple select allowed. Hold ctrl or shift (or drag with the mouse)
       to select more than one.
     </div>
   </div>
@@ -94,6 +94,39 @@ Download Publications CSV
       <br>
       If unchecked, all labels will be concatenated, and 
       one single record will be output per publication.
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-sm-1" for="delimiter">Delimiter</label>
+    <div class="col-sm-3">
+      <div class="radio">
+	<label><input type="radio" name="delimiter" value="comma" checked>Comma</label>
+      </div>
+      <div class="radio">
+	<label><input type="radio" name="delimiter" value="semi-colon">Semi-colon</label>
+      </div>
+    </div>
+    <div class="col-sm-6 col-sm-offset-2 help-block">
+      The delimiter separating the columns in the CSV file.
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-sm-1" for="encoding">Character encoding</label>
+    <div class="col-sm-3">
+      <div class="radio">
+	<label><input type="radio" name="encoding" value="utf-8" checked>UTF-8</label>
+      </div>
+      <div class="radio">
+	<label><input type="radio" name="encoding" value="iso-8859-1">ISO-8859-1</label>
+      </div>
+    </div>
+    <div class="col-sm-6 col-sm-offset-2 help-block">
+      The character encoding used in the CSV file.
+      <br>
+      MS Excel on the 2011 version of Apple OSX has a known bug which
+      hopefully can be circumvented using the ISO-8859-1 character encoding.
     </div>
   </div>
 

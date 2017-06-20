@@ -276,6 +276,16 @@ class PublicationsCsv(Publications):
         all_authors = utils.to_bool(self.get_argument('all_authors', 'false'))
         labels = set(self.get_arguments('labels'))
         single_label = utils.to_bool(self.get_argument('single_label','false'))
+        delimiter = self.get_argument('delimiter', '').lower()
+        if delimiter == 'comma':
+            delimiter = ','
+        elif delimiter == 'semi-colon':
+            delimiter = ';'
+        else:
+            delimiter = ','
+        encoding = self.get_argument('encoding', '').lower()
+        if encoding not in ('utf-8', 'iso-8859-1'):
+            encoding = 'utf-8'
         if years:
             for year in years:
                 publications.extend(self.get_docs('publication/year',key=year))
@@ -294,7 +304,8 @@ class PublicationsCsv(Publications):
             publications = kept
         publications.sort(key=lambda p: p.get('published'), reverse=True)
         csvbuffer = StringIO()
-        writer = csv.writer(csvbuffer)
+        logging.debug("delimiter %s, encoding %s", delimiter, encoding)
+        writer = csv.writer(csvbuffer, delimiter=delimiter)
         row = ['Title',
                'Authors',
                'Journal', 
@@ -348,14 +359,14 @@ class PublicationsCsv(Publications):
                 doi_url,
                 pubmed_url,
             ]
-            row = [(i or '').encode('utf-8') for i in row]
+            row = [(i or '').encode(encoding, errors='replace') for i in row]
             if single_label:
                 for label, qualifier in zip(labels, qualifiers):
-                    row[11] = label.encode('utf-8')
-                    row[12] = qualifier.encode('utf-8')
+                    row[11] = label.encode(encoding, errors='replace')
+                    row[12] = qualifier.encode(encoding, errors='replace')
                     writer.writerow(row)
             else:
-                row[11] = ', '.join(labels).encode('utf-8')
+                row[11] = ', '.join(labels).encode(encoding, errors='replace')
                 row[12] = ', '.join([q for q in qualifiers if q])
                 writer.writerow(row)
         self.write(csvbuffer.getvalue())
