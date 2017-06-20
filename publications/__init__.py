@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os
 
-__version__ = '2.1.1'
+__version__ = '2.1.2'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -37,7 +37,6 @@ settings = dict(
     SOURCE_URL='https://github.com/pekrau/Publications',
     SOURCE_VERSION=__version__,
     SHORT_PUBLICATIONS_LIST_LIMIT=10,
-    SHORT_AUTHORS_LIST_LIMIT=5,
     JQUERY_CSS='https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css',
     JQUERY_JS='https://code.jquery.com/jquery-1.12.4.min.js',
     JQUERY_UI_JS='https://code.jquery.com/ui/1.12.1/jquery-ui.min.js',
