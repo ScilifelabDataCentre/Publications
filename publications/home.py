@@ -21,6 +21,12 @@ class Home(RequestHandler):
         self.render('home.html', publications=docs)
 
 
+class Howto(RequestHandler):
+    "How-to page."
+
+    def get(self):
+        self.render('howto.html')
+
 class Contact(RequestHandler):
     "Contact page."
 

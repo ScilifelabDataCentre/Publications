@@ -13,8 +13,11 @@ from publications import uimodules
 from publications import utils
 from publications.requesthandler import RequestHandler
 
-from publications.home import Home, Contact
-from publications.login import Login, Logout
+from publications.home import (Home,
+                               Howto,
+                               Contact)
+from publications.login import (Login,
+                                Logout)
 from publications.account import (Account,
                                   AccountJson,
                                   Accounts,
@@ -129,6 +132,7 @@ def main():
                 url(r'/search', Search, name='search'),
                 url(r'/search.json', SearchJson, name='search_json'),
                 url(r'/logs/([^/]+)', Logs, name='logs'),
+                url(r'/howto', Howto, name='howto'),
                 url(r'/contact', Contact, name='contact'),
                 url(r'/login', Login, name='login'),
                 url(r'/logout', Logout, name='logout'),

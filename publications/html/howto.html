@@ -1,0 +1,84 @@
+{# How to page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}How to{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-wrench"></span>
+How to
+{% end %}
+
+{% block main_content %}
+<h3>Publications</h3>
+
+<p>
+  A publication should be represented by one and only one entry. Multiple
+  copies may be created in certain scenarios. If you notice any such
+  cases, please <a href="{{ reverse_url('contact') }}">report it</a>
+  to the site admin so that it can be fixed.
+</p>
+
+<h3>Add publication references</h3>
+
+<p>
+  The recommended way to add publication references is by DOI or PMID
+  (PubMed identifier) using the
+  <a href="{{ reverse_url('publication_fetch') }}">fetch feature</a>.
+  The system will
+  <ol>
+    <li>Check whether the publication reference already exists.</li>
+    <li>If it does not exist, fetch it from Crossref (DOI) or PubMed (PMID).</li>
+    <li>Assign the curator's labels to it.</li>
+  </ol>
+</p>
+<p>
+  A publication reference can also be added "by hand" using the
+  <a href="{{ reverse_url('publication_add') }}">add feature</a>.
+  This is for publications which do not have neither a DOI nor a
+  PMID. Please refrain from adding preprints or publication which will
+  eventually get a DOI or PMID. This will just create a head-ache with
+  multiple copies.
+</p>
+<h3>Labels and facilities</h3>
+
+<p>
+  Labels are used to denote the facility(-ies) that a publication is
+  associated with. Labels may also be used for other purposes, such
+  as denoting if a publication reference is incomplete.
+</p>
+<p>
+  Note that the current labels have been loaded from old sources, and
+  may contain out-of-date designations of facilities. If you see any
+  labels that should be renamed or merged with other labels, please
+  <a href="{{ reverse_url('contact') }}">contact</a> the site admin.
+
+<h3>Your account</h3>
+
+<p>
+  To get a curator account
+  <a href="{{ reverse_url('contact') }}">contact</a> 
+  the site admin and ask nicely. There is no way to register your own
+  account.  Only facility coordinators etc should be curators in this
+  system.
+</p>
+<p>
+  When the site admin has created your account, you will have to set a
+  password for it. Follow the instructions.
+</p>
+
+<h3>Account and labels</h3>
+
+<p>
+  A curator account is associated with one or a few labels which represent
+  the facility(-ies) which the curator is responsible for. A curator
+  can add and remove the his/her own labels to any publication.
+</p>
+<p>
+  A curator
+  cannot change labels for other facilities. If the curator thinks another
+  label has been wrongly given to a publication, that curator will have
+  to discuss it with the responsible other curator, or with the site admin.
+</p>
+
+{% end %} {# block main_content #}
