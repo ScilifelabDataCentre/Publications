@@ -35,11 +35,35 @@ How to
 <p>
   A publication reference can also be added "by hand" using the
   <a href="{{ reverse_url('publication_add') }}">add feature</a>.
-  This is for publications which do not have neither a DOI nor a
-  PMID. Please refrain from adding preprints or publication which will
-  eventually get a DOI or PMID. This will just create a head-ache with
-  multiple copies.
+  This is for publications which have neither a DOI nor a PMID. Please
+  refrain from adding preprints or publications which will eventually
+  get a DOI or PMID. This will just create a head-ache with multiple
+  copies.
 </p>
+
+<h3>Deleting <i>vs</i> blacklisting a publication</h3>
+
+<p>
+  A publication can be deleted by a curator. There are two ways of doing this:
+</p>
+
+<ul>
+  <li>The delete operation simply removes the publication reference
+    and all its data.</li>
+  <li>The blacklist operation, which deletes the publication. In
+    addition, a note is made of the DOI and/or PMID of it in a
+    blacklist. This will prevent it from being fetched again
+    accidentally.</li>
+</ul>
+
+<p>
+  The blacklist feature is intended to stop automatic fetch procedures
+  from adding publications that have already been determined to be
+  irrelevant. The blacklisting can be overriden by ticking the
+  checkbox in the
+  <a href="{{ reverse_url('publication_fetch') }}">fetch page</a>.
+</p>
+
 <h3>Labels and facilities</h3>
 
 <p>
