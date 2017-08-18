@@ -194,16 +194,15 @@ class LabelEdit(RequestHandler):
         if new_value != old_value:
             for account in self.get_docs('account/label', key=old_value):
                 with AccountSaver(account, rqh=self) as saver:
-                    labels = set(account['labels'])
+                    labels = account['labels'].copy()
                     labels.discard(old_value)
                     labels.add(new_value)
                     saver['labels'] = sorted(labels)
             for publ in self.get_docs('publication/label', key=old_value):
                 with PublicationSaver(publ, rqh=self) as saver:
-                    labels = set(publ['labels'])
-                    labels.discard(old_value)
-                    labels.add(new_value)
-                    saver['labels'] = sorted(labels)
+                    labels = publ['labels'].copy()
+                    labels[new_value] = labels.pop(old_value)
+                    saver['labels'] = labels
         self.see_other('label', label['value'])
 
 
