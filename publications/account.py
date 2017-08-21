@@ -266,7 +266,7 @@ class AccountReset(RequestHandler):
         if settings['EMAIL']['HOST']:
             self.render('account_reset.html', account=account)
         else:
-            self.set_error_flash('Cannot reset password; server badly configured.')
+            self.set_error_flash('Cannot reset password; server misconfigured.')
             self.see_other('home')
 
     def post(self):
@@ -278,6 +278,12 @@ class AccountReset(RequestHandler):
         try:
             account = self.get_account(email)
         except KeyError:
+            self.see_other('home')
+            return
+        # Check if disabled
+        if account.get('disabled'):
+            if self.is_admin():
+                self.set_error_flash('Account is disabled.')
             self.see_other('home')
             return
         with AccountSaver(account, rqh=self) as saver:
@@ -333,3 +339,47 @@ class AccountPassword(RequestHandler):
             self.see_other('account_password')
         else:
             self.see_other('account', account['email'])
+
+
+class AccountDisable(RequestHandler):
+    "Disable the account. Password is not touched."
+
+    @tornado.web.authenticated
+    def post(self, email):
+        if not self.is_admin():
+            self.set_error_flash('Only admin may disable an account.')
+            self.see_other('home')
+            return
+        try:
+            account = self.get_account(email)
+        except KeyError, msg:
+            self.set_error_flash(str(msg))
+            self.see_other('home')
+            return
+        if account == self.current_user:
+            self.set_error_flash('May not disable self.')
+            self.see_other('home')
+            return
+        with AccountSaver(account, rqh=self) as saver:
+            saver['disabled'] = True
+        self.see_other('account', email)
+
+
+class AccountEnable(RequestHandler):
+    "Enable the account. Password is not touched."
+
+    @tornado.web.authenticated
+    def post(self, email):
+        if not self.is_admin():
+            self.set_error_flash('Only admin may enable an account.')
+            self.see_other('home')
+            return
+        try:
+            account = self.get_account(email)
+        except KeyError, msg:
+            self.set_error_flash(str(msg))
+            self.see_other('home')
+            return
+        with AccountSaver(account, rqh=self) as saver:
+            del saver['disabled']
+        self.see_other('account', email)

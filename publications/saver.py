@@ -86,7 +86,7 @@ class Saver(object):
         except AttributeError:
             pass
         else:
-            self.changed[key] == '__del__'
+            self.changed[key] = '__del__'
 
     def get(self, key, default=None):
         try:

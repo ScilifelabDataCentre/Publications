@@ -48,3 +48,14 @@ Reset password
   </div>
 </div>
 {% end %} {# block main_content #}
+
+{% block meta_content %}
+{# if account #}
+<a href="{{ reverse_url('account', account) }}"
+   class="btn btn-default"
+   role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span>
+  Cancel
+</a>
+{# end #}
+{% end %} {# block meta_content #}

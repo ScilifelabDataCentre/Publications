@@ -35,6 +35,16 @@
 	</td>
       </tr>
       <tr>
+        <th>Status</th>
+        <td>
+          {% if account.get('disabled') %}
+          <span class="text-danger"><strong>Disabled<strong></span>
+          {% else %}
+          Enabled
+          {% end %}
+        </td>
+      </tr>
+      <tr>
 	<th>Last login</th>
 	<td>
 	  {% if account.get('login') %}
@@ -66,7 +76,7 @@
     Edit
   </a>
 </p>
-{% if settings['EMAIL']['HOST'] %}
+{% if settings['EMAIL']['HOST'] and not account.get('disabled') %}
 <p>
   <a href="{{ reverse_url('account_reset', account=account['email']) }}"
      class="btn btn-warning"
@@ -76,7 +86,7 @@
   </a>
 </p>
 {% end %}
-{% if is_admin %}
+{% if is_admin and not account.get('disabled') %}
 <p>
   <a href="{{ reverse_url('account_password', account=account['email']) }}"
      class="btn btn-success"
@@ -84,6 +94,37 @@
     <span class="glyphicon glyphicon-arrow-down"></span>
     Set password
   </a>
+</p>
+{% end %}
+{% if is_admin %}
+<p>
+  {% if account.get('disabled') %}
+  <form action="{{ reverse_url('account_enable', account['email']) }}"
+        role="form"
+        method="POST">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
+    <div class="form-group">
+      <button type="submit" class="btn btn-danger">
+	<span class="glyphicon glyphicon-ok-circle"></span>
+	Enable
+      </button>
+    </div>
+  </form>
+{% else %}
+  <form action="{{ reverse_url('account_disable', account['email']) }}"
+        role="form"
+        method="POST">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
+    <div class="form-group">
+      <button type="submit" class="btn btn-danger">
+	<span class="glyphicon glyphicon-ban-circle"></span>
+	Disable
+      </button>
+    </div>
+  </form>
+  {% end %}
 </p>
 {% end %}
 <p>

@@ -148,7 +148,8 @@ class RequestHandler(tornado.web.RequestHandler):
         account = self.get_account(email)
         # Check if login session is invalidated.
         if account.get('login') is None: raise KeyError
-        logging.debug("Session login: account %s", account['email'])
+        # Check if disabled
+        if account.get('disabled'): raise KeyError
         return account
 
     def get_current_user_basic(self):
@@ -170,7 +171,8 @@ class RequestHandler(tornado.web.RequestHandler):
                 raise ValueError
         except (IndexError, ValueError, TypeError):
             raise KeyError
-        logging.debug("Basic auth login: account %s", account['email'])
+        # Check if disabled
+        if account.get('disabled'): raise KeyError
         return account
 
     def get_logs(self, iuid):
