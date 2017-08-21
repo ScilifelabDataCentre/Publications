@@ -51,11 +51,11 @@ class PublicationSaver(Saver):
             if not author: continue
             try:
                 family, given = author.split(',', 1)
-            except ValueError:
+            except ValueError:  # Name written as 'Per Kraulis'
                 parts = author.split()
                 family = parts[-1]
                 given = ' '.join(parts[:-1])
-            else:
+            else:               # Name written as 'Kraulis, Per'
                 family = family.strip()
                 if not family:
                     family = author
@@ -389,7 +389,7 @@ class PublicationsUnverified(RequestHandler):
             lookup = {}
             for label in self.current_user.get('labels'):
                 docs = self.get_docs('publication/label_unverified',
-                                     key=label)
+                                     key=label.lower())
                 for doc in docs:
                     lookup[doc['_id']] = doc
             publications = lookup.values()

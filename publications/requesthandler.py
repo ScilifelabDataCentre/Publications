@@ -28,6 +28,7 @@ class RequestHandler(tornado.web.RequestHandler):
         result = super(RequestHandler, self).get_template_namespace()
         result['constants'] = constants
         result['settings'] = settings
+        result['utils'] = utils
         result['is_admin'] = self.is_admin()
         result['is_curator'] = self.is_curator()
         result['error'] = self.get_cookie('error', '').replace('_', ' ')

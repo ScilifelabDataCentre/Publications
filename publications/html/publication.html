@@ -15,7 +15,7 @@
 
 {% block main_content %}
 <p class="lead">
-  {{ ', '.join(["%s %s" % (a['family'], a['initials']) for a in publication['authors']]) }}
+  {{ utils.get_formatted_authors(publication['authors'], complete=True) }}
 </p>
 <p>
   {{ publication['journal'].get('title') or '-' }}

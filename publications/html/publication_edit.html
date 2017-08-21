@@ -39,7 +39,7 @@ Edit
     <div class="col-sm-7">
       <textarea class="form-control" rows="6"
 		name="authors" id="authors"
-		>{{ '\n'.join(["%s, %s" % (a.get('family'), a.get('given') or a.get('initials')) for a in publication.get('authors') or []]) }}</textarea>
+		>{{ '\n'.join(["%s, %s" % (a.get('family'), a.get('given') or a.get('initials' or '')) for a in publication.get('authors') or []]) }}</textarea>
       <span class="help-block">
 	One author per line, family name first, separated by comma ','
 	from the given name(s) or initials separated by blanks.

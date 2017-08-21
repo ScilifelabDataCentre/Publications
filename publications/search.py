@@ -52,10 +52,12 @@ class Search(RequestHandler):
         # Split up into separate terms.
         else:
             self.terms = []
-            # Remove DOI and PMID prefixes.
+            # Remove DOI and PMID prefixes and lowercase.
             for term in self.get_argument('terms', '').split():
                 term = utils.strip_prefix(term)
-                if term: self.terms.append(term.lower())
+                if term:
+                    term = term.lower()
+                    self.terms.append(term)
         for viewname in [None,
                          'publication/doi',
                          'publication/published',

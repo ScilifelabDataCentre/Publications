@@ -43,8 +43,10 @@ class Label(RequestHandler):
         except KeyError, msg:
             self.see_other('home', error=str(msg))
             return
-        accounts = self.get_docs('account/label', key=label['value'])
-        publications = self.get_docs('publication/label', key=label['value'])
+        accounts = self.get_docs('account/label',
+                                 key=label['value'].lower())
+        publications = self.get_docs('publication/label',
+                                     key=label['value'].lower())
         publications.sort(key=lambda i: i['published'], reverse=True)
         self.render('label.html',
                     label=label,
@@ -69,16 +71,18 @@ class Label(RequestHandler):
             return
         value = label['value']
         self.delete_entity(label)
-        for account in self.get_docs('account/label', key=value):
+        for account in self.get_docs('account/label', key=value.lower()):
             with AccountSaver(account, rqh=self) as saver:
                 labels = set(account['labels'])
                 labels.discard(value)
                 saver['labels'] = sorted(labels)
-        for publication in self.get_docs('publication/label', key=value):
+        for publication in self.get_docs('publication/label',
+                                         key=value.lower()):
             with PublicationSaver(publication, rqh=self) as saver:
-                labels = set(publication['labels'])
-                labels.discard(value)
-                saver['labels'] = sorted(labels)
+                labels = publication['labels'].copy()
+                labels.pop(value, None)
+                labels.pop(value.lower(), None)
+                saver['labels'] = labels
         self.see_other('labels')
 
 
@@ -115,7 +119,7 @@ class LabelsTable(RequestHandler):
         view = self.db.view('publication/label', group=True)
         counts = dict([(r.key, r.value) for r in view])
         for label in labels:
-            label['count'] = counts.get(label['value'], 0)
+            label['count'] = counts.get(label['value'].lower(), 0)
         self.render('labels_table.html', labels=labels)
 
 
@@ -192,17 +196,21 @@ class LabelEdit(RequestHandler):
             self.see_other('label', label['value'])
             return
         if new_value != old_value:
-            for account in self.get_docs('account/label', key=old_value):
+            for account in self.get_docs('account/label',
+                                         key=old_value.lower()):
                 with AccountSaver(account, rqh=self) as saver:
-                    labels = account['labels'].copy()
+                    labels = set(account['labels'])
                     labels.discard(old_value)
+                    labels.discard(old_value.lower())
                     labels.add(new_value)
                     saver['labels'] = sorted(labels)
-            for publ in self.get_docs('publication/label', key=old_value):
-                with PublicationSaver(publ, rqh=self) as saver:
-                    labels = publ['labels'].copy()
-                    labels[new_value] = labels.pop(old_value)
-                    saver['labels'] = labels
+            for publication in self.get_docs('publication/label',
+                                             key=old_value.lower()):
+                if old_value in publication['labels']:
+                    with PublicationSaver(publication, rqh=self) as saver:
+                        labels = publication['labels'].copy()
+                        labels[new_value] = labels.pop(old_value)
+                        saver['labels'] = labels
         self.see_other('label', label['value'])
 
 
@@ -240,16 +248,19 @@ class LabelMerge(RequestHandler):
         old_label = label['value']
         new_label = merge['value']
         self.delete_entity(label)
-        for account in self.get_docs('account/label', key=old_label):
+        for account in self.get_docs('account/label', key=old_label.lower()):
             with AccountSaver(account, rqh=self) as saver:
                 labels = set(account['labels'])
                 labels.discard(old_label)
+                labels.discard(old_value.lower())
                 labels.add(new_label)
                 saver['labels'] = sorted(labels)
-        for publication in self.get_docs('publication/label', key=old_label):
+        for publication in self.get_docs('publication/label',
+                                         key=old_label.lower()):
             with PublicationSaver(publication, rqh=self) as saver:
-                labels = set(publication['labels'])
-                labels.discard(old_label)
-                labels.add(new_label)
-                saver['labels'] = sorted(labels)
+                labels = publication['labels'].copy()
+                qual = labels.pop(old_label, None) or \
+                       labels.pop(old_label.lower(), None)
+                labels[new_label] = labels.get(new_label) or qual
+                saver['labels'] = labels
         self.see_other('label', new_label)

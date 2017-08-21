@@ -23,7 +23,7 @@ from . import constants
 from . import settings
 
 
-REV_ERROR = 'Has been edited by someone else; cannot overwrite.'
+REV_ERROR = 'Has been edited by someone else. Cannot overwrite.'
 
 def get_command_line_parser(description=None):
     "Get the base command line argument parser."
@@ -348,12 +348,13 @@ def strip_prefix(value):
 def get_formatted_authors(authors, complete=False):
     "Get formatted list of authors. 2+2 if not complete."
     if complete or len(authors) <= 4:
-        result = ["%s %s" % (a['family'], a['initials']) for a in authors]
+        result = ["%s %s" % (a['family'], a['initials'] or '')
+                  for a in authors]
     else:
-        result = ["%s %s" % (a['family'], a['initials'])
+        result = ["%s %s" % (a['family'], a['initials'] or '')
                   for a in authors[:2]]
         result.append('...')
-        result.extend(["%s %s" % (a['family'], a['initials'])
+        result.extend(["%s %s" % (a['family'], a['initials'] or '')
                        for a in authors[-2:]])
     return ', '.join(result)
 
