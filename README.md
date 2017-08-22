@@ -1,7 +1,10 @@
 Publications
 ============
 
-Simple web-based publications reference database system.
+A simple web-based publications reference database system.
+
+See the [wiki](wiki) for the documentation, including How-to and
+Installation.
 
 Features
 --------
@@ -15,53 +18,31 @@ Features
 
 - Publication references can be added manually.
 
-- Publication references can be labeled. The labels can be used to indicate
-  e.g. research group, facility or some other classification.
+- Curator accounts for adding and editing the publication entries can
+  be created by the admin of the instance.
 
-- There are curator accounts for editing the publication entries.
-  Currently, only the admins can create curator accounts;
-   it is not possible to register for one.
+- All curators can edit every publication reference. There is a log
+  for each publication, so it is possible to see who did what when.
 
-- Curators can fetch publications or add manually.
+- Publication references can be labeled. The labels can be used to
+  indicate e.g. research group, facility or some other classification.
 
-- All curators can change every publication reference.
-
-- A curator can assign only the labels that she has been assigned by the
+- A curator can use only the labels that she has been assigned by the
   admin.
 
-- Publication references can be set as unverified when loading them
-  by automated scripts. A curator must then verify each such publication.
+- Publication references can be set as unverified when loading them by
+  automated scripts. A curator must then verify each such publication
+  manually.
 
-- There is a blacklist registry based on the PMID and/or DOI of publications.
-  This is used to avoid re-importing publications that have already been
-  determined to be irrelevant for the database.
+- There is a blacklist registry based on the PMID and/or DOI of
+  publications.  When a publication is blacklisted, it will not be
+  fetched when using PMID, DOI or automatic scripts. This is to avoid
+  adding publications that have already been determined to be
+  irrelevant.
 
-- The data can be extracted in JSON and CSV formats. The CSV format allows
-  some basic filtering options.
+- The publications data can be extracted in JSON and CSV formats. The
+  CSV format allows some basic filtering options.
 
-Installation
-------------
-
-- Install the required software:
-  - Python 2.7
-  - tornado
-  - CouchDB
-  - pyyaml
-  - requests
-
-- Create the database in the CouchDB system.
-
-- Edit your settings file, specifying the CouchDB connection, site name, etc.
-
-- Run the following scripts to initialize and to create the first account.
-
-      $ python scripts/init_database.py
-      $ python scripts/create_admin.py
-
-- Set up the tornado web server to start on boot.
-
-- Set a proxy from your outward-facing web server (Apache, nginx, or whatever
-  your site supports) for the tornado server.
 
 Implementation
 --------------
