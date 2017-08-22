@@ -3,8 +3,8 @@ Publications
 
 A simple web-based publications reference database system.
 
-See the [wiki](wiki) for the documentation, including How-to and
-Installation.
+See the [GitHub Publications wiki](https://github.com/pekrau/Publications/wiki)
+for the documentation, including How-to and Installation.
 
 Features
 --------
