@@ -11,18 +11,25 @@
 {% end %} {# block body_title #}
 
 {% block main_content %}
+{% if label.get('description') %}
 <p>
-  {{ label.get('description') or '' }}
+  {{ label.get('description') }}
 </p>
-{% if current_user %}
-<h3>Curators</h3>
+{% end %}
+{% if label.get('href') %}
 <p>
+  <strong>See:</strong>
+  <a href="{{ label.get('href') }}" target="_">{{ label.get('href') }}</a>
+</p>
+{% end %}
+{% if current_user %}
+<p>
+  <strong>Curators:</strong>
   {% if accounts %}
   {% for account in accounts %}
   <a href="{{ reverse_url('account', account['email']) }}">
     {{ account['email'] }}
   </a>
-  <br>
   {% end %} {# for account #}
   {% else %}
   <i>None</i>

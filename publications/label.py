@@ -190,6 +190,7 @@ class LabelEdit(RequestHandler):
             with LabelSaver(label, rqh=self) as saver:
                 saver.check_revision()
                 saver.set_value(new_value)
+                saver['href'] = self.get_argument('href', None)
                 saver['description'] = self.get_argument('description', None)
         except SaverError:
             self.set_error_flash(utils.REV_ERROR)
