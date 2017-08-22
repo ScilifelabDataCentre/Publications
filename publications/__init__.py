@@ -36,6 +36,7 @@ settings = dict(
     SITE_LABEL_QUALIFIERS=[],
     SOURCE_URL='https://github.com/pekrau/Publications',
     SOURCE_VERSION=__version__,
+    DOCS_URL='https://github.com/pekrau/Publications/wiki',
     SHORT_PUBLICATIONS_LIST_LIMIT=10,
     JQUERY_CSS='https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css',
     JQUERY_JS='https://code.jquery.com/jquery-1.12.4.min.js',
