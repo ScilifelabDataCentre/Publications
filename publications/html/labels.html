@@ -15,7 +15,7 @@ Labels list
     {% for label in labels[0::2] %}
       <li>
 	<a href="{{ reverse_url('label', label['value']) }}"
-	   class="btn btn-default btn-block label-special">
+	   class="btn btn-default btn-block label-custom">
 	  {{ label['value'] }}
 	</a>
       </li>
@@ -25,7 +25,7 @@ Labels list
     {% for label in labels[1::2] %}
       <li>
 	<a href="{{ reverse_url('label', label['value']) }}"
-	   class="btn btn-default btn-block label-special">
+	   class="btn btn-default btn-block label-custom">
 	  {{ label['value'] }}
 	</a>
       </li>

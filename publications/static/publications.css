@@ -6,9 +6,9 @@
 .number {text-align: right; font-family: monospace; }
 
 /* Label */
-.label-special {margin: 10px;
-		text-align: left;
-		white-space: normal; }
+.label-custom {margin: 10px;
+	       text-align: left;
+	       white-space: normal; }
 
 /* Various */
 .top      {vertical-align: top; }

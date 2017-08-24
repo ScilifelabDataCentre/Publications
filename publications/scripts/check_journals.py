@@ -15,6 +15,7 @@ def get_args():
 
 def check_journals(db):
     "Check and fix journals and journals in publications."
+    print('checking for duplicate ISSNs and titles...')
     issn_lookup = dict()
     title_lookup = dict()
     for row in db.view('journal/issn', include_docs=True):
@@ -29,6 +30,7 @@ def check_journals(db):
         else:
             title_lookup[title] = issn
 
+    print('correcting journal title in publications...')
     for row in db.view('publication/modified', include_docs=True):
         doc = row.doc
         old_issn = doc['journal'].get('issn')
@@ -68,6 +70,7 @@ def check_journals(db):
         if not new_title:
             print('missing journal title for', doc['_id'], old_issn)
 
+    print('creating journal entries for novel ISSNs...')
     for row in db.view('publication/issn', reduce=False, include_docs=True):
         doc = row.doc
         issn = doc['journal']['issn']
