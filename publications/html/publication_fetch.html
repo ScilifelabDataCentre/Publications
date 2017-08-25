@@ -20,14 +20,7 @@ Fetch data for publication
   <div class="form-group">
     <label class="col-sm-2 control-label" for="identifier">PMID or DOI</label>
     <div class="col-sm-8">
-      {% try %}
-      {% set id = identifier %}
-      {% except NameError %}
-      {% set id = '' %}
-      {% end %}
-      <input type="text" class="form-control"
-	     name="identifier" id="identifier"
-	     value="{{ id }}">
+      <input type="text" class="form-control" name="identifier" id="identifier">
       <span class="help-block">
 	Fetch publication data directly from PubMed or Crossref using
 	the PubMed identifier

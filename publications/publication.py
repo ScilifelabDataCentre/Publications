@@ -439,7 +439,7 @@ class PublicationAdd(PublicationMixin, RequestHandler):
 
 
 class PublicationFetch(RequestHandler):
-    "Fetch a publication given its DOI or PMID."
+    "Fetch publication(s) given list of DOIs or PMIDs."
 
     def get(self):
         self.check_curator()
@@ -448,9 +448,7 @@ class PublicationFetch(RequestHandler):
                              last=utils.today(-1),
                              descending=True,
                              limit=settings['SHORT_PUBLICATIONS_LIST_LIMIT'])
-        self.render('publication_fetch.html',
-                    publications=docs,
-                    identifier=self.get_argument('identifier', ''))
+        self.render('publication_fetch.html', publications=docs)
 
     def post(self):
         self.check_curator()
@@ -466,7 +464,7 @@ class PublicationFetch(RequestHandler):
         blacklisted = self.get_blacklisted(identifier)
         if blacklisted:
             if override:
-                del self.db[blacklisted]
+                self.db.delete(blacklisted)
             else:
                 self.see_other('publication_fetch',
                                identifier=identifier,
@@ -505,17 +503,16 @@ class PublicationFetch(RequestHandler):
                         old = self.get_publication(new.get('pmid'))
                     except KeyError:
                         pass
-        # Check blacklist registry again; the other external identifier maybe there
+        # Check blacklist registry again; other external identifier maybe there
         for id in [new.get('pmid'), new.get('doi')]:
             if not id: continue
             blacklisted = self.get_blacklisted(id)
             if blacklisted:
                 if override:
-                    del self.db[blacklisted]
+                    self.db.delete(blacklisted)
                 else:
-                    self.see_other('publication_fetch',
-                                   identifier=identifier,
-                                   message=constants.BLACKLISTED_MESSAGE)
+                    message = constants.BLACKLISTED_MESSAGE % identifier
+                    self.see_other('publication_fetch', message=message)
                     return
         if old:
             # Update everything
