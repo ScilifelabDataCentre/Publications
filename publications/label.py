@@ -35,7 +35,7 @@ class LabelSaver(Saver):
 
 
 class Label(RequestHandler):
-    "Label page."
+    "Label page, containing list of publications partitioned by year."
 
     def get(self, identifier):
         try:

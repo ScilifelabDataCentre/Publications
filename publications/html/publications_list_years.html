@@ -1,0 +1,17 @@
+{# List of publications, divided by years. Requires sorted list. #}
+
+{% try %}
+<h3>{{ list_title }}</h3>
+{% except NameError %}
+<h3>{{ len(publications) }} publications</h3>
+{% end %}
+
+{# The list of publications must be sorted by published date. #}
+{% set yr = None %}
+{% for publication in publications %}
+{% if publication['published'].split('-')[0] != yr %}
+{% set yr = publication['published'].split('-')[0] %}
+<h3>Year {{ yr }}</h3>
+{% end %}
+{% include 'publication_display.html' %}
+{% end %} {# for #}

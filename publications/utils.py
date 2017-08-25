@@ -358,6 +358,7 @@ def get_formatted_authors(authors, complete=False):
                        for a in authors[-2:]])
     return ', '.join(result)
 
+
 class EmailServer(object):
     "A connection to an email server for sending emails."
 
