@@ -143,6 +143,7 @@ def main():
                 url(r'/logout', Logout, name='logout'),
                 ]
 
+    os.chdir(settings['ROOT'])
     application = tornado.web.Application(
         handlers=handlers,
         debug=settings.get('TORNADO_DEBUG', False),
