@@ -20,12 +20,17 @@ Fetch data for publication
   <div class="form-group">
     <label class="col-sm-2 control-label" for="identifier">PMID or DOI</label>
     <div class="col-sm-8">
-      <input type="text" class="form-control" name="identifier" id="identifier">
+      <textarea class="form-control" rows="4"
+                name="identifiers" id="identifiers"></textarea>
       <span class="help-block">
-	Fetch publication data directly from PubMed or Crossref using
-	the PubMed identifier
+        <strong>Max {{ settings['PUBLICATIONS_FETCHED_LIMIT'] }}</strong>
+        will be fetched in one operation. Provide one identifier per
+        line.
+        <br>
+	Publication(s) data to be obtained from PubMed or Crossref
+	using PubMed identifiers
 	(PMID, e.g. <strong>25613900</strong>)
-	or the Digital Object Identifier
+	or Digital Object Identifiers
 	(DOI, e.g. <strong>10.1126/science.1260419</strong>).
       </span>
     </div>
@@ -34,6 +39,16 @@ Fetch data for publication
 	<span class="glyphicon glyphicon-cloud-download"></span>
 	Import
       </button>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label" for="verify">Verify</label>
+    <div class="col-sm-8 checkbox">
+      <label>
+	<input type="checkbox" name="verify" id="verify" value="true">
+        Immediately set any newly imported publication references as
+        verified.
+      </label>
     </div>
   </div>
   <div class="form-group">

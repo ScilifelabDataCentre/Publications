@@ -226,13 +226,14 @@ def get_label(db, identifier):
     return doc
 
 def get_blacklisted(db, identifier):
-    """Get the blacklist document id if the publication with
+    """Get the blacklist document if the publication with
     the external identifier has been blacklisted.
     """
+    if not identifier: return None
     for viewname in ['blacklist/doi', 'blacklist/pmid']:
         try:
-            return list(db.view(viewname)[identifier])[0].id
-        except IndexError:
+            return get_doc(db, identifier, viewname)
+        except KeyError:
             pass
     return None
 
@@ -343,7 +344,6 @@ def strip_prefix(value):
         if lowcase.startswith(prefix):
             return value[len(prefix)-1:].strip()
     return value
-
 
 def get_formatted_authors(authors, complete=False):
     "Get formatted list of authors. 2+2 if not complete."

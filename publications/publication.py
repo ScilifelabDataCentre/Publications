@@ -447,99 +447,110 @@ class PublicationFetch(RequestHandler):
                              key=constants.CEILING,
                              last=utils.today(-1),
                              descending=True,
-                             limit=settings['SHORT_PUBLICATIONS_LIST_LIMIT'])
+                             limit=settings['PUBLICATIONS_FETCHED_LIMIT'])
         self.render('publication_fetch.html', publications=docs)
 
     def post(self):
         self.check_curator()
-        try:
-            identifier = self.get_argument('identifier')
-            identifier = utils.strip_prefix(identifier)
-            if not identifier: raise ValueError
-        except (tornado.web.MissingArgumentError, ValueError):
-            self.see_other('publication_fetch')
-            return
-        # Check if identifier is present in blacklist registry
+        identifiers = self.get_argument('identifiers', '').split()
+        identifiers = [utils.strip_prefix(i) for i in identifiers]
+        identifiers = [i for i in identifiers if i]
         override = utils.to_bool(self.get_argument('override', False))
-        blacklisted = self.get_blacklisted(identifier)
-        if blacklisted:
-            if override:
-                self.db.delete(blacklisted)
-            else:
-                self.see_other('publication_fetch',
-                               identifier=identifier,
-                               message=constants.BLACKLISTED_MESSAGE)
-                return
-        # Has it already been fetched?
-        try:
-            old = self.get_publication(identifier, unverified=True)
-        except KeyError:
-            old = None
-        if constants.PMID_RX.match(identifier):
-            try:
-                new = pubmed.fetch(identifier)
-            except (IOError, requests.exceptions.Timeout), msg:
-                self.see_other('publication_fetch',
-                               error=constants.FETCH_ERROR + str(msg))
-                return
-            else:
-                if old is None:
-                    # Maybe the publication has been loaded by DOI?
-                    try:
-                        old = self.get_publication(new.get('doi'))
-                    except KeyError:
-                        pass
-        else:
-            try:
-                new = crossref.fetch(identifier)
-            except (IOError, requests.exceptions.Timeout), msg:
-                self.see_other('publication_fetch',
-                               error=constants.FETCH_ERROR + str(msg))
-                return
-            else:
-                if old is None:
-                    # Maybe the publication has been loaded by PMID?
-                    try:
-                        old = self.get_publication(new.get('pmid'))
-                    except KeyError:
-                        pass
-        # Check blacklist registry again; other external identifier maybe there
-        for id in [new.get('pmid'), new.get('doi')]:
-            if not id: continue
-            blacklisted = self.get_blacklisted(id)
+        verify = utils.to_bool(self.get_argument('verify', False))
+        count = 0
+        errors = []
+        messages = []
+        for identifier in identifiers:
+            # Skip if number of loaded publications reached the limit
+            if count >= settings['PUBLICATIONS_FETCHED_LIMIT']: break
+            # If identifier in blacklist registry, skip unless override
+            blacklisted = self.get_blacklisted(identifier)
             if blacklisted:
                 if override:
                     self.db.delete(blacklisted)
                 else:
-                    message = constants.BLACKLISTED_MESSAGE % identifier
-                    self.see_other('publication_fetch', message=message)
-                    return
-        if old:
-            # Update everything
-            with PublicationSaver(old, rqh=self) as saver:
-                for key in new:
-                    saver[key] = new[key]
-                saver.fix_journal()
-                if self.current_user['role'] == constants.CURATOR:
-                    labels = dict([(l, None) for l in 
-                                   self.current_user['labels']])
-                    labels.update(old.get('labels') or {})
-                    saver['labels'] = labels
-                saver['verified'] = True
-            publication = old
-        else:
-            with PublicationSaver(new, rqh=self) as saver:
-                # If curator, set all its labels for this publication
-                if self.current_user['role'] == constants.CURATOR:
-                    saver['labels'] = dict([(l, None) for l in 
-                                            self.current_user['labels']])
-                # If admin, do not set any labels
+                    messages.append(identifier)
+                    continue
+            # Has it already been fetched?
+            try:
+                old = self.get_publication(identifier, unverified=True)
+            except KeyError:
+                old = None
+            # Fetch from external source according to identifier type.
+            if constants.PMID_RX.match(identifier):
+                try:
+                    new = pubmed.fetch(identifier)
+                except (IOError, requests.exceptions.Timeout), msg:
+                    errors.append("%s: %s" % (identifier, str(msg)))
+                    continue
                 else:
-                    saver['labels'] = {}
-                saver.fix_journal()
-                saver['verified'] = True
-            publication = new
-        self.see_other('publication_fetch')
+                    if old is None:
+                        # Maybe the publication has been loaded by DOI?
+                        try:
+                            old = self.get_publication(new.get('doi'))
+                        except KeyError:
+                            pass
+            # Not PMID, must be DOI
+            else:
+                try:
+                    new = crossref.fetch(identifier)
+                except (IOError, requests.exceptions.Timeout), msg:
+                    errors.append("%s: %s" % (identifier, str(msg)))
+                    continue
+                else:
+                    if old is None:
+                        # Maybe the publication has been loaded by PMID?
+                        try:
+                            old = self.get_publication(new.get('pmid'))
+                        except KeyError:
+                            pass
+            # Update count of number of fetched publications.
+            count += 1
+            # Check blacklist registry again; other external id may be there.
+            blacklisted = self.get_blacklisted(new.get('pmid'))
+            if blacklisted:
+                if override:
+                    self.db.delete(blacklisted)
+                else:
+                    messages.append(identifier)
+                    continue
+            blacklisted = self.get_blacklisted(new.get('doi'))
+            if blacklisted:
+                if override:
+                    self.db.delete(blacklisted)
+                else:
+                    messages.append(identifier)
+                    continue
+            # Update the existing entry.
+            if old:
+                with PublicationSaver(old, rqh=self) as saver:
+                    for key in new:
+                        saver[key] = new[key]
+                    saver.fix_journal()
+                    if self.current_user['role'] == constants.CURATOR:
+                        labels = dict([(l, None) for l in 
+                                       self.current_user['labels']])
+                        labels.update(old.get('labels') or {})
+                        saver['labels'] = labels
+            # Else create a new entry.
+            else:
+                with PublicationSaver(new, rqh=self) as saver:
+                    # If curator, set all its labels for this publication.
+                    if self.current_user['role'] == constants.CURATOR:
+                        saver['labels'] = dict([(l, None) for l in 
+                                                self.current_user['labels']])
+                    # If admin, do not set any labels
+                    else:
+                        saver['labels'] = {}
+                    saver.fix_journal()
+                    saver['verified'] = verify
+        kwargs = {}
+        if errors:
+            kwargs['error'] = constants.FETCH_ERROR + ', '.join(errors)
+        if messages:
+            kwargs['message'] = constants.BLACKLISTED_MESSAGE + \
+                                ', '.join(messages)
+        self.see_other('publication_fetch', **kwargs)
 
 
 class PublicationEdit(PublicationMixin, RequestHandler):

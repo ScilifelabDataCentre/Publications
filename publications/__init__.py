@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os
 
-__version__ = '2.1.5'
+__version__ = '2.1.6'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -26,6 +26,8 @@ settings = dict(
                SENDER=None),
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
+    PUBLICATIONS_FETCHED_LIMIT=10,
+    SHORT_PUBLICATIONS_LIST_LIMIT=10,
     SITE_NAME='Publications',
     SITE_TITLE='Publications',
     SITE_TEXT='A simple publications reference database system.',
@@ -37,7 +39,6 @@ settings = dict(
     SOURCE_URL='https://github.com/pekrau/Publications',
     SOURCE_VERSION=__version__,
     DOCS_URL='https://github.com/pekrau/Publications/wiki',
-    SHORT_PUBLICATIONS_LIST_LIMIT=10,
     JQUERY_CSS='https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css',
     JQUERY_JS='https://code.jquery.com/jquery-1.12.4.min.js',
     JQUERY_UI_JS='https://code.jquery.com/ui/1.12.1/jquery-ui.min.js',

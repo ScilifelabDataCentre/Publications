@@ -47,9 +47,9 @@ JSON_MIME = 'application/json'
 CSV_MIME  = 'text/csv'
 
 # Various texts.
-FETCH_ERROR = 'Could not fetch article data: '
-BLACKLISTED_MESSAGE = "Publication was not fetched since it is in the" \
-                      " blacklist. Try again and check 'override' if needed."
+FETCH_ERROR = 'Could not fetch data. '
+BLACKLISTED_MESSAGE = "Publication(s) not fetched since in the blacklist." \
+                      " Check 'override' and try again, if needed: "
 DELETE_POPOVER = "Scrap this publication entry. No memory of it is retained in the database."
 BLACKLIST_POPOVER = "Scrap this publication entry and forbid it from being loaded again. The DOI and/or PMID is recorded in a blacklist."
 
