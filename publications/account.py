@@ -13,6 +13,8 @@ from . import utils
 from .saver import Saver, SaverError
 from .requesthandler import RequestHandler
 
+ADD_TITLE = "A new account in the website %s"
+
 ADD_TEXT = """A new account %(email)s in the website %(site)s has been created.
 
 To set the password, go to %(link)s and provide it.
@@ -194,7 +196,7 @@ class AccountAdd(RequestHandler):
             self.see_other('account', email)
         else:
             server.send(account['email'],
-                        "A new account in the website %s" % settings['SITE_NAME'],
+                        ADD_TITLE % settings['SITE_NAME'],
                         ADD_TEXT % data)
             self.see_other('account', email)
 

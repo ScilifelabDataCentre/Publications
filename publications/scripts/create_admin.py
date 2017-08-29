@@ -12,7 +12,7 @@ from publications.account import AccountSaver
 
 def get_args():
     parser = utils.get_command_line_parser(
-        description='Create a new admin account account.')
+        description='Create a new admin account.')
     return parser.parse_args()
 
 def create_admin(db, email, password):
