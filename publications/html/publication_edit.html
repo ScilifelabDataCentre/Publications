@@ -161,6 +161,18 @@ Edit
     </div>
   </div>
 
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="notes">Notes</label>
+    <div class="col-sm-11">
+      <textarea class="form-control" rows="3"
+		name="notes" id="notes"
+		>{{ publication.get('notes') or '' }}</textarea>
+      <span class="help-block">
+        Miscellanous notes visible to all.
+      </span>
+    </div>
+  </div>
+
   <div class="form-group">
     <label class="control-label col-sm-1">Labels</label>
     <div class=" col-sm-11">

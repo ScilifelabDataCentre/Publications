@@ -12,6 +12,7 @@ from publications.requesthandler import RequestHandler
 
 # Must be kept in sync with
 #  designs/publication/views/title.js
+#  designs/publication/views/notes.js
 #  designs/publication/views/label_parts.js
 REMOVE = set('-\.:,?()$')
 IGNORE = set([
@@ -41,7 +42,7 @@ IGNORE = set([
 
 
 class Search(RequestHandler):
-    "Search publications for authors or words in title."
+    "Search publications for authors or words in title or notes."
 
     def get(self):
         self.hits = dict()
@@ -73,6 +74,7 @@ class Search(RequestHandler):
             if term: self.terms.append(term)
         for viewname in ['publication/author',
                          'publication/title',
+                         'publication/notes',
                          'publication/pmid',
                          'publication/label_parts']:
             self.search(viewname)

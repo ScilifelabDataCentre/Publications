@@ -584,6 +584,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.set_journal()
                 saver.set_abstract()
                 saver.set_labels(self.get_allowed_labels())
+                saver['notes'] = self.get_argument('notes', None)
                 # Publication should not be verified automatically by edit!
                 # It must be possible for admin to change labels in order to
                 # challenge the relevant curators to verify or blacklist.
