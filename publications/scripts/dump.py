@@ -1,7 +1,9 @@
 """Dump the database into a tar file.
 The settings file may be given as the first command line argument,
 otherwise it is obtained as usual.
-The dump file will be called 'dump_{ISO date}.tar.gz' using today's date.
+The dump file will be called 'dump_{ISO date}.tar.gz' using today's date,
+and is written in the current directory unless the dumpdir argument is set.
+Alternatively, the dumpfile argument defines the entire file path.
 """
 
 from __future__ import print_function
@@ -25,7 +27,10 @@ def get_args():
         'Dump all data into a tar file.')
     parser.add_argument('-d', '--dumpfile',
                       action='store', dest='dumpfile',
-                      metavar='DUMPFILE', help='name of dump file')
+                      metavar='DUMPFILE', help='path of dump file')
+    parser.add_argument('-D', '--dumpdir',
+                      action='store', dest='dumpdir',
+                      metavar='DUMPDIR', help='path of dump directory')
     return parser.parse_args()
 
 def dump(db, filepath):
@@ -106,4 +111,6 @@ if __name__ == '__main__':
         filepath = args.dumpfile
     else:
         filepath = "dump_{0}.tar.gz".format(time.strftime("%Y-%m-%d"))
+        if args.dumpdir:
+            filepath = os.path.join(args.dumpdir, filepath)
     dump(db, filepath)
