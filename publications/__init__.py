@@ -28,6 +28,7 @@ settings = dict(
     LOGIN_MAX_AGE_DAYS=14,
     PUBLICATIONS_FETCHED_LIMIT=10,
     SHORT_PUBLICATIONS_LIST_LIMIT=10,
+    LONG_PUBLICATIONS_LIST_LIMIT=100,
     SITE_NAME='Publications',
     SITE_TITLE='Publications',
     SITE_TEXT='A simple publications reference database system.',

@@ -415,6 +415,17 @@ class PublicationsNoDoi(RequestHandler):
         self.render('publications_no_doi.html', publications=publications)
 
 
+class PublicationsModified(PublicationMixin, RequestHandler):
+    "List of most recently modified publications."
+
+    def get(self):
+        self.check_curator()
+        docs = self.get_docs('publication/modified',
+                             descending=True,
+                             limit=settings['LONG_PUBLICATIONS_LIST_LIMIT'])
+        self.render('publications_modified.html', publications=docs)
+
+
 class PublicationAdd(PublicationMixin, RequestHandler):
     "Add a publication by hand."
 
