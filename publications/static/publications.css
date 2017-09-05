@@ -2,7 +2,7 @@
 
 /* Text */
 .pre    {white-space: pre; }
-.nobr   {white-space:nowrap; }
+.nobr   {white-space: nowrap; }
 .number {text-align: right; font-family: monospace; }
 
 /* Label */

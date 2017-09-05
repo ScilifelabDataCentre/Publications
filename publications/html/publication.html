@@ -73,6 +73,11 @@
       Verify
     </button>
   </form>
+  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#Verified"
+     target="_">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    Explain "verified"
+  </a>
 </p>
 {% end %} {# if not #}
 {% if is_deletable %}
@@ -87,11 +92,12 @@
       <span class="glyphicon glyphicon-trash"></span>
       Delete
     </button>
-    <a href="#" data-toggle="popover" title="Delete publication"
-       data-content="{{ constants.DELETE_POPOVER }}">
-      <span class="glyphicon glyphicon-question-sign"></span>
-    </a>
   </form>
+  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#Delete"
+     target="_">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    Explain "delete"
+  </a>
 </p>
 <p>
   <form action="{{ reverse_url('publication_blacklist', publication['_id']) }}"
@@ -103,11 +109,12 @@
       <span class="glyphicon glyphicon-ban-circle"></span>
       Blacklist
     </button>
-    <a href="#" data-toggle="popover" title="Blacklist publication"
-       data-content="{{ constants.BLACKLIST_POPOVER }}">
-      <span class="glyphicon glyphicon-question-sign"></span>
-    </a>
   </form>
+  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#Blacklist"
+     target="_">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    Explain "blacklist"
+  </a>
 </p>
 {% end %} {# if is_deletable #}
 <p>

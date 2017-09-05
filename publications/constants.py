@@ -50,8 +50,6 @@ CSV_MIME  = 'text/csv'
 FETCH_ERROR = 'Could not fetch data. '
 BLACKLISTED_MESSAGE = "Publication(s) not fetched since in the blacklist." \
                       " Check 'override' and try again, if needed: "
-DELETE_POPOVER = "Scrap this publication entry. No memory of it is retained in the database."
-BLACKLIST_POPOVER = "Scrap this publication entry and forbid it from being loaded again. The DOI and/or PMID is recorded in a blacklist."
 
 # External URL templates.
 PUBMED_URL = 'https://www.ncbi.nlm.nih.gov/pubmed/%s'

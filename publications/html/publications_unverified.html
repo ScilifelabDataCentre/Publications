@@ -28,28 +28,40 @@ Unverified publications
 	Verify
       </button>
     </form>
-    <p>
-      <form action="{{ reverse_url('publication_blacklist', publication['_id']) }}"
-	    role="form"
-	    method="POST">
-	{% module xsrf_form_html() %}
-	<input type="hidden" name="next"
-	       value="{{ reverse_url('publications_unverified') }}">
-	<button type="submit" class="btn btn-danger left"
-		onclick="return confirm('Really blacklist this publication?');">
-	  <span class="glyphicon glyphicon-ban-circle"></span>
-	  Blacklist
-	</button>
-	<a href="#" data-toggle="popover" title="Blacklist publication"
-	   data-content="{{ constants.BLACKLIST_POPOVER }}">
-	  <span class="glyphicon glyphicon-question-sign"></span>
-	</a>
-      </form>
-    </p>
+    <br>
+    <form action="{{ reverse_url('publication_blacklist', publication['_id']) }}"
+	  role="form"
+	  method="POST">
+      {% module xsrf_form_html() %}
+      <input type="hidden" name="next"
+	     value="{{ reverse_url('publications_unverified') }}">
+      <button type="submit" class="btn btn-danger left"
+	      onclick="return confirm('Really blacklist this publication?');">
+	<span class="glyphicon glyphicon-ban-circle"></span>
+	Blacklist
+      </button>
+    </form>
   </div>
 </div>
 {% end %} {# for #}
 {% end %} {# block main_content #}
+
+{% block meta_content %}
+<p>
+  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#Verified"
+     target="_">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    Explain "verified"
+  </a>
+</p>
+<p>
+  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#Blacklist"
+     target="_">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    Explain "blacklist"
+  </a>
+</p>
+{% end %}
 
 {% block javascript_code %}
 <script>
