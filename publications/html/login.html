@@ -11,7 +11,7 @@ Login
 
 {% block main_content %}
 <div class="row">
-  <div class="col-md-5">
+  <div class="col-md-6">
     <form action="{{ reverse_url('login') }}"
 	  role="form"
 	  method="POST">
@@ -41,6 +41,20 @@ Login
 	</button>
       </div>
     </form>
+  </div>
+  <div class="col-md-6">
+    <div class="well well-lg">
+      <p>
+        Only a small select group of persons are allowed to be
+        curators of this system. Therefore, there is no way to
+        register an account via the web interface.
+      </p>
+      <p>
+        Contact the system admin (see
+        page <a href="/contact">"Contact"</a>) and ask to become a
+        curator if you feel that you should be one.
+      </p>
+    </div>
   </div>
 </div>
 {% end %} {# block main_content #}
