@@ -1,0 +1,47 @@
+# Publications: Generic settings file; copy or modify for your site.
+# The tornado server will load this file on startup.
+# It will look for a file in this directory named '{hostname}.yaml'
+# where {hostname} is the value of the Python expression
+# socket.gethostname().split('.')[0] (socket is a Python standard module).
+# If no such file exists, it will use 'settings.yaml'.
+
+# Base URL for the site
+BASE_URL: 'https://publications.whatever.org/'
+
+# Port for the tornado server
+PORT: 8885
+
+# Logging and debug.
+TORNADO_DEBUG: True
+LOGGING_DEBUG: True
+LOGGING_FILEPATH: '/var/log/nginx/publications.log'
+
+# Login
+COOKIE_SECRET: 'long random string of characters'
+PASSWORD_SALT: 'another long random string of characters'
+
+# Site customization
+SITE_NAME: 'Publications'
+SITE_TITLE: 'Publications'
+SITE_TEXT: 'Publications from our institute.'
+SITE_PARENT_URL: 'https://www.whatever.org/'
+SITE_PARENT_NAME: 'Whatever'
+SITE_CONTACT: '<p>Questions? Contact us: <b>info@swhatever.org</b></p>'
+SITE_EMAIL: 'info@whatever.org'
+SITE_DIR: '{ROOT}/whatever'
+SITE_LABEL_QUALIFIERS:
+  - Research
+  - Service
+
+# Email; server running on the host machine
+EMAIL:
+  HOST: 'localhost'
+
+# Email; Gmail
+# EMAIL:
+#   HOST: 'smtp.gmail.com'
+#   PORT: 587
+#   TLS: True
+#   USER: 'my.name@gmail.com'
+#   PASSWORD: 'Your password'
+#   SENDER: '"My Name" <my.name@google.com>'

@@ -19,7 +19,7 @@ def add_ddd_label(db):
     "Add DDD label for all DDD facilities."
     qual_lookup = dict([(v,k) for k,v
                         in enumerate(settings['SITE_LABEL_QUALIFIERS'])])
-    DDD = 'Drug Discovery and Development'
+    DDD = 'Drug Discovery and Development (DDD)'
     OLD = [u'ADME of Therapeutics (UDOPP)',
            u'Biochemical and Cellular Screening',
            u'Biophysical Screening and Characterization',
