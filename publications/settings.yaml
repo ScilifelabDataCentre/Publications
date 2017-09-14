@@ -1,9 +1,10 @@
 # Publications: Generic settings file; copy or modify for your site.
-# The tornado server will load this file on startup.
+# The Publications app needs a settings file like this at startup.
 # It will look for a file in this directory named '{hostname}.yaml'
 # where {hostname} is the value of the Python expression
 # socket.gethostname().split('.')[0] (socket is a Python standard module).
-# If no such file exists, it will use 'settings.yaml'.
+# If no such file exists, it will look for 'settings.yaml'.
+# If it can't find any of these, it will fail.
 
 # Base URL for the site
 BASE_URL: 'https://publications.whatever.org/'

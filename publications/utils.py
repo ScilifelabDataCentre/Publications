@@ -54,7 +54,7 @@ def load_settings(filepath=None):
             if os.path.exists(filepath) and os.path.isfile(filepath):
                 break
         else:
-            raise ValueError('No settings file specified.')
+            raise ValueError('Cannot find any settings file.')
     # Read the settings file, updating the defaults
     with open(filepath) as infile:
         settings.update(yaml.safe_load(infile))
