@@ -166,10 +166,19 @@ Add publication manually
 {% end %} {# block main_content #}
 
 {% block meta_content %}
-<a href="{{ reverse_url('home') }}"
-   class="btn btn-default"
-   role="button">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
-</a>
+<p>
+  <a href="{{ reverse_url('home') }}"
+     class="btn btn-default"
+     role="button">
+    <span class="glyphicon glyphicon-remove-circle"></span>
+    Cancel
+  </a>
+</p>
+<p>
+  <a href="https://github.com/pekrau/Publications/wiki/Recommended-work-routine"
+           target="_">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    Recommended work routine
+  </a>
+</p>
 {% end %} {# block meta_content #}

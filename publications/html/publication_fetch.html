@@ -23,15 +23,15 @@ Fetch data for publication
       <textarea class="form-control" rows="4"
                 name="identifiers" id="identifiers"></textarea>
       <span class="help-block">
+	Publication(s) data to be obtained PubMed identifiers
+	(PMID, e.g. <strong>25613900</strong>)
+	or from Crossref using Digital Object Identifiers
+	(DOI, e.g. <strong>10.1126/science.1260419</strong>).
+        <br>
         <strong>Max {{ settings['PUBLICATIONS_FETCHED_LIMIT'] }}</strong>
         will be fetched in one operation. Provide one identifier per
-        line.
-        <br>
-	Publication(s) data to be obtained from PubMed or Crossref
-	using PubMed identifiers
-	(PMID, e.g. <strong>25613900</strong>)
-	or Digital Object Identifiers
-	(DOI, e.g. <strong>10.1126/science.1260419</strong>).
+        line. If you wish to import many publication references,
+        <a href="/contact">contact the administrator</a>.
       </span>
     </div>
     <div class="col-sm-2">
@@ -82,12 +82,21 @@ Fetch data for publication
 {% end %} {# block main_content #}
 
 {% block meta_content %}
-<a href="{{ reverse_url('home') }}"
-   class="btn btn-default"
-   role="button">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
-</a>
+<p>
+  <a href="{{ reverse_url('home') }}"
+     class="btn btn-default"
+     role="button">
+    <span class="glyphicon glyphicon-remove-circle"></span>
+    Cancel
+  </a>
+</p>
+<p>
+  <a href="https://github.com/pekrau/Publications/wiki/Recommended-work-routine"
+           target="_">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    Recommended work routine
+  </a>
+</p>
 {% end %} {# block meta_content #}
 
 {% block autofocus %}
