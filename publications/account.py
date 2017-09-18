@@ -15,7 +15,7 @@ from .requesthandler import RequestHandler
 
 ADD_TITLE = "A new account in the website %s"
 
-ADD_TEXT = """A new account %(email)s in the website %(site)s has been created.
+ADD_TEXT = """An account %(email)s in the website %(site)s has been created.
 
 To set the password, go to %(link)s and provide it.
 
@@ -133,7 +133,7 @@ class AccountsJson(Accounts):
         result['entity'] = 'accounts'
         result['timestamp'] = utils.timestamp()
         result['accounts_count'] = len(accounts)
-        result['accounts'] = [self.get_account_json(account)
+        result['accounts'] = [self.get_account_json(account, full=True)
                                   for account in accounts]
         self.write(result)
 
@@ -182,23 +182,23 @@ class AccountAdd(RequestHandler):
             self.set_error_flash(str(msg))
             self.see_other('account_add')
             return
-        data = dict(site=settings['SITE_NAME'],
+        if self.get_argument('email'):
+            try:
+                data = dict(
+                    site=settings['SITE_NAME'],
                     email=account['email'],
                     code=account['code'],
                     url=self.absolute_reverse_url('account_password'),
                     link=self.absolute_reverse_url('account_password',
                                                    account=account['email'],
                                                    code=account['code']))
-        try:
-            server = utils.EmailServer()
-        except ValueError:
-            self.set_error_flash('Could not send email to user!')
-            self.see_other('account', email)
-        else:
-            server.send(account['email'],
-                        ADD_TITLE % settings['SITE_NAME'],
-                        ADD_TEXT % data)
-            self.see_other('account', email)
+                server = utils.EmailServer()
+                server.send(account['email'],
+                            ADD_TITLE % settings['SITE_NAME'],
+                            ADD_TEXT % data)
+            except ValueError:
+                self.set_error_flash('Could not send email to user!')
+        self.see_other('account', email)
 
 
 class AccountEdit(AccountMixin, RequestHandler):

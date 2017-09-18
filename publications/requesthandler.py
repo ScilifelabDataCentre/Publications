@@ -256,6 +256,9 @@ class RequestHandler(tornado.web.RequestHandler):
         result['entity'] = 'account'
         result['iuid'] = account['_id']
         result['email'] = account['email']
+        result['role'] = account['role']
+        result['status'] = account.get('disabled') and 'disabled' or 'enabled'
+        result['login'] = account.get('login')
         if full:
             result['timestamp'] = utils.timestamp()
             result['labels'] = labels = []
