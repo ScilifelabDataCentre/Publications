@@ -182,7 +182,7 @@ class AccountAdd(RequestHandler):
             self.set_error_flash(str(msg))
             self.see_other('account_add')
             return
-        if self.get_argument('email'):
+        if self.get_argument('email', False):
             try:
                 data = dict(
                     site=settings['SITE_NAME'],
