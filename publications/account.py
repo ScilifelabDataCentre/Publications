@@ -172,6 +172,7 @@ class AccountAdd(RequestHandler):
             with AccountSaver(rqh=self) as saver:
                 saver.set_email(email)
                 saver['owner'] = email
+                saver['name'] = self.get_argument('name', None)
                 saver['role'] = role
                 labels = set([l['value'] for l in self.get_docs('label/value')])
                 saver['labels'] = sorted(l for l in self.get_arguments('labels')

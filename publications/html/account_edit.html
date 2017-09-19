@@ -25,6 +25,9 @@ Edit '{{ account['email'] }}'
     <div class="col-sm-11">
       <input type="text" name="name" id="name" size="40"
 	     value="{{ account.get('name') or '' }}">
+      <span class="help-block">
+	The user's name, written as usual, e.g. <i>Per Kraulis</i>.
+      </span>
     </div>
   </div>
 

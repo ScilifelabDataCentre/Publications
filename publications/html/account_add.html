@@ -28,6 +28,16 @@ Add account
     </div>
   </div>
 
+  <div class="form-group">
+    <label class="control-label col-sm-1" for="name">Name</label>
+    <div class="col-sm-11">
+      <input type="text" name="name" id="name" size="40">
+      <span class="help-block">
+	The user's name, written as usual, e.g. <i>Per Kraulis</i>.
+      </span>
+    </div>
+  </div>
+
   <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="role">Role</label>
     <div class="col-sm-11">
@@ -40,10 +50,19 @@ Add account
       {% end %}
       <span class="help-block">
 	<strong>admin</strong> may do anything, including adding accounts, 
-	changing account role and editing publications.
+	disabling accounts, editing publications and labels.
+        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#admin"
+           target="_">
+          <span class="glyphicon glyphicon-info-sign"></span>
+          Explain "admin"
+        </a>
 	<br>
-	<strong>curator</strong> may add publications and edit publications
-	in their groups.
+	<strong>curator</strong> may add, edit and delete publications.
+        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#curator"
+           target="_">
+          <span class="glyphicon glyphicon-info-sign"></span>
+          Explain "curator"
+        </a>
       </span>
     </div>
   </div>
@@ -51,7 +70,7 @@ Add account
   <div class="form-group">
     <label class="control-label col-sm-1" for="labels">Labels</label>
     <div class="col-sm-6">
-      <select multiple class="form-control" name="labels" id="labels">
+      <select multiple size="8" class="form-control" name="labels" id="labels">
 	{% for label in all_labels %}
 	<option>{{ label }}</option>
 	{% end %} {# for label #}

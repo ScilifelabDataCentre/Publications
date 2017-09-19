@@ -19,7 +19,14 @@
       </tr>
       <tr>
 	<th>Role</th>
-	<td>{{ account['role'] }}</td>
+	<td>
+          {{ account['role'] }}
+          <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#{{ account['role'] }}"
+             target="_">
+            <span class="glyphicon glyphicon-info-sign"></span>
+            Explain
+          </a>
+        </td>
       </tr>
       <tr>
 	<th>Labels</th>
