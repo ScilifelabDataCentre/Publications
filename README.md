@@ -52,19 +52,19 @@ Features
 Implementation
 --------------
 
-### Frontend (via CDN's)
+### Front-end (via CDN's)
 
 - [Bootstrap 3](https://getbootstrap.com/docs/3.3/)
 - [jQuery](https://jquery.com/)
-- [jQuery UI](https://jqueryui.com/),
+- [jQuery UI](https://jqueryui.com/)
 - [DataTables](https://datatables.net/)
 
-### Back-end
+### Back-end (installed on server)
 
 - [Python 2.7](https://www.python.org/)
 - [tornado 4](http://www.tornadoweb.org/en/stable/)
 - [CouchDB 1.6](http://couchdb.apache.org/)
-- [Python CouchDB 1.1](https://pypi.python.org/pypi/CouchDB/1.1)
+- [CouchDB-python 1.1](https://pypi.python.org/pypi/CouchDB/1.1)
 - [pyyaml](https://pypi.python.org/pypi/PyYAML)
 - [requests](http://docs.python-requests.org/en/master/)
 
