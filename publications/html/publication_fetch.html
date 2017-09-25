@@ -41,6 +41,7 @@ Fetch data for publication
       </button>
     </div>
   </div>
+
   <div class="form-group">
     <label class="col-sm-2 control-label" for="verify">Verify</label>
     <div class="col-sm-8 checkbox">
@@ -48,6 +49,7 @@ Fetch data for publication
 	<input type="checkbox" name="verify" id="verify" value="true">
         Immediately set any newly imported publication references as
         verified.
+        <br>
         <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#verified"
            target="_">
           <span class="glyphicon glyphicon-info-sign"></span>
@@ -56,6 +58,7 @@ Fetch data for publication
       </label>
     </div>
   </div>
+
   <div class="form-group">
     <label class="col-sm-2 control-label" for="override">Override</label>
     <div class="col-sm-8 checkbox">
@@ -63,6 +66,7 @@ Fetch data for publication
 	<input type="checkbox" name="override" id="override" value="true">
 	Fetch the publication data overriding its current blacklisted status,
 	if any.
+        <br>
         <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#override"
            target="_">
           <span class="glyphicon glyphicon-info-sign"></span>
@@ -71,6 +75,49 @@ Fetch data for publication
       </label>
     </div>
   </div>
+
+  <div class="form-group">
+    <label class="control-label col-sm-2">Labels</label>
+    <div class=" col-sm-8">
+      {% set checked = not is_admin and 'checked' or '' %}
+      {% for label in sorted(labels) %}
+      <div class="checkbox">
+	<label>
+	  <input type="checkbox" {{ checked }}
+                 name="labels" value="{{ label }}">{{ label }}
+	</label>
+      </div>
+      {% if settings['SITE_LABEL_QUALIFIERS'] %}
+      <div style="padding-left: 2em;">
+	<label class="radio-inline">
+          {% set qual = settings['SITE_LABEL_QUALIFIERS'][0] %}
+          {% set checked = not is_admin and 'checked' or '' %}
+	  <input type="radio" {{ checked }}
+                 name="{{ label }}_qualifier" value="{{ qual }}">{{ qual }}
+	</label>
+	{% for qual in settings['SITE_LABEL_QUALIFIERS'][1:] %}
+	<label class="radio-inline">
+	  <input type="radio"
+                 name="{{ label }}_qualifier" value="{{ qual }}">{{ qual }}
+	</label>
+	{% end %}
+      </div>
+      {% end %} {# if settings['SITE_LABEL_QUALIFIERS'] #}
+      {% end %} {# for label #}
+      <br>
+      <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#label"
+         target="_">
+        <span class="glyphicon glyphicon-info-sign"></span>
+        Explain "label"
+      </a>
+      <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#qualifier"
+         target="_">
+        <span class="glyphicon glyphicon-info-sign"></span>
+        Explain "qualifier"
+      </a>
+    </div>
+  </div>
+
 </form>
 
 {% if publications %}

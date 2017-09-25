@@ -449,7 +449,7 @@ class PublicationAdd(PublicationMixin, RequestHandler):
         self.see_other('publication', publication['_id'])
 
 
-class PublicationFetch(RequestHandler):
+class PublicationFetch(PublicationMixin, RequestHandler):
     "Fetch publication(s) given list of DOIs or PMIDs."
 
     def get(self):
@@ -459,7 +459,9 @@ class PublicationFetch(RequestHandler):
                              last=utils.today(-1),
                              descending=True,
                              limit=settings['PUBLICATIONS_FETCHED_LIMIT'])
-        self.render('publication_fetch.html', publications=docs)
+        self.render('publication_fetch.html', 
+                    labels=self.get_allowed_labels(),
+                    publications=docs)
 
     def post(self):
         self.check_curator()
