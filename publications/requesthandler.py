@@ -147,9 +147,13 @@ class RequestHandler(tornado.web.RequestHandler):
         if not email: return None
         account = self.get_account(email)
         # Check if login session is invalidated.
-        if account.get('login') is None: raise KeyError
+        if account.get('login') is None:
+            self.set_secure_cookie(constants.USER_COOKIE, '')
+            raise KeyError
         # Check if disabled
-        if account.get('disabled'): raise KeyError
+        if account.get('disabled'):
+            self.set_secure_cookie(constants.USER_COOKIE, '')
+            raise KeyError
         return account
 
     def get_current_user_basic(self):
@@ -172,7 +176,9 @@ class RequestHandler(tornado.web.RequestHandler):
         except (IndexError, ValueError, TypeError):
             raise KeyError
         # Check if disabled
-        if account.get('disabled'): raise KeyError
+        if account.get('disabled'):
+            self.set_secure_cookie(constants.USER_COOKIE, '')
+            raise KeyError
         return account
 
     def get_logs(self, iuid):

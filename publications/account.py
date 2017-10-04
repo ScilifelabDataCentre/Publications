@@ -15,7 +15,7 @@ from .requesthandler import RequestHandler
 
 ADD_TITLE = "A new account in the website %s"
 
-ADD_TEXT = """An account %(email)s in the website %(site)s has been created.
+ADD_TEXT = """An account %(email)s in the %(site)s website %(site_url)s has been created.
 
 To set the password, go to %(link)s and provide it.
 
@@ -24,7 +24,16 @@ Or, go to %(url)s and fill in the one-time code %(code)s manually and provide yo
 /The %(site)s administrator.
 """
 
-RESET_TEXT = """The password for your account %(email)s in the website %(site)s has been reset.
+RESET_TEXT = """The password for your account %(email)s in the %(site)s website %(site_url)s has been reset.
+
+To set a new password, go to %(link)s and provide your new password.
+
+Or, go to %(url)s and fill in the one-time code %(code)s manually and provide your new password.
+
+/The %(site)s administrator.
+"""
+
+ENABLED_TEXT = """Your account %(email)s in the %(site)s website %(site_url)s has been enabled.
 
 To set a new password, go to %(link)s and provide your new password.
 
@@ -184,21 +193,22 @@ class AccountAdd(RequestHandler):
             self.see_other('account_add')
             return
         if self.get_argument('email', False):
+            data = dict(site=settings['SITE_NAME'],
+                        site_url=self.absolute_reverse_url('home'),
+                        email=account['email'],
+                        code=account['code'],
+                        url=self.absolute_reverse_url('account_password'),
+                        link=self.absolute_reverse_url('account_password',
+                                                       account=account['email'],
+                                                       code=account['code']))
             try:
-                data = dict(
-                    site=settings['SITE_NAME'],
-                    email=account['email'],
-                    code=account['code'],
-                    url=self.absolute_reverse_url('account_password'),
-                    link=self.absolute_reverse_url('account_password',
-                                                   account=account['email'],
-                                                   code=account['code']))
                 server = utils.EmailServer()
+            except ValueError:
+                self.set_error_flash('Could not send email to user!')
+            else:
                 server.send(account['email'],
                             ADD_TITLE % settings['SITE_NAME'],
                             ADD_TEXT % data)
-            except ValueError:
-                self.set_error_flash('Could not send email to user!')
         self.see_other('account', email)
 
 
@@ -292,6 +302,7 @@ class AccountReset(RequestHandler):
         with AccountSaver(account, rqh=self) as saver:
             saver.reset_password()
         data = dict(site=settings['SITE_NAME'],
+                    site_url=self.absolute_reverse_url('home'),
                     email=account['email'],
                     code=account['code'],
                     url=self.absolute_reverse_url('account_password'),
@@ -302,12 +313,12 @@ class AccountReset(RequestHandler):
             server = utils.EmailServer()
         except ValueError:
             self.set_error_flash(EMAIL_ERROR)
-            self.see_other('home')
         else:
             server.send(account['email'],
-                        "Reset your password in website %s" % settings['SITE_NAME'],
+                       "Reset your password in website %s" 
+                        % settings['SITE_NAME'],
                         RESET_TEXT % data)
-            self.see_other('home')
+        self.see_other('home')
 
 
 class AccountPassword(RequestHandler):
@@ -369,7 +380,7 @@ class AccountDisable(RequestHandler):
 
 
 class AccountEnable(RequestHandler):
-    "Enable the account. Password is not touched."
+    "Enable the account, reset the password, and send email about it."
 
     @tornado.web.authenticated
     def post(self, email):
@@ -385,4 +396,22 @@ class AccountEnable(RequestHandler):
             return
         with AccountSaver(account, rqh=self) as saver:
             del saver['disabled']
+            saver.reset_password()
+        data = dict(site=settings['SITE_NAME'],
+                    site_url=self.absolute_reverse_url('home'),
+                    email=account['email'],
+                    code=account['code'],
+                    url=self.absolute_reverse_url('account_password'),
+                    link=self.absolute_reverse_url('account_password',
+                                                   account=account['email'],
+                                                   code=account['code']))
+        try:
+            server = utils.EmailServer()
+        except ValueError:
+            self.set_error_flash(EMAIL_ERROR)
+        else:
+            server.send(account['email'],
+                       "Enabled your account in website %s" 
+                        % settings['SITE_NAME'],
+                       ENABLED_TEXT % data)
         self.see_other('account', email)
