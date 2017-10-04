@@ -38,7 +38,9 @@ Accounts
       </td>
       <td>{{ account['role'] }}</td>
       <td class="nobr" width="25%">
-	{% if account.get('login') %}
+        {% if account.get('disabled' %}
+        <span class="text-danger"><strong>Disabled<strong></span>
+	{% elif account.get('login') %}
 	<span class="localtime">{{ account['login'] }}</span>
 	{% else %}
 	-
