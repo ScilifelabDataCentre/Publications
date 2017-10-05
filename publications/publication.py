@@ -99,10 +99,14 @@ class PublicationSaver(Saver):
     def set_labels(self, allowed_labels):
         "Set labels from form data."
         assert self.rqh, 'requires http request context'
-        labels = dict()
-        for label in self.rqh.get_arguments('label'):
-            if label not in allowed_labels: continue
-            labels[label] = self.rqh.get_argument("%s_qualifier" % label, None)
+        labels = self.doc['labels'].copy()
+        use_labels = set(self.rqh.get_arguments('label'))
+        for label in allowed_labels:
+            if label in use_labels:
+                labels[label] = self.rqh.get_argument("%s_qualifier" % label,
+                                                      None)
+            else:
+                labels.pop(label, None)
         self['labels'] = labels
 
     def fix_journal(self):
