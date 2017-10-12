@@ -4,7 +4,6 @@ from __future__ import print_function
 
 from collections import OrderedDict as OD
 import csv
-import logging
 from cStringIO import StringIO
 
 import requests
@@ -310,7 +309,6 @@ class PublicationsCsv(Publications):
             publications = kept
         publications.sort(key=lambda p: p.get('published'), reverse=True)
         csvbuffer = StringIO()
-        logging.debug("delimiter %s, encoding %s", delimiter, encoding)
         writer = csv.writer(csvbuffer, delimiter=delimiter)
         row = ['Title',
                'Authors',
@@ -370,11 +368,11 @@ class PublicationsCsv(Publications):
                 for label, qualifier in zip(labels, qualifiers):
                     row[11] = label.encode(encoding, errors='replace')
                     row[12] = qualifier.encode(encoding, errors='replace')
-                    writer.writerow(row)
+                    utils.write_safe_csv_row(writer, row)
             else:
                 row[11] = ', '.join(labels).encode(encoding, errors='replace')
                 row[12] = ', '.join([q for q in qualifiers if q])
-                writer.writerow(row)
+                utils.write_safe_csv_row(writer, row)
         self.write(csvbuffer.getvalue())
         self.set_header('Content-Type', constants.CSV_MIME)
         self.set_header('Content-Disposition', 
