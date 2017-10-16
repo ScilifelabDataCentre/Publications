@@ -70,12 +70,7 @@ class Label(RequestHandler):
             self.see_other('labels', error=str(msg))
             return
         value = label['value']
-        self.delete_entity(label)
-        for account in self.get_docs('account/label', key=value.lower()):
-            with AccountSaver(account, rqh=self) as saver:
-                labels = set(account['labels'])
-                labels.discard(value)
-                saver['labels'] = sorted(labels)
+        # Do it in this order; safer if interrupted.
         for publication in self.get_docs('publication/label',
                                          key=value.lower()):
             with PublicationSaver(publication, rqh=self) as saver:
@@ -83,6 +78,12 @@ class Label(RequestHandler):
                 labels.pop(value, None)
                 labels.pop(value.lower(), None)
                 saver['labels'] = labels
+        for account in self.get_docs('account/label', key=value.lower()):
+            with AccountSaver(account, rqh=self) as saver:
+                labels = set(account['labels'])
+                labels.discard(value)
+                saver['labels'] = sorted(labels)
+        self.delete_entity(label)
         self.see_other('labels')
 
 
