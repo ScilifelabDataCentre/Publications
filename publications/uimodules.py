@@ -26,7 +26,7 @@ class Journal(tornado.web.UIModule):
             url = self.handler.reverse_url('journal', title)
             result = ['<a href="%s">%s</a>' % (url, title)]
         else:
-            ['-']
+            result = ['-']
         result.append("<strong>%s</strong>" % (journal.get('volume') or '-'))
         result.append("(%s)" % (journal.get('issue') or '-'))
         result.append(journal.get('pages') or '-')
