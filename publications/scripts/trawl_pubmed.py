@@ -68,9 +68,6 @@ YEAR = '2017'
 PUBL_DIR = 'publ' + YEAR
 PUBMED_DIR = 'pubmed' + YEAR
 
-# Example accounts file, for testing
-# ACCOUNTS_FILENAME = 'accounts_example.csv'
-
 # Accounts (authors) CSV file, as output from OrderPortal
 ACCOUNTS_FILENAME = 'accounts.csv'
 EMAIL_COL = 0
@@ -152,10 +149,18 @@ def search_pubmed(accounts, universities, year=YEAR, verbose=True):
         try:
             unis = universities[account['university'].upper()]
         except KeyError:
-            unis = [account['university']]
+            if account['university']:
+                unis = [account['university']]
+            else:
+                unis = []
         pmids = set()
-        for uni in unis:
-            pmids.update(search(author=name, published=year, affiliation=uni))
+        kwargs = dict(author=name, published=year)
+        if unis:
+            for uni in unis:
+                kwargs['affiliation'] = uni
+                pmids.update(search(**kwargs))
+        else:
+            pmids.update(search(**kwargs))
         if verbose:
             print(name, ':', len(pmids))
         entries = [fetch(pmid) for pmid in pmids]
