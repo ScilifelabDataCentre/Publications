@@ -1,0 +1,24 @@
+Extract out of NGI Sweden Order Portal,2017-10-18T09:06:14.686Z
+Email,Last name,First name,Role,Status,Order count,University,Department,PI,Gender,Group size,Subject,Address,Zip,City,Country,Invoice ref,Invoice address,Invoice zip,Invoice city,Invoice country,Phone,Other data,Latest login,Modified,Created
+joakim.lundeberg@scilifelab.se,Lundeberg,Joakim,user,enabled,6,KTH,,no,,,,SciLifeLab,17165,Solna,SE,,SciLifeLab,17165,Solna,SE,,"old portal name: Joakim Lundeberg
+old portal uid: 206",,2016-04-29T12:06:14.989Z,2013-04-30T16:28:11Z
+anders.andersson@scilifelab.se,Andersson,Anders,user,enabled,23,KTH,,no,,,1: Natural sciences,"Science for Life Laboratory
+PO Box 1031",SE-171 21,SOLNA,SE,,"Science for Life Laboratory
+PO Box 1031",SE-171 21,SOLNA,SE,,"old portal name: Anders Andersson
+old portal uid: 68",2017-03-27T20:14:54.999Z,2017-03-27T20:14:54.999Z,2013-02-10T20:54:49Z
+anna.wedell@ki.se,Wedell,Anna,user,enabled,8,KI,,no,,,,"CMMS, L7:05
+Karolinska University Hospital",17176,Stockholm,SE,,"CMMS, L7:05
+Karolinska University Hospital",17176,Stockholm,SE,,"old portal name: Anna Wedell
+old portal uid: 114",,2016-04-29T12:58:18.880Z,2013-03-14T13:17:39Z
+anders.blomberg@cmb.gu.se,Blomberg,Anders,user,enabled,72,GU,Dept. of Marine Sciences,yes,male,,106: Biological Sciences,"Dept. Marine Sciences
+Box 462, Medicinaregatan 9c",405 30,Göteborg,SE,,"beställar ID: 3150BBLOAN
+Göteborgs universitet
+Marina vetenskaper
+Box 1023",831 29,Östersund,SE,0733 604624,"old portal name: bloan
+old portal uid: 435",2017-09-12T12:54:02.214Z,2017-09-12T12:54:02.214Z,2013-07-03T15:47:45Z
+fredrik.swartling@igp.uu.se,Swartling,Fredrik,user,enabled,20,UU,"Immunology, Genetics and Pathology",yes,,,1: Natural sciences,"Rudbeck Laboratory
+Ref. 462FSW",751 85,Uppsala,SE,,"Rudbeck Laboratory
+Ref. 462FSW",751 85,Uppsala,SE,46-18-4714868,"old portal name: Fredrik Swartling
+old portal uid: 608",2017-09-20T19:56:48.559Z,2017-09-20T19:56:48.559Z,2013-09-24T12:41:49Z
+jemt@kth.se,Jemt,Anders,user,enabled,6,KTH,Genteknologi,no,,,1: Natural sciences,Tomtebodavägen 23,17165,Stockholm,SE,,Tomtebodavägen 23,17165,Stockholm,SE,,"old portal name: jemt
+old portal uid: 599",,2016-04-29T11:26:15.170Z,2013-09-19T16:56:15Z
