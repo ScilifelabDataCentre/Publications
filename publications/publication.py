@@ -100,14 +100,12 @@ class PublicationSaver(Saver):
         assert self.rqh, 'requires http request context'
         labels = self.doc.get('labels', {}).copy()
         use_labels = set(self.rqh.get_arguments('label'))
-        print(use_labels)
         for label in allowed_labels:
             if label in use_labels:
                 labels[label] = self.rqh.get_argument("%s_qualifier" % label,
                                                       None)
             else:
                 labels.pop(label, None)
-        print(labels)
         self['labels'] = labels
 
     def fix_journal(self):
@@ -544,17 +542,11 @@ class PublicationFetch(PublicationMixin, RequestHandler):
                     for key in new:
                         saver[key] = new[key]
                     saver.fix_journal()
-                    if self.current_user['role'] == constants.CURATOR:
-                        saver.set_labels(self.get_allowed_labels())
+                    saver.set_labels(self.get_allowed_labels())
             # Else create a new entry.
             else:
                 with PublicationSaver(new, rqh=self) as saver:
-                    # If curator, set all its labels for this publication.
-                    if self.current_user['role'] == constants.CURATOR:
-                        saver.set_labels(self.get_allowed_labels())
-                    # If admin, do not set any labels
-                    else:
-                        saver['labels'] = {}
+                    saver.set_labels(self.get_allowed_labels())
                     saver.fix_journal()
                     saver['verified'] = verify
         kwargs = {}
