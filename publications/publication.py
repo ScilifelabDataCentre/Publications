@@ -112,6 +112,7 @@ class PublicationSaver(Saver):
         """Set the appropriate journal title and ISSN if not done.
         Creates the journal entity if it does not exist."""
         assert self.rqh, 'requires http request context'
+        doc = None
         journal = self['journal'].copy()
         issn = journal.get('issn')
         title = journal.get('title')
@@ -127,8 +128,6 @@ class PublicationSaver(Saver):
                     else:
                         if issn != doc['issn']:
                             journal['issn'] = doc['issn']
-                else:
-                    doc = None
             else:
                 if title != doc['title']:
                     journal['title'] = doc['title']
