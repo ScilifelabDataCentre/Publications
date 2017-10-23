@@ -141,8 +141,8 @@ def search_pubmed(accounts, universities, year=YEAR, verbose=True):
         outfilename = os.path.join(PUBL_DIR, "%s.csv" % account['email'])
         if os.path.exists(outfilename): continue
 
-        name = [account['lastname']]
-        initials = ''.join([n[0] for n in account['firstname'].split()])
+        name = [to_unicode(account['lastname'])]
+        initials = ''.join([n[0] for n in to_unicode(account['firstname']).split()])
         if initials:
             name.append(initials)
         name = ' '.join(name)
