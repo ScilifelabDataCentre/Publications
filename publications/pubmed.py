@@ -53,6 +53,7 @@ def search(author=None, published=None, journal=None, doi=None,
 
 def fetch(pmid, dirname=None, delay=None):
     """Fetch publication XML from PubMed and parse into a dictionary.
+    Return None if no article data in XML.
     Use the file cache directory if given.
     Delay the HTTP request if positive value (seconds).
     """
@@ -79,9 +80,12 @@ def fetch(pmid, dirname=None, delay=None):
 
 def parse(data):
     "Parse XML text data for a publication into a dictionary."
-    result = OrderedDict()
     tree = xml.etree.ElementTree.fromstring(data)
-    article = get_element(tree, 'PubmedArticle')
+    try:
+        article = get_element(tree, 'PubmedArticle')
+    except ValueError:
+        raise ValueError('no article with the given PMID')
+    result = OrderedDict()
     result['title']      = get_title(article)
     result['pmid']       = get_pmid(article)
     result['doi']        = None

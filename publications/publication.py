@@ -494,7 +494,7 @@ class PublicationFetch(PublicationMixin, RequestHandler):
             if constants.PMID_RX.match(identifier):
                 try:
                     new = pubmed.fetch(identifier)
-                except (IOError, requests.exceptions.Timeout), msg:
+                except (IOError, ValueError, requests.exceptions.Timeout), msg:
                     errors.append("%s: %s" % (identifier, str(msg)))
                     continue
                 else:

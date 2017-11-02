@@ -34,3 +34,14 @@ search_pubmed.py
 
 Search PubMed using specified criteria and fetch the references
 setting them as unverified. Labels may be applied.
+
+fetch_bulk.py
+-------------
+Fetch many publications given PMID/DOI, label and qualifier.
+The publications are set as verified.
+
+trawl_pubmed.py
+---------------
+Trawl PubMed for publications given a CSV file containing authors.
+Produces a CSV file containing the aggregated publications references.
+Does **not** fetch or otherwise import anything into the database.
