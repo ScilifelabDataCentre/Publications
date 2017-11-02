@@ -24,12 +24,9 @@
     <span class="label label-warning">Unverified</span>
     {% end %}
     {% for l in sorted(publication['labels']) %}
-    <a class="label label-primary"
+    <a class="label label-primary margin-r1"
        href="{{ reverse_url('label', l) }}">
-      {{ l }}
-      {% if publication['labels'][l] %}
-      [{{ publication['labels'][l] }}]
-      {% end %}
+      {{ l }} [{{ publication['labels'][l] or '' }}]
     </a>
     {% end %}
   </div>

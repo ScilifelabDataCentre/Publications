@@ -11,6 +11,7 @@
 	       white-space: normal; }
 
 /* Various */
-.top      {vertical-align: top; }
-.left     {text-align: left; }
-.right    {text-align: right; }
+.top       {vertical-align: top; }
+.left      {text-align: left; }
+.right     {text-align: right; }
+.margin-r1 {margin-right: 1em; }

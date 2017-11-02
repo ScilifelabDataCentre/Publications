@@ -97,7 +97,7 @@ class Saver(object):
     def initialize(self):
         "Set the initial values for the new document."
         try:
-            self.doc['account'] = self.rqh.current_user['email']
+            self.doc['account'] = self.account['email']
         except (TypeError, AttributeError, KeyError):
             self.doc['account'] = None
         self.doc['created'] = utils.timestamp()
@@ -147,6 +147,6 @@ class Saver(object):
         if self.account:
             try:
                 log['account'] = self.account['email']
-            except KeyError:
+            except (TypeError, AttributeError, KeyError):
                 pass
         self.db.save(log)

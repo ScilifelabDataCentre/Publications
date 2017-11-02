@@ -436,7 +436,7 @@ class PublicationAdd(PublicationMixin, RequestHandler):
 
     def post(self):
         self.check_curator()
-        with PublicationSaver(rqh=self,account=self.current_user) as saver:
+        with PublicationSaver(rqh=self) as saver:
             saver.set_title()
             saver.set_authors()
             saver.set_published()

@@ -30,6 +30,9 @@ def fetch_pmid(db, account, pmid):
     Update the existing record, if any. 
     Labels are applied according to the account.
     """
+    if utils.get_blacklisted(db, pmid):
+        print(pmid, 'is blacklisted!')
+        return
     for viewname in ['publication/pmid', 'publication/pmid_unverified']:
         try:
             old = utils.get_doc(db, pmid, viewname=viewname)
@@ -37,13 +40,6 @@ def fetch_pmid(db, account, pmid):
         except KeyError:
             pass
     else:
-        try:
-            doc = utils.get_doc(db, pmid, viewname='trash/pmid')
-        except KeyError:
-            pass
-        else:
-            db.delete(doc)      # There are no log entries to delete.
-            print(pmid, 'de-trashed')
         old = None
     try:
         new = pubmed.fetch(pmid)

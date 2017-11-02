@@ -37,8 +37,8 @@ setting them as unverified. Labels may be applied.
 
 fetch_bulk.py
 -------------
-Fetch many publications given PMID/DOI, label and qualifier.
-The publications are set as verified.
+Fetch publications in bulk from CSV file containing PMID/DOI, label 
+and qualifier. The publications are set as verified.
 
 trawl_pubmed.py
 ---------------

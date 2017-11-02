@@ -4,6 +4,7 @@ from __future__ import print_function
 
 from collections import OrderedDict
 import json
+import time
 import unicodedata
 
 import requests
@@ -13,9 +14,11 @@ CROSSREF_FETCH_URL = 'http://api.crossref.org/works/%s'
 TIMEOUT = 5.0
 
 
-def fetch(doi, debug=False):
+def fetch(doi, debug=False, delay=None):
     "Fetch publication JSON data from Crossref and parse into a dictionary."
     url = CROSSREF_FETCH_URL % doi
+    if delay:
+        time.sleep(delay)
     response = requests.get(url, timeout=TIMEOUT)
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
