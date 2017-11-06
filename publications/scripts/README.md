@@ -45,3 +45,8 @@ trawl_pubmed.py
 Trawl PubMed for publications given a CSV file containing authors.
 Produces a CSV file containing the aggregated publications references.
 Does **not** fetch or otherwise import anything into the database.
+
+check_duplicates.py
+-------------------
+Check for duplicates based on comparing 4 longest words in the title.
+A fast and dirty comparison algorithm.
