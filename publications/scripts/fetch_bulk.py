@@ -49,16 +49,15 @@ def fetch_pmid(db, pmid, label, qualifier):
         utils.get_label(db, label)
     except KeyError:
         print('Error:', pmid, 'label', label, 'does not exist')
-        label = None
+        return
     if qualifier not in settings['SITE_LABEL_QUALIFIERS']:
-        print('Error:', pmid, 'qualifier', qualifier, 'does not exist')
-        qualifier = None
+        print('Warning:', pmid, 'qualifier', qualifier, 'does not exist')
+        qualifier = None        
     old = get_pmid(db, pmid)
     if old:
         with PublicationSaver(old, db=db, account=ACCOUNT) as saver:
             labels = saver.get('labels', {}).copy()
-            if label:
-                labels[label] = qualifier
+            labels[label] = qualifier
             saver['labels'] = labels
             saver['verified'] = True
         print(pmid, 'updated')
@@ -74,8 +73,7 @@ def fetch_pmid(db, pmid, label, qualifier):
         except KeyError:
             with PublicationSaver(new, db=db, account=ACCOUNT) as saver:
                 labels = saver.get('labels', {}).copy()
-                if label:
-                    labels[label] = qualifier
+                labels[label] = qualifier
                 saver['labels'] = labels
                 saver['verified'] = True
             print(pmid, 'fetched')
@@ -101,16 +99,15 @@ def fetch_doi(db, doi, label, qualifier):
         utils.get_label(db, label)
     except KeyError:
         print('Error:', doi, 'label', label, 'does not exist')
-        label = None
+        return
     if qualifier not in settings['SITE_LABEL_QUALIFIERS']:
-        print('Error:', doi, 'qualifier', qualifier, 'does not exist')
+        print('Warning:', doi, 'qualifier', qualifier, 'does not exist')
         qualifier = None
     old = get_doi(db, doi)
     if old:
         with PublicationSaver(old, db=db, account=ACCOUNT) as saver:
             labels = saver.get('labels', {}).copy()
-            if label:
-                labels[label] = qualifier
+            labels[label] = qualifier
             saver['labels'] = labels
             saver['verified'] = True
         print(doi, 'updated')
@@ -126,8 +123,7 @@ def fetch_doi(db, doi, label, qualifier):
         except KeyError:
             with PublicationSaver(new, db=db, account=ACCOUNT) as saver:
                 labels = saver.get('labels', {}).copy()
-                if label:
-                    labels[label] = qualifier
+                labels[label] = qualifier
                 saver['labels'] = labels
                 saver['verified'] = True
             print(doi, 'fetched')
@@ -135,8 +131,7 @@ def fetch_doi(db, doi, label, qualifier):
             with PublicationSaver(old, db=db, account=ACCOUNT) as saver:
                 saver['doi'] = doi
                 labels = saver.get('labels', {}).copy()
-                if label:
-                    labels[label] = qualifier
+                labels[label] = qualifier
                 saver['labels'] = labels
                 saver['verified'] = True
             print(doi, 'set for existing pmid)')
