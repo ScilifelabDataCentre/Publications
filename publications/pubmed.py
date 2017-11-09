@@ -22,8 +22,10 @@ MONTHS = dict(jan=1, feb=2, mar=3, apr=4, may=5, jun=6,
 
 def search(author=None, published=None, journal=None, doi=None,
            affiliation=None, title=None, exclude_title=None,
-           retmax=100):
-    "Get list of PMIDs for PubMed hits given the data."
+           retmax=100, delay=0.0):
+    """Get list of PMIDs for PubMed hits given the data.
+    Delay the HTTP request if positive value (seconds).
+    """
     parts = []
     if author:
         parts.append("%s[AU]" % to_ascii(to_unicode(author)))
@@ -41,6 +43,8 @@ def search(author=None, published=None, journal=None, doi=None,
     if exclude_title:
         query += " NOT %s[TI]" % to_ascii(to_unicode(exclude_title))
     url = PUBMED_SEARCH_URL % (retmax, query)
+    if delay > 0.0:
+        time.sleep(delay)
     try:
         response = requests.get(url, timeout=TIMEOUT)
     except (requests.exceptions.ReadTimeout,
@@ -51,7 +55,7 @@ def search(author=None, published=None, journal=None, doi=None,
     root = xml.etree.ElementTree.fromstring(response.content)
     return [e.text for e in root.findall('IdList/Id')]
 
-def fetch(pmid, dirname=None, delay=None):
+def fetch(pmid, dirname=None, delay=0.0):
     """Fetch publication XML from PubMed and parse into a dictionary.
     Return None if no article data in XML.
     Use the file cache directory if given.
@@ -67,9 +71,13 @@ def fetch(pmid, dirname=None, delay=None):
             pass
     if not content:
         url = PUBMED_FETCH_URL % pmid
-        if delay:
+        if delay > 0.0:
             time.sleep(delay)
-        response = requests.get(url, timeout=TIMEOUT)
+        try:
+            response = requests.get(url, timeout=TIMEOUT)
+        except (requests.exceptions.ReadTimeout,
+                requests.exceptions.ConnectionError):
+            raise IOError('timeout')
         if response.status_code != 200:
             raise IOError("HTTP status %s, %s " % (response.status_code, url))
         content = response.content
