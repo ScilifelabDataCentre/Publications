@@ -4,8 +4,9 @@ init_database.py
 ----------------
 
 Initializes the database. The CouchDB instance must already exist, and
-the account to connect with it must have been created and defined in
-the settings file. **NOTE**: This will clobber any existing data!
+the CouchDB account to connect with it must have been created and
+defined in the settings file. **NOTE**: This will clobber any existing
+data!
 
 load_designs.py
 ---------------
@@ -18,6 +19,11 @@ create_admin.py
 
 Create an account with the 'admin' role.
 
+create_curator.py
+---------------
+
+Create an account with the 'curator' role.
+
 set_password.py
 ---------------
 
@@ -28,12 +34,6 @@ dump.py
 
 Dumps the entires contents of the database in CouchDB, except for the
 design documents.
-
-search_pubmed.py
-----------------
-
-Search PubMed using specified criteria and fetch the references
-setting them as unverified. Labels may be applied.
 
 fetch_bulk.py
 -------------
@@ -50,3 +50,7 @@ check_duplicates.py
 -------------------
 Check for duplicates based on comparing 4 longest words in the title.
 A fast and dirty comparison algorithm.
+
+fix_missing_pmids.py
+--------------------
+Fix missing PMID in all publications by searching for title.
