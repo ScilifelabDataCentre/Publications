@@ -262,7 +262,7 @@ def timestamp(days=None):
     if days:
         instant += datetime.timedelta(days=days)
     instant = instant.isoformat()
-    return instant[:17] + "%06.3f" % float(instant[17:]) + "Z"
+    return instant[:17] + "%07.3f" % float(instant[17:]) + "Z"
 
 def epoch_to_iso(epoch):
     """Convert the given number of seconds since the epoch
