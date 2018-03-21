@@ -276,6 +276,7 @@ class PublicationsCsv(Publications):
         publications = []
         years = self.get_arguments('years')
         all_authors = utils.to_bool(self.get_argument('all_authors', 'false'))
+        issn = utils.to_bool(self.get_argument('issn', 'false'))
         labels = set(self.get_arguments('labels'))
         single_label = utils.to_bool(self.get_argument('single_label','false'))
         delimiter = self.get_argument('delimiter', '').lower()
@@ -309,23 +310,30 @@ class PublicationsCsv(Publications):
         writer = csv.writer(csvbuffer, delimiter=delimiter)
         row = ['Title',
                'Authors',
-               'Journal', 
-               'Year', 
-               'Published',
-               'E-published',
-               'Volume',
-               'Issue',
-               'Pages',
-               'DOI',
-               'PMID',
-               'Labels',        # pos = 11
-               'Qualifiers',    # pos = 12
-               'IUID',
-               'URL',
-               'DOI URL',
-               'PubMed URL',
-            ]
+               'Journal']
+        if issn:
+            row.append('ISSN')
+        row.extend(
+            ['Year', 
+             'Published',
+             'E-published',
+             'Volume',
+             'Issue',
+             'Pages',
+             'DOI',
+             'PMID',
+             'Labels',        # pos = 11 or 12
+             'Qualifiers',    # pos = 12 or 13
+             'IUID',
+             'URL',
+             'DOI URL',
+             'PubMed URL',
+            ])
         writer.writerow(row)
+        if issn:
+            offset = 1
+        else:
+            offset = 0
         for publication in publications:
             year = publication.get('published')
             if year:
@@ -344,31 +352,35 @@ class PublicationsCsv(Publications):
                 publication.get('title'),
                 utils.get_formatted_authors(publication['authors'],
                                             complete=all_authors),
-                journal.get('title'),
-                year,
-                publication.get('published'),
-                publication.get('epublished'),
-                journal.get('volume'),
-                journal.get('issue'),
-                journal.get('pages'),
-                publication.get('doi'),
-                publication.get('pmid'),
-                '',             # pos = 11
-                '',             # pos = 12
-                publication['_id'],
-                self.absolute_reverse_url('publication', publication['_id']),
-                doi_url,
-                pubmed_url,
-            ]
+                journal.get('title')]
+            if issn:
+                row.append(journal.get('issn'))
+            row.extend(
+                [year,
+                 publication.get('published'),
+                 publication.get('epublished'),
+                 journal.get('volume'),
+                 journal.get('issue'),
+                 journal.get('pages'),
+                 publication.get('doi'),
+                 publication.get('pmid'),
+                 '',             # pos = 11 or 12
+                 '',             # pos = 12 or 13
+                 publication['_id'],
+                 self.absolute_reverse_url('publication', publication['_id']),
+                 doi_url,
+                 pubmed_url,
+                ]
+            )
             row = [(i or '').encode(encoding, errors='replace') for i in row]
             if single_label:
                 for label, qualifier in zip(labels, qualifiers):
-                    row[11] = label.encode(encoding, errors='replace')
-                    row[12] = qualifier.encode(encoding, errors='replace')
+                    row[11+offset] = label.encode(encoding, errors='replace')
+                    row[12+offset] = qualifier.encode(encoding, errors='replace')
                     utils.write_safe_csv_row(writer, row)
             else:
-                row[11] = ', '.join(labels).encode(encoding, errors='replace')
-                row[12] = ', '.join([q for q in qualifiers if q])
+                row[11+offset] = ', '.join(labels).encode(encoding, errors='replace')
+                row[12+offset] = ', '.join([q for q in qualifiers if q])
                 utils.write_safe_csv_row(writer, row)
         self.write(csvbuffer.getvalue())
         self.set_header('Content-Type', constants.CSV_MIME)
