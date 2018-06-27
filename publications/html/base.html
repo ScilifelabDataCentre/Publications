@@ -5,22 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block head_title %}{{ title }}{% end %}</title>
     <link rel="shortcut icon" type="image/png" href="{{ reverse_url('site', 'favicon.png') }}">
-    <link rel="stylesheet" href="{{ settings['JQUERY_CSS'] }}">
-    <link rel="stylesheet" href="{{ settings['BOOTSTRAP_CSS'] }}">
-    <link rel="stylesheet" href="{{ settings['BOOTSTRAP_THEME_CSS'] }}">
-    <link rel="stylesheet" href="{{ settings['DATATABLES_CSS'] }}">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.13/css/dataTables.bootstrap.min.css">
     <link rel="stylesheet" href="{{ static_url('publications.css') }}">
     {# NOTE: jQuery JS has to be loaded before bootstrap JS! #}
-    <script src="{{ settings['JQUERY_JS'] }}"></script>
-    <script src="{{ settings['JQUERY_UI_JS'] }}"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="{{ static_url('jquery.localtime-0.9.1.min.js') }}"></script>
     <script>
       $.datepicker.setDefaults({dateFormat: "yy-mm-dd"});
       $(function(){ $(".datepicker").datepicker(); });
     </script>
-    <script defer src="{{ settings['BOOTSTRAP_JS'] }}"></script>
-    <script defer src="{{ settings['DATATABLES_JQUERY_JS'] }}"></script>
-    <script defer src="{{ settings['DATATABLES_BOOTSTRAP_JS'] }}"></script>
+    <script defer src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script defer src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
+    <script defer src="https://cdn.datatables.net/1.10.13/js/dataTables.bootstrap.min.js"></script>
   </head>
 
   <body>
