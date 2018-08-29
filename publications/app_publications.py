@@ -12,7 +12,6 @@ import tornado.ioloop
 from publications import settings
 from publications import uimodules
 from publications import utils
-from publications.requesthandler import RequestHandler
 
 from publications.home import (Home,
                                Contact)
