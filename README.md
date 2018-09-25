@@ -48,7 +48,6 @@ Features
 - The publications data can be extracted in JSON and CSV formats. The
   CSV format allows some basic filtering options.
 
-
 Implementation
 --------------
 
