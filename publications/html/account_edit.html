@@ -75,8 +75,20 @@ Edit '{{ account['email'] }}'
   {% end %} {# if is_admin #}
 
   <div class="form-group">
-    <div class="col-md-11 col-md-offset-1">
-      <button type="submit" class="btn btn-success">
+    <label class="control-label col-sm-1" for="api_key">API&nbsp;key</label>
+    <div class="col-sm-11">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" name="api_key" id="api_key" value="true">
+          Renew the API key.
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-11 col-sm-offset-1">
+      <button type="submit" class="btn btn-lg btn-success">
 	<span class="glyphicon glyphicon-save"></span>
 	Save
       </button>

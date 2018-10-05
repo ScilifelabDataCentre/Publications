@@ -94,6 +94,7 @@ class Journal(JournalMixin, RequestHandler):
                     publications=publications,
                     duplicates=duplicates)
 
+    @tornado.web.authenticated
     def post(self, title):
         if self.get_argument('_http_method', None) == 'delete':
             self.delete(title)
@@ -101,6 +102,7 @@ class Journal(JournalMixin, RequestHandler):
         raise tornado.web.HTTPError(
             405, reason='Internal problem; POST only allowed for DELETE.')
 
+    @tornado.web.authenticated
     def delete(self, title):
         try:
             journal = self.get_doc(title, 'journal/title')
@@ -152,6 +154,7 @@ class JournalEdit(JournalMixin, RequestHandler):
                     is_deletable=self.is_deletable(journal),
                     journal=journal)
 
+    @tornado.web.authenticated
     def post(self, title):
         try:
             journal = self.get_journal(title)

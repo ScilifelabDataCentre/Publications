@@ -15,7 +15,7 @@ from . import pubmed
 from . import settings
 from . import utils
 from .saver import Saver, SaverError
-from .requesthandler import RequestHandler
+from .requesthandler import RequestHandler, ApiMixin
 
 
 class PublicationSaver(Saver):
@@ -95,19 +95,6 @@ class PublicationSaver(Saver):
         assert self.rqh, 'requires http request context'
         self['abstract'] = self.rqh.get_argument('abstract', '') or None
 
-    def set_labels(self, allowed_labels):
-        "Set labels from form data."
-        assert self.rqh, 'requires http request context'
-        labels = self.doc.get('labels', {}).copy()
-        use_labels = set(self.rqh.get_arguments('label'))
-        for label in allowed_labels:
-            if label in use_labels:
-                labels[label] = self.rqh.get_argument("%s_qualifier" % label,
-                                                      None)
-            else:
-                labels.pop(label, None)
-        self['labels'] = labels
-
     def fix_journal(self):
         """Set the appropriate journal title and ISSN if not done.
         Creates the journal entity if it does not exist."""
@@ -134,7 +121,7 @@ class PublicationSaver(Saver):
         self['journal'] = journal
         # Create journal entity if it does not exist, and if sufficient data.
         if doc is None and issn and title:
-            # Done here to avoid circular import
+            # Import done here to avoid circularity.
             from publications.journal import JournalSaver
             with JournalSaver(db=self.db) as saver:
                 saver['issn'] = issn
@@ -162,12 +149,112 @@ class PublicationMixin(object):
         if self.is_deletable(publication): return
         raise ValueError('You may not delete the publication.')
 
+    def get_form_labels(self, publication=None):
+        "Get labels from form input and allowed for the account."
+        allowed_labels = self.get_allowed_labels()
+        if publication:
+            labels = publication.get('labels', {}).copy()
+        else:
+            labels = {}
+        use_labels = set(self.get_arguments('label'))
+        for label in allowed_labels:
+            if label in use_labels:
+                labels[label] = self.get_argument("%s_qualifier" % label, None)
+            else:
+                labels.pop(label, None)
+        return labels
+
     def get_allowed_labels(self):
         "Get the set of allowed labels for the account."
         if self.is_admin():
             return set([l['value'] for l in self.get_docs('label/value')])
         else:
             return set(self.current_user['labels'])
+
+    def fetch(self, identifier, override=False, verify=False, labels={}):
+        """Fetch the publication given by identifier (PMID or DOI).
+        override: If True, overrides the blacklist.
+        verify: Set the verified flag of a new publication.
+        labels: Dictionary of labels (key: label, value: qualifier) to set.
+        Raise IOError if no such publication found, or other error.
+        Raise KeyError if publication is in the blacklist (and not override).
+        """
+        # If identifier in blacklist registry, skip unless override
+        blacklisted = self.get_blacklisted(identifier)
+        if blacklisted:
+            if override:
+                self.db.delete(blacklisted)
+            else:
+                raise KeyError(identifier)
+        # Has it already been fetched?
+        try:
+            old = self.get_publication(identifier, unverified=True)
+        except KeyError:
+            old = None
+        # Fetch from external source according to identifier type.
+        if constants.PMID_RX.match(identifier):
+            try:
+                new = pubmed.fetch(identifier)
+            except (IOError, ValueError, requests.exceptions.Timeout), msg:
+                raise IOError("%s: %s" % (identifier, str(msg)))
+            else:
+                if old is None:
+                    # Maybe the publication has been loaded by DOI?
+                    try:
+                        old = self.get_publication(new.get('doi'))
+                    except KeyError:
+                        pass
+        # Not PMID, must be DOI
+        else:
+            try:
+                new = crossref.fetch(identifier)
+            except (IOError, requests.exceptions.Timeout), msg:
+                raise IOError("%s: %s" % (identifier, str(msg)))
+            else:
+                if old is None:
+                    # Maybe the publication has been loaded by PMID?
+                    try:
+                        old = self.get_publication(new.get('pmid'))
+                    except KeyError:
+                        pass
+        # Check blacklist registry again; other external id may be there.
+        blacklisted = self.get_blacklisted(new.get('pmid'))
+        if blacklisted:
+            if override:
+                self.db.delete(blacklisted)
+            else:
+                raise KeyError(identifier)
+        blacklisted = self.get_blacklisted(new.get('doi'))
+        if blacklisted:
+            if override:
+                self.db.delete(blacklisted)
+            else:
+                raise KeyError(identifier)
+        allowed_labels = self.get_allowed_labels()
+        for label, qualifier in labels.items():
+            if label not in allowed_labels:
+                labels.pop(label)
+            elif qualifier not in settings['SITE_LABEL_QUALIFIERS']:
+                labels[label] = None
+        # Update the existing entry.
+        if old:
+            updated_labels = old['labels'].copy()
+            updated_labels.update(labels)
+            with PublicationSaver(old, rqh=self) as saver:
+                for key in new:
+                    saver[key] = new[key]
+                saver.fix_journal()
+                saver['labels'] = updated_labels
+                if verify:      # Do not swap back to unverified.
+                    saver['verified'] = True
+            return old
+        # Else create a new entry.
+        else:
+            with PublicationSaver(new, rqh=self) as saver:
+                saver.fix_journal()
+                saver['labels'] = labels
+                saver['verified'] = verify
+            return new
 
 
 class Publication(PublicationMixin, RequestHandler):
@@ -185,12 +272,14 @@ class Publication(PublicationMixin, RequestHandler):
                     is_editable=self.is_editable(publication),
                     is_deletable=self.is_deletable(publication))
 
+    @tornado.web.authenticated
     def post(self, identifier):
         if self.get_argument('_http_method', None) == 'delete':
             self.delete(identifier)
             return
         raise tornado.web.HTTPError(405, reason='POST only allowed for DELETE')
 
+    @tornado.web.authenticated
     def delete(self, identifier):
         try:
             publication = self.get_publication(identifier)
@@ -271,6 +360,7 @@ class PublicationsCsv(Publications):
                     all_labels=sorted([l['value']
                                        for l in self.get_docs('label/value')]))
 
+    # authentication is *not* required!
     def post(self):
         "Produce CSV output."
         publications = []
@@ -442,10 +532,12 @@ class PublicationsModified(PublicationMixin, RequestHandler):
 class PublicationAdd(PublicationMixin, RequestHandler):
     "Add a publication by hand."
 
+    @tornado.web.authenticated
     def get(self):
         self.check_curator()
         self.render('publication_add.html', labels=self.get_allowed_labels())
 
+    @tornado.web.authenticated
     def post(self):
         self.check_curator()
         with PublicationSaver(rqh=self) as saver:
@@ -454,7 +546,7 @@ class PublicationAdd(PublicationMixin, RequestHandler):
             saver.set_published()
             saver.set_journal()
             saver.set_abstract()
-            saver.set_labels(self.get_allowed_labels())
+            saver['labels'] = self.get_form_labels()
             # Publication should not be verified automatically by add!
             # It must be possible for admin to change labels in order to
             # challenge the relevant curators to verify or blacklist.
@@ -465,6 +557,7 @@ class PublicationAdd(PublicationMixin, RequestHandler):
 class PublicationFetch(PublicationMixin, RequestHandler):
     "Fetch publication(s) given list of DOIs or PMIDs."
 
+    @tornado.web.authenticated
     def get(self):
         self.check_curator()
         docs = self.get_docs('publication/modified',
@@ -476,6 +569,7 @@ class PublicationFetch(PublicationMixin, RequestHandler):
                     labels=self.get_allowed_labels(),
                     publications=docs)
 
+    @tornado.web.authenticated
     def post(self):
         self.check_curator()
         identifiers = self.get_argument('identifiers', '').split()
@@ -489,6 +583,14 @@ class PublicationFetch(PublicationMixin, RequestHandler):
         for identifier in identifiers:
             # Skip if number of loaded publications reached the limit
             if count >= settings['PUBLICATIONS_FETCHED_LIMIT']: break
+
+            # try:
+            #     self.fetch(identifier, override, verify)
+            # except KeyError as message:
+            #     messages.append(str(message))
+            # except IOError as error:
+            #     errors.append(str(error))
+
             # If identifier in blacklist registry, skip unless override
             blacklisted = self.get_blacklisted(identifier)
             if blacklisted:
@@ -552,13 +654,13 @@ class PublicationFetch(PublicationMixin, RequestHandler):
                 with PublicationSaver(old, rqh=self) as saver:
                     for key in new:
                         saver[key] = new[key]
+                    saver['labels'] = self.get_form_labels(old)
                     saver.fix_journal()
-                    saver.set_labels(self.get_allowed_labels())
             # Else create a new entry.
             else:
                 with PublicationSaver(new, rqh=self) as saver:
-                    saver.set_labels(self.get_allowed_labels())
                     saver.fix_journal()
+                    saver['labels'] = self.get_form_labels(new)
                     saver['verified'] = verify
         kwargs = {}
         if errors:
@@ -572,6 +674,7 @@ class PublicationFetch(PublicationMixin, RequestHandler):
 class PublicationEdit(PublicationMixin, RequestHandler):
     "Edit the publication."
 
+    @tornado.web.authenticated
     def get(self, iuid):
         try:
             publication = self.get_publication(iuid)
@@ -583,6 +686,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                     publication=publication,
                     labels=self.get_allowed_labels())
 
+    @tornado.web.authenticated
     def post(self, iuid):
         try:
             publication = self.get_publication(iuid)
@@ -599,7 +703,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.set_published()
                 saver.set_journal()
                 saver.set_abstract()
-                saver.set_labels(self.get_allowed_labels())
+                saver['labels'] = self.get_form_labels(publication)
                 saver['notes'] = self.get_argument('notes', None)
                 # Publication should not be verified automatically by edit!
                 # It must be possible for admin to change labels in order to
@@ -612,6 +716,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
 class PublicationVerify(PublicationMixin, RequestHandler):
     "Verify publication."
 
+    @tornado.web.authenticated
     def post(self, identifier):
         self.check_curator()
         try:
@@ -630,6 +735,7 @@ class PublicationVerify(PublicationMixin, RequestHandler):
 class PublicationBlacklist(PublicationMixin, RequestHandler):
     "Blacklist a publication and record its external identifiers."
 
+    @tornado.web.authenticated
     def post(self, identifier):
         try:
             publication = self.get_publication(identifier)
@@ -649,3 +755,28 @@ class PublicationBlacklist(PublicationMixin, RequestHandler):
             self.redirect(self.get_argument('next'))
         except tornado.web.MissingArgumentError:
             self.see_other('home')
+
+
+class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
+    "Fetch a publication given its PMID or DOI."
+
+    @tornado.web.authenticated
+    def post(self):
+        self.check_curator()
+        data = self.get_json_body()
+        try:
+            identifier = data['identifier']
+        except KeyError:
+            raise tornado.web.HTTPError(400, reason='no identifier given')
+        override = bool(data.get('override'))
+        verify = bool(data.get('verify'))
+        labels = data.get('labels', {})
+        try:
+            doc = self.fetch(identifier, override, verify, labels)
+        except IOError as msg:
+            raise tornado.web.HTTPError(400, reason=str(msg))
+        except KeyError as msg:
+            raise tornado.web.HTTPError(409, reason=str(msg))
+        self.write(
+            dict(iuid=doc['_id'],
+                 href=self.absolute_reverse_url('publication', doc['_id'])))

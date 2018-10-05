@@ -33,6 +33,7 @@ SITE_DIR: '{ROOT}/whatever'
 SITE_LABEL_QUALIFIERS:
   - Research
   - Service
+  - Technology development
 
 # Email; server running on the host machine
 EMAIL:

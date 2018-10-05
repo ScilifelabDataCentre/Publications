@@ -41,7 +41,8 @@ from publications.publication import (Publication,
                                       PublicationAdd,
                                       PublicationFetch,
                                       PublicationEdit,
-                                      PublicationBlacklist)
+                                      PublicationBlacklist,
+                                      ApiPublicationFetch)
 from publications.journal import (Journal,
                                   JournalJson,
                                   JournalEdit,
@@ -143,6 +144,8 @@ def main():
                 url(r'/contact', Contact, name='contact'),
                 url(r'/login', Login, name='login'),
                 url(r'/logout', Logout, name='logout'),
+                url(r'/api/publication',
+                    ApiPublicationFetch, name='api_publication_fetch'),
                 ]
 
     os.chdir(settings['ROOT'])

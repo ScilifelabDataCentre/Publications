@@ -144,10 +144,12 @@ class LabelsJson(LabelsTable):
 class LabelAdd(RequestHandler):
     "Label addition page."
 
+    @tornado.web.authenticated
     def get(self):
         self.check_admin()
         self.render('label_add.html')
 
+    @tornado.web.authenticated
     def post(self):
         self.check_admin()
         try:
@@ -169,6 +171,7 @@ class LabelAdd(RequestHandler):
 class LabelEdit(RequestHandler):
     "Label edit page."
 
+    @tornado.web.authenticated
     def get(self, identifier):
         self.check_admin()
         try:
@@ -178,6 +181,7 @@ class LabelEdit(RequestHandler):
             return
         self.render('label_edit.html', label=label)
 
+    @tornado.web.authenticated
     def post(self, identifier):
         self.check_admin()
         try:
@@ -219,6 +223,7 @@ class LabelEdit(RequestHandler):
 class LabelMerge(RequestHandler):
     "Merge label into another."
 
+    @tornado.web.authenticated
     def get(self, identifier):
         self.check_admin()
         try:
@@ -230,6 +235,7 @@ class LabelMerge(RequestHandler):
                     label=label,
                     labels=self.get_docs('label/value'))
 
+    @tornado.web.authenticated
     def post(self, identifier):
         self.check_admin()
         try:

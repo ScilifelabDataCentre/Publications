@@ -1,4 +1,5 @@
-This directory contains some stand-alone scripts.
+This directory contains some stand-alone scripts that interact
+directly with the database. These do *NOT* use the web API.
 
 init_database.py
 ----------------

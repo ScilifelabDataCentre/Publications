@@ -73,6 +73,10 @@ class AccountSaver(Saver):
         self.erase_password()
         self['code'] = utils.get_iuid()
 
+    def renew_api_key(self):
+        "Set a new API key."
+        self['api_key'] = utils.get_iuid()
+
 
 class AccountMixin(object):
     "Mixin with access check methods and some others."
@@ -261,6 +265,8 @@ class AccountEdit(AccountMixin, RequestHandler):
                                              in self.get_arguments('labels')
                                              if l in labels)
                 saver['name'] = self.get_argument('name', None)
+                if self.get_argument('api_key', None):
+                    saver.renew_api_key()
         except SaverError, msg:
             self.set_error_flash(utils.REV_ERROR)
         self.see_other('account', account['email'])

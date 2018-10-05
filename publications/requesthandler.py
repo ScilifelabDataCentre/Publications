@@ -125,46 +125,71 @@ class RequestHandler(tornado.web.RequestHandler):
         return utils.get_account(self.db, email)
 
     def get_current_user(self):
-        """Get the currently logged-in user account, if any.
+        """Get the currently logged-in user account, or None.
         This overrides a tornado function, otherwise it should have
-        been called 'get_current_account', since terminology 'account'
+        been called 'get_current_account', since the term 'account'
         is used in this code rather than 'user'."""
         try:
-            account = self.get_current_user_session()
-            if not account:
-                account = self.get_current_user_basic()
-            return account
+            return self.get_current_user_api_key()
+        except ValueError:
+            try:
+                return self.get_current_user_session()
+            except ValueError:
+                try:
+                    return self.get_current_user_basic()
+                except ValueError:
+                    pass
+        return None
+
+    def get_current_user_api_key(self):
+        """Get the current user by API key authentication.
+        Raise ValueError if no or erroneous authentication.
+        """
+        try:
+            api_key = self.request.headers[constants.API_KEY_HEADER]
         except KeyError:
-            return None
+            raise ValueError
+        else:
+            try:
+                account = self.get_doc(api_key, 'account/api_key')
+            except tornado.web.HTTPError:
+                raise ValueError
+            if account.get('disabled'):
+                logging.info("API key login: DISABLED %s",
+                             account['email'])
+                return None
+            else:
+                logging.info("API key login: %s", account['email'])
+                return account
 
     def get_current_user_session(self):
         """Get the current user from a secure login session cookie.
-        Return None if no attempt at authentication.
-        Raise KeyError if invalid authentication."""
+        Raise ValueError if no or erroneous authentication.
+        """
         email = self.get_secure_cookie(
             constants.USER_COOKIE,
             max_age_days=settings['LOGIN_MAX_AGE_DAYS'])
-        if not email: return None
+        if not email: raise ValueError
         account = self.get_account(email)
         # Check if login session is invalidated.
-        if account.get('login') is None:
-            self.set_secure_cookie(constants.USER_COOKIE, '')
-            raise KeyError
-        # Check if disabled
+        if account.get('login') is None: raise ValueError
         if account.get('disabled'):
-            self.set_secure_cookie(constants.USER_COOKIE, '')
-            raise KeyError
-        return account
+            logging.info("Session authentication: DISABLED %s",
+                         account['email'])
+            return None
+        else:
+            logging.info("Session authentication: %s", account['email'])
+            return account
 
     def get_current_user_basic(self):
         """Get the current user by HTTP Basic authentication.
         This should be used only if the site is using TLS (SSL, https).
-        Return None if no attempt at authentication.
-        Raise KeyError if incorrect authentication."""
+        Raise ValueError if no or erroneous authentication.
+        """
         try:
             auth = self.request.headers['Authorization']
         except KeyError:
-            return None
+            raise ValueError
         try:
             auth = auth.split()
             if auth[0].lower() != 'basic': raise ValueError
@@ -174,12 +199,13 @@ class RequestHandler(tornado.web.RequestHandler):
             if utils.hashed_password(password) != account.get('password'):
                 raise ValueError
         except (IndexError, ValueError, TypeError):
-            raise KeyError
-        # Check if disabled
+            raise ValueError
         if account.get('disabled'):
-            self.set_secure_cookie(constants.USER_COOKIE, '')
-            raise KeyError
-        return account
+            logging.info("Basic auth login: DISABLED %s", account['email'])
+            return None
+        else:
+            logging.info("Basic auth login: %s", account['email'])
+            return account
 
     def get_logs(self, iuid):
         "Get the log entries for the document with the given IUID."
@@ -266,6 +292,7 @@ class RequestHandler(tornado.web.RequestHandler):
         result['status'] = account.get('disabled') and 'disabled' or 'enabled'
         result['login'] = account.get('login')
         if full:
+            result['api_key'] = account.get('api_key')
             result['timestamp'] = utils.timestamp()
             result['labels'] = labels = []
             for label in account['labels']:
@@ -311,3 +338,19 @@ class RequestHandler(tornado.web.RequestHandler):
             result['publications'] = [self.get_publication_json(publication)
                                       for publication in publications]
         return result
+
+
+class ApiMixin(object):
+    "Mixin for API and JSON handling."
+
+    def get_json_body(self):
+        "Return the body of the request interpreted as JSON."
+        content_type = self.request.headers.get('Content-Type', '')
+        if content_type.startswith(constants.JSON_MIME):
+            return json.loads(self.request.body)
+        else:
+            return {}
+
+    def check_xsrf_cookie(self):
+        "Do not check for XSRF cookie when API."
+        pass

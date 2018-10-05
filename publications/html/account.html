@@ -52,6 +52,10 @@
         </td>
       </tr>
       <tr>
+        <th>API key</th>
+        <td>{{ account.get('api_key') or '[none]' }}</td>
+      </tr>
+      <tr>
 	<th>Last login</th>
 	<td>
 	  {% if account.get('login') %}
