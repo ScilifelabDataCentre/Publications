@@ -83,7 +83,7 @@ class Saver(object):
     def __delitem__(self, key):
         try:
             del self.doc[key]
-        except AttributeError:
+        except KeyError:
             pass
         else:
             self.changed[key] = '__del__'

@@ -53,15 +53,68 @@
 {% end %} {# block main_content #}
 
 {% block meta_content %}
+{% if current_user %}
+
+{% if publication.get('acquired') %}
+<div class="panel panel-warning">
+  <div class="panel-heading">
+    <span class="glyphicon glyphicon-lock"></span>
+    Acquired by 
+  </div>
+  <div class="panel-body">
+    {{ publication['acquired']['account'] }}
+  </div>
+</div>
+{% end %} {# if publication.get('acquired') #}
+
 {% if is_editable %}
 <p>
   <a href="{{ reverse_url('publication_edit', publication['_id']) }}"
-     class="btn btn-primary left"
-     role="button">
+     class="btn btn-primary left" role="button">
     <span class="glyphicon glyphicon-edit"></span>
     Edit
   </a>
 </p>
+{% end %} {# if is_editable #}
+
+{% if is_editable %}
+<p>
+  <form action="{{ reverse_url('publication_acquire', publication['_id']) }}"
+        method="POST"
+        role="form">
+    {% module xsrf_form_html() %}
+    <button type="submit" class="btn btn-warning left">
+      <span class="glyphicon glyphicon-lock"></span>
+      Acquire
+    </button>
+  </form>
+  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#acquire"
+     target="_">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    Explain "acquire"
+  </a>
+</p>
+{% end %} {# if is_editable #}
+
+{% if is_releasable %}
+<p>
+  <form action="{{ reverse_url('publication_release', publication['_id']) }}"
+        method="POST"
+        role="form">
+    {% module xsrf_form_html() %}
+    <button type="submit" class="btn btn-success left"
+      <span class="glyphicon glyphicon-share"></span>
+      Release
+    </button>
+  </form>
+  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#release"
+     target="_">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    Explain "release"
+  </a>
+</p>
+{% end %} {# if is_releasable #}
+
 {% if not publication.get('verified') %}
 <p>
   <form action="{{ reverse_url('publication_verify', publication['_id']) }}"
@@ -79,7 +132,8 @@
     Explain "verified"
   </a>
 </p>
-{% end %} {# if not #}
+{% end %} {# if not publication.get('verified') #}
+
 {% if is_deletable %}
 <p>
   <form action="{{ reverse_url('publication', publication['_id']) }}"
@@ -125,7 +179,7 @@
     </span>
   </a>
 </p>
-{% end %} {# if is_editable #}
+{% end %} {# if current_user #}
 {% end %} {# block meta_content #}
 
 {% block alt_format %}

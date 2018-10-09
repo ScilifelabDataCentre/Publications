@@ -276,6 +276,10 @@ class RequestHandler(tornado.web.RequestHandler):
         result['links'] = OD([
             ('self', { 'href': URL('publication_json', publication['_id'])}),
             ('display', {'href': URL('publication', publication['_id'])})])
+        try:
+            result['acquired'] = publication['acquired']
+        except KeyError:
+            pass
         if full:
             result['created'] = publication['created']
             result['modified'] = publication['modified']

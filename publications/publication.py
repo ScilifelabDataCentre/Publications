@@ -132,17 +132,50 @@ class PublicationMixin(object):
     "Mixin for access check methods."
 
     def is_editable(self, publication):
-        "Is the publication editable by the current user?"
-        return self.is_curator()
+        """Is the publication editable by the current user?
+        Implies acquireable."""
+        if not self.is_curator(): return False
+        try:
+            acquired = publication['acquired']
+        except KeyError:
+            return True
+        else:
+            if acquired['account'] == self.current_user['email']: return True
+        return False
 
     def check_editable(self, publication):
-        "Check that the publication is editable by the current user."
+        """Check that the publication is editable by the current user.
+        Implies acquireable."""
         if self.is_editable(publication): return
         raise ValueError('You many not edit the publication.')
 
+    def is_releasable(self, publication):
+        "Is the publication releasable by the current user?"
+        if not self.is_curator(): return False
+        try:
+            acquired = publication['acquired']
+        except KeyError:
+            return False
+        if self.is_admin(): return True
+        if acquired['account'] == self.current_user['email']: return True
+        if acquired['deadline'] < utils.timestamp(): return True
+        return False
+
+    def check_releasable(self, publication):
+        "Check that the publication can be released by the current user."
+        if self.is_releasable(publication): return
+        raise ValueError('You cannot release the publication.')
+
     def is_deletable(self, publication):
         "Is the publication deletable by the current user?"
-        return self.is_curator()
+        if not self.is_curator(): return False
+        try:
+            acquired = publication['acquired']
+        except KeyError:
+            return True
+        else:
+            if acquired['account'] == self.current_user['email']: return True
+        return False
 
     def check_deletable(self, publication):
         "Check that the publication is deletable by the current user."
@@ -270,6 +303,7 @@ class Publication(PublicationMixin, RequestHandler):
         self.render('publication.html',
                     publication=publication,
                     is_editable=self.is_editable(publication),
+                    is_releasable=self.is_releasable(publication),
                     is_deletable=self.is_deletable(publication))
 
     @tornado.web.authenticated
@@ -755,6 +789,39 @@ class PublicationBlacklist(PublicationMixin, RequestHandler):
             self.redirect(self.get_argument('next'))
         except tornado.web.MissingArgumentError:
             self.see_other('home')
+
+
+class PublicationAcquire(PublicationMixin, RequestHandler):
+    "The current user acquires the publication for exclusive editing."
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        try:
+            publication = self.get_publication(identifier)
+            self.check_editable(publication)
+        except (KeyError, ValueError), msg:
+            self.see_other('home', error=str(msg))
+            return
+        with PublicationSaver(publication, rqh=self) as saver:
+            saver['acquired'] = {'account': self.current_user['email'],
+                                 'deadline': utils.timestamp(days=1)}
+        self.see_other('publication', publication['_id'])
+
+
+class PublicationRelease(PublicationMixin, RequestHandler):
+    "The publication is released from exclusive editing."
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        try:
+            publication = self.get_publication(identifier)
+            self.check_releasable(publication)
+        except (KeyError, ValueError), msg:
+            self.see_other('home', error=str(msg))
+            return
+        with PublicationSaver(publication, rqh=self) as saver:
+            del saver['acquired']
+        self.see_other('publication', publication['_id'])
 
 
 class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
