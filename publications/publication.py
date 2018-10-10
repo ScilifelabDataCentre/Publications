@@ -5,6 +5,7 @@ from __future__ import print_function
 from collections import OrderedDict as OD
 import csv
 from cStringIO import StringIO
+import logging
 
 import requests
 import tornado.web
@@ -95,6 +96,36 @@ class PublicationSaver(Saver):
         assert self.rqh, 'requires http request context'
         self['abstract'] = self.rqh.get_argument('abstract', '') or None
 
+    def update_labels(self, labels=None, allowed_labels=None, clean=True):
+        """Update the labels. If no labels dictionary given, get HTTP form data.
+        Only changes the allowed labels for the current user.
+        If clean, then remove any missing allowed labels from existing entry.
+        """
+        if labels is None:
+            labels = {}
+            for label in self.rqh.get_arguments('label'):
+                qualifier = self.rqh.get_argument("%s_qualifier" % label, None)
+                if qualifier in settings['SITE_LABEL_QUALIFIERS']:
+                    labels[label] = qualifier
+                else:
+                    labels[label] = None
+        if allowed_labels is None:
+            allowed_labels = self.rqh.get_allowed_labels()
+        updated = self.get('labels', {}).copy()
+        for label in allowed_labels:
+            try:
+                updated[label] = labels[label]
+            except KeyError:
+                if clean: updated.pop(label, None)
+        self['labels'] = updated
+
+    def update(self, other):
+        """Update any empty field in the publication 
+        if there is a value in the other."""
+        for key, value in other.items():
+            if value is not None and self.get(key) is None:
+                self[key] = value
+
     def fix_journal(self):
         """Set the appropriate journal title and ISSN if not done.
         Creates the journal entity if it does not exist."""
@@ -182,21 +213,6 @@ class PublicationMixin(object):
         if self.is_deletable(publication): return
         raise ValueError('You may not delete the publication.')
 
-    def get_form_labels(self, publication=None):
-        "Get labels from form input and allowed for the account."
-        allowed_labels = self.get_allowed_labels()
-        if publication:
-            labels = publication.get('labels', {}).copy()
-        else:
-            labels = {}
-        use_labels = set(self.get_arguments('label'))
-        for label in allowed_labels:
-            if label in use_labels:
-                labels[label] = self.get_argument("%s_qualifier" % label, None)
-            else:
-                labels.pop(label, None)
-        return labels
-
     def get_allowed_labels(self):
         "Get the set of allowed labels for the account."
         if self.is_admin():
@@ -204,25 +220,21 @@ class PublicationMixin(object):
         else:
             return set(self.current_user['labels'])
 
-    def fetch(self, identifier, override=False, labels={}):
+    def fetch(self, identifier, override=False, labels={}, clean=True):
         """Fetch the publication given by identifier (PMID or DOI).
         override: If True, overrides the blacklist.
         labels: Dictionary of labels (key: label, value: qualifier) to set.
+                Only allowed labels for the curator are updated.
+        clean: Remove any missing allowed labels from an existing entry.
         Raise IOError if no such publication found, or other error.
         Raise KeyError if publication is in the blacklist (and not override).
         """
-        # If identifier in blacklist registry, skip unless override
-        blacklisted = self.get_blacklisted(identifier)
-        if blacklisted:
-            if override:
-                self.db.delete(blacklisted)
-            else:
-                raise KeyError(identifier)
+        self.check_blacklisted(identifier, override=override)
         # Has it already been fetched?
         try:
-            old = self.get_publication(identifier)
+            current = self.get_publication(identifier)
         except KeyError:
-            old = None
+            current = None
         # Fetch from external source according to identifier type.
         if constants.PMID_RX.match(identifier):
             try:
@@ -230,60 +242,52 @@ class PublicationMixin(object):
             except (IOError, ValueError, requests.exceptions.Timeout), msg:
                 raise IOError("%s: %s" % (identifier, str(msg)))
             else:
-                if old is None:
+                if current is None:
                     # Maybe the publication has been loaded by DOI?
                     try:
-                        old = self.get_publication(new.get('doi'))
+                        current = self.get_publication(new.get('doi'))
                     except KeyError:
                         pass
-        # Not PMID, must be DOI
+        # Not PMID identifier, assume DOI.
         else:
             try:
                 new = crossref.fetch(identifier)
             except (IOError, requests.exceptions.Timeout), msg:
                 raise IOError("%s: %s" % (identifier, str(msg)))
             else:
-                if old is None:
+                if current is None:
                     # Maybe the publication has been loaded by PMID?
                     try:
-                        old = self.get_publication(new.get('pmid'))
+                        current = self.get_publication(new.get('pmid'))
                     except KeyError:
                         pass
         # Check blacklist registry again; other external id may be there.
-        blacklisted = self.get_blacklisted(new.get('pmid'))
-        if blacklisted:
-            if override:
-                self.db.delete(blacklisted)
-            else:
-                raise KeyError(identifier)
-        blacklisted = self.get_blacklisted(new.get('doi'))
-        if blacklisted:
-            if override:
-                self.db.delete(blacklisted)
-            else:
-                raise KeyError(identifier)
-        allowed_labels = self.get_allowed_labels()
-        for label, qualifier in labels.items():
-            if label not in allowed_labels:
-                labels.pop(label)
-            elif qualifier not in settings['SITE_LABEL_QUALIFIERS']:
-                labels[label] = None
+        self.check_blacklisted(new.get('pmid'), override=override)
+        self.check_blacklisted(new.get('doi'), override=override)
         # Update the existing entry.
-        if old:
-            updated_labels = old['labels'].copy()
-            updated_labels.update(labels)
-            with PublicationSaver(old, rqh=self) as saver:
-                for key in new:
-                    saver[key] = new[key]
+        if current:
+            with PublicationSaver(current, rqh=self) as saver:
+                saver.update_labels(labels=labels, clean=clean)
+                saver.update(new)
                 saver.fix_journal()
-                saver['labels'] = updated_labels
-            return old
+            return current
         # Else create a new entry.
         else:
             with PublicationSaver(new, rqh=self) as saver:
                 saver.fix_journal()
-                saver['labels'] = labels
+                saver.update_labels(labels=labels)
             return new
+
+    def check_blacklisted(self, identifier, override=False):
+        """Raise KeyError if identifier blacklisted.
+        If override, remove from blacklist.
+        """
+        blacklisted = self.get_blacklisted(identifier)
+        if blacklisted:
+            if override:
+                self.db.delete(blacklisted)
+            else:
+                raise KeyError(identifier)
 
 
 class Publication(PublicationMixin, RequestHandler):
@@ -568,7 +572,7 @@ class PublicationAdd(PublicationMixin, RequestHandler):
             saver.set_published()
             saver.set_journal()
             saver.set_abstract()
-            saver['labels'] = self.get_form_labels()
+            saver.update_labels()
             publication = saver.doc
         self.see_other('publication', publication['_id'])
 
@@ -595,89 +599,35 @@ class PublicationFetch(PublicationMixin, RequestHandler):
         identifiers = [utils.strip_prefix(i) for i in identifiers]
         identifiers = [i for i in identifiers if i]
         override = utils.to_bool(self.get_argument('override', False))
+        labels = {}
+        for label in self.get_arguments('label'):
+            labels[label] = self.get_argument("%s_qualifier" % label, None)
+
         count = 0
         errors = []
-        messages = []
+        blacklisted = []
         for identifier in identifiers:
             # Skip if number of loaded publications reached the limit
             if count >= settings['PUBLICATIONS_FETCHED_LIMIT']: break
 
-            # If identifier in blacklist registry, skip unless override
-            blacklisted = self.get_blacklisted(identifier)
-            if blacklisted:
-                if override:
-                    self.db.delete(blacklisted)
-                else:
-                    messages.append(identifier)
-                    continue
-            # Has it already been fetched?
             try:
-                old = self.get_publication(identifier)
-            except KeyError:
-                old = None
-            # Fetch from external source according to identifier type.
-            if constants.PMID_RX.match(identifier):
-                try:
-                    new = pubmed.fetch(identifier)
-                except (IOError, ValueError, requests.exceptions.Timeout), msg:
-                    errors.append("%s: %s" % (identifier, str(msg)))
-                    continue
-                else:
-                    if old is None:
-                        # Maybe the publication has been loaded by DOI?
-                        try:
-                            old = self.get_publication(new.get('doi'))
-                        except KeyError:
-                            pass
-            # Not PMID, must be DOI
-            else:
-                try:
-                    new = crossref.fetch(identifier)
-                except (IOError, requests.exceptions.Timeout), msg:
-                    errors.append("%s: %s" % (identifier, str(msg)))
-                    continue
-                else:
-                    if old is None:
-                        # Maybe the publication has been loaded by PMID?
-                        try:
-                            old = self.get_publication(new.get('pmid'))
-                        except KeyError:
-                            pass
-            # Update count of number of fetched publications.
-            count += 1
-            # Check blacklist registry again; other external id may be there.
-            blacklisted = self.get_blacklisted(new.get('pmid'))
-            if blacklisted:
-                if override:
-                    self.db.delete(blacklisted)
-                else:
-                    messages.append(identifier)
-                    continue
-            blacklisted = self.get_blacklisted(new.get('doi'))
-            if blacklisted:
-                if override:
-                    self.db.delete(blacklisted)
-                else:
-                    messages.append(identifier)
-                    continue
-            # Update the existing entry.
-            if old:
-                with PublicationSaver(old, rqh=self) as saver:
-                    for key in new:
-                        saver[key] = new[key]
-                    saver['labels'] = self.get_form_labels(old)
-                    saver.fix_journal()
-            # Else create a new entry.
-            else:
-                with PublicationSaver(new, rqh=self) as saver:
-                    saver.fix_journal()
-                    saver['labels'] = self.get_form_labels(new)
-        kwargs = {}
+                self.fetch(identifier, override=override, labels=labels,
+                           clean=not self.is_admin())
+                count += 1
+            except IOError as err:
+                errors.append(str(err))
+            except KeyError as err:
+                blacklisted.append(str(err))
+
+        if count == 1:
+            kwargs = {'message': "%s publication fetched." % count}
+        else:
+            kwargs = {'message': "%s publications fetched." % count}
         if errors:
             kwargs['error'] = constants.FETCH_ERROR + ', '.join(errors)
-        if messages:
-            kwargs['message'] = constants.BLACKLISTED_MESSAGE + \
-                                ', '.join(messages)
+        if blacklisted:
+            kwargs['message'] += ' ' + constants.BLACKLISTED_MESSAGE + \
+                                 ', '.join(blacklisted)
         self.see_other('publication_fetch', **kwargs)
 
 
@@ -713,7 +663,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.set_published()
                 saver.set_journal()
                 saver.set_abstract()
-                saver['labels'] = self.get_form_labels(publication)
+                saver.update_labels()
                 saver['notes'] = self.get_argument('notes', None)
         except SaverError, msg:
             self.set_error_flash(utils.REV_ERROR)
@@ -794,13 +744,13 @@ class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
         except KeyError:
             raise tornado.web.HTTPError(400, reason='no identifier given')
         try:
-            doc = self.fetch(identifier,
-                             override=bool(data.get('override')),
-                             labels=data.get('labels', {}))
+            publ = self.fetch(identifier,
+                              override=bool(data.get('override')),
+                              labels=data.get('labels', {}))
         except IOError as msg:
             raise tornado.web.HTTPError(400, reason=str(msg))
         except KeyError as msg:
-            raise tornado.web.HTTPError(409, reason=str(msg))
+            raise tornado.web.HTTPError(409, reason="blacklisted %s" % msg)
         self.write(
-            dict(iuid=doc['_id'],
-                 href=self.absolute_reverse_url('publication', doc['_id'])))
+            dict(iuid=publ['_id'],
+                 href=self.absolute_reverse_url('publication', publ['_id'])))
