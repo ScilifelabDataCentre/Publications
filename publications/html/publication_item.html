@@ -24,9 +24,6 @@
     {% module Published(publication) %}
   </div>
   <div>
-    {% if not publication.get('verified') %}
-    <span class="label label-warning">Unverified</span>
-    {% end %}
     {% for l in sorted(publication['labels']) %}
     <a class="label label-primary margin-r1"
        href="{{ reverse_url('label', l) }}">

@@ -181,9 +181,8 @@ def get_account(db, email):
         raise KeyError("document %s is not an account" % email)
     return doc
 
-def get_publication(db, identifier, unverified=False):
+def get_publication(db, identifier):
     """Get the publication given its IUID, DOI or PMID.
-    Search among unverified if that flag is set to True.
     Raise KeyError if no such publication.
     """
     if not identifier: raise KeyError
@@ -191,12 +190,8 @@ def get_publication(db, identifier, unverified=False):
     try:
         doc = get_doc(db, identifier)
     except KeyError:
-        viewnames = ['publication/doi', 'publication/pmid']
-        if unverified:
-            viewnames.append('publication/doi_unverified')
-            viewnames.append('publication/pmid_unverified')
         doc = None
-        for viewname in viewnames:
+        for viewname in ['publication/doi', 'publication/pmid']:
             try:
                 doc = get_doc(db, identifier, viewname=viewname)
                 break

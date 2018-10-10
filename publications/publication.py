@@ -204,10 +204,9 @@ class PublicationMixin(object):
         else:
             return set(self.current_user['labels'])
 
-    def fetch(self, identifier, override=False, verify=False, labels={}):
+    def fetch(self, identifier, override=False, labels={}):
         """Fetch the publication given by identifier (PMID or DOI).
         override: If True, overrides the blacklist.
-        verify: Set the verified flag of a new publication.
         labels: Dictionary of labels (key: label, value: qualifier) to set.
         Raise IOError if no such publication found, or other error.
         Raise KeyError if publication is in the blacklist (and not override).
@@ -221,7 +220,7 @@ class PublicationMixin(object):
                 raise KeyError(identifier)
         # Has it already been fetched?
         try:
-            old = self.get_publication(identifier, unverified=True)
+            old = self.get_publication(identifier)
         except KeyError:
             old = None
         # Fetch from external source according to identifier type.
@@ -278,15 +277,12 @@ class PublicationMixin(object):
                     saver[key] = new[key]
                 saver.fix_journal()
                 saver['labels'] = updated_labels
-                if verify:      # Do not swap back to unverified.
-                    saver['verified'] = True
             return old
         # Else create a new entry.
         else:
             with PublicationSaver(new, rqh=self) as saver:
                 saver.fix_journal()
                 saver['labels'] = labels
-                saver['verified'] = verify
             return new
 
 
@@ -512,28 +508,6 @@ class PublicationsCsv(Publications):
                         'attachment; filename="publications.csv')
 
 
-class PublicationsUnverified(RequestHandler):
-    """Unverified publications page.
-    List according to which labels the account may use.
-    """
-
-    @tornado.web.authenticated
-    def get(self):
-        if self.is_admin():
-            publications = self.get_docs('publication/unverified',
-                                         descending=True)
-        else:
-            lookup = {}
-            for label in self.current_user.get('labels'):
-                docs = self.get_docs('publication/label_unverified',
-                                     key=label.lower())
-                for doc in docs:
-                    lookup[doc['_id']] = doc
-            publications = lookup.values()
-            publications.sort(key=lambda i: i['published'], reverse=True)
-        self.render('publications_unverified.html', publications=publications)
-
-
 class PublicationsAcquired(RequestHandler):
     "Acquired publications page."
 
@@ -595,9 +569,6 @@ class PublicationAdd(PublicationMixin, RequestHandler):
             saver.set_journal()
             saver.set_abstract()
             saver['labels'] = self.get_form_labels()
-            # Publication should not be verified automatically by add!
-            # It must be possible for admin to change labels in order to
-            # challenge the relevant curators to verify or blacklist.
             publication = saver.doc
         self.see_other('publication', publication['_id'])
 
@@ -624,20 +595,12 @@ class PublicationFetch(PublicationMixin, RequestHandler):
         identifiers = [utils.strip_prefix(i) for i in identifiers]
         identifiers = [i for i in identifiers if i]
         override = utils.to_bool(self.get_argument('override', False))
-        verify = utils.to_bool(self.get_argument('verify', False))
         count = 0
         errors = []
         messages = []
         for identifier in identifiers:
             # Skip if number of loaded publications reached the limit
             if count >= settings['PUBLICATIONS_FETCHED_LIMIT']: break
-
-            # try:
-            #     self.fetch(identifier, override, verify)
-            # except KeyError as message:
-            #     messages.append(str(message))
-            # except IOError as error:
-            #     errors.append(str(error))
 
             # If identifier in blacklist registry, skip unless override
             blacklisted = self.get_blacklisted(identifier)
@@ -649,7 +612,7 @@ class PublicationFetch(PublicationMixin, RequestHandler):
                     continue
             # Has it already been fetched?
             try:
-                old = self.get_publication(identifier, unverified=True)
+                old = self.get_publication(identifier)
             except KeyError:
                 old = None
             # Fetch from external source according to identifier type.
@@ -709,7 +672,6 @@ class PublicationFetch(PublicationMixin, RequestHandler):
                 with PublicationSaver(new, rqh=self) as saver:
                     saver.fix_journal()
                     saver['labels'] = self.get_form_labels(new)
-                    saver['verified'] = verify
         kwargs = {}
         if errors:
             kwargs['error'] = constants.FETCH_ERROR + ', '.join(errors)
@@ -753,31 +715,9 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.set_abstract()
                 saver['labels'] = self.get_form_labels(publication)
                 saver['notes'] = self.get_argument('notes', None)
-                # Publication should not be verified automatically by edit!
-                # It must be possible for admin to change labels in order to
-                # challenge the relevant curators to verify or blacklist.
         except SaverError, msg:
             self.set_error_flash(utils.REV_ERROR)
         self.see_other('publication', publication['_id'])
-
-
-class PublicationVerify(PublicationMixin, RequestHandler):
-    "Verify publication."
-
-    @tornado.web.authenticated
-    def post(self, identifier):
-        self.check_curator()
-        try:
-            publication = self.get_publication(identifier)
-        except KeyError, msg:
-            self.see_other('home', error=str(msg))
-            return
-        with PublicationSaver(publication, rqh=self) as saver:
-            saver['verified'] = True
-        try:
-            self.redirect(self.get_argument('next'))
-        except tornado.web.MissingArgumentError:
-            self.see_other('publication', publication['_id'])
 
 
 class PublicationBlacklist(PublicationMixin, RequestHandler):
@@ -853,11 +793,10 @@ class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
             identifier = data['identifier']
         except KeyError:
             raise tornado.web.HTTPError(400, reason='no identifier given')
-        override = bool(data.get('override'))
-        verify = bool(data.get('verify'))
-        labels = data.get('labels', {})
         try:
-            doc = self.fetch(identifier, override, verify, labels)
+            doc = self.fetch(identifier,
+                             override=bool(data.get('override')),
+                             labels=data.get('labels', {}))
         except IOError as msg:
             raise tornado.web.HTTPError(400, reason=str(msg))
         except KeyError as msg:

@@ -31,7 +31,6 @@ var IGNORE = {
 
 function(doc) {
     if (doc.publications_doctype !== 'publication') return;
-    if (!doc.verified) return;
     var label, parts, part;
     for (var i in doc.labels) {
 	label = doc.labels[i].toLowerCase();

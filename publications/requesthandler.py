@@ -99,12 +99,11 @@ class RequestHandler(tornado.web.RequestHandler):
         """
         return utils.get_docs(self.db, viewname, key=key, last=last, **kwargs)
 
-    def get_publication(self, identifier, unverified=False):
+    def get_publication(self, identifier):
         """Get the publication given its IUID, DOI or PMID.
-        Search among unverified if that flag is set to True.
         Raise KeyError if no such publication.
         """
-        return utils.get_publication(self.db, identifier, unverified=unverified)
+        return utils.get_publication(self.db, identifier)
 
     def get_label(self, identifier):
         """Get the label document by its IUID or value.
@@ -273,7 +272,7 @@ class RequestHandler(tornado.web.RequestHandler):
             au['initials'] = author.get('initials')
             result['authors'].append(au)
         for key in ['type', 'published', 'journal', 'abstract',
-                    'doi', 'pmid', 'labels', 'xrefs', 'verified']:
+                    'doi', 'pmid', 'labels', 'xrefs']:
             result[key] = publication.get(key)
         if self.current_user:
             try:

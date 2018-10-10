@@ -5,9 +5,6 @@
 {% block head_title %}{{ publication['title'] }}{% end %}
 
 {% block body_title %}
-{% if not publication.get('verified') %}
-<span class="glyphicon glyphicon-question-sign"></span>
-{% end %}
 <span class="glyphicon glyphicon-file"></span>
 {{ publication['title'] }}
 {% end %} {# block body_title #}
@@ -32,9 +29,6 @@
   {{ publication['abstract'] or ''}}
 </p>
 <p>
-  {% if not publication.get('verified') %}
-  <span class="label label-warning">Unverified</span>
-  {% end %}
   {% for label in sorted(publication['labels']) %}
   <p>
     <a class="label label-primary"
@@ -114,25 +108,6 @@
   </form>
 </p>
 {% end %} {# if is_releasable #}
-
-{% if not publication.get('verified') %}
-<p>
-  <form action="{{ reverse_url('publication_verify', publication['_id']) }}"
-	role="form"
-	method="POST">
-    {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-success left">
-      <span class="glyphicon glyphicon-ok"></span>
-      Verify
-    </button>
-  </form>
-  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#verified"
-     target="_">
-    <span class="glyphicon glyphicon-question-sign"></span>
-    Explain "verified"
-  </a>
-</p>
-{% end %} {# if not publication.get('verified') #}
 
 {% if is_deletable %}
 <p>

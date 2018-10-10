@@ -31,7 +31,6 @@ var IGNORE = {
 
 function(doc) {
     if (doc.publications_doctype !== 'publication') return;
-    if (!doc.verified) return;
     var words = doc.title.split(/\s+/);
     var word;
     for (var i in words) {

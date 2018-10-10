@@ -3,7 +3,6 @@
 */
 function(doc) {
     if (doc.publications_doctype !== 'publication') return;
-    if (!doc.verified) return;
     var au, name;
     for (var i in doc.authors) {
 	au = doc.authors[i];

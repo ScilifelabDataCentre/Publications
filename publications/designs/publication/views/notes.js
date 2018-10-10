@@ -31,7 +31,6 @@ var IGNORE = {
 
 function(doc) {
     if (doc.publications_doctype !== 'publication') return;
-    if (!doc.verified) return;
     var notes = doc.notes.split(/\s+/);
     var note;
     for (var i in notes) {
