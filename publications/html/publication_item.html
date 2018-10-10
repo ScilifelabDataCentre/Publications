@@ -26,8 +26,10 @@
   <div>
     {% for l in sorted(publication['labels']) %}
     <a class="label label-primary margin-r1"
-       href="{{ reverse_url('label', l) }}">
-      {{ l }} [{{ publication['labels'][l] or '' }}]
+       href="{{ reverse_url('label', l) }}">{{ l }}
+      {% if publication['labels'][l] %}
+      [{{ publication['labels'][l] }}]
+      {% end %}
     </a>
     {% end %}
   </div>
