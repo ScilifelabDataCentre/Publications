@@ -87,12 +87,11 @@
       <span class="glyphicon glyphicon-lock"></span>
       Acquire
     </button>
+    <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#acquire"
+       title="Explain 'acquire'" target="_">
+      <span class="glyphicon glyphicon-question-sign"></span>
+    </a>
   </form>
-  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#acquire"
-     target="_">
-    <span class="glyphicon glyphicon-info-sign"></span>
-    Explain "acquire"
-  </a>
 </p>
 {% end %} {# if is_editable #}
 
@@ -102,16 +101,15 @@
         method="POST"
         role="form">
     {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-success left"
+    <button type="submit" class="btn btn-success left">
       <span class="glyphicon glyphicon-share"></span>
       Release
     </button>
+    <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#release"
+       title="Explain 'release'" target="_">
+      <span class="glyphicon glyphicon-question-sign"></span>
+    </a>
   </form>
-  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#release"
-     target="_">
-    <span class="glyphicon glyphicon-info-sign"></span>
-    Explain "release"
-  </a>
 </p>
 {% end %} {# if is_releasable #}
 
@@ -128,7 +126,7 @@
   </form>
   <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#verified"
      target="_">
-    <span class="glyphicon glyphicon-info-sign"></span>
+    <span class="glyphicon glyphicon-question-sign"></span>
     Explain "verified"
   </a>
 </p>
@@ -146,12 +144,11 @@
       <span class="glyphicon glyphicon-trash"></span>
       Delete
     </button>
+    <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#delete"
+       title="Explain 'delete'" target="_">
+      <span class="glyphicon glyphicon-question-sign"></span>
+    </a>
   </form>
-  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#delete"
-     target="_">
-    <span class="glyphicon glyphicon-info-sign"></span>
-    Explain "delete"
-  </a>
 </p>
 <p>
   <form action="{{ reverse_url('publication_blacklist', publication['_id']) }}"
@@ -163,12 +160,11 @@
       <span class="glyphicon glyphicon-ban-circle"></span>
       Blacklist
     </button>
+    <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#blacklist"
+       title="Explain 'blacklist'" target="_">
+      <span class="glyphicon glyphicon-question-sign"></span>
+    </a>
   </form>
-  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#blacklist"
-     target="_">
-    <span class="glyphicon glyphicon-info-sign"></span>
-    Explain "blacklist"
-  </a>
 </p>
 {% end %} {# if is_deletable #}
 <p>

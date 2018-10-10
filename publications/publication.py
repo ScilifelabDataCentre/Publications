@@ -803,8 +803,9 @@ class PublicationAcquire(PublicationMixin, RequestHandler):
             self.see_other('home', error=str(msg))
             return
         with PublicationSaver(publication, rqh=self) as saver:
+            deadline = utils.timestamp(days=settings['PUBLICATION_ACQUIRE_PERIOD'])
             saver['acquired'] = {'account': self.current_user['email'],
-                                 'deadline': utils.timestamp(days=1)}
+                                 'deadline': deadline}
         self.see_other('publication', publication['_id'])
 
 

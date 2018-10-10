@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os
 
-__version__ = '2.3.0'
+__version__ = '2.3.1'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -26,6 +26,7 @@ settings = dict(
                SENDER=None),
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
+    PUBLICATION_ACQUIRE_PERIOD=1,           # In days.
     PUBLICATIONS_FETCHED_LIMIT=10,
     SHORT_PUBLICATIONS_LIST_LIMIT=10,
     LONG_PUBLICATIONS_LIST_LIMIT=100,

@@ -133,6 +133,17 @@ Add publication manually
   <div class="form-group">
     <label class="control-label col-sm-1">Labels</label>
     <div class=" col-sm-11">
+      <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#label"
+         target="_">
+        <span class="glyphicon glyphicon-question-sign"></span>
+        Explain "label"
+      </a>
+      <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#qualifier"
+         target="_">
+        <span class="glyphicon glyphicon-question-sign"></span>
+        Explain "qualifier"
+      </a>
+      <br>
       {% set checked = not is_admin and 'checked' or '' %}
       {% for label in sorted(labels) %}
       <div class="checkbox">
@@ -158,17 +169,6 @@ Add publication manually
       </div>
       {% end %} {# if settings['SITE_LABEL_QUALIFIERS'] #}
       {% end %} {# for label #}
-      <br>
-      <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#label"
-         target="_">
-        <span class="glyphicon glyphicon-info-sign"></span>
-        Explain "label"
-      </a>
-      <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#qualifier"
-         target="_">
-        <span class="glyphicon glyphicon-info-sign"></span>
-        Explain "qualifier"
-      </a>
     </div>
   </div>
 
