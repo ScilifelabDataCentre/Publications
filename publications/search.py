@@ -42,67 +42,59 @@ IGNORE = set([
 
 
 class Search(RequestHandler):
-    "Search publications for authors or words in title or notes."
+    "Search publications for terms in title or notes."
 
     def get(self):
-        self.hits = dict()
         terms = self.get_argument('terms', '')
         # The search term is quoted; consider a single phrase.
         if terms.startswith('"') and terms.endswith('"'):
-            self.terms = [terms[1:-1]]
+            terms = [terms[1:-1]]
         # Split up into separate terms.
         else:
-            self.terms = []
             # Remove DOI and PMID prefixes and lowercase.
-            for term in self.get_argument('terms', '').split():
-                term = utils.strip_prefix(term)
-                if term:
-                    term = term.lower()
-                    self.terms.append(term)
+            terms = [utils.strip_prefix(t)
+                     for t in self.get_argument('terms', '').split()]
+            terms = [t.lower() for t in terms if t]
+        hits = {}
         for viewname in [None,
                          'publication/doi',
                          'publication/published',
                          'publication/epublished',
                          'publication/issn',
                          'publication/journal']:
-            self.search(viewname)
+            self.search(viewname, terms, hits)
         # Now remove set of insignificant characters.
-        terms = self.terms
-        self.terms = []
-        for term in terms:
-            term = ''.join([c for c in term if c not in REMOVE])
-            if term: self.terms.append(term)
+        terms = [''.join([c for c in t if c not in REMOVE])
+                 for t in terms]
+        terms = [t for t in terms if t]
         for viewname in ['publication/author',
                          'publication/title',
                          'publication/notes',
                          'publication/pmid',
                          'publication/label_parts']:
-            self.search(viewname)
-        publications = [self.get_publication(id) for id in self.hits]
-        scores = [(self.hits[p['_id']], p['published'], p)
-                  for p in publications]
-        publications = [s[2] for s in sorted(scores, reverse=True)]
+            self.search(viewname, terms, hits)
+        publications = [self.get_publication(id) for id in hits]
+        for publication in publications:
+            publication['$score'] = (hits[publication['_id']],
+                                     publication['published'])
+        publications.sort(key=lambda p: p['$score'], reverse=True)
         self.render('search.html',
                     publications=publications,
                     terms=self.get_argument('terms', ''))
 
-    def search(self, viewname):
+    def search(self, viewname, terms, hits):
+        "Search the given view using the terms"
         if viewname is None:
-            for term in self.terms:
+            # IUID of publicaton entry.
+            for term in terms:
                 if term in self.db:
-                    self.add_hit(term)
+                    hits[term] = hits.get(term, 0) + 1
         else:
             view = self.db.view(viewname, reduce=False)
-            for term in self.terms:
+            for term in terms:
                 if term in IGNORE: continue
                 for item in view[term : term + constants.CEILING]:
-                    self.add_hit(item.id)
-
-    def add_hit(self, id):
-        try:
-            self.hits[id] += 1
-        except KeyError:
-            self.hits[id] = 1
+                    hits[item.id] = hits.get(item.id, 0) + 1
 
 
 class SearchJson(Search):
