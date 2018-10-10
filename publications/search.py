@@ -1,4 +1,4 @@
-"Search in publications for title, authors, pmid, doi, published and labels."
+"Search for terms in publications."
 
 from __future__ import print_function
 
@@ -42,7 +42,10 @@ IGNORE = set([
 
 
 class Search(RequestHandler):
-    "Search publications for terms in title or notes."
+    """Search publications for terms in fields of publication docs:
+    author, title, notes, pmid, doi, published, epublished, issn, journal,
+    label_parts.
+    """
 
     def get(self):
         terms = self.get_argument('terms', '')
