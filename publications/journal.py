@@ -124,12 +124,12 @@ class JournalJson(Journal):
         result = OD()
         result['entity'] = 'journal'
         result['iuid'] = journal['_id']
-        result['title'] = journal['title']
-        result['issn'] = journal.get('issn')
         result['timestamp'] = utils.timestamp()
         result['links'] = links = OD()
         links['self'] = {'href': URL('journal_json', journal['title'])}
         links['display'] = {'href': URL('journal', journal['title'])}
+        result['title'] = journal['title']
+        result['issn'] = journal.get('issn')
         result['publications_count'] = len(publications)
         result['publications'] = [self.get_publication_json(publication)
                                   for publication in publications]

@@ -254,15 +254,17 @@ class RequestHandler(tornado.web.RequestHandler):
             self.db.delete(log)
         self.db.delete(doc)
 
-    def get_publication_json(self, publication, full=False):
-        "Format publication for JSON."
+    def get_publication_json(self, publication):
+        "JSON representation of publication."
         URL = self.absolute_reverse_url
         result = OD()
         result['entity'] = 'publication'
         result['iuid'] = publication['_id']
+        result['timestamp'] = utils.timestamp()
+        result['links'] = OD([
+            ('self', { 'href': URL('publication_json', publication['_id'])}),
+            ('display', {'href': URL('publication', publication['_id'])})])
         result['title'] = publication['title']
-        if full:
-            result['timestamp'] = utils.timestamp()
         result['authors'] = []
         for author in publication['authors']:
             au = OD()
@@ -273,31 +275,31 @@ class RequestHandler(tornado.web.RequestHandler):
         for key in ['type', 'published', 'journal', 'abstract',
                     'doi', 'pmid', 'labels', 'xrefs', 'verified']:
             result[key] = publication.get(key)
-        result['links'] = OD([
-            ('self', { 'href': URL('publication_json', publication['_id'])}),
-            ('display', {'href': URL('publication', publication['_id'])})])
-        try:
-            result['acquired'] = publication['acquired']
-        except KeyError:
-            pass
-        if full:
-            result['created'] = publication['created']
-            result['modified'] = publication['modified']
+        if self.current_user:
+            try:
+                result['acquired'] = publication['acquired']
+            except KeyError:
+                pass
+        result['created'] = publication['created']
+        result['modified'] = publication['modified']
         return result
 
     def get_account_json(self, account, full=False):
-        "Format account for JSON."
+        "JSON representation of account."
         URL = self.absolute_reverse_url
         result = OD()
         result['entity'] = 'account'
         result['iuid'] = account['_id']
+        result['timestamp'] = utils.timestamp()
+        result['links'] = OD([
+            ('self', { 'href': URL('account_json', account['email'])}),
+            ('display', {'href': URL('account', account['email'])})])
         result['email'] = account['email']
         result['role'] = account['role']
         result['status'] = account.get('disabled') and 'disabled' or 'enabled'
         result['login'] = account.get('login')
         if full:
             result['api_key'] = account.get('api_key')
-            result['timestamp'] = utils.timestamp()
             result['labels'] = labels = []
             for label in account['labels']:
                 links = OD()
@@ -305,30 +307,23 @@ class RequestHandler(tornado.web.RequestHandler):
                 links['display'] = {'href': URL('label', label)}
                 labels.append(OD([('value', label),
                                   ('links', links)]))
-        result['links'] = OD([
-            ('self', { 'href': URL('account_json', account['email'])}),
-            ('display', {'href': URL('account', account['email'])})])
-        if full:
-            result['created'] = account['created']
-            result['modified'] = account['modified']
+        result['created'] = account['created']
+        result['modified'] = account['modified']
         return result
 
-    def get_label_json(self, label, 
-                       full=False, publications=None, accounts=None):
-        "Format label for JSON."
+    def get_label_json(self, label, publications=None, accounts=None):
+        "JSON representation of label."
         URL = self.absolute_reverse_url
         result = OD()
         result['entity'] = 'label'
         result['iuid'] = label['_id']
-        result['value'] = label['value']
-        if full:
-            result['timestamp'] = utils.timestamp()
+        result['timestamp'] = utils.timestamp()
         result['links'] = links = OD()
         links['self'] = {'href': URL('label_json', label['value'])}
         links['display'] = {'href': URL('label', label['value'])}
-        if full:
-            result['created'] = label['created']
-            result['modified'] = label['modified']
+        result['value'] = label['value']
+        result['created'] = label['created']
+        result['modified'] = label['modified']
         if accounts is not None:
             result['accounts'] = [self.get_account_json(account)
                                   for account in accounts]

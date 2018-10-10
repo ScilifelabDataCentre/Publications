@@ -92,7 +92,6 @@ class LabelJson(Label):
 
     def render(self, template, **kwargs):
         self.write(self.get_label_json(kwargs['label'],
-                                       full=True,
                                        publications=kwargs['publications'],
                                        accounts=kwargs['accounts']))
 
