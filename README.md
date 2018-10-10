@@ -35,10 +35,6 @@ Features
 - A curator can use only the labels that she has been assigned by the
   admin.
 
-- Publication references can be set as unverified when loading them by
-  automated scripts. A curator must then verify each such publication
-  manually.
-
 - There is a blacklist registry based on the PMID and/or DOI of
   publications.  When a publication is blacklisted, it will not be
   fetched when using PMID, DOI or automatic scripts. This is to avoid
