@@ -534,6 +534,20 @@ class PublicationsUnverified(RequestHandler):
         self.render('publications_unverified.html', publications=publications)
 
 
+class PublicationsAcquired(RequestHandler):
+    "Acquired publications page."
+
+    @tornado.web.authenticated
+    def get(self):
+        if self.is_admin():
+            publications = self.get_docs('publication/acquired')
+        else:
+            publications = self.get_docs('publication/acquired',
+                                         key=self.current_user['email'])
+        publications.sort(key=lambda i: i['acquired']['deadline'],reverse=True)
+        self.render('publications_acquired.html', publications=publications)
+
+
 class PublicationsNoPmid(RequestHandler):
     "Publications lacking PMID."
 
@@ -822,7 +836,10 @@ class PublicationRelease(PublicationMixin, RequestHandler):
             return
         with PublicationSaver(publication, rqh=self) as saver:
             del saver['acquired']
-        self.see_other('publication', publication['_id'])
+        try:
+            self.redirect(self.get_argument('next'))
+        except tornado.web.MissingArgumentError:
+            self.see_other('publication', publication['_id'])
 
 
 class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):

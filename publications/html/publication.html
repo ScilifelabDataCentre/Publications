@@ -63,6 +63,8 @@
   </div>
   <div class="panel-body">
     {{ publication['acquired']['account'] }}
+    <br>
+    <span class="localtime">{{ publication['acquired']['deadline'] }}</span>
   </div>
 </div>
 {% end %} {# if publication.get('acquired') #}
@@ -186,9 +188,3 @@
   </a>
 </p>
 {% end %} {# block alt_format #}
-
-{% block javascript_code %}
-<script>
-$(function(){ $('[data-toggle="popover"]').popover(); });
-</script>
-{% end %}

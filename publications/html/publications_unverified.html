@@ -7,6 +7,11 @@
 <span class="glyphicon glyphicon-question-sign"></span>
 <span class="glyphicon glyphicon-file"></span>
 Unverified publications
+{% if is_admin %}
+<small>having any labels</small>
+{% else %}
+<small>having your labels</small>
+{% end %}
 {% end %}
 
 {% block main_content %}
@@ -14,7 +19,7 @@ Unverified publications
 {% for publication in publications %}
 <div class="row">
   <div class="col-md-10">
-    {% include 'publication_display.html' %}
+    {% include 'publication_item.html' %}
   </div>
   <div class="col-md-2">
     <form action="{{ reverse_url('publication_verify', publication['_id']) }}"
@@ -61,10 +66,4 @@ Unverified publications
     Explain "blacklist"
   </a>
 </p>
-{% end %}
-
-{% block javascript_code %}
-<script>
-$(function(){ $('[data-toggle="popover"]').popover(); });
-</script>
 {% end %}
