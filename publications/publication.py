@@ -583,11 +583,16 @@ class PublicationFetch(PublicationMixin, RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_curator()
-        docs = self.get_docs('publication/modified',
-                             key=constants.CEILING,
-                             last=utils.today(-1),
-                             descending=True,
-                             limit=settings['PUBLICATIONS_FETCHED_LIMIT'])
+        fetched = self.get_cookie('fetched', None)
+        self.clear_cookie('fetched')
+        docs = []
+        if fetched:
+            logging.debug("fetched %s", fetched)
+            for iuid in fetched.split('_'):
+                try:
+                    docs.append(self.get_doc(iuid))
+                except KeyError:
+                    pass
         self.render('publication_fetch.html', 
                     labels=self.get_allowed_labels(),
                     publications=docs)
@@ -603,26 +608,28 @@ class PublicationFetch(PublicationMixin, RequestHandler):
         for label in self.get_arguments('label'):
             labels[label] = self.get_argument("%s_qualifier" % label, None)
 
-        count = 0
         errors = []
         blacklisted = []
+        fetched = set()
         for identifier in identifiers:
             # Skip if number of loaded publications reached the limit
-            if count >= settings['PUBLICATIONS_FETCHED_LIMIT']: break
+            if len(fetched) >= settings['PUBLICATIONS_FETCHED_LIMIT']: break
 
             try:
-                self.fetch(identifier, override=override, labels=labels,
-                           clean=not self.is_admin())
-                count += 1
+                publ = self.fetch(identifier, override=override, labels=labels,
+                                  clean=not self.is_admin())
             except IOError as err:
                 errors.append(str(err))
             except KeyError as err:
                 blacklisted.append(str(err))
+            else:
+                fetched.add(publ['_id'])
 
-        if count == 1:
-            kwargs = {'message': "%s publication fetched." % count}
+        if len(fetched) == 1:
+            kwargs = {'message': "%s publication fetched." % len(fetched)}
         else:
-            kwargs = {'message': "%s publications fetched." % count}
+            kwargs = {'message': "%s publications fetched." % len(fetched)}
+        self.set_cookie('fetched', '_'.join(fetched))
         if errors:
             kwargs['error'] = constants.FETCH_ERROR + ', '.join(errors)
         if blacklisted:

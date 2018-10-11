@@ -285,7 +285,8 @@ class AccountReset(RequestHandler):
         if settings['EMAIL']['HOST']:
             self.render('account_reset.html', account=account)
         else:
-            self.set_error_flash('Cannot reset password; server misconfigured.')
+            self.set_error_flash('Cannot reset password since'
+                                 ' no email server configuration.')
             self.see_other('home')
 
     def post(self):
