@@ -19,6 +19,7 @@ var IGNORE = {
     'into': 1,
     'in': 1,
     'is': 1,
+    'it': 1,
     'of': 1,
     'on': 1,
     'or': 1,

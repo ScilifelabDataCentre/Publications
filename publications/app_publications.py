@@ -74,6 +74,9 @@ def main():
     args = get_args()
     utils.load_settings(filepath=args.settings)
 
+    db = utils.get_db()
+    utils.update_design_documents(db)
+
     url = tornado.web.url
     handlers = [url(r'/', Home, name='home'),
                 url(r'/site/([^/]+)', tornado.web.StaticFileHandler,

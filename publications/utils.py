@@ -33,7 +33,7 @@ def get_command_line_parser(description=None):
                         metavar='FILE', help='filename of settings YAML file')
     return parser
 
-def load_settings(filepath=None):
+def load_settings(filepath=None, ignore_logging_filepath=False):
     """Load and return the settings from the file path given by
     1) the argument to this procedure,
     2) the environment variable PUBLICATIONS_SETTINGS,
@@ -72,14 +72,16 @@ def load_settings(filepath=None):
         kwargs['format'] = settings['LOGGING_FORMAT']
     except KeyError:
         pass
-    try:
-        kwargs['filename'] = settings['LOGGING_FILEPATH']
-    except KeyError:
-        pass
-    try:
-        kwargs['filemode'] = settings['LOGGING_FILEMODE']
-    except KeyError:
-        pass
+    if not ignore_logging_filepath:
+        try:
+            kwargs['filename'] = settings['LOGGING_FILEPATH']
+        except KeyError:
+            pass
+        else:
+            try:
+                kwargs['filemode'] = settings['LOGGING_FILEMODE']
+            except KeyError:
+                pass
     logging.basicConfig(**kwargs)
     logging.info("Publications version %s", publications.__version__)
     logging.info("settings from %s", settings['SETTINGS_FILEPATH'])
@@ -127,19 +129,78 @@ def expand_filepath(filepath):
 def get_dbserver():
     return couchdb.Server(settings['DATABASE_SERVER'])
 
-def get_db(create=False):
+def get_db():
     """Return the handle for the CouchDB database.
-    If 'create' is True, then create the database if it does not exist.
+    The named database must exist.
     """
     server = get_dbserver()
     name = settings['DATABASE_NAME']
     try:
         return server[name]
     except couchdb.http.ResourceNotFound:
-        if create:
-            return server.create(name)
+        raise KeyError("CouchDB database '%s' does not exist." % name)
+
+def update_design_documents(db):
+    "Load or update CouchDB design documents (= view index definitions)."
+    root = os.path.join(settings['ROOT'], 'designs')
+    updated = []
+    for design in os.listdir(root):
+        views = dict()
+        path = os.path.join(root, design)
+        if not os.path.isdir(path): continue
+        path = os.path.join(root, design, 'views')
+        for filename in os.listdir(path):
+            name, ext = os.path.splitext(filename)
+            if ext != '.js': continue
+            with open(os.path.join(path, filename)) as codefile:
+                code = codefile.read()
+            if name.startswith('map_'):
+                name = name[len('map_'):]
+                key = 'map'
+            elif name.startswith('reduce_'):
+                name = name[len('reduce_'):]
+                key = 'reduce'
+            else:
+                key = 'map'
+            views.setdefault(name, dict())[key] = code
+        id = "_design/%s" % design
+        try:
+            doc = db[id]
+        except couchdb.http.ResourceNotFound:
+            logging.info("loading design document %s", id)
+            db.save(dict(_id=id, views=views))
+            updated.append(design)
         else:
-            raise KeyError("CouchDB database '%s' does not exist." % name)
+            if doc['views'] != views:
+                doc['views'] = views
+                logging.info("updating design document %s", id)
+                db.save(doc)
+                updated.append(design)
+    regenerate_views(db, design_documents=updated)
+
+def regenerate_views(db, design_documents=None):
+    "Trigger regeneration of view indexes by access."
+    root = os.path.join(settings['ROOT'], 'designs')
+    if design_documents is None:
+        design_documents = os.listdir(root)
+    viewnames = []
+    for design in design_documents:
+        path = os.path.join(root, design)
+        if not os.path.isdir(path): continue
+        path = os.path.join(root, design, 'views')
+        for filename in os.listdir(path):
+            name, ext = os.path.splitext(filename)
+            if ext != '.js': continue
+            if name.startswith('map_'):
+                name = name[len('map_'):]
+            elif name.startswith('reduce_'):
+                name = name[len('reduce_'):]
+            viewname = design + '/' + name
+            if viewname not in viewnames:
+                viewnames.append(viewname)
+    for viewname in viewnames:
+        logging.info("regenerating index for view %s", viewname)
+        list(db.view(viewname, limit=10))
 
 def get_doc(db, key, viewname=None):
     """Get the document with the given i, or from the given view.

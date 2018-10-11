@@ -30,6 +30,7 @@ IGNORE = set([
     'into',
     'in',
     'is',
+    'it',
     'of',
     'on',
     'or',

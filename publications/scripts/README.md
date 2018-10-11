@@ -4,16 +4,10 @@ directly with the database. These do *NOT* use the web API.
 init_database.py
 ----------------
 
-Initializes the database. The CouchDB instance must already exist, and
-the CouchDB account to connect with it must have been created and
-defined in the settings file. **NOTE**: This will clobber any existing
-data!
-
-load_designs.py
----------------
-
-Loads the design view definitions, i.e. the JavaScript files defining
-the indexes. This is a safe operation, no data will be changed.
+Initializes the database, and loads the design documents (view index
+definitions). The CouchDB instance must already exist, and the CouchDB
+account to connect to it must have been created and defined in the
+settings file. **NOTE**: This will clobber any existing data!
 
 create_admin.py
 ---------------
@@ -35,6 +29,12 @@ dump.py
 
 Dumps the entires contents of the database in CouchDB, except for the
 design documents.
+
+undump.py
+---------
+
+Reads a dump file into the CouchDB database. It assumes that the database
+is empty. If it is not, it may overwrite existing data, which is a bad idea.
 
 fetch_bulk.py
 -------------

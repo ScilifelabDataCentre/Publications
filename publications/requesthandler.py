@@ -169,7 +169,10 @@ class RequestHandler(tornado.web.RequestHandler):
             constants.USER_COOKIE,
             max_age_days=settings['LOGIN_MAX_AGE_DAYS'])
         if not email: raise ValueError
-        account = self.get_account(email)
+        try:
+            account = self.get_account(email)
+        except KeyError:
+            return None
         # Check if login session is invalidated.
         if account.get('login') is None: raise ValueError
         if account.get('disabled'):
