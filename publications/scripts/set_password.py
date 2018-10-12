@@ -1,4 +1,4 @@
-"Set the password for an account."
+"Set the password for an existing account."
 
 from __future__ import print_function
 

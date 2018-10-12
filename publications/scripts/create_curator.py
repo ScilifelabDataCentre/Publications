@@ -1,4 +1,4 @@
-"Create a curator account."
+"Create an account with the 'curator' role."
 
 from __future__ import print_function
 

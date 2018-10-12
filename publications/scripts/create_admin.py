@@ -1,4 +1,4 @@
-"Create an admin account."
+"Create an account with the 'admin' role."
 
 from __future__ import print_function
 

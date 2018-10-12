@@ -1,4 +1,4 @@
-"Fix missing PMID in all publications by searching for title."
+"Try to fix missing PMID in all publications by searching for title."
 
 from __future__ import print_function
 
@@ -22,17 +22,14 @@ def fix_missing_pmids(db, jump=0):
             print('updated', pmids[0])
         print()
 
-def get_args():
+
+if __name__ == '__main__':
     parser = utils.get_command_line_parser(
         'Fx missing PMID in all publications by searching for title.')
     parser.add_argument('-j', '--jump',
                         action='store', dest='jump', type=int, default=0,
                         help='jump over the first number of publications')
-    return parser.parse_args()
-
-
-if __name__ == '__main__':
-    args = get_args()
+    args = parser.parse_args()
     utils.load_settings(filepath=args.settings)
     db = utils.get_db()
     fix_missing_pmids(db, jump=args.jump)

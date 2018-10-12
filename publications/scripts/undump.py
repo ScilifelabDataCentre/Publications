@@ -1,7 +1,12 @@
-"""Load a dump tar file into the database.
+"""Load a dump tar file into the CouchDB database.
+
 The settings file may be given as a command line option,
 otherwise it is obtained as usual.
+
 The file to load must be given as a command line argument.
+
+NOTE: The dabase instance must exist, and should be empty. If it is not
+empty, this script may overwrite existing documents.
 """
 
 from __future__ import print_function
@@ -16,8 +21,7 @@ from publications import utils
 def undump(db, filepath):
     """Reverse of dump; load all items from a tar file.
     NOTE: Items are just added to the database. Any existing data may
-    be overwritten. This should therefore only be done when the
-    database is empty after having been initialized (init_database.py)
+    be overwritten. Should only be used with an empty database.
     """
     count_items = 0
     count_files = 0

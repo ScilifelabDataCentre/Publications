@@ -1,4 +1,6 @@
-"Check for duplicates based on title."
+"""Check for duplicates based on comparing 4 longest words in the title.
+A fast and dirty comparison algorithm. Will produce som false positives.
+"""
 
 from __future__ import print_function
 
@@ -26,14 +28,11 @@ def check_duplicates(db):
                                doi=item.doc.get('doi'),
                                title=title)
 
-def get_args():
-    parser = utils.get_command_line_parser(
-        'Check for duplicated based on title.')
-    return parser.parse_args()
-
 
 if __name__ == '__main__':
-    args = get_args()
+    parser = utils.get_command_line_parser(
+        'Check for duplicated based on title.')
+    args = parser.parse_args()
     utils.load_settings(filepath=args.settings)
     db = utils.get_db()
     check_duplicates(db)

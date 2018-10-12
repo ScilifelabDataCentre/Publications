@@ -1,11 +1,10 @@
-"""Fetch publications in bulk given CSV with PMID/DOI, label and qualifier.
-The publications are set as verified.
+"""Fetch publications in bulk given a CSV file with PMID/DOI,
+label and qualifier.
 """
 
 from __future__ import print_function
 
 import csv
-import sys
 
 import requests
 
@@ -21,21 +20,17 @@ ACCOUNT = dict(email='per.kraulis@scilifelab.se')
 
 def get_pmid(db, pmid):
     "Get an existing publication for the PMID."
-    for viewname in ['publication/pmid', 'publication/pmid_unverified']:
-        try:
-            return utils.get_doc(db, pmid, viewname=viewname)
-        except KeyError:
-            pass
-    return None
+    try:
+        return utils.get_doc(db, pmid, viewname='publication/pmid')
+    except KeyError:
+        return None
 
 def get_doi(db, doi):
     "Get an existing publication for the DOI."
-    for viewname in ['publication/doi', 'publication/doi_unverified']:
-        try:
-            return utils.get_doc(db, doi, viewname=viewname)
-        except KeyError:
-            pass
-    return None
+    try:
+        return utils.get_doc(db, doi, viewname='publication/doi')
+    except KeyError:
+        return None
 
 def fetch_pmid(db, pmid, label, qualifier):
     """Fetch the publication reference given the PMID.
@@ -59,7 +54,6 @@ def fetch_pmid(db, pmid, label, qualifier):
             labels = saver.get('labels', {}).copy()
             labels[label] = qualifier
             saver['labels'] = labels
-            saver['verified'] = True
         print(pmid, 'updated')
     else:
         try:
@@ -75,7 +69,6 @@ def fetch_pmid(db, pmid, label, qualifier):
                 labels = saver.get('labels', {}).copy()
                 labels[label] = qualifier
                 saver['labels'] = labels
-                saver['verified'] = True
             print(pmid, 'fetched')
         else:
             with PublicationSaver(old, db=db, account=ACCOUNT) as saver:
@@ -84,7 +77,6 @@ def fetch_pmid(db, pmid, label, qualifier):
                 if label:
                     labels[label] = qualifier
                 saver['labels'] = labels
-                saver['verified'] = True
             print(pmid, 'set for existing doi)')
 
 def fetch_doi(db, doi, label, qualifier):
@@ -109,7 +101,6 @@ def fetch_doi(db, doi, label, qualifier):
             labels = saver.get('labels', {}).copy()
             labels[label] = qualifier
             saver['labels'] = labels
-            saver['verified'] = True
         print(doi, 'updated')
     else:
         try:
@@ -125,7 +116,6 @@ def fetch_doi(db, doi, label, qualifier):
                 labels = saver.get('labels', {}).copy()
                 labels[label] = qualifier
                 saver['labels'] = labels
-                saver['verified'] = True
             print(doi, 'fetched')
         else:
             with PublicationSaver(old, db=db, account=ACCOUNT) as saver:
@@ -133,7 +123,6 @@ def fetch_doi(db, doi, label, qualifier):
                 labels = saver.get('labels', {}).copy()
                 labels[label] = qualifier
                 saver['labels'] = labels
-                saver['verified'] = True
             print(doi, 'set for existing pmid)')
 
 def fetch_bulk(db, filename):
@@ -148,17 +137,15 @@ def fetch_bulk(db, filename):
             elif row[1]:
                 fetch_doi(db, row[1], row[2], row[3])
 
-def get_args():
+
+if __name__ == '__main__':
+    import sys
     parser = utils.get_command_line_parser(
         'Fetch publications in bulk from CSV file.')
     parser.add_argument('-f', '--csvfile',
                       action='store', dest='csvfile',
                       metavar='CSVFILE', help='path of CSV file')
-    return parser.parse_args()
-
-
-if __name__ == '__main__':
-    args = get_args()
+    args = parser.parse_args()
     utils.load_settings(filepath=args.settings)
     if not args.csvfile:
         sys.exit('Error: no CSV file given')

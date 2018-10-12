@@ -6,6 +6,9 @@ A simple web-based publications reference database system.
 See the [GitHub Publications wiki](https://github.com/pekrau/Publications/wiki)
 for the documentation, including How-to and Installation.
 
+A few useful scripts to be run from the command line can be found in
+the `publications/scrips` subdirectory. See the README there.
+
 Features
 --------
 

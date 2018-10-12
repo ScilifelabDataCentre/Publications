@@ -1,10 +1,13 @@
 """Dump the database into a tar.gz file.
-The settings file may be given as a command line option,
-otherwise it is obtained as usual.
-The name and directory for the dump file may be set using command line options.
-The dump file will be called 'dump_{ISO date}.tar.gz' using today's date,
-and is written in the current directory unless the --dumpdir argument is set.
-Alternatively, the --dumpfile argument defines the entire file path.
+
+The settings file may be given as a command line option, otherwise it
+is obtained as usual.
+
+By default, the dump file will be called 'dump_{ISO date}.tar.gz'
+using today's date. It will be written to the current directory
+unless the '--dumpdir' is used.
+
+Alternatively, the '--dumpfile' argument defines the full file path.
 """
 
 from __future__ import print_function
@@ -62,10 +65,10 @@ if __name__ == '__main__':
     parser = utils.get_command_line_parser('Dump all data into a tar.gz file.')
     parser.add_argument('-d', '--dumpfile', metavar='FILE',
                         action='store', dest='dumpfile',
-                        help='Full path of the dump file.')
+                        help='The full path of the dump file.')
     parser.add_argument('-D', '--dumpdir', metavar='DIR',
                         action='store', dest='dumpdir',
-                        help='The path of directory to write dump file'
+                        help='The directory to write the dump file'
                         ' (with standard name) in.')
     args = parser.parse_args()
     utils.load_settings(filepath=args.settings, ignore_logging_filepath=True)

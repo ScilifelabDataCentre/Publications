@@ -1,13 +1,11 @@
 """Trawl PubMed for publications given a CSV file containing authors.
 Produces a CSV file containing the aggregated publications references.
-
-Origin: https://github.com/pekrau/Publications/blob/master/publications/scripts/trawl_pubmed.py
+There is no interaction with the database; nothing is loaded into it.
 
 NOTE: This is a stand-alone script without any external dependencies,
 except for the third-party Python package 'requests'. In particular,
-the pubmed module located elsewhere in this package has been inlined here.
-This makes it easy to just use this script without having to download
-the entire package.
+the pubmed module has been inlined here. This makes it easy to just
+use this script without having to download the entire package.
 
 PubMed is searched for a combination of author name, author affiliation
 and year of publication, in order to reduce the number of false positive
