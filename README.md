@@ -7,7 +7,8 @@ See the [GitHub Publications wiki](https://github.com/pekrau/Publications/wiki)
 for the documentation, including How-to and Installation.
 
 A few useful scripts to be run from the command line can be found in
-the `publications/scrips` subdirectory. See the README there.
+the `publications/scrips` subdirectory.
+See [its README](https://github.com/pekrau/Publications/tree/master/publications/scripts].
 
 Features
 --------
