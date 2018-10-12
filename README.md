@@ -8,7 +8,7 @@ for the documentation, including How-to and Installation.
 
 A few useful scripts to be run from the command line can be found in
 the `publications/scrips` subdirectory.
-See [its README](https://github.com/pekrau/Publications/tree/master/publications/scripts].
+See [its README](https://github.com/pekrau/Publications/tree/master/publications/scripts).
 
 Features
 --------
