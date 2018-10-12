@@ -47,6 +47,9 @@ Features
 - The publications data can be extracted in JSON and CSV formats. The
   CSV format allows some basic filtering options.
 
+- API to ask the server to fetch publications from PubMed or Crossref.
+  See the README in `publications/api`.
+
 Implementation
 --------------
 

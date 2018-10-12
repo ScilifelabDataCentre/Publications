@@ -1,10 +1,17 @@
 """Fetch a publication.
 
-Script to fetch a publication given by PMID or DOI on the command line.
-The server is requested to fetch the data for the publication and load it.
-If the publication already is in the system, the given labels are added.
+Ask the server to fetch a publication into its database given the
+PubMed identifier (PMID) or DOI.
 
-NOTE: The function 'fetch_publication' can be imported and used in scripts.
+This code shows how a script can be used to interact with the API
+fetch feature. The account needs to have an API key defined, which is
+done in the web interface on the Edit account page.
+
+The script can be used a standalone on the command line. This requires
+changing the Publication server base URL and the API key.
+
+The function defined in the script can be imported and used in your
+own scripts.
 """
 
 from __future__ import print_function
@@ -26,10 +33,13 @@ def fetch_publication(base_url, apikey, identifier, override=False, labels={}):
             value is a string specifying the qualifier for that label.
             Only valid labels (for the account) and qualifiers will be
             used, all others will be ignored.
+
     Response HTTP status 200 when successful, and the response body
     contains the JSON representation of the publication.
+
     Response HTTP status 400 is returned when the PMID or DOI was bad
     or the external server (PubMed, Crossref) could not be reached.
+
     Response HTTP status 409 is returned when the publication is blacklisted
     (and override was False), 
     """
