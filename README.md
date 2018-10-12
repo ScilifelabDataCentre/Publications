@@ -49,7 +49,7 @@ Features
   CSV format allows some basic filtering options.
 
 - API to ask the server to fetch publications from PubMed or Crossref.
-  See the [API README](https://github.com/pekrau/Publications/tree/master/publications/api).
+  See [its README](https://github.com/pekrau/Publications/tree/master/publications/api).
 
 Implementation
 --------------
