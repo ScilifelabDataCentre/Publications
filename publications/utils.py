@@ -127,7 +127,11 @@ def expand_filepath(filepath):
     return filepath
 
 def get_dbserver():
-    return couchdb.Server(settings['DATABASE_SERVER'])
+    server = couchdb.Server(settings['DATABASE_SERVER'])
+    if settings.get('DATABASE_ACCOUNT') and settings.get('DATABASE_PASSWORD'):
+        server.resource.credentials = (settings.get('DATABASE_ACCOUNT'),
+                                       settings.get('DATABASE_PASSWORD'))
+    return server
 
 def get_db():
     """Return the handle for the CouchDB database.
