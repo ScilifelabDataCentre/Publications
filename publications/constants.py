@@ -56,7 +56,7 @@ PUBMED_URL = 'https://www.ncbi.nlm.nih.gov/pubmed/%s'
 DOI_URL    = 'https://doi.org/%s'
 
 # Search setup; characters to remove and words to ignore.
-SEARCH_REMOVE = '-_\.:,?()$'
+SEARCH_REMOVE = "-_\.:,?()'$"
 SEARCH_IGNORE = [
     'a',
     'an',

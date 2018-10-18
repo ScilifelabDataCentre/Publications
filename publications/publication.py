@@ -689,11 +689,11 @@ class PublicationBlacklist(PublicationMixin, RequestHandler):
             self.see_other('home', error=str(msg))
             return
         blacklist = {constants.DOCTYPE: constants.BLACKLIST,
-                 'title': publication['title'],
-                 'pmid': publication.get('pmid'),
-                 'doi': publication.get('doi'),
-                 'created': utils.timestamp(),
-                 'owner': self.current_user['email']}
+                     'title': publication['title'],
+                     'pmid': publication.get('pmid'),
+                     'doi': publication.get('doi'),
+                     'created': utils.timestamp(),
+                     'owner': self.current_user['email']}
         self.db[utils.get_iuid()] = blacklist
         self.delete_entity(publication)
         try:

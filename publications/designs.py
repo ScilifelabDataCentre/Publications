@@ -6,70 +6,73 @@ import couchdb
 
 from . import constants
 
+REMOVE = ''.join(constants.SEARCH_REMOVE)
+IGNORE = ','.join(["'%s':1" % i for i in constants.SEARCH_IGNORE])
 
 DESIGNS = dict(
 
     account=dict(
-        api_key=dict(map=
+        api_key=dict(map=       # account/api_key
 """function (doc) {
   if (doc.publications_doctype !== 'account') return;
   if (!doc.api_key) return;
   emit(doc.api_key, doc.email);
 }"""),
-        email=dict(map=
+        email=dict(map=         # account/email
 """function (doc) {
   if (doc.publications_doctype !== 'account') return;
   emit(doc.email, null);
 }"""),
-        label=dict(map=
+        label=dict(map=         # account/label
 """function (doc) {
   if (doc.publications_doctype !== 'account') return;
   for (var key in doc.labels) emit(doc.labels[key].toLowerCase(), doc.email);
 }""")),
 
     blacklist=dict(
-        doi=dict(map=
+        doi=dict(map=           # blacklist/doi
 """function (doc) {
   if (doc.publications_doctype !== 'blacklist') return;
   if (doc.doi) emit(doc.doi, doc.title);
 }"""),
-        pmid=dict(map=
+        pmid=dict(map=          # blacklist/pmid
 """function (doc) {
   if (doc.publications_doctype !== 'blacklist') return;
   if (doc.pmid) emit(doc.pmid, doc.title);
 }""")),
+
     journal=dict(
-        issn=dict(map=
+        issn=dict(map=          # journal/issn
 """function (doc) {
   if (doc.publications_doctype !== 'journal') return;
   emit(doc.issn, doc.title);
 }"""),
-        title=dict(map=
+        title=dict(map=         # journal/title
 """function (doc) {
   if (doc.publications_doctype !== 'journal') return;
   emit(doc.title, doc.issn);
 }""")),
 
     label=dict(
-        normalized_value=dict(map=
+        normalized_value=dict(map= # label/normalized_value
 """function (doc) {
   if (doc.publications_doctype !== 'label') return;
   emit(doc.normalized_value, null);
 }"""),
-        value=dict(map=
+        value=dict(map=         # label/value
 """function (doc) {
   if (doc.publications_doctype !== 'label') return;
   emit(doc.value, null);
 }""")),
 
     log=dict(
-        account=dict(map=
+        account=dict(map=       # log/account
 """function (doc) {
   if (doc.publications_doctype !== 'log') return;
   if (!doc.account) return;
   emit([doc.account, doc.modified], null);
 }"""),
-        doc=dict(map=
+        doc=dict(map=           # log/doc
 """function (doc) {
   if (doc.publications_doctype !== 'log') return;
   emit([doc.doc, doc.modified], null);
@@ -81,17 +84,18 @@ DESIGNS = dict(
 }""")),
 
     publication=dict(
-        acquired=dict(map=
+        acquired=dict(map=      # publication/acquired
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   if (!doc.acquired) return;
   emit(doc.acquired.account, null);
 }"""),
-        author=dict(map=
+        author=dict(map=        # publication/author
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   var au, name;
-  for (var i in doc.authors) {
+  var length = doc.authors.length;
+  for (var i=0; i<length; i++) {
     au = doc.authors[i];
     if (!au.family_normalized) continue;
     emit(au.family_normalized.toLowerCase(), null);
@@ -105,23 +109,18 @@ DESIGNS = dict(
     }
   }
 }"""),
-        created=dict(map=
-"""function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  emit(doc.created, doc.title);
-}"""),
-        doi=dict(map=
+        doi=dict(map=           # publication/doi
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   if (doc.doi) emit(doc.doi.toLowerCase(), doc.title);
 }"""),
-        epublished=dict(map=
+        epublished=dict(map=    # publication/epublished
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   if (!doc.epublished) return;
   emit(doc.epublished, doc.title);
 }"""),
-        first_published=dict(map=
+        first_published=dict(map= # publication/first_published
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   if (!doc.published) return;
@@ -135,26 +134,26 @@ DESIGNS = dict(
     emit(doc.published, doc.title);
   };
 }"""),
-        label_parts=dict(map=
+        label_parts=dict(map=   # publication/label_parts
 """var REMOVE = /[%s]/g;
 var IGNORE = {%s};
 function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   var label, parts, part;
-  for (var i in doc.labels) {
-    label = doc.labels[i].toLowerCase();
+  for (var key in doc.labels) {
+    label = doc.labels[key].toLowerCase();
     label = label.replace(REMOVE, ' ');
     parts = label.split(/\s+/);
-    for (var j in parts) {
-      part = parts[j];
+    var length = parts.length;
+    for (var i=0; i<length; i++) {
+      part = parts[i];
       if (!part) continue;
       if (IGNORE[part]) continue;
-        emit(part, null);
+      emit(part, null);
     }
   }
-}""" % (''.join(constants.SEARCH_REMOVE),
-        ','.join(["'%s':1" % i for i in constants.SEARCH_IGNORE]))),
-        issn=dict(reduce='_sum',
+}""" % (REMOVE, IGNORE)),
+        issn=dict(reduce='_sum', # publication/issn
                   map=
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
@@ -162,7 +161,7 @@ function (doc) {
   if (!doc.journal.issn) return;
   emit(doc.journal.issn, 1);
 }"""),
-        journal=dict(reduce='_sum',
+        journal=dict(reduce='_sum', # publication/journal
                      map=
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
@@ -170,13 +169,13 @@ function (doc) {
   if (!doc.journal.title) return;
   emit(doc.journal.title, 1);
 }"""),
-        label=dict(reduce="_sum",
+        label=dict(reduce="_sum", # publication/label
                    map=
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
-  for (var key in doc.labels) emit(key.toLowerCase(), 1);
+  for (var key in doc.labels) emit(doc.labels[key].toLowerCase(), 1);
 }"""),
-        year=dict(reduce="_sum",
+        year=dict(reduce="_sum", # publication/year
                   map=
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
@@ -184,66 +183,78 @@ function (doc) {
   var year = doc.published.split('-')[0];
   emit(year, 1);
 }"""),
-        modified=dict(map=
+        modified=dict(map=      # publication/modified
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   emit(doc.modified, doc.title);
 }"""),
-        no_doi=dict(map=
+        no_doi=dict(map=        # publication/no_doi
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   if (!doc.doi) emit(doc.published, doc.title);
 }"""),
-        no_pmid=dict(map=
+        no_pmid=dict(map=       # publication/no_pmid
 """function (doc) {
-    if (doc.publications_doctype !== 'publication') return;
-    if (!doc.pmid) emit(doc.published, doc.title);
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.pmid) emit(doc.published, doc.title);
 }"""),
-        notes=dict(map=
+        notes=dict(map=         # publication/notes
 """var REMOVE = /[%s]/g;
 var IGNORE = {%s};
 function (doc) {
-    if (doc.publications_doctype !== 'publication') return;
-    var notes = doc.notes.split(/\s+/);
-    var note;
-    for (var i in notes) {
-	note = notes[i].toLowerCase();
-	note = note.replace(REMOVE, '');
-	if (!note) continue;
-	if (IGNORE[note]) continue;
-	emit(note, null);
-    }
-}""" % (''.join(constants.SEARCH_REMOVE),
-        ','.join(["'%s':1" % i for i in constants.SEARCH_IGNORE]))),
-        pmid=dict(map=
+  if (doc.publications_doctype !== 'publication') return;
+  var notes = doc.notes.split(/\s+/);
+  var note;
+  var length = notes.length;
+  for (var i=0; i<length; i++) {
+    note = notes[i].toLowerCase();
+    note = note.replace(REMOVE, '');
+    if (!note) continue;
+    if (IGNORE[note]) continue;
+    emit(note, null);
+  }
+}""" % (REMOVE, IGNORE)),
+        pmid=dict(map=          # publication/pmid
 """function (doc) {
-    if (doc.publications_doctype !== 'publication') return;
-    if (doc.pmid) emit(doc.pmid, doc.title);
+  if (doc.publications_doctype !== 'publication') return;
+  if (doc.pmid) emit(doc.pmid, doc.title);
 }"""),
-        published=dict(map=
+        published=dict(map=     # publication/published
 """function (doc) {
-    if (doc.publications_doctype !== 'publication') return;
-    if (!doc.published) return;
-    emit(doc.published, doc.title);
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.published) return;
+  emit(doc.published, doc.title);
 }"""),
-        title=dict(map=
+        title=dict(map=         # publication/title
 """var REMOVE = /[%s]/g;
 var IGNORE = {%s};
 function (doc) {
-    if (doc.publications_doctype !== 'publication') return;
-    var words = doc.title.split(/\s+/);
-    var word;
-    for (var i in words) {
-	word = words[i].toLowerCase();
-	word = word.replace(REMOVE, '');
-	if (!word) continue;
-	if (IGNORE[word]) continue;
-	emit(word, null);
-    }
-}""" % (''.join(constants.SEARCH_REMOVE),
-        ','.join(["'%s':1" % i for i in constants.SEARCH_IGNORE]))),
-        )
-    )
+  if (doc.publications_doctype !== 'publication') return;
+  var words = doc.title.split(/\s+/);
+  var word;
+  var length = words.length;
+  for (var i=0; i<length; i++) {
+    word = words[i].toLowerCase();
+    word = word.replace(REMOVE, '');
+    if (!word) continue;
+    if (IGNORE[word]) continue;
+    emit(word, null);
+  }
+}""" % (REMOVE, IGNORE)),
+        xref=dict(map=
+"""function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var xref;
+  var length = doc.xrefs.length;
+  for (var i=0; i<length; i++) {
+    xref = doc.xrefs[i];
+    if (!xref.db) continue;
+    if (!xref.key) continue;
+    emit([xref.db, xref.key], null);
+  }
+}"""),
+    ),
+)
 
 
 def load_design_documents(db):
