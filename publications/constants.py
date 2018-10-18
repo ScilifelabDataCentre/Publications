@@ -54,3 +54,31 @@ BLACKLISTED_MESSAGE = "Publication(s) not fetched since in the blacklist." \
 # External URL templates.
 PUBMED_URL = 'https://www.ncbi.nlm.nih.gov/pubmed/%s'
 DOI_URL    = 'https://doi.org/%s'
+
+# Search setup; characters to remove and words to ignore.
+SEARCH_REMOVE = '-_\.:,?()$'
+SEARCH_IGNORE = [
+    'a',
+    'an',
+    'and',
+    'are',
+    'as',
+    'at',
+    'but',
+    'by',
+    'can',
+    'for',
+    'from',
+    'into',
+    'in',
+    'is',
+    'it',
+    'of',
+    'on',
+    'or',
+    'that',
+    'the',
+    'to',
+    'using',
+    'with',
+    ]

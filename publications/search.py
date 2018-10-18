@@ -10,36 +10,9 @@ from publications import settings
 from publications import utils
 from publications.requesthandler import RequestHandler
 
-# Must be kept in sync with
-#  designs/publication/views/title.js
-#  designs/publication/views/notes.js
-#  designs/publication/views/label_parts.js
-REMOVE = set('-\.:,?()$')
-IGNORE = set([
-    'a',
-    'an',
-    'and',
-    'are',
-    'as',
-    'at',
-    'but',
-    'by',
-    'can',
-    'for',
-    'from',
-    'into',
-    'in',
-    'is',
-    'it',
-    'of',
-    'on',
-    'or',
-    'that',
-    'the',
-    'to',
-    'using',
-    'with',
-    ])
+
+SEARCH_REMOVE = set(constants.SEARCH_REMOVE)
+SEARCH_IGNORE = set(constants.SEARCH_IGNORE)
 
 
 class Search(RequestHandler):
@@ -68,7 +41,7 @@ class Search(RequestHandler):
                          'publication/journal']:
             iuids.update(self.search(viewname, terms))
         # Now remove set of insignificant characters.
-        terms = [''.join([c for c in t if c not in REMOVE])
+        terms = [''.join([c for c in t if c not in SEARCH_REMOVE])
                  for t in terms]
         terms = [t for t in terms if t]
         for viewname in ['publication/author',
@@ -94,7 +67,7 @@ class Search(RequestHandler):
         else:
             view = self.db.view(viewname, reduce=False)
             for term in terms:
-                if term in IGNORE: continue
+                if term in SEARCH_IGNORE: continue
                 for item in view[term : term + constants.CEILING]:
                     result.add(item.id)
         return result

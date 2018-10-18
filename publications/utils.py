@@ -20,6 +20,7 @@ import yaml
 
 import publications
 from . import constants
+from . import designs
 from . import settings
 
 
@@ -144,67 +145,11 @@ def get_db():
     except couchdb.http.ResourceNotFound:
         raise KeyError("CouchDB database '%s' does not exist." % name)
 
-def update_design_documents(db):
-    "Load or update CouchDB design documents (= view index definitions)."
-    root = os.path.join(settings['ROOT'], 'designs')
-    updated = []
-    for design in os.listdir(root):
-        views = dict()
-        path = os.path.join(root, design)
-        if not os.path.isdir(path): continue
-        path = os.path.join(root, design, 'views')
-        for filename in os.listdir(path):
-            name, ext = os.path.splitext(filename)
-            if ext != '.js': continue
-            with open(os.path.join(path, filename)) as codefile:
-                code = codefile.read()
-            if name.startswith('map_'):
-                name = name[len('map_'):]
-                key = 'map'
-            elif name.startswith('reduce_'):
-                name = name[len('reduce_'):]
-                key = 'reduce'
-            else:
-                key = 'map'
-            views.setdefault(name, dict())[key] = code
-        id = "_design/%s" % design
-        try:
-            doc = db[id]
-        except couchdb.http.ResourceNotFound:
-            logging.info("loading design document %s", id)
-            db.save(dict(_id=id, views=views))
-            updated.append(design)
-        else:
-            if doc['views'] != views:
-                doc['views'] = views
-                logging.info("updating design document %s", id)
-                db.save(doc)
-                updated.append(design)
-    regenerate_views(db, design_documents=updated)
-
-def regenerate_views(db, design_documents=None):
-    "Trigger regeneration of view indexes by access."
-    root = os.path.join(settings['ROOT'], 'designs')
-    if design_documents is None:
-        design_documents = os.listdir(root)
-    viewnames = []
-    for design in design_documents:
-        path = os.path.join(root, design)
-        if not os.path.isdir(path): continue
-        path = os.path.join(root, design, 'views')
-        for filename in os.listdir(path):
-            name, ext = os.path.splitext(filename)
-            if ext != '.js': continue
-            if name.startswith('map_'):
-                name = name[len('map_'):]
-            elif name.startswith('reduce_'):
-                name = name[len('reduce_'):]
-            viewname = design + '/' + name
-            if viewname not in viewnames:
-                viewnames.append(viewname)
-    for viewname in viewnames:
-        logging.info("regenerating index for view %s", viewname)
-        list(db.view(viewname, limit=10))
+def initialize(db=None):
+    "Load the design documents, or update."
+    if db is None:
+        db = get_db()
+    designs.load_design_documents(db)
 
 def get_doc(db, key, viewname=None):
     """Get the document with the given i, or from the given view.
