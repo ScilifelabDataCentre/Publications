@@ -23,7 +23,7 @@
     {% module Journal(publication) %}
     {% module Published(publication) %}
   </div>
-  {% if publication['xrefs'] %}
+  {% if publication.get('xrefs') %}
   <div>
     {% for xref in publication['xrefs'] %}
     {% module Xref(xref) %}
