@@ -23,6 +23,13 @@
     {% module Journal(publication) %}
     {% module Published(publication) %}
   </div>
+  {% if publication['xrefs'] %}
+  <div>
+    {% for xref in publication['xrefs'] %}
+    {% module Xref(xref) %}
+    {% end %}
+  </div>
+  {% end %}
   <div>
     {% for l in sorted(publication['labels']) %}
     <a class="label label-primary margin-r1"

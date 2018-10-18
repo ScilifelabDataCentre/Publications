@@ -44,6 +44,14 @@ class Published(tornado.web.UIModule):
         return "[%s]" % result
 
 
+class Xref(tornado.web.UIModule):
+    "External reference, database entry."
+
+    def render(self, xref):
+        # icon = '<span class="glyphicon glyphicon-th-list"></span>&nbsp;'
+        return '<span class="label label-info">%s:%s</span>' % (xref['db'],
+                                                                xref['key'])
+
 class External(tornado.web.UIModule):
     "HTML for an external link."
 
