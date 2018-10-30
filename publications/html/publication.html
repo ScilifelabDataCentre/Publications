@@ -21,9 +21,9 @@
   {{ publication['journal'].get('pages') or '-' }}
   {% module Published(publication) %}
   <br>
-  {% module Pubmed(publication.get('pmid'), full=True) %}
-  {% module Doi(publication.get('doi'), full=True) %}
-  {% module Crossref(publication.get('doi'), full=True) %}
+  {% module PubmedLink(publication.get('pmid')) %}
+  {% module DoiLink(publication.get('doi')) %}
+  {% module CrossrefLink(publication.get('doi')) %}
   {% if publication.get('xrefs') %}
   <br>
   {% for xref in publication['xrefs'] %}
@@ -75,6 +75,13 @@
      class="btn btn-primary left" role="button">
     <span class="glyphicon glyphicon-edit"></span>
     Edit
+  </a>
+</p>
+<p>
+  <a href="{{ reverse_url('publication_xrefs', publication['_id']) }}"
+     class="btn btn-info left" role="button">
+    <span class="glyphicon glyphicon-edit"></span>
+    Edit links
   </a>
 </p>
 {% end %} {# if is_editable #}

@@ -677,6 +677,38 @@ class PublicationEdit(PublicationMixin, RequestHandler):
         self.see_other('publication', publication['_id'])
 
 
+class PublicationXrefs(PublicationMixin, RequestHandler):
+    "Edit the publication links."
+
+    @tornado.web.authenticated
+    def get(self, iuid):
+        try:
+            publication = self.get_publication(iuid)
+            self.check_editable(publication)
+        except (KeyError, ValueError), msg:
+            self.see_other('home', error=str(msg))
+            return
+        self.render('publication_xrefs.html',
+                    publication=publication,
+                    labels=self.get_allowed_labels())
+
+    @tornado.web.authenticated
+    def post(self, iuid):
+        try:
+            publication = self.get_publication(iuid)
+            self.check_editable(publication)
+        except (KeyError, ValueError), msg:
+            self.see_other('home', error=str(msg))
+            return
+        try:
+            with PublicationSaver(doc=publication, rqh=self) as saver:
+                saver.check_revision()
+                # XXX
+        except SaverError, msg:
+            self.set_error_flash(utils.REV_ERROR)
+        self.see_other('publication', publication['_id'])
+
+
 class PublicationBlacklist(PublicationMixin, RequestHandler):
     "Blacklist a publication and record its external identifiers."
 

@@ -1,0 +1,18 @@
+{# Publication xrefs edit page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}
+Edit links for publication {{ publication['title'][:20] }}...
+{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-edit"></span>
+<span class="glyphicon glyphicon-file"></span>
+Edit
+{% if len(publication['title']) < 30 %}
+'{{ publication['title'] }}'
+{% else %}
+'{{ publication['title'][:28] }}...'
+{% end %}
+{% end %} {# block body_title #}
