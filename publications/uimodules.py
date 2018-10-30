@@ -45,12 +45,12 @@ class Published(tornado.web.UIModule):
 
 
 class Xref(tornado.web.UIModule):
-    "External reference, database entry."
+    "External reference; database entry other then PubMed, DOI or Crossref."
 
     def render(self, xref):
-        # icon = '<span class="glyphicon glyphicon-th-list"></span>&nbsp;'
-        return '<span class="label label-info">%s:%s</span>' % (xref['db'],
-                                                                xref['key'])
+        return '<span class="badge badge-p"> %s: %s</span>' % (xref['db'],
+                                                               xref['key'])
+
 
 class External(tornado.web.UIModule):
     "HTML for an external link."
@@ -62,7 +62,7 @@ class External(tornado.web.UIModule):
         name = self.NAME or self.__class__.__name__
         if key:
             if full:
-                attrs = 'class="nobr margin10" target="_"'
+                attrs = 'class="nobr margin-r1" target="_"'
             else:
                 attrs = 'class="btn btn-default btn-block btn-xs left" role="button" target="_"'
             url = self.URL % key

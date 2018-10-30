@@ -24,6 +24,12 @@
   {% module Pubmed(publication.get('pmid'), full=True) %}
   {% module Doi(publication.get('doi'), full=True) %}
   {% module Crossref(publication.get('doi'), full=True) %}
+  {% if publication.get('xrefs') %}
+  <br>
+  {% for xref in publication['xrefs'] %}
+  {% module Xref(xref) %}
+  {% end %}
+  {% end %}
 </p>
 <p>
   {{ publication['abstract'] or ''}}
