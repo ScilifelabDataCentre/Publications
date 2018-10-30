@@ -127,13 +127,13 @@ def fetch_doi(db, doi, label, qualifier):
             print(doi, 'set for existing pmid)')
 
 def fetch_bulk(db, filename):
-   """"CSV file format:
-   PMID, DOI, label and qualifier, as columns 1, 2, 3, and 4, respectively.
-   If there is no PMID (empty column 1) then there must be a DOI in
-   column 2.
-   If any errors are detected before the fetching phase,
-   this functions returns without attempting any fetch.
-   """
+    """"CSV file format:
+    PMID, DOI, label and qualifier, as columns 1, 2, 3, and 4, respectively.
+    If there is no PMID (empty column 1) then there must be a DOI in
+    column 2.
+    If any errors are detected before the fetching phase,
+    this functions returns without attempting any fetch.
+    """
     with open(filename, 'rb') as infile:
         reader = csv.reader(infile)
         reader.next()           # Skip header
@@ -144,9 +144,9 @@ def fetch_bulk(db, filename):
         for nrow, row in enumerate(rows):
             try:
                 if row[0]:
-                    check_pmid(db, row[0])
+                    check_blacklist_pmid(db, row[0])
                 elif row[1]:
-                    check_doi(db, row[1])
+                    check_blacklist_doi(db, row[1])
                 else:
                     raise ValueError('no PMID or DOI')
                 check_label(db, row[2])
