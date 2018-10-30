@@ -1,5 +1,7 @@
-"""Fetch publications in bulk given a CSV file with PMID/DOI,
-label and qualifier.
+"""Fetch publications in bulk given a CSV file with PMID, DOI,
+label and qualifier, as columns 1, 2, 3, and 4, respectively.
+If there is no PMID (empty column 1) then there must be a DOI in
+column 2.
 """
 
 from __future__ import print_function
@@ -32,22 +34,33 @@ def get_doi(db, doi):
     except KeyError:
         return None
 
+def check_blacklist_pmid(db, pmid):
+    "Raise ValueError if the PMID is blacklisted."
+    if utils.get_blacklisted(db, pmid):
+        raise ValueError("%s is blacklisted!" % pmid)
+
+def check_blacklist_doi(db, doi):
+    "Raise ValueError if the DOI is blacklisted."
+    if utils.get_blacklisted(db, doi):
+        raise ValueError("%s is blacklisted!" % doi)
+
+def check_label(db, label):
+    "Raise ValueError if no such label."
+    try:
+        utils.get_label(db, label)
+    except KeyError:
+        raise ValueError("label %s does not exist" % label)
+
+def check_qualifier(db, qualifier):
+    if qualifier not in settings['SITE_LABEL_QUALIFIERS']:
+        raise ValueError("qualifier %s does not exist", qualifier)
+
 def fetch_pmid(db, pmid, label, qualifier):
     """Fetch the publication reference given the PMID.
     Update the existing record, if any.
     Apply the given label and qualifier.
+    Raise KeyError if no such PMID.
     """
-    if utils.get_blacklisted(db, pmid):
-        print('Error:', pmid, 'is blacklisted!')
-        return
-    try:
-        utils.get_label(db, label)
-    except KeyError:
-        print('Error:', pmid, 'label', label, 'does not exist')
-        return
-    if qualifier not in settings['SITE_LABEL_QUALIFIERS']:
-        print('Warning:', pmid, 'qualifier', qualifier, 'does not exist')
-        qualifier = None        
     old = get_pmid(db, pmid)
     if old:
         with PublicationSaver(old, db=db, account=ACCOUNT) as saver:
@@ -58,9 +71,8 @@ def fetch_pmid(db, pmid, label, qualifier):
     else:
         try:
             new = pubmed.fetch(pmid, delay=DELAY)
-        except (IOError, ValueError, requests.exceptions.Timeout) as err:
-            print('Error:', pmid, 'could not be fetched:', err)
-            return
+        except (IOError, ValueError, requests.exceptions.Timeout) as error:
+            raise KeyError('%s could not be fetched: %s' % (pmid, error))
         try:
             old = get_doi(db, new['doi'])
             if not old: raise KeyError
@@ -83,18 +95,8 @@ def fetch_doi(db, doi, label, qualifier):
     """Fetch the publication reference given the DOI.
     Update the existing record, if any.
     Apply the given label and qualifier.
+    Raise KeyError if no such DOI.
     """
-    if utils.get_blacklisted(db, doi):
-        print('Error:', doi, 'is blacklisted!')
-        return
-    try:
-        utils.get_label(db, label)
-    except KeyError:
-        print('Error:', doi, 'label', label, 'does not exist')
-        return
-    if qualifier not in settings['SITE_LABEL_QUALIFIERS']:
-        print('Warning:', doi, 'qualifier', qualifier, 'does not exist')
-        qualifier = None
     old = get_doi(db, doi)
     if old:
         with PublicationSaver(old, db=db, account=ACCOUNT) as saver:
@@ -106,8 +108,7 @@ def fetch_doi(db, doi, label, qualifier):
         try:
             new = crossref.fetch(doi, delay=DELAY)
         except (IOError, ValueError, requests.exceptions.Timeout) as err:
-            print('Error:', doi, 'could not be fetched:', err)
-            return
+            raise KeyError('%s could not be fetched: %s' % (doi, error))
         try:
             old = get_pmid(db, new['pmid'])
             if not old: raise KeyError
@@ -126,11 +127,35 @@ def fetch_doi(db, doi, label, qualifier):
             print(doi, 'set for existing pmid)')
 
 def fetch_bulk(db, filename):
+   """"CSV file format:
+   PMID, DOI, label and qualifier, as columns 1, 2, 3, and 4, respectively.
+   If there is no PMID (empty column 1) then there must be a DOI in
+   column 2.
+   If any errors are detected before the fetching phase,
+   this functions returns without attempting any fetch.
+   """
     with open(filename, 'rb') as infile:
         reader = csv.reader(infile)
         reader.next()           # Skip header
         rows = list(reader)
         print(len(rows), 'records in CSV file')
+        # Check data in CSV file
+        bail = False
+        for nrow, row in enumerate(rows):
+            try:
+                if row[0]:
+                    check_pmid(db, row[0])
+                elif row[1]:
+                    check_doi(db, row[1])
+                else:
+                    raise ValueError('no PMID or DOI')
+                check_label(db, row[2])
+                check_qualifier(db, row[3])
+            except ValueError as error:
+                print('Error row', nrow, str(error))
+                bail = True
+        if bail: return
+        # Fetch publications
         for row in rows:
             if row[0]:
                 fetch_pmid(db, row[0], row[2], row[3])
