@@ -45,85 +45,61 @@ class Published(tornado.web.UIModule):
 
 
 class Xref(tornado.web.UIModule):
-    "HTML for an external database entry other then PubMed, DOI or Crossref."
+    "HTML for a general external database entry."
 
     ICON = '<span class="glyphicon glyphicon-share"></span>'
+    ATTRS = 'class="btn btn-info btn-xs" role="button" target="_"'
 
-    def render(self, xref):
+    def render(self, xref, full=False):
         try:
-            href = xref['href']
+            url = xref['href']
         except KeyError:
-            return '<span class="text-info">%s %s: %s</span>' % \
-                (self.ICON, xref['db'], xref['key'])
+            try:
+                url = settings['XREF_TEMPLATE_URLS'][xref['db'].lower()]
+            except KeyError:
+                url = None
+            else:
+                url = url % xref['key']
+        if url:
+            result = '<a %s href="%s">%s %s</a>' % \
+                     (self.ATTRS, url, self.ICON, xref['db'])
         else:
-            return '<a href="%s" class="label label-info>%s %s: %s</a>' % \
-                (href, self.ICON, xref['db'], xref['key'])
-
-
-class ExternalLink(tornado.web.UIModule):
-    "HTML for a link to an external publication site."
-
-    ICON = '<span class="glyphicon glyphicon-link"></span>'
-    NAME = None
-    URL = None
-
-    def render(self, key):
-        if key:
-            return '<a class="nobr margin-r1" target="_" href="%s">' \
-                ' %s %s: %s</a>' % \
-                (self.URL % key, self.ICON, self.NAME, key)
-        else:
-            return '<span class="nobr margin-r1">%s: -</span>' % self.NAME
-
-
-class PubmedLink(ExternalLink):
-    "HTML for a link to the PubMed item."
-    NAME = 'PubMed'
-    URL = constants.PUBMED_URL
-    
-
-class DoiLink(ExternalLink):
-    "HTML for a link to the DOI redirect service."
-    NAME = 'DOI'
-    URL = constants.DOI_URL
-
-
-class CrossrefLink(ExternalLink):
-    "HTML for a link to the Crossref service."
-    NAME = 'Crossref'
-    URL = 'https://search.crossref.org/?q=%s'
+            result = '<button disabled %s>%s %s</button>' % \
+                     (self.ATTRS, self.ICON, xref['db'])
+        if full: result = '<p>' + result + ' ' + xref['key'] + '</p>'
+        return result
 
 
 class ExternalButton(tornado.web.UIModule):
-    "HTML for an external publication button link."
+    "HTML for a button to an external publication page."
 
     ICON = '<span class="glyphicon glyphicon-link"></span>'
+    ATTRS = 'class="btn btn-default btn-xs" role="button" target="_"'
     NAME = None
     URL = None
 
-    def render(self, key):
-        name = self.NAME or self.__class__.__name__
+    def render(self, key, full=False):
+        assert self.NAME
+        assert self.URL
         if key:
-            attrs = 'class="btn btn-default btn-block btn-xs left" role="button" target="_"'
             url = self.URL % key
-            return '<a %s href="%s">%s %s</a>' % \
-                (attrs, url, self.ICON, name)
+            result = '<a %s href="%s">%s %s</a>' % \
+                     (self.ATTRS, url, self.ICON, self.NAME)
+            if full: result = '<p>' + result + ' ' + key + '</p>'
+            return result
         else:
             return ''
 
 class PubmedButton(ExternalButton):
-    "HTML for a button link to the PubMed item."
     NAME = 'PubMed'
     URL = constants.PUBMED_URL
     
 
 class DoiButton(ExternalButton):
-    "HTML for a button link to the DOI redirect service."
     NAME = 'DOI'
     URL = constants.DOI_URL
 
 
 class CrossrefButton(ExternalButton):
-    "HTML for a button link to the Crossref service."
     NAME = 'Crossref'
     URL = 'https://search.crossref.org/?q=%s'

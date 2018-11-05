@@ -20,16 +20,6 @@
   ({{ publication['journal'].get('issue') or '-' }})
   {{ publication['journal'].get('pages') or '-' }}
   {% module Published(publication) %}
-  <br>
-  {% module PubmedLink(publication.get('pmid')) %}
-  {% module DoiLink(publication.get('doi')) %}
-  {% module CrossrefLink(publication.get('doi')) %}
-  {% if publication.get('xrefs') %}
-  <br>
-  {% for xref in publication['xrefs'] %}
-  {% module Xref(xref) %}
-  {% end %}
-  {% end %}
 </p>
 <p>
   {{ publication['abstract'] or ''}}
@@ -47,6 +37,12 @@
   </p>
   {% end %}
 </p>
+{% module PubmedButton(publication.get('pmid'), full=True) %}
+{% module DoiButton(publication.get('doi'), full=True) %}
+{% module CrossrefButton(publication.get('doi'), full=True) %}
+{% for xref in sorted(publication['xrefs']) %}
+{% module Xref(xref, full=True) %}
+{% end %}
 {% if publication.get('notes') %}
 <pre>{{ publication['notes'] }}</pre>
 {% end %}
@@ -80,8 +76,8 @@
 <p>
   <a href="{{ reverse_url('publication_xrefs', publication['_id']) }}"
      class="btn btn-info left" role="button">
-    <span class="glyphicon glyphicon-edit"></span>
-    Edit links
+    <span class="glyphicon glyphicon-share"></span>
+    Edit xrefs
   </a>
 </p>
 {% end %} {# if is_editable #}

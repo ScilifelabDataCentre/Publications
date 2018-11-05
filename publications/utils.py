@@ -249,7 +249,7 @@ def get_iuid():
 def hashed_password(password):
     "Return the password in hashed form."
     sha256 = hashlib.sha256(settings['PASSWORD_SALT'])
-    sha256.update(password)
+    sha256.update(to_utf8(password))
     return sha256.hexdigest()
 
 def check_password(password):

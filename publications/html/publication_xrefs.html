@@ -3,16 +3,108 @@
 {% extends "base.html" %}
 
 {% block head_title %}
-Edit links for publication {{ publication['title'][:20] }}...
+Edit xrefs for publication {{ publication['title'][:20] }}...
 {% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-edit"></span>
-<span class="glyphicon glyphicon-file"></span>
-Edit
+<span class="glyphicon glyphicon-share"></span>
+Edit xrefs for
 {% if len(publication['title']) < 30 %}
 '{{ publication['title'] }}'
 {% else %}
 '{{ publication['title'][:28] }}...'
 {% end %}
 {% end %} {# block body_title #}
+
+{% block main_content %}
+<div class="panel panel-default">
+  <div class="panel-body">
+    <form action="{{ reverse_url('publication_xrefs', publication['_id']) }}"
+          role="form"
+          class="form-horizontal"
+          method="POST">
+      {% module xsrf_form_html() %}
+      <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
+      <div class="form-group">
+        <label class="control-label col-sm-1" for="db">Database</label>
+        <div class="col-sm-11">
+          <input type="text" class="form-control" name="db" id="db">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="control-label col-sm-1" for="key">Accession</label>
+        <div class="col-sm-11">
+          <input type="text" class="form-control" name="key" id="key">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="control-label col-sm-1" for="title">Title</label>
+        <div class="col-sm-11">
+          <input type="text" class="form-control" name="title" id="title">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="control-label col-sm-1" for="href">Href</label>
+        <div class="col-sm-11">
+          <input type="text" class="form-control" name="href" id="href">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-11 col-sm-offset-1">
+          <button type="submit" class="btn btn-success">
+	    <span class="glyphicon glyphicon-plus"></span>
+	    Add
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% for pos, xref in enumerate(publication.get('xrefs', [])) %}
+<div class="panel panel-default">
+  <div class="panel-body">
+    <form action="{{ reverse_url('publication_xrefs', publication['_id']) }}"
+          role="form"
+          class="form-horizontal"
+          method="POST">
+      {% module xsrf_form_html() %}
+      <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
+      <input type="hidden" name="_http_method" value="DELETE">
+      <input type="hidden" name="db" value="{{ xref['db'] }}">
+      <input type="hidden" name="key" value="{{ xref['key'] }}">
+      <div class="form-group">
+        <label class="control-label col-sm-1">Database</label>
+        <div class="col-sm-11">
+          <p class="form-control-static">{{ xref['db'] }}</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="control-label col-sm-1">Accession</label>
+        <div class="col-sm-11">
+          <p class="form-control-static">{{ xref['key'] }}</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-11 col-sm-offset-1">
+          <button type="submit" class="btn btn-danger">
+	    <span class="glyphicon glyphicon-remove"></span>
+	    Delete
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% end %} {# for xref #}
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ reverse_url('publication', publication['_id']) }}"
+   class="btn btn-default"
+   role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span>
+  Cancel
+</a>
+{% end %} {# block meta_content #}

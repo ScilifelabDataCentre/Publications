@@ -618,10 +618,10 @@ class PublicationFetch(PublicationMixin, RequestHandler):
             try:
                 publ = self.fetch(identifier, override=override, labels=labels,
                                   clean=not self.is_admin())
-            except IOError as err:
-                errors.append(str(err))
-            except KeyError as err:
-                blacklisted.append(str(err))
+            except IOError as error:
+                errors.append(str(error))
+            except KeyError as error:
+                blacklisted.append(str(error))
             else:
                 fetched.add(publ['_id'])
 
@@ -678,7 +678,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
 
 
 class PublicationXrefs(PublicationMixin, RequestHandler):
-    "Edit the publication links."
+    "Edit the publication database references."
 
     @tornado.web.authenticated
     def get(self, iuid):
@@ -703,9 +703,32 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
         try:
             with PublicationSaver(doc=publication, rqh=self) as saver:
                 saver.check_revision()
-                # XXX
-        except SaverError, msg:
+                db = self.get_argument('db')
+                if not db: raise ValueError('No db given.')
+                key = self.get_argument('key')
+                if not key: raise ValueError('No accession (key) given.')
+                title = self.get_argument('title', None) or None
+                href = self.get_argument('href', None) or None
+                xrefs = publication['xrefs'][:] # Copy of list
+                if self.get_argument('_http_method', None) == 'DELETE':
+                    saver['xrefs'] = [x for x in xrefs
+                                      if (x['db'].lower() != db.lower() and
+                                          x['key'] != key)]
+                else:
+                    for xref in xrefs:
+                        if xref['db'].lower() == db.lower() and \
+                           xref['key'] == key:
+                            xref['title'] = title
+                            xref['href'] = href
+                            break
+                    else:
+                        xrefs.append(dict(db=db, key=key,
+                                          title=title, href=href))
+                    saver['xrefs'] = xrefs
+        except SaverError:
             self.set_error_flash(utils.REV_ERROR)
+        except (tornado.web.MissingArgumentError, ValueError) as error:
+            self.set_error_flash(str(error))
         self.see_other('publication', publication['_id'])
 
 
@@ -786,10 +809,10 @@ class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
             publ = self.fetch(identifier,
                               override=bool(data.get('override')),
                               labels=data.get('labels', {}))
-        except IOError as msg:
-            raise tornado.web.HTTPError(400, reason=str(msg))
-        except KeyError as msg:
-            raise tornado.web.HTTPError(409, reason="blacklisted %s" % msg)
+        except IOError as error:
+            raise tornado.web.HTTPError(400, reason=str(error))
+        except KeyError as error:
+            raise tornado.web.HTTPError(409, reason="blacklisted %s" % error)
         self.write(
             dict(iuid=publ['_id'],
                  href=self.absolute_reverse_url('publication', publ['_id'])))

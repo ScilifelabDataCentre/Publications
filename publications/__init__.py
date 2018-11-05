@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os
 
-__version__ = '3.0.0'
+__version__ = '3.0.1'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -41,4 +41,9 @@ settings = dict(
     SOURCE_URL='https://github.com/pekrau/Publications',
     SOURCE_VERSION=__version__,
     DOCS_URL='https://github.com/pekrau/Publications/wiki',
-    )
+    XREF_TEMPLATE_URLS={
+        'pmc': 'https://www.ncbi.nlm.nih.gov/pmc/articles/%s/',
+        'bioproject': 'https://www.ncbi.nlm.nih.gov/bioproject/%s',
+        'genbank': 'https://www.ncbi.nlm.nih.gov/nuccore/%s',
+        'dryad': 'https://datadryad.org/resource/doi:%s'},
+)
