@@ -27,35 +27,40 @@ Edit xrefs for
       {% module xsrf_form_html() %}
       <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
       <div class="form-group">
-        <label class="control-label col-sm-1" for="db">Database</label>
-        <div class="col-sm-11">
+        <label class="control-label col-sm-2" for="db">Database</label>
+        <div class="col-sm-10">
           <input type="text" class="form-control" name="db" id="db">
         </div>
       </div>
       <div class="form-group">
-        <label class="control-label col-sm-1" for="key">Accession</label>
-        <div class="col-sm-11">
+        <label class="control-label col-sm-2" for="key">Accession</label>
+        <div class="col-sm-10">
           <input type="text" class="form-control" name="key" id="key">
         </div>
       </div>
       <div class="form-group">
-        <label class="control-label col-sm-1" for="title">Title</label>
-        <div class="col-sm-11">
-          <input type="text" class="form-control" name="title" id="title">
+        <label class="control-label col-sm-2" for="description">Description</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control"
+                 name="description" id="description"
+                 aria-describedby="descriptionHelp">
+          <span id="descriptionHelp" class="help-block">
+            Brief description of the data referenced, e.g. sequence,
+            image, spreadsheet, etc.
+          </span>
         </div>
       </div>
       <div class="form-group">
-        <label class="control-label col-sm-1" for="href">Href</label>
-        <div class="col-sm-11">
-          <input type="text" class="form-control" name="href" id="href">
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="col-sm-11 col-sm-offset-1">
-          <button type="submit" class="btn btn-success">
+        <div class="col-sm-10 col-sm-offset-2">
+          <button type="submit" class="btn btn-success"
+                  aria-describedby="addHelp">
 	    <span class="glyphicon glyphicon-plus"></span>
 	    Add
           </button>
+          <span id="addHelp" class="help-block">
+            If an entry exists with the same database and accession,
+            its description will be updated.
+          </span>
         </div>
       </div>
     </form>
@@ -75,19 +80,25 @@ Edit xrefs for
       <input type="hidden" name="db" value="{{ xref['db'] }}">
       <input type="hidden" name="key" value="{{ xref['key'] }}">
       <div class="form-group">
-        <label class="control-label col-sm-1">Database</label>
-        <div class="col-sm-11">
+        <label class="control-label col-sm-2">Database</label>
+        <div class="col-sm-10">
           <p class="form-control-static">{{ xref['db'] }}</p>
         </div>
       </div>
       <div class="form-group">
-        <label class="control-label col-sm-1">Accession</label>
-        <div class="col-sm-11">
+        <label class="control-label col-sm-2">Accession</label>
+        <div class="col-sm-10">
           <p class="form-control-static">{{ xref['key'] }}</p>
         </div>
       </div>
       <div class="form-group">
-        <div class="col-sm-11 col-sm-offset-1">
+        <label class="control-label col-sm-2">Description</label>
+        <div class="col-sm-10">
+          <p class="form-control-static">{{ xref.get('description') or '-' }}</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-10 col-sm-offset-2">
           <button type="submit" class="btn btn-danger">
 	    <span class="glyphicon glyphicon-remove"></span>
 	    Delete

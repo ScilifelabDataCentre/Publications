@@ -1,6 +1,11 @@
 {# Publication item within a list. #}
 
 <div class="well well-sm">
+  <div style="float: right">
+    {% module PubmedButton(publication.get('pmid')) %}
+    {% module DoiButton(publication.get('doi')) %}
+    {% module CrossrefButton(publication.get('doi')) %}
+  </div>
   <div>
     {% if current_user and publication.get('acquired') %}
     <span class="glyphicon glyphicon-lock"
@@ -15,9 +20,6 @@
     {% module Authors(publication) %}
   </div>
   <div style="float: right">
-    {% module PubmedButton(publication.get('pmid')) %}
-    {% module DoiButton(publication.get('doi')) %}
-    {% module CrossrefButton(publication.get('doi')) %}
     {% for xref in publication['xrefs'] %}
     {% module Xref(xref) %}
     {% end %}

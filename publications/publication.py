@@ -707,23 +707,22 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
                 if not db: raise ValueError('No db given.')
                 key = self.get_argument('key')
                 if not key: raise ValueError('No accession (key) given.')
-                title = self.get_argument('title', None) or None
-                href = self.get_argument('href', None) or None
+                description = self.get_argument('description', None) or None
                 xrefs = publication['xrefs'][:] # Copy of list
                 if self.get_argument('_http_method', None) == 'DELETE':
                     saver['xrefs'] = [x for x in xrefs
                                       if (x['db'].lower() != db.lower() and
                                           x['key'] != key)]
                 else:
-                    for xref in xrefs:
+                    for xref in xrefs: # Update description if already there.
                         if xref['db'].lower() == db.lower() and \
                            xref['key'] == key:
-                            xref['title'] = title
-                            xref['href'] = href
+                            xref['description'] = description
                             break
                     else:
-                        xrefs.append(dict(db=db, key=key,
-                                          title=title, href=href))
+                        xrefs.append(dict(db=db,
+                                          key=key,
+                                          description=description))
                     saver['xrefs'] = xrefs
         except SaverError:
             self.set_error_flash(utils.REV_ERROR)

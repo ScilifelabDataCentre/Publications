@@ -52,21 +52,22 @@ class Xref(tornado.web.UIModule):
 
     def render(self, xref, full=False):
         try:
-            url = xref['href']
+            url = settings['XREF_TEMPLATE_URLS'][xref['db'].lower()]
         except KeyError:
-            try:
-                url = settings['XREF_TEMPLATE_URLS'][xref['db'].lower()]
-            except KeyError:
-                url = None
-            else:
-                url = url % xref['key']
+            url = None
+        else:
+            url = url % xref['key']
         if url:
             result = '<a %s href="%s">%s %s</a>' % \
                      (self.ATTRS, url, self.ICON, xref['db'])
         else:
             result = '<button disabled %s>%s %s</button>' % \
                      (self.ATTRS, self.ICON, xref['db'])
-        if full: result = '<p>' + result + ' ' + xref['key'] + '</p>'
+        if full:
+            result = '<p>' + result + ' ' + xref['key']
+            if xref.get('description'):
+                result += " [%s]" % xref['description']
+            result += '</p>'
         return result
 
 
