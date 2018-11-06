@@ -703,7 +703,9 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
         try:
             with PublicationSaver(doc=publication, rqh=self) as saver:
                 saver.check_revision()
-                db = self.get_argument('db')
+                db = self.get_argument('db_other', None)
+                if not db:
+                    db = self.get_argument('db', None)
                 if not db: raise ValueError('No db given.')
                 key = self.get_argument('key')
                 if not key: raise ValueError('No accession (key) given.')
@@ -711,7 +713,7 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
                 xrefs = publication['xrefs'][:] # Copy of list
                 if self.get_argument('_http_method', None) == 'DELETE':
                     saver['xrefs'] = [x for x in xrefs
-                                      if (x['db'].lower() != db.lower() and
+                                      if (x['db'].lower() != db.lower() or
                                           x['key'] != key)]
                 else:
                     for xref in xrefs: # Update description if already there.

@@ -56,7 +56,12 @@ class Xref(tornado.web.UIModule):
         except KeyError:
             url = None
         else:
-            url = url % xref['key']
+            if '%-s' in url:    # Use lowercase key
+                url.replace('%-s', '%s')
+                key = xref['key'].lower()
+            else:
+                key = xref['key']
+            url = url % key
         if url:
             result = '<a %s href="%s">%s %s</a>' % \
                      (self.ATTRS, url, self.ICON, xref['db'])

@@ -35,6 +35,13 @@ SITE_LABEL_QUALIFIERS:
   - Service
   - Technology development
 
+# Template URLs for generating xref links
+XREF_TEMPLATE_URLS:
+  pmc: 'https://www.ncbi.nlm.nih.gov/pmc/articles/%s/'
+  bioproject: 'https://www.ncbi.nlm.nih.gov/bioproject/%s'
+  genbank: 'https://www.ncbi.nlm.nih.gov/nuccore/%s'
+  dryad: 'https://datadryad.org/resource/doi:%s'
+
 # Email; server running on the host machine
 EMAIL:
   HOST: 'localhost'

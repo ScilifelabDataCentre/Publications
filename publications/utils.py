@@ -26,6 +26,19 @@ from . import settings
 
 REV_ERROR = 'Has been edited by someone else. Cannot overwrite.'
 
+class NocaseDict(object):
+    "Keys are compared ignoring case."
+    def __init__(self, orig):
+        self.orig = orig.copy()
+        self.lower = dict()
+        for key in orig:
+            self.lower[key.lower()] = orig[key]
+    def keys(self):
+        return self.orig.keys()
+    def __getitem__(self, key):
+        return self.lower[key.lower()]
+
+
 def get_command_line_parser(description=None):
     "Get the base command line argument parser."
     parser = argparse.ArgumentParser(description=description)
@@ -113,6 +126,8 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
             settings['PORT'] =  443
         else:
             raise ValueError('Could not determine port from BASE_URL.')
+    # Use caseless dictionary for the xref templates URLs
+    settings['XREF_TEMPLATE_URLS'] = NocaseDict(settings['XREF_TEMPLATE_URLS'])
 
 def expand_filepath(filepath):
     "Expand environment variables (ROOT and SITE_DIR) in filepaths."
