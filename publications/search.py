@@ -38,7 +38,8 @@ class Search(RequestHandler):
                          'publication/published',
                          'publication/epublished',
                          'publication/issn',
-                         'publication/journal']:
+                         'publication/journal',
+                         'publication/xref']:
             iuids.update(self.search(viewname, terms))
         # Now remove set of insignificant characters.
         terms = [''.join([c for c in t if c not in SEARCH_REMOVE])

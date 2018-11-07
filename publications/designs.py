@@ -241,7 +241,7 @@ function (doc) {
     emit(word, null);
   }
 }""" % (REMOVE, IGNORE)),
-        xref=dict(map=
+        xref=dict(map=          # publication/xref
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   var xref;
@@ -250,7 +250,7 @@ function (doc) {
     xref = doc.xrefs[i];
     if (!xref.db) continue;
     if (!xref.key) continue;
-    emit([xref.db, xref.key], null);
+    emit(xref.key, xref.db);
   }
 }"""),
     ),
