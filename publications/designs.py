@@ -173,7 +173,7 @@ function (doc) {
                    map=
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
-  for (var key in doc.labels) emit(doc.labels[key].toLowerCase(), 1);
+  for (var key in doc.labels) emit(key.toLowerCase(), 1);
 }"""),
         year=dict(reduce="_sum", # publication/year
                   map=
