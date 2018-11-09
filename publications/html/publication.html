@@ -73,6 +73,9 @@
     Edit
   </a>
 </p>
+{% end %} {# if is_editable #}
+
+{% if is_xrefs_editable %}
 <p>
   <a href="{{ reverse_url('publication_xrefs', publication['_id']) }}"
      class="btn btn-info left" role="button">
@@ -84,9 +87,9 @@
       <span class="glyphicon glyphicon-question-sign"></span>
     </a>
 </p>
-{% end %} {# if is_editable #}
+{% end %} {# if is_xrefs_editable #}
 
-{% if is_editable %}
+{% if not is_locked %}
 <p>
   <form action="{{ reverse_url('publication_acquire', publication['_id']) }}"
         method="POST"
@@ -102,7 +105,7 @@
     </a>
   </form>
 </p>
-{% end %} {# if is_editable #}
+{% end %} {# if not is_locked #}
 
 {% if is_releasable %}
 <p>

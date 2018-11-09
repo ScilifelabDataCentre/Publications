@@ -29,9 +29,10 @@ LOG         = 'log'
 ENTITIES    = (PUBLICATION, JOURNAL, ACCOUNT, LABEL)
 
 # Account roles
-ADMIN    = 'admin'
-CURATOR  = 'curator'
-ROLES    = (ADMIN, CURATOR)
+ADMIN   = 'admin'
+CURATOR = 'curator'
+XREFCUR = 'xref-curator'
+ROLES   = (ADMIN, CURATOR, XREFCUR)
 
 # Boolean string values
 TRUE  = frozenset(['true', 'yes', 't', 'y', '1'])

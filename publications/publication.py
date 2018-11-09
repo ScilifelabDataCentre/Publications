@@ -163,26 +163,46 @@ class PublicationMixin(object):
     "Mixin for access check methods."
 
     def is_editable(self, publication):
-        """Is the publication editable by the current user?
-        Implies acquireable."""
+        "Is the publication editable by the current user?"
         if not self.is_curator(): return False
-        try:
-            acquired = publication['acquired']
-        except KeyError:
-            return True
-        else:
-            if acquired['account'] == self.current_user['email']: return True
-        return False
+        if self.is_locked(publication): return False
+        return True
 
     def check_editable(self, publication):
-        """Check that the publication is editable by the current user.
-        Implies acquireable."""
+        "Check that the publication is editable by the current user."
         if self.is_editable(publication): return
         raise ValueError('You many not edit the publication.')
 
+    def is_xrefs_editable(self, publication):
+        "Are the xrefs of the publication editable by the current user?"
+        if not self.is_xrefcur(): return False
+        if self.is_locked(publication): return False
+        return True
+
+    def check_xrefs_editable(self, publication):
+        """Check that the xrefs of the publication are editable by
+        the current user."""
+        if self.is_xrefs_editable(publication): return
+        raise ValueError('You many not edit the xrefs of the publication.')
+
+    def is_locked(self, publication):
+        "Is the publication acquired by **someone else**?"
+        if not self.current_user: True
+        try:
+            acquired = publication['acquired']
+        except KeyError:
+            return False
+        else:
+            return acquired['account'] != self.current_user['email']
+
+    def check_acquirable(self, publication):
+        "Can the publicaton be acquired by the current user?"
+        if self.is_locked(publication):
+            raise ValueError('The publication has been acquired by someone else.')
+
     def is_releasable(self, publication):
         "Is the publication releasable by the current user?"
-        if not self.is_curator(): return False
+        if not self.is_xrefcur(): return False
         try:
             acquired = publication['acquired']
         except KeyError:
@@ -200,13 +220,8 @@ class PublicationMixin(object):
     def is_deletable(self, publication):
         "Is the publication deletable by the current user?"
         if not self.is_curator(): return False
-        try:
-            acquired = publication['acquired']
-        except KeyError:
-            return True
-        else:
-            if acquired['account'] == self.current_user['email']: return True
-        return False
+        if self.is_locked(publication): return False
+        return True
 
     def check_deletable(self, publication):
         "Check that the publication is deletable by the current user."
@@ -303,6 +318,8 @@ class Publication(PublicationMixin, RequestHandler):
         self.render('publication.html',
                     publication=publication,
                     is_editable=self.is_editable(publication),
+                    is_xrefs_editable=self.is_xrefs_editable(publication),
+                    is_locked=self.is_locked(publication),
                     is_releasable=self.is_releasable(publication),
                     is_deletable=self.is_deletable(publication))
 
@@ -684,19 +701,17 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
     def get(self, iuid):
         try:
             publication = self.get_publication(iuid)
-            self.check_editable(publication)
+            self.check_xrefs_editable(publication)
         except (KeyError, ValueError), msg:
             self.see_other('home', error=str(msg))
             return
-        self.render('publication_xrefs.html',
-                    publication=publication,
-                    labels=self.get_allowed_labels())
+        self.render('publication_xrefs.html', publication=publication)
 
     @tornado.web.authenticated
     def post(self, iuid):
         try:
             publication = self.get_publication(iuid)
-            self.check_editable(publication)
+            self.check_xrefs_editable(publication)
         except (KeyError, ValueError), msg:
             self.see_other('home', error=str(msg))
             return
@@ -765,7 +780,7 @@ class PublicationAcquire(PublicationMixin, RequestHandler):
     def post(self, identifier):
         try:
             publication = self.get_publication(identifier)
-            self.check_editable(publication)
+            self.check_acquirable(publication)
         except (KeyError, ValueError), msg:
             self.see_other('home', error=str(msg))
             return

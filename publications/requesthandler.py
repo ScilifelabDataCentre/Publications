@@ -236,6 +236,20 @@ class RequestHandler(tornado.web.RequestHandler):
         if self.is_curator(): return
         raise tornado.web.HTTPError(403, reason="Role 'curator' required.")
 
+    def is_xrefcur(self):
+        """Does the current user have the 'xref-curator', 'curator' 
+        or 'admin' role?"""
+        return bool(self.current_user) and \
+               self.current_user['role'] in (constants.XREFCUR, 
+                                             constants.CURATOR,
+                                             constants.ADMIN)
+        
+    def check_xrefcur(self):
+        """Check that current user has the 'xrefcur', 'curator'
+        or 'admin' role."""
+        if self.is_xrefcur(): return
+        raise tornado.web.HTTPError(403, reason="Role 'xref-curator' required.")
+
     def is_owner(self, doc):
         """Is the current user the owner of the document?
         Role 'admin' is also allowed."""
