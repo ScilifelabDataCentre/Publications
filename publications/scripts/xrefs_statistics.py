@@ -55,7 +55,6 @@ def xrefs_statistics(db, filename, since=None):
                         xref_count[xref['db']] += 1
                     except KeyError:
                         xref_count[xref['db']] = 1
-            continue
             logs = utils.get_docs(db,
                                   'log/doc',
                                   key=[publication['_id'], ''],
@@ -90,7 +89,7 @@ def xrefs_statistics(db, filename, since=None):
             write([label, sum(label_count[label].values())] +
                   [count.get(q, 0) for q in settings['SITE_LABEL_QUALIFIERS']])
         write(())
-        write(('Xrefs distribution',))
+        write(('Xrefs',))
         for db in sorted(xref_count):
             write((db, xref_count[db]))
         write(())
