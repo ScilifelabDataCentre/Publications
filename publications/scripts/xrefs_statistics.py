@@ -93,6 +93,7 @@ def xrefs_statistics(db, filename, since=None):
         for db in sorted(xref_count):
             write((db, xref_count[db]))
         write(())
+        write(('Xref curator', 'Total publs', 'Total xrefs'))
         for email in sorted(curators):
             publs = curators[email]
             total_publs = len(publs)
