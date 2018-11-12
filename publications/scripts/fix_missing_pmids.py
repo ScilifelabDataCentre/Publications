@@ -25,7 +25,7 @@ def fix_missing_pmids(db, jump=0):
 
 if __name__ == '__main__':
     parser = utils.get_command_line_parser(
-        'Fx missing PMID in all publications by searching for title.')
+        'Fix missing PMID in all publications by searching for title.')
     parser.add_argument('-j', '--jump',
                         action='store', dest='jump', type=int, default=0,
                         help='jump over the first number of publications')
