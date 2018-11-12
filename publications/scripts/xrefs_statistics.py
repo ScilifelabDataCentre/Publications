@@ -16,8 +16,9 @@ def xrefs_statistics(db, filename, since=None):
         since = utils.today()
     with open(filename, 'wb') as outfile:
         writer = csv.writer(outfile)
-        writer.writerow(('Site', settings['BASE_URL']))
-        writer.writerow(('Date', utils.today()))
+        write = writer.writerow
+        write(('Site', settings['BASE_URL']))
+        write(('Date', utils.today()))
 
         total = 0
         label_count = {}
@@ -26,16 +27,25 @@ def xrefs_statistics(db, filename, since=None):
         total_xrefs = 0
         xref_count = {}
 
-        # Tot up added xrefs per curator. Relies on fact that xrefs
-        # can be added only one at a time.
-        # Get the original xrefs from the first log entry; all except first
-        # For log entries after the first:
+        # Tot up added xrefs per curator.
+        # Imperfect: wrongly added xrefs will be counted, even if deleted.
+        # Get the original xrefs from the first log entry (first load).
+        # For xref-changing log entries after the first:
         # curators[email][iuid] = set(all xrefs except those in orig)
         curators = {}
 
         for publication in utils.get_docs(db, 'publication/published'):
-        # for publication in [utils.get_doc(db, '8f06e3d6cef440cd8b277c7f09af099b')]:
+            print(publication['_id'])
             total += 1
+            for label, qualifier in publication.get('labels', {}).items():
+                try:
+                    qualifiers = label_count[label]
+                except KeyError:
+                    qualifiers = label_count[label] = {}
+                try:
+                    qualifiers[qualifier] += 1
+                except KeyError:
+                    qualifiers[qualifier] = 1
             xrefs = publication.get('xrefs')
             if xrefs:
                 has_xrefs += 1
@@ -45,6 +55,7 @@ def xrefs_statistics(db, filename, since=None):
                         xref_count[xref['db']] += 1
                     except KeyError:
                         xref_count[xref['db']] = 1
+            continue
             logs = utils.get_docs(db,
                                   'log/doc',
                                   key=[publication['_id'], ''],
@@ -60,7 +71,6 @@ def xrefs_statistics(db, filename, since=None):
                        l.get('changed', {}).get('xrefs')]
             if not logs: continue
 
-            print(publication['_id'])
             for log in logs:
                 email = log['account']
                 try:
@@ -71,14 +81,19 @@ def xrefs_statistics(db, filename, since=None):
                       for x in log['changed']['xrefs']]
                 xs = [x for x in xs if x not in orig_xrefs]
                 account.setdefault(publication['_id'], set()).update(xs)
-        writer.writerow(('Total publs', total))
-        writer.writerow(('Publs with xrefs', has_xrefs))
-        writer.writerow(('Total xrefs', total_xrefs))
-        writer.writerow(())
-        writer.writerow(('Xrefs distribution',))
+        write(('Total publs', total))
+        write(('Publs with xrefs', has_xrefs))
+        write(('Total xrefs', total_xrefs))
+        write(())
+        write(['Labels', 'total'] + settings['SITE_LABEL_QUALIFIERS'])
+        for label, count in sorted(label_count.items()):
+            write([label, sum(label_count[label].values())] +
+                  [count.get(q, 0) for q in settings['SITE_LABEL_QUALIFIERS']])
+        write(())
+        write(('Xrefs distribution',))
         for db in sorted(xref_count):
-            writer.writerow((db, xref_count[db]))
-        writer.writerow(())
+            write((db, xref_count[db]))
+        write(())
         for email in sorted(curators):
             publs = curators[email]
             total_publs = len(publs)
@@ -86,7 +101,7 @@ def xrefs_statistics(db, filename, since=None):
             for xrefs in publs.values():
                 new.update(xrefs)
             total_xrefs = len(new)
-        writer.writerow((email, total_publs, total_xrefs))
+            write((email, total_publs, total_xrefs))
 
 
 if __name__ == '__main__':
