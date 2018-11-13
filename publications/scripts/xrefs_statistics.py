@@ -89,7 +89,7 @@ def xrefs_statistics(db, filename, since=None):
             write([label, sum(label_count[label].values())] +
                   [count.get(q, 0) for q in settings['SITE_LABEL_QUALIFIERS']])
         write(())
-        write(('Xrefs',))
+        write(('Xrefs', since))
         for db in sorted(xref_count):
             write((db, xref_count[db]))
         write(())
@@ -110,6 +110,8 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--csvfile', metavar='FILE',
                         action='store', dest='csvfilename',
                         help='The name of the CSV file.')
+    parser.add_argument('-d', '--since', action='store', dest='since',
+                        help='The date since to sum up xrefs.')
     args = parser.parse_args()
     utils.load_settings(filepath=args.settings)
     db = utils.get_db()
@@ -117,4 +119,4 @@ if __name__ == '__main__':
         csvfilename = args.csvfilename
     else:
         csvfilename = "statistics_{0}.csv".format(utils.today())
-    xrefs_statistics(db, csvfilename)
+    xrefs_statistics(db, csvfilename, since=args.since)
