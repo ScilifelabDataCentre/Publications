@@ -725,7 +725,7 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
                 key = self.get_argument('key')
                 if not key: raise ValueError('No accession (key) given.')
                 description = self.get_argument('description', None) or None
-                xrefs = publication['xrefs'][:] # Copy of list
+                xrefs = publication.get('xrefs', [])[:] # Copy of list
                 if self.get_argument('_http_method', None) == 'DELETE':
                     saver['xrefs'] = [x for x in xrefs
                                       if (x['db'].lower() != db.lower() or

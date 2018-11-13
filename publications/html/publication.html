@@ -40,7 +40,7 @@
 {% module PubmedButton(publication.get('pmid'), full=True) %}
 {% module DoiButton(publication.get('doi'), full=True) %}
 {% module CrossrefButton(publication.get('doi'), full=True) %}
-{% for xref in sorted(publication['xrefs']) %}
+{% for xref in sorted(publication.get('xrefs', [])) %}
 {% module Xref(xref, full=True) %}
 {% end %}
 {% if publication.get('notes') %}
