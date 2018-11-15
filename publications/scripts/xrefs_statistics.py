@@ -26,6 +26,7 @@ def xrefs_statistics(db, filename, since=None):
         has_xrefs = 0
         total_xrefs = 0
         xref_count = {}
+        label_xref_count = {}
 
         # Tot up added xrefs per curator.
         # Imperfect: wrongly added xrefs will be counted, even if deleted.
@@ -60,7 +61,7 @@ def xrefs_statistics(db, filename, since=None):
                                   key=[publication['_id'], ''],
                                   last=[publication['_id'], constants.CEILING],
                                   descending=False)
-            # Record any xrefs in first publication load.
+            # Record any xrefs in initial publication load.
             orig_xrefs = set(["%s:%s" % (x['db'], x['key'])
                               for x in
                               logs[0].get('changed', {}).get('xrefs', [])])
@@ -80,13 +81,20 @@ def xrefs_statistics(db, filename, since=None):
                       for x in log['changed']['xrefs']]
                 xs = [x for x in xs if x not in orig_xrefs]
                 account.setdefault(publication['_id'], set()).update(xs)
+            for label in publication.get('labels', {}):
+                try:
+                    label_xref_count[label] += len(xs)
+                except KeyError:
+                    label_xref_count[label] = len(xs)
+
         write(('Total publs', total))
         write(('Publs with xrefs', has_xrefs))
         write(('Total xrefs', total_xrefs))
         write(())
-        write(['Labels', 'total'] + settings['SITE_LABEL_QUALIFIERS'])
+        write(['Labels', 'total', 'xrefs'] + settings['SITE_LABEL_QUALIFIERS'])
         for label, count in sorted(label_count.items()):
-            write([label, sum(label_count[label].values())] +
+            write([label, sum(label_count[label].values()),
+                   label_xref_count.get(label, 0)] +
                   [count.get(q, 0) for q in settings['SITE_LABEL_QUALIFIERS']])
         write(())
         write(('Xrefs', since))
