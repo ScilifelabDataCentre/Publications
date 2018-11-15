@@ -96,6 +96,19 @@ class PublicationSaver(Saver):
         assert self.rqh, 'requires http request context'
         self['abstract'] = self.rqh.get_argument('abstract', '') or None
 
+    def set_qc(self, aspect, flag):
+        "Set the QC flag for a given aspect."
+        assert self.rqh, 'requires http request context'
+        if aspect not in settings['PUBLICATION_QC_ASPECTS']:
+            raise ValueError("invalid QC aspect %s" % aspect)
+        entry = dict(account=self.rqh.current_user['email'],
+                     date=utils.today(),
+                     flag=bool(flag))
+        try:
+            self['qc'][aspect] = entry
+        except KeyError:
+            self['qc'] = {aspect: entry}
+
     def update_labels(self, labels=None, allowed_labels=None, clean=True):
         """Update the labels. If no labels dictionary given, get HTTP form data.
         Only changes the allowed labels for the current user.
@@ -254,8 +267,8 @@ class PublicationMixin(object):
         if constants.PMID_RX.match(identifier):
             try:
                 new = pubmed.fetch(identifier)
-            except (IOError, ValueError, requests.exceptions.Timeout), msg:
-                raise IOError("%s: %s" % (identifier, str(msg)))
+            except (IOError, ValueError, requests.exceptions.Timeout) as error:
+                raise IOError("%s: %s" % (identifier, str(error)))
             else:
                 if current is None:
                     # Maybe the publication has been loaded by DOI?
@@ -267,8 +280,8 @@ class PublicationMixin(object):
         else:
             try:
                 new = crossref.fetch(identifier)
-            except (IOError, requests.exceptions.Timeout), msg:
-                raise IOError("%s: %s" % (identifier, str(msg)))
+            except (IOError, requests.exceptions.Timeout) as error:
+                raise IOError("%s: %s" % (identifier, str(error)))
             else:
                 if current is None:
                     # Maybe the publication has been loaded by PMID?
@@ -312,8 +325,8 @@ class Publication(PublicationMixin, RequestHandler):
         "Display the publication."
         try:
             publication = self.get_publication(identifier)
-        except KeyError, msg:
-            self.see_other('home', error=str(msg))
+        except KeyError as error:
+            self.see_other('home', error=str(error))
             return
         self.render('publication.html',
                     publication=publication,
@@ -335,8 +348,8 @@ class Publication(PublicationMixin, RequestHandler):
         try:
             publication = self.get_publication(identifier)
             self.check_deletable(publication)
-        except (KeyError, ValueError), msg:
-            self.see_other('home', error=str(msg))
+        except (KeyError, ValueError) as error:
+            self.see_other('home', error=str(error))
             return
         # Delete log entries
         for log in self.get_logs(publication['_id']):
@@ -663,8 +676,8 @@ class PublicationEdit(PublicationMixin, RequestHandler):
         try:
             publication = self.get_publication(iuid)
             self.check_editable(publication)
-        except (KeyError, ValueError), msg:
-            self.see_other('home', error=str(msg))
+        except (KeyError, ValueError) as error:
+            self.see_other('home', error=str(error))
             return
         self.render('publication_edit.html',
                     publication=publication,
@@ -675,8 +688,8 @@ class PublicationEdit(PublicationMixin, RequestHandler):
         try:
             publication = self.get_publication(iuid)
             self.check_editable(publication)
-        except (KeyError, ValueError), msg:
-            self.see_other('home', error=str(msg))
+        except (KeyError, ValueError) as error:
+            self.see_other('home', error=str(error))
             return
         try:
             with PublicationSaver(doc=publication, rqh=self) as saver:
@@ -689,7 +702,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.set_abstract()
                 saver.update_labels()
                 saver['notes'] = self.get_argument('notes', None)
-        except SaverError, msg:
+        except SaverError:
             self.set_error_flash(utils.REV_ERROR)
         self.see_other('publication', publication['_id'])
 
@@ -702,8 +715,8 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
         try:
             publication = self.get_publication(iuid)
             self.check_xrefs_editable(publication)
-        except (KeyError, ValueError), msg:
-            self.see_other('home', error=str(msg))
+        except (KeyError, ValueError) as error:
+            self.see_other('home', error=str(error))
             return
         self.render('publication_xrefs.html', publication=publication)
 
@@ -712,8 +725,8 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
         try:
             publication = self.get_publication(iuid)
             self.check_xrefs_editable(publication)
-        except (KeyError, ValueError), msg:
-            self.see_other('home', error=str(msg))
+        except (KeyError, ValueError) as error:
+            self.see_other('home', error=str(error))
             return
         try:
             with PublicationSaver(doc=publication, rqh=self) as saver:
@@ -756,8 +769,8 @@ class PublicationBlacklist(PublicationMixin, RequestHandler):
         try:
             publication = self.get_publication(identifier)
             self.check_deletable(publication)
-        except (KeyError, ValueError), msg:
-            self.see_other('home', error=str(msg))
+        except (KeyError, ValueError) as error:
+            self.see_other('home', error=str(error))
             return
         blacklist = {constants.DOCTYPE: constants.BLACKLIST,
                      'title': publication['title'],
@@ -781,8 +794,8 @@ class PublicationAcquire(PublicationMixin, RequestHandler):
         try:
             publication = self.get_publication(identifier)
             self.check_acquirable(publication)
-        except (KeyError, ValueError), msg:
-            self.see_other('home', error=str(msg))
+        except (KeyError, ValueError) as error:
+            self.see_other('home', error=str(error))
             return
         with PublicationSaver(publication, rqh=self) as saver:
             deadline = utils.timestamp(days=settings['PUBLICATION_ACQUIRE_PERIOD'])
@@ -799,8 +812,8 @@ class PublicationRelease(PublicationMixin, RequestHandler):
         try:
             publication = self.get_publication(identifier)
             self.check_releasable(publication)
-        except (KeyError, ValueError), msg:
-            self.see_other('home', error=str(msg))
+        except (KeyError, ValueError) as error:
+            self.see_other('home', error=str(error))
             return
         with PublicationSaver(publication, rqh=self) as saver:
             del saver['acquired']
@@ -832,3 +845,24 @@ class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
         self.write(
             dict(iuid=publ['_id'],
                  href=self.absolute_reverse_url('publication', publ['_id'])))
+
+
+class PublicationQc(PublicationMixin, RequestHandler):
+    "Set the QC aspect flag for the publication."
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        "This should be doable regardless of 'acquired' state."
+        try:
+            publication = self.get_publication(identifier)
+        except KeyError as error:
+            self.see_other('home', error=str(error))
+            return
+        try:
+            aspect = self.get_argument('aspect')
+            flag = utils.to_bool(self.get_argument('flag', False))
+            with PublicationSaver(publication, rqh=self) as saver:
+                saver.set_qc(aspect, flag)
+        except (tornado.web.MissingArgumentError, ValueError) as error:
+            self.set_error_flash(str(error))
+        self.see_other('publication', identifier)

@@ -112,8 +112,8 @@ class Account(AccountMixin, RequestHandler):
         try:
             account = self.get_account(email)
             self.check_readable(account)
-        except (KeyError, ValueError), msg:
-            self.set_error_flash(str(msg))
+        except (KeyError, ValueError) as error:
+            self.set_error_flash(str(error))
             self.see_other('home')
             return
         self.render('account.html', account=account)
@@ -192,8 +192,8 @@ class AccountAdd(RequestHandler):
                                          if l in labels)
                 saver.reset_password()
             account = saver.doc
-        except ValueError, msg:
-            self.set_error_flash(str(msg))
+        except ValueError as error:
+            self.set_error_flash(str(error))
             self.see_other('account_add')
             return
         if self.get_argument('email', False):
@@ -223,14 +223,14 @@ class AccountEdit(AccountMixin, RequestHandler):
     def get(self, email):
         try:
             account = self.get_account(email)
-        except KeyError, msg:
-            self.set_error_flash(str(msg))
+        except KeyError as error:
+            self.set_error_flash(str(error))
             self.see_other('home')
             return
         try:
             self.check_editable(account)
-        except ValueError, msg:
-            self.set_error_flash(str(msg))
+        except ValueError as error:
+            self.set_error_flash(str(error))
             self.see_other('account', account['email'])
             return
         if self.is_admin():
@@ -245,14 +245,14 @@ class AccountEdit(AccountMixin, RequestHandler):
     def post(self, email):
         try:
             account = self.get_account(email)
-        except KeyError, msg:
-            self.set_error_flash(str(msg))
+        except KeyError as error:
+            self.set_error_flash(str(error))
             self.see_other('home')
             return
         try:
             self.check_editable(account)
-        except ValueError, msg:
-            self.set_error_flash(str(msg))
+        except ValueError as error:
+            self.set_error_flash(str(error))
             self.see_other('account', account['email'])
             return
         try:
@@ -267,7 +267,7 @@ class AccountEdit(AccountMixin, RequestHandler):
                 saver['name'] = self.get_argument('name', None)
                 if self.get_argument('api_key', None):
                     saver.renew_api_key()
-        except SaverError, msg:
+        except SaverError:
             self.set_error_flash(utils.REV_ERROR)
         self.see_other('account', account['email'])
 
@@ -373,8 +373,8 @@ class AccountDisable(RequestHandler):
             return
         try:
             account = self.get_account(email)
-        except KeyError, msg:
-            self.set_error_flash(str(msg))
+        except KeyError as error:
+            self.set_error_flash(str(error))
             self.see_other('home')
             return
         if account == self.current_user:
@@ -397,8 +397,8 @@ class AccountEnable(RequestHandler):
             return
         try:
             account = self.get_account(email)
-        except KeyError, msg:
-            self.set_error_flash(str(msg))
+        except KeyError as error:
+            self.set_error_flash(str(error))
             self.see_other('home')
             return
         with AccountSaver(account, rqh=self) as saver:

@@ -289,7 +289,7 @@ class RequestHandler(tornado.web.RequestHandler):
             au['initials'] = author.get('initials')
             result['authors'].append(au)
         for key in ['type', 'published', 'journal', 'abstract',
-                    'doi', 'pmid', 'labels', 'xrefs', 'notes']:
+                    'doi', 'pmid', 'labels', 'xrefs', 'notes', 'qc']:
             result[key] = publication.get(key)
         if self.current_user:
             try:

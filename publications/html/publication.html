@@ -9,7 +9,6 @@
 {{ publication['title'] }}
 {% end %} {# block body_title #}
 
-
 {% block main_content %}
 <p class="lead">
   {{ utils.get_formatted_authors(publication['authors'], complete=True) }}
@@ -23,6 +22,9 @@
 </p>
 <p>
   {{ publication['abstract'] or ''}}
+</p>
+<p>
+  {% module QcFlags(publication) %}
 </p>
 <p>
   {% for label in sorted(publication['labels']) %}
@@ -160,6 +162,49 @@
   </form>
 </p>
 {% end %} {# if is_deletable #}
+
+<p>
+  <h4>QC flags
+    <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#qc"
+       title="Explain 'release'" target="_">
+      <span class="glyphicon glyphicon-question-sign"></span>
+    </a>
+  </h4>
+</p>
+{% for aspect in settings['PUBLICATION_QC_ASPECTS'] %}
+<p>
+  <table>
+    <tr>
+      <td>
+        <form action="{{ reverse_url('publication_qc', publication['_id']) }}"
+              method="POST"
+              role="form">
+          {% module xsrf_form_html() %}
+          <input type="hidden" name="aspect" value="{{ aspect }}">
+          <input type="hidden" name="flag" value="true">
+          <button type="submit" class="btn btn-xs btn-success left">
+            <span class="glyphicon glyphicon-ok"></span>
+          </button>
+        </form>
+      </td>
+      <td style="padding-left: 4px;">
+        <form action="{{ reverse_url('publication_qc', publication['_id']) }}"
+              method="POST"
+              role="form">
+          {% module xsrf_form_html() %}
+          <input type="hidden" name="aspect" value="{{ aspect }}">
+          <input type="hidden" name="flag" value="false">
+          <button type="submit" class="btn btn-xs btn-danger left">
+            <span class="glyphicon glyphicon-remove"></span>
+          </button>
+        </form>
+      </td>
+      <td style="padding-left: 4px;">{{ aspect.capitalize() }}</td>
+    </tr>
+  </table>
+</p>
+{% end %} {# for aspect ... #}
+
 <p>
   <a href="{{ reverse_url('logs', publication['_id']) }}">
     <span class="badge">
@@ -168,6 +213,7 @@
     </span>
   </a>
 </p>
+
 {% end %} {# if current_user #}
 {% end %} {# block meta_content #}
 
@@ -179,3 +225,11 @@
   </a>
 </p>
 {% end %} {# block alt_format #}
+
+{% block javascript_code %}
+<script>
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+{% end %}

@@ -44,7 +44,8 @@ from publications.publication import (Publication,
                                       PublicationBlacklist,
                                       PublicationAcquire,
                                       PublicationRelease,
-                                      ApiPublicationFetch)
+                                      ApiPublicationFetch,
+                                      PublicationQc)
 from publications.journal import (Journal,
                                   JournalJson,
                                   JournalEdit,
@@ -118,6 +119,8 @@ def main():
                     PublicationAcquire, name='publication_acquire'),
                 url(r'/release/([^/]+)',
                     PublicationRelease, name='publication_release'),
+                url(r'/qc/([^/]+)',
+                    PublicationQc, name='publication_qc'),
                 url(r'/journals', Journals, name='journals'),
                 url(r'/journals.json', JournalsJson, name='journals_json'),
                 url(r'/journal/([^/]+).json', JournalJson,name='journal_json'),

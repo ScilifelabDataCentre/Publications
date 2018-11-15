@@ -107,8 +107,8 @@ class Journal(JournalMixin, RequestHandler):
         try:
             journal = self.get_doc(title, 'journal/title')
             self.check_deletable(journal)
-        except (KeyError, ValueError), msg:
-            self.see_other('journals', error=str(msg))
+        except (KeyError, ValueError) as error:
+            self.see_other('journals', error=str(error))
             return
         self.delete_entity(journal)
         self.see_other('journals')
@@ -146,8 +146,8 @@ class JournalEdit(JournalMixin, RequestHandler):
         try:
             journal = self.get_journal(title)
             self.check_editable(journal)
-        except (KeyError, ValueError), msg:
-            self.see_other('journals', error=str(msg))
+        except (KeyError, ValueError) as error:
+            self.see_other('journals', error=str(error))
             return
         self.render('journal_edit.html',
                     is_editable=self.is_editable(journal),
@@ -159,8 +159,8 @@ class JournalEdit(JournalMixin, RequestHandler):
         try:
             journal = self.get_journal(title)
             self.check_editable(journal)
-        except (KeyError, ValueError), msg:
-            self.see_other('journals', error=str(msg))
+        except (KeyError, ValueError) as error:
+            self.see_other('journals', error=str(error))
             return
         old_title = journal['title']
         old_issn = journal.get('issn')

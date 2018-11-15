@@ -40,8 +40,8 @@ class Label(RequestHandler):
     def get(self, identifier):
         try:
             label = self.get_label(identifier)
-        except KeyError, msg:
-            self.see_other('home', error=str(msg))
+        except KeyError as error:
+            self.see_other('home', error=str(error))
             return
         accounts = self.get_docs('account/label',
                                  key=label['value'].lower())
@@ -66,8 +66,8 @@ class Label(RequestHandler):
         self.check_admin()
         try:
             label = self.get_label(identifier)
-        except KeyError, msg:
-            self.see_other('labels', error=str(msg))
+        except KeyError as error:
+            self.see_other('labels', error=str(error))
             return
         value = label['value']
         # Do it in this order; safer if interrupted.
@@ -160,8 +160,8 @@ class LabelAdd(RequestHandler):
             with LabelSaver(rqh=self) as saver:
                 saver.set_value(value)
             label = saver.doc
-        except ValueError, msg:
-            self.set_error_flash(str(msg))
+        except ValueError as error:
+            self.set_error_flash(str(error))
             self.see_other('label_add')
             return
         self.see_other('label', label['value'])
@@ -175,8 +175,8 @@ class LabelEdit(RequestHandler):
         self.check_admin()
         try:
             label = self.get_label(identifier)
-        except KeyError, msg:
-            self.see_other('labels', error=str(msg))
+        except KeyError as error:
+            self.see_other('labels', error=str(error))
             return
         self.render('label_edit.html', label=label)
 
@@ -185,8 +185,8 @@ class LabelEdit(RequestHandler):
         self.check_admin()
         try:
             label = self.get_label(identifier)
-        except KeyError, msg:
-            self.see_other('labels', error=str(msg))
+        except KeyError as error:
+            self.see_other('labels', error=str(error))
             return
         old_value = label['value']
         new_value = self.get_argument('value')
@@ -227,8 +227,8 @@ class LabelMerge(RequestHandler):
         self.check_admin()
         try:
             label = self.get_label(identifier)
-        except KeyError, msg:
-            self.see_other('labels', error=str(msg))
+        except KeyError as error:
+            self.see_other('labels', error=str(error))
             return
         self.render('label_merge.html',
                     label=label,
@@ -239,8 +239,8 @@ class LabelMerge(RequestHandler):
         self.check_admin()
         try:
             label = self.get_label(identifier)
-        except KeyError, msg:
-            self.see_other('labels', error=str(msg))
+        except KeyError as error:
+            self.see_other('labels', error=str(error))
             return
         try:
             merge = self.get_label(self.get_argument('merge'))
@@ -248,8 +248,8 @@ class LabelMerge(RequestHandler):
             self.set_error_flash('no merge label provided')
             self.see_other('labels')
             return
-        except KeyError, msg:
-            self.set_error_flash(str(msg))
+        except KeyError as error:
+            self.set_error_flash(str(error))
             self.see_other('labels')
             return
         old_label = label['value']
