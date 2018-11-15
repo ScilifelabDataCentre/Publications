@@ -208,8 +208,8 @@ class PublicationMixin(object):
         else:
             return acquired['account'] != self.current_user['email']
 
-    def check_acquirable(self, publication):
-        "Can the publicaton be acquired by the current user?"
+    def check_not_locked(self, publication):
+        "Check that the publication has not been acquired by someone else."
         if self.is_locked(publication):
             raise ValueError('The publication has been acquired by someone else.')
 
@@ -793,7 +793,7 @@ class PublicationAcquire(PublicationMixin, RequestHandler):
     def post(self, identifier):
         try:
             publication = self.get_publication(identifier)
-            self.check_acquirable(publication)
+            self.check_not_locked(publication)
         except (KeyError, ValueError) as error:
             self.see_other('home', error=str(error))
             return
@@ -852,9 +852,9 @@ class PublicationQc(PublicationMixin, RequestHandler):
 
     @tornado.web.authenticated
     def post(self, identifier):
-        "This should be doable regardless of 'acquired' state."
         try:
             publication = self.get_publication(identifier)
+            self.check_not_locked(publication)
         except KeyError as error:
             self.see_other('home', error=str(error))
             return

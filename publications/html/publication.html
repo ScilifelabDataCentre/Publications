@@ -163,10 +163,11 @@
 </p>
 {% end %} {# if is_deletable #}
 
+{% if not is_locked %}
 <p>
   <h4>QC flags
     <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#qc"
-       title="Explain 'release'" target="_">
+       title="Explain 'QC'" target="_">
       <span class="glyphicon glyphicon-question-sign"></span>
     </a>
   </h4>
@@ -204,6 +205,7 @@
   </table>
 </p>
 {% end %} {# for aspect ... #}
+{% end %} {# if not is_locked #}
 
 <p>
   <a href="{{ reverse_url('logs', publication['_id']) }}">
