@@ -24,9 +24,6 @@
   {{ publication['abstract'] or ''}}
 </p>
 <p>
-  {% module QcFlags(publication) %}
-</p>
-<p>
   {% for label in sorted(publication['labels']) %}
   <p>
     <a class="label label-primary"
@@ -38,6 +35,9 @@
     </a>
   </p>
   {% end %}
+</p>
+<p>
+  {% module QcFlags(publication) %}
 </p>
 {% module PubmedButton(publication.get('pmid'), full=True) %}
 {% module DoiButton(publication.get('doi'), full=True) %}
