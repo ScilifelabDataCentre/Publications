@@ -482,6 +482,7 @@ class PublicationsCsv(Publications):
              'URL',
              'DOI URL',
              'PubMed URL',
+             'QC',
             ])
         writer.writerow(row)
         if issn:
@@ -509,6 +510,8 @@ class PublicationsCsv(Publications):
                 journal.get('title')]
             if issn:
                 row.append(journal.get('issn'))
+            qc = '|'.join(["%s:%s" % (k, v['flag']) for 
+                           k, v in publication.get('qc', {}).items()])
             row.extend(
                 [year,
                  publication.get('published'),
@@ -524,6 +527,7 @@ class PublicationsCsv(Publications):
                  self.absolute_reverse_url('publication', publication['_id']),
                  doi_url,
                  pubmed_url,
+                 qc,
                 ]
             )
             row = [(i or '').encode(encoding, errors='replace') for i in row]
