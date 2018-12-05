@@ -35,7 +35,7 @@ def fetch_publication(base_url, apikey, identifier, override=False, labels={}):
             used, all others will be ignored.
 
     Response HTTP status 200 when successful, and the response body
-    contains the JSON representation of the publication.
+    contains the URL of the publication.
 
     Response HTTP status 400 is returned when the PMID or DOI was bad
     or the external server (PubMed, Crossref) could not be reached.
@@ -47,9 +47,7 @@ def fetch_publication(base_url, apikey, identifier, override=False, labels={}):
     url = "{base_url}/api/publication".format(base_url=base_url.rstrip('/'))
     headers = {'X-Publications-API-key': apikey}
     data = dict(identifier=identifier, override=override, labels=labels)
-
     response = requests.post(url, headers=headers, json=data)
-
     if response.status_code != 200:
         raise ValueError("Error %s: %s" % (response.status_code,
                                            response.reason))
