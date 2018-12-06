@@ -7,7 +7,7 @@
 {% block body_title %}{{ settings['SITE_TITLE'] }}{% end %}
 
 {% block body_subtitle %}
-<p>{{ settings['SITE_TEXT'] }}</p>
+<p>{% raw settings['SITE_TEXT'] %}</p>
 {% end %}
 
 {% block main_content %}
