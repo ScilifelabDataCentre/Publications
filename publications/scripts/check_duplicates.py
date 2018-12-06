@@ -8,7 +8,7 @@ from publications import utils
 
 
 def check_duplicates(db):
-    view = db.view('publication/created', include_docs=True)
+    view = db.view('publication/modified', include_docs=True)
     lookup = {}
     for item in view:
         title = item.doc['title']
