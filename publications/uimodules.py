@@ -12,8 +12,9 @@ from . import utils
 class Authors(tornado.web.UIModule):
     "HTML for authors list."
 
-    def render(self, publication):
-        return utils.get_formatted_authors(publication['authors'])
+    def render(self, publication, complete=False):
+        return utils.get_formatted_authors(publication['authors'],
+                                           complete=complete)
 
 
 class Journal(tornado.web.UIModule):

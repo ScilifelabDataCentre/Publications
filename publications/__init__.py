@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os
 
-__version__ = '3.2.3'
+__version__ = '3.2.4'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -31,6 +31,8 @@ settings = dict(
     PUBLICATION_QC_ASPECTS=['bibliography', 'xrefs'],
     SHORT_PUBLICATIONS_LIST_LIMIT=10,
     LONG_PUBLICATIONS_LIST_LIMIT=100,
+    NUMBER_FIRST_AUTHORS=3,
+    NUMBER_LAST_AUTHORS=2,
     SITE_NAME='Publications',
     SITE_TITLE='Publications',
     SITE_TEXT='A simple publications reference database system.',
