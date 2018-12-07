@@ -116,8 +116,8 @@ def parse(data):
 
 def get_title(article):
     "Get the title from the article XML tree."
-    element = get_element(article, 'MedlineCitation/Article')
-    return element.findtext('ArticleTitle')
+    element = get_element(article, 'MedlineCitation/Article/ArticleTitle')
+    return get_text(element)
 
 def get_pmid(article):
     "Get the PMID from the article XML tree."
@@ -255,8 +255,10 @@ def get_abstract(article):
     except ValueError:
         return None
     else:
-        return '\n\n'.join([e.text for e in
-                            element.findall('AbstractText')])
+        text = []
+        for elem in element.findall('AbstractText'):
+            text.append(get_text(elem))
+        return '\n\n'.join([t for t in text if t]).strip()
 
 def get_xrefs(article):
     "Get the list of cross-references from the article XML tree."
@@ -298,6 +300,14 @@ def get_date(element):
     result.append(day)
     return result
 
+def get_text(element):
+    "Get all text from element and its children."
+    text = []
+    for elem in element.iter():
+        text.append(elem.text)
+        text.append(elem.tail)
+    return ''.join([t for t in text if t]).strip()
+
 def to_unicode(value):
     "Convert to unicode using UTF-8 if not already done."
     if isinstance(value, unicode):
@@ -326,10 +336,13 @@ def test_search():
 
 
 if __name__ == '__main__':
-    pmid = '27932482'
-    url = PUBMED_FETCH_URL % pmid
-    response = requests.get(url, timeout=TIMEOUT)
-    if response.status_code != 200:
-        raise IOError("HTTP status %s, %s " % (response.status_code, url))
-    with open('data/%s' % pmid.replace('/', '_'), 'w') as outfile:
-        outfile.write(response.text.encode('utf-8'))
+    pmid = '28536306'
+    data = fetch(pmid)
+    print(data['title'])
+    print(data['abstract'])
+    # url = PUBMED_FETCH_URL % pmid
+    # response = requests.get(url, timeout=TIMEOUT)
+    # if response.status_code != 200:
+    #     raise IOError("HTTP status %s, %s " % (response.status_code, url))
+    # with open(pmid.replace('/', '_'), 'w') as outfile:
+    #     outfile.write(response.text.encode('utf-8'))
