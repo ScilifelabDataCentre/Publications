@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os
 
-__version__ = '3.2.4'
+__version__ = '3.2.5'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -36,6 +36,7 @@ settings = dict(
     SITE_NAME='Publications',
     SITE_TITLE='Publications',
     SITE_TEXT='A simple publications reference database system.',
+    SITE_INSTRUCTIONS_URL='https://github.com/pekrau/Publications/wiki/Standard-operating-procedure',
     SITE_PARENT_URL=None,
     SITE_EMAIL=None,
     SITE_CONTACT='<p><i>No contact information available.</i></p>',

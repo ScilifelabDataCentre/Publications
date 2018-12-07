@@ -17,13 +17,5 @@
 
 
 {% block meta_content %}
-{% if is_curator %}
-<p>
-  <a href="https://github.com/pekrau/Publications/wiki/Standard-operating-procedure"
-           target="_">
-    <span class="glyphicon glyphicon-info-sign"></span>
-    Standard operating procedure
-  </a>
-</p>
-{% end %} {# if is_curator #}
+{% include 'instructions.html' %}
 {% end %} {# block meta_content #}
