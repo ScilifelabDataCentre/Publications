@@ -2,6 +2,8 @@
 label and qualifier, as columns 1, 2, 3, and 4, respectively.
 If there is no PMID (empty column 1) then there must be a DOI in
 column 2.
+For a DOI, PubMed will be searched first to find the corresponding PMID,
+but if that fails, CrossRef will be searched using the DOI.
 """
 
 from __future__ import print_function
@@ -131,6 +133,8 @@ def fetch_bulk(db, filename):
     PMID, DOI, label and qualifier, as columns 1, 2, 3, and 4, respectively.
     If there is no PMID (empty column 1) then there must be a DOI in
     column 2.
+    For a DOI, PubMed will be searched first to find the corresponding PMID,
+    but if that fails, CrossRef will be searched using the DOI.
     If any errors are detected before the fetching phase,
     this functions returns without attempting any fetch.
     """
@@ -160,7 +164,11 @@ def fetch_bulk(db, filename):
             if row[0]:
                 fetch_pmid(db, row[0], row[2], row[3])
             elif row[1]:
-                fetch_doi(db, row[1], row[2], row[3])
+                pmids = pubmed.search(doi=row[1], delay=DELAY)
+                if len(pmids) == 1:
+                    fetch_pmid(db, pmids[0], row[2], row[3])
+                else:
+                    fetch_doi(db, row[1], row[2], row[3])
 
 
 if __name__ == '__main__':

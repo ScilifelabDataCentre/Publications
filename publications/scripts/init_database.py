@@ -18,7 +18,7 @@ def init_database(db):
     print('wiping out database (slow method)...')
     for doc in db: del db[doc]
     print('wiped out database')
-    utils.update_design_documents(db)
+    utils.initialize(db)
 
 
 if __name__ == '__main__':

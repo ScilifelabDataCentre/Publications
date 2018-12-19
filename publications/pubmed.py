@@ -22,7 +22,7 @@ MONTHS = dict(jan=1, feb=2, mar=3, apr=4, may=5, jun=6,
 
 def search(author=None, published=None, journal=None, doi=None,
            affiliation=None, title=None, exclude_title=None,
-           retmax=100, delay=0.0):
+           retmax=20, delay=0.0):
     """Get list of PMIDs for PubMed hits given the data.
     Delay the HTTP request if positive value (seconds).
     """

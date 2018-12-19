@@ -15,6 +15,7 @@ import json
 import logging
 import tarfile
 
+from publications import designs
 from publications import utils
 
 
@@ -47,7 +48,7 @@ def undump(db, filepath):
         if count_items % 100 == 0:
             logging.info("%s items loaded...", count_items)
     infile.close()
-    utils.regenerate_views(db)
+    designs.regenerate_indexes(db)
     logging.info("undumped %s items and %s files from %s",
                  count_items, count_files, filepath)
 
