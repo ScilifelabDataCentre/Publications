@@ -109,7 +109,7 @@ def fetch_doi(db, doi, label, qualifier):
     else:
         try:
             new = crossref.fetch(doi, delay=DELAY)
-        except (IOError, ValueError, requests.exceptions.Timeout) as err:
+        except (IOError, ValueError, requests.exceptions.Timeout) as error:
             raise KeyError('%s could not be fetched: %s' % (doi, error))
         try:
             old = get_pmid(db, new['pmid'])
@@ -143,32 +143,39 @@ def fetch_bulk(db, filename):
         reader.next()           # Skip header
         rows = list(reader)
         print(len(rows), 'records in CSV file')
-        # Check data in CSV file
-        bail = False
-        for nrow, row in enumerate(rows):
+
+    # Check data in CSV file
+    bail = False
+    for nrow, row in enumerate(rows):
+        try:
+            if row[0]:
+                check_blacklist_pmid(db, row[0])
+            elif row[1]:
+                check_blacklist_doi(db, row[1])
+            else:
+                raise ValueError('no PMID or DOI')
+            check_label(db, row[2])
+            check_qualifier(db, row[3])
+        except ValueError as error:
+            print('Error row', nrow, str(error))
+            bail = True
+    if bail: return
+
+    # Fetch publications
+    with open(filename + '.error', 'w') as errorfile:
+        for row in rows:
             try:
                 if row[0]:
-                    check_blacklist_pmid(db, row[0])
+                    fetch_pmid(db, row[0], row[2], row[3])
                 elif row[1]:
-                    check_blacklist_doi(db, row[1])
-                else:
-                    raise ValueError('no PMID or DOI')
-                check_label(db, row[2])
-                check_qualifier(db, row[3])
-            except ValueError as error:
-                print('Error row', nrow, str(error))
-                bail = True
-        if bail: return
-        # Fetch publications
-        for row in rows:
-            if row[0]:
-                fetch_pmid(db, row[0], row[2], row[3])
-            elif row[1]:
-                pmids = pubmed.search(doi=row[1], delay=DELAY)
-                if len(pmids) == 1:
-                    fetch_pmid(db, pmids[0], row[2], row[3])
-                else:
-                    fetch_doi(db, row[1], row[2], row[3])
+                    pmids = pubmed.search(doi=row[1], delay=DELAY)
+                    if len(pmids) == 1:
+                        fetch_pmid(db, pmids[0], row[2], row[3])
+                    else:
+                        fetch_doi(db, row[1], row[2], row[3])
+            except KeyError as error:
+                errorfile.write(str(error))
+                errorfile.write('\n')
 
 
 if __name__ == '__main__':
