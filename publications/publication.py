@@ -358,11 +358,16 @@ class Publication(PublicationMixin, RequestHandler):
         self.see_other('home')
 
 
-class PublicationJson(Publication):
+class PublicationJson(PublicationMixin, RequestHandler):
     "Publication JSON data."
 
-    def render(self, template, **kwargs):
-        self.write(self.get_publication_json(kwargs['publication']))
+    def get(self, identifier):
+        "Display the publication."
+        try:
+            publication = self.get_publication(identifier)
+        except KeyError as error:
+            raise tornado.web.HTTPError(404, reason='no such publication')
+        self.write(self.get_publication_json(publication))
 
 
 class Publications(RequestHandler):
