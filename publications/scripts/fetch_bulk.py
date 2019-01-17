@@ -91,7 +91,7 @@ def fetch_pmid(db, pmid, label, qualifier):
                 if label:
                     labels[label] = qualifier
                 saver['labels'] = labels
-            print(pmid, 'set for existing doi)')
+            print(pmid, 'set for existing doi')
 
 def fetch_doi(db, doi, label, qualifier):
     """Fetch the publication reference given the DOI.
@@ -126,7 +126,7 @@ def fetch_doi(db, doi, label, qualifier):
                 labels = saver.get('labels', {}).copy()
                 labels[label] = qualifier
                 saver['labels'] = labels
-            print(doi, 'set for existing pmid)')
+            print(doi, 'set for existing pmid')
 
 def fetch_bulk(db, filename):
     """"CSV file format:

@@ -11,7 +11,7 @@ Reset password
 
 {% block main_content %}
 <div class="row">
-  <div class="col-md-5">
+  <div class="col-md-6">
     <form action="{{ reverse_url('account_reset') }}"
 	  role="form"
 	  method="POST">
@@ -31,6 +31,9 @@ Reset password
 	    <a href="{{ reverse_url('account_password') }}">
 	      the page where you set your new password
 	    </a> using a one-time code.
+	  </p>
+	  <p>
+            <strong>NOTE:</strong> The email may end up in your spam filter!
 	  </p>
 	  <p>
 	    Nothing happens if there is no account with the given
