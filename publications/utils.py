@@ -167,7 +167,7 @@ def initialize(db=None):
     designs.load_design_documents(db)
 
 def get_doc(db, key, viewname=None):
-    """Get the document with the given i, or from the given view.
+    """Get the document with the given identifier, or from the given view.
     Raise KeyError if not found.
     """
     if viewname is None:
@@ -178,7 +178,7 @@ def get_doc(db, key, viewname=None):
     else:
         result = list(db.view(viewname, include_docs=True, reduce=False)[key])
         if len(result) != 1:
-            raise KeyError("%i items found", len(result))
+            raise KeyError("%i items found" % len(result))
         return result[0].doc
 
 def get_docs(db, viewname, key=None, last=None, **kwargs):

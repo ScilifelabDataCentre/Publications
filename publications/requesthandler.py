@@ -151,7 +151,7 @@ class RequestHandler(tornado.web.RequestHandler):
         else:
             try:
                 account = self.get_doc(api_key, 'account/api_key')
-            except tornado.web.HTTPError:
+            except KeyError:
                 raise ValueError
             if account.get('disabled'):
                 logging.info("API key login: DISABLED %s",
