@@ -379,13 +379,13 @@ def strip_prefix(value):
 def get_formatted_authors(authors, complete=False):
     "Get formatted list of authors; numbers in settings, or complete."
     if complete or len(authors) <= settings['NUMBER_FIRST_AUTHORS'] + settings['NUMBER_LAST_AUTHORS']:
-        result = ["%s %s" % (a['family'], a['initials'] or '')
+        result = ["%s %s" % (a['family'], a.get('initials') or '')
                   for a in authors]
     else:
-        result = ["%s %s" % (a['family'], a['initials'] or '')
+        result = ["%s %s" % (a['family'], a.get('initials') or '')
                   for a in authors[:settings['NUMBER_FIRST_AUTHORS']]]
         result.append('...')
-        result.extend(["%s %s" % (a['family'], a['initials'] or '')
+        result.extend(["%s %s" % (a['family'], a.get('initials') or '')
                        for a in authors[-settings['NUMBER_LAST_AUTHORS']:]])
     return ', '.join(result)
 
