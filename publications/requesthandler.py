@@ -270,34 +270,46 @@ class RequestHandler(tornado.web.RequestHandler):
             self.db.delete(log)
         self.db.delete(doc)
 
-    def get_publication_json(self, publication):
+    def get_publication_json(self, publication, full=True, single=False):
         "JSON representation of publication."
         URL = self.absolute_reverse_url
         result = OD()
-        result['entity'] = 'publication'
-        result['iuid'] = publication['_id']
-        result['timestamp'] = utils.timestamp()
-        result['links'] = OD([
-            ('self', { 'href': URL('publication_json', publication['_id'])}),
-            ('display', {'href': URL('publication', publication['_id'])})])
+        if full:
+            result['entity'] = 'publication'
+            result['iuid'] = publication['_id']
+            if single:
+                result['timestamp'] = utils.timestamp()
+            result['links'] = OD([
+                ('self', { 'href': URL('publication_json',publication['_id'])}),
+                ('display', {'href': URL('publication', publication['_id'])})])
         result['title'] = publication['title']
-        result['authors'] = []
-        for author in publication['authors']:
-            au = OD()
-            au['family'] = author.get('family')
-            au['given'] = author.get('given')
-            au['initials'] = author.get('initials')
-            result['authors'].append(au)
-        for key in ['type', 'published', 'journal', 'abstract',
-                    'doi', 'pmid', 'labels', 'xrefs', 'notes', 'qc']:
-            result[key] = publication.get(key)
-        if self.current_user:
-            try:
-                result['acquired'] = publication['acquired']
-            except KeyError:
-                pass
-        result['created'] = publication['created']
-        result['modified'] = publication['modified']
+        if full:
+            result['authors'] = []
+            for author in publication['authors']:
+                au = OD()
+                au['family'] = author.get('family')
+                au['given'] = author.get('given')
+                au['initials'] = author.get('initials')
+                result['authors'].append(au)
+            result['type'] = publication.get('type')
+        result['published'] = publication.get('published')
+        result['journal'] = publication.get('journal')
+        if full:
+            result['abstract'] = publication.get('abstract')
+        result['doi'] = publication.get('doi')
+        result['pmid'] = publication.get('pmid')
+        result['labels'] = publication.get('labels')
+        result['xrefs'] = publication.get('xrefs')
+        if full:
+            result['notes'] = publication.get('notes')
+            result['qc'] = publication.get('qc')
+            if self.current_user:
+                try:
+                    result['acquired'] = publication['acquired']
+                except KeyError:
+                    pass
+            result['created'] = publication['created']
+            result['modified'] = publication['modified']
         return result
 
     def get_account_json(self, account, full=False):

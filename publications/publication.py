@@ -367,7 +367,7 @@ class PublicationJson(PublicationMixin, RequestHandler):
             publication = self.get_publication(identifier)
         except KeyError as error:
             raise tornado.web.HTTPError(404, reason='no such publication')
-        self.write(self.get_publication_json(publication))
+        self.write(self.get_publication_json(publication, single=True))
 
 
 class Publications(RequestHandler):
@@ -413,8 +413,10 @@ class PublicationsJson(Publications):
             links['self'] = {'href': URL('publications_json')}
             links['display'] = {'href': URL('publications')}
         result['publications_count'] = len(publications)
-        result['publications'] = [self.get_publication_json(publication)
-                                  for publication in publications]
+        full = utils.to_bool(self.get_argument('full', True))
+        result['full'] = full
+        result['publications'] = [self.get_publication_json(publ, full=full)
+                                  for publ in publications]
         self.write(result)
 
 
