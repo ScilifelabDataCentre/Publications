@@ -1,10 +1,15 @@
 {# List of publications. #}
 
 {% try %}
-<h3>{{ list_title }}</h3>
+<h3>
+{% if limit is not None %}
+Limited to
+{% end %} {# if #}
+{{ list_title }}
 {% except NameError %}
-<h3>{{ len(publications) }} publications</h3>
+{{ len(publications) }} publications
 {% end %}
+</h3>
 
 {% for publication in publications %}
 {% include 'publication_item.html' %}

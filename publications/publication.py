@@ -376,15 +376,20 @@ class Publications(RequestHandler):
     TEMPLATE = 'publications.html'
 
     def get(self, year=None):
+        limit = self.get_limit()
         if year:
-            publications = self.get_docs('publication/year', key=year)
+            kwargs = dict(key=year)
+            if limit:
+                kwargs['limit'] = limit
+            publications = self.get_docs('publication/year', **kwargs)
             publications.sort(key=lambda i: i['published'], reverse=True)
         else:
-            publications = self.get_docs('publication/published',
-                                         key=constants.CEILING,
-                                         last='',
-                                         descending=True)
-        self.render(self.TEMPLATE, publications=publications, year=year)
+            kwargs = dict(key=constants.CEILING, last='', descending=True)
+            if limit:
+                kwargs['limit'] = limit
+            publications = self.get_docs('publication/published', **kwargs)
+        self.render(self.TEMPLATE,
+                    publications=publications, year=year, limit=limit)
 
 
 class PublicationsTable(Publications):
@@ -412,6 +417,8 @@ class PublicationsJson(Publications):
         else:
             links['self'] = {'href': URL('publications_json')}
             links['display'] = {'href': URL('publications')}
+        if kwargs['limit']:
+            result['limit'] = kwargs['limit']
         result['publications_count'] = len(publications)
         full = utils.to_bool(self.get_argument('full', True))
         result['full'] = full
@@ -580,8 +587,11 @@ class PublicationsNoDoi(RequestHandler):
     "Publications lacking DOI."
 
     def get(self):
-        publications = self.get_docs('publication/no_doi',
-                                     descending=True)
+        kwargs = dict(descending=True)
+        limit = self.get_limit()
+        if limit:
+            kwargs['limit'] = limit
+        publications = self.get_docs('publication/no_doi', **kwargs)
         self.render('publications_no_doi.html', publications=publications)
 
 
@@ -590,9 +600,9 @@ class PublicationsModified(PublicationMixin, RequestHandler):
 
     def get(self):
         self.check_curator()
-        docs = self.get_docs('publication/modified',
-                             descending=True,
-                             limit=settings['LONG_PUBLICATIONS_LIST_LIMIT'])
+        kwargs = dict(descending=True,
+                      limit=self.get_limit(settings['LONG_PUBLICATIONS_LIST_LIMIT']))
+        docs = self.get_docs('publication/modified', **kwargs)
         self.render('publications_modified.html', publications=docs)
 
 
