@@ -375,21 +375,7 @@
       {% block footer %}
       <hr>
       <div class="row">
-	<div class="col-sm-2">
-	  <a href="{{ reverse_url('home') }}">
-	    <span class="glyphicon glyphicon-home"></span>
-	    {{ settings['SITE_NAME'] }}
-	  </a>
-	</div>
-	<div class="col-sm-2 col-sm-offset-3">
-	  {% if settings.get('SITE_PARENT_URL') %}
-	  <a href="{{ settings['SITE_PARENT_URL'] }}" target="_">
-	    <span class="glyphicon glyphicon-link"></span>
-	    {{ settings.get('SITE_PARENT_NAME') or 'parent site' }}
-	  </a>
-	  {% end %}
-	</div>
-	<div class="col-sm-2 col-sm-offset-3">
+	<div class="col-sm-2 col-sm-offset-10">
 	  <a href="{{ settings['SOURCE_URL'] }}" target="_">
 	    <span class="glyphicon glyphicon-briefcase"></span>
 	    Software v{{ settings['SOURCE_VERSION'] }}
