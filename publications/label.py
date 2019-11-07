@@ -269,7 +269,7 @@ class LabelMerge(RequestHandler):
             with AccountSaver(account, rqh=self) as saver:
                 labels = set(account['labels'])
                 labels.discard(old_label)
-                labels.discard(old_value.lower())
+                labels.discard(old_label.lower())
                 labels.add(new_label)
                 saver['labels'] = sorted(labels)
         for publication in self.get_docs('publication/label',

@@ -301,12 +301,15 @@ def get_date(element):
     return result
 
 def get_text(element):
-    "Get all text from element and its children."
+    "Get all text from element and its children. Normalize blanks."
     text = []
     for elem in element.iter():
         text.append(elem.text)
         text.append(elem.tail)
-    return ''.join([t for t in text if t]).strip()
+    text = ''.join([t for t in text if t])
+    text = ''.join([t for t in text.split('\n')])
+    text = ' '.join([t for t in text.split()])
+    return text
 
 def to_unicode(value):
     "Convert to unicode using UTF-8 if not already done."
