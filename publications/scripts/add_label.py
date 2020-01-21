@@ -26,21 +26,23 @@ def add_label(db, new_label, existing_labels):
     view = db.view('publication/modified', include_docs=True)
     for item in view:
         qualifier = None
+        found = False
         for existing_label in existing_labels:
             if existing_label in item.doc['labels']:
+                found = True
                 if qualifier is None:
                     qualifier = item.doc['labels'][existing_label]
                 else:
                     qualifier = max(qualifier,
                                     item.doc['labels'][existing_label])
-        if qualifier is not None:
-            for k, v in qualifier_lookup.items():
-                if v == qualifier:
-                    qualifier = k
+        if found:
+            for key, value in qualifier_lookup.items():
+                if value == qualifier:
+                    qualifier = key
                     break
             with PublicationSaver(doc=item.doc, db=db) as saver:
                 labels = item.doc['labels'].copy()
-                labels[new_label] = qualifier
+                labels[new_label] = qualifier # May be None
                 saver['labels'] = labels
             print(item.doc['_id'], item.doc['labels'], qualifier)
 
