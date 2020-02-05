@@ -595,6 +595,21 @@ class PublicationsNoDoi(RequestHandler):
         self.render('publications_no_doi.html', publications=publications)
 
 
+class PublicationsNoLabel(RequestHandler):
+    "Publications lacking label."
+
+    def get(self):
+        kwargs = dict(descending=True)
+        limit = self.get_limit()
+        if limit:
+            kwargs['limit'] = limit
+        publications = []
+        for publication in self.get_docs('publication/modified', **kwargs):
+            if not publication.get('labels'):
+                publications.append(publication)
+        self.render('publications_no_label.html', publications=publications)
+
+
 class PublicationsModified(PublicationMixin, RequestHandler):
     "List of most recently modified publications."
 
