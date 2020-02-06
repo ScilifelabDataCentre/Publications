@@ -578,8 +578,7 @@ class PublicationsNoPmid(RequestHandler):
     "Publications lacking PMID."
 
     def get(self):
-        publications = self.get_docs('publication/no_pmid',
-                                     descending=True)
+        publications = self.get_docs('publication/no_pmid', descending=True)
         self.render('publications_no_pmid.html', publications=publications)
 
 
@@ -587,11 +586,7 @@ class PublicationsNoDoi(RequestHandler):
     "Publications lacking DOI."
 
     def get(self):
-        kwargs = dict(descending=True)
-        limit = self.get_limit()
-        if limit:
-            kwargs['limit'] = limit
-        publications = self.get_docs('publication/no_doi', **kwargs)
+        publications = self.get_docs('publication/no_doi', descending=True)
         self.render('publications_no_doi.html', publications=publications)
 
 
@@ -599,15 +594,29 @@ class PublicationsNoLabel(RequestHandler):
     "Publications lacking label."
 
     def get(self):
-        kwargs = dict(descending=True)
-        limit = self.get_limit()
-        if limit:
-            kwargs['limit'] = limit
         publications = []
-        for publication in self.get_docs('publication/modified', **kwargs):
+        for publication in self.get_docs('publication/modified', descending=True):
             if not publication.get('labels'):
                 publications.append(publication)
         self.render('publications_no_label.html', publications=publications)
+
+
+class PublicationsDuplicates(RequestHandler):
+    "Apparently duplicated publications."
+
+    def get(self):
+        lookup = {}             # Key: 4 longest words in title
+        duplicates = []
+        for publication in self.get_docs('publication/modified'):
+            title = utils.to_ascii(publication['title']).lower()
+            parts = sorted(title.split(), key=len, reverse=True)
+            key = ' '.join(parts[:4])
+            try:
+                previous = lookup[key]
+                duplicates.append((previous, publication))
+            except KeyError:
+                lookup[key] = publication
+        self.render('publications_duplicates.html', duplicates=duplicates)
 
 
 class PublicationsModified(PublicationMixin, RequestHandler):

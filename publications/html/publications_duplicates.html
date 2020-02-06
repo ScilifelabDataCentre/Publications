@@ -1,0 +1,25 @@
+{# Publication duplicates. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Publication duplicates{% end %}
+{% block body_title %}
+<span class="glyphicon glyphicon-duplicate"></span>
+Publication duplicates
+{% end %}
+
+{% block main_content %}
+<p>
+  Duplicates are detected by comparing the 4 longest words in the
+  titels. Some false positives are expected.
+</p>
+<table class="table">
+  {% for publication, duplicate in duplicates %}
+  <tr>
+    <td>{% include 'publication_item.html' %}</td>
+    {% set publication = duplicate %}
+    <td>{% include 'publication_item.html' %}</td>
+  </tr>
+{% end %}
+</table>
+{% end %} {# block main_content #}
