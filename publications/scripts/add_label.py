@@ -13,7 +13,7 @@ qualifier_lookup = {'Collaborative': 3,
 def add_label(db, new_label, existing_labels):
     if not new_label:
         raise ValueError('no new label given')
-    if len(existing_labels) == 0:
+    if not existing_labels:
         raise ValueError('no existing labels given')
     view = db.view('label/value', key=new_label)
     if len(view) == 0:
