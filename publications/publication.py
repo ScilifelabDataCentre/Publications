@@ -115,9 +115,13 @@ class PublicationSaver(Saver):
         If clean, then remove any missing allowed labels from existing entry.
         """
         if labels is None:
+            # Horrible kludge: Unicode issue for labels and qualifiers...
+            values = {}
+            for key in self.rqh.request.arguments.keys():
+                values[utils.to_ascii(key)] =self.rqh.get_argument(key)
             labels = {}
             for label in self.rqh.get_arguments('label'):
-                qualifier = self.rqh.get_argument("%s_qualifier" % label, None)
+                qualifier = values.get(utils.to_ascii("%s_qualifier" % label))
                 if qualifier in settings['SITE_LABEL_QUALIFIERS']:
                     labels[label] = qualifier
                 else:
