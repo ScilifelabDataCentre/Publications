@@ -67,10 +67,17 @@ class RequestHandler(tornado.web.RequestHandler):
         url = super(RequestHandler, self).reverse_url(name, *args)
         url = url.rstrip('?')   # tornado bug? sometimes left-over '?'
         # Skip query arguments with None as value
+<<<<<<< HEAD
         query = dict([(k, str(v)) for k,v in list(query.items())
                       if v is not None])
         if query:
             url += '?' + urllib.parse.urlencode(query)
+=======
+        query = dict([(k, utils.to_utf8(v)) for k,v in query.items()
+                      if v is not None])
+        if query:
+            url += '?' + urllib.urlencode(query)
+>>>>>>> 040b4ed579114c8c0a599e214f4a91dd4ea2e007
         return url
 
     def set_message_flash(self, message):

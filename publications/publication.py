@@ -115,7 +115,7 @@ class PublicationSaver(Saver):
         if labels is None:
             # Horrible kludge: Unicode issue for labels and qualifiers...
             values = {}
-            for key in list(self.rqh.request.arguments.keys()):
+            for key in self.rqh.request.arguments.keys():
                 values[utils.to_ascii(key)] =self.rqh.get_argument(key)
             labels = {}
             for label in self.rqh.get_arguments('label'):

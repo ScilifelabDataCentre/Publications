@@ -308,6 +308,16 @@ def get_text(element):
     text = ''.join([t for t in text.split('\n')])
     text = ' '.join([t for t in text.split()])
     return text
+<<<<<<< HEAD
+=======
+
+def to_unicode(value):
+    "Convert to unicode using UTF-8 if not already done."
+    if isinstance(value, unicode):
+        return value
+    else:
+        return unicode(value, 'utf-8')
+>>>>>>> 040b4ed579114c8c0a599e214f4a91dd4ea2e007
 
 def to_ascii(value):
     "Convert any non-ASCII character to its closest equivalent."

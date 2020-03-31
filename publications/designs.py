@@ -286,7 +286,7 @@ def update_design_document(db, design, views):
 
 def regenerate_indexes(db):
     "Regenerate all indexes."
-    for entity, designs in list(DESIGNS.items()):
+    for entity, designs in DESIGNS.items():
         for view in designs:
             name = "%s/%s" % (entity, view)
             logging.info("regenerating index for view %s" % name)

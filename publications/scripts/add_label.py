@@ -34,7 +34,7 @@ def add_label(db, new_label, existing_labels):
                     qualifier = max(qualifier,
                                     item.doc['labels'][existing_label])
         if found:
-            for key, value in list(qualifier_lookup.items()):
+            for key, value in qualifier_lookup.items():
                 if value == qualifier:
                     qualifier = key
                     break
