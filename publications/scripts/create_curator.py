@@ -1,7 +1,5 @@
 "Create an account with the 'curator' role."
 
-from __future__ import print_function
-
 import sys
 
 from publications import constants
@@ -28,12 +26,12 @@ if __name__ == '__main__':
     args = get_args()
     utils.load_settings(filepath=args.settings)
     db = utils.get_db()
-    email = raw_input('Email address (=account identifier) > ')
+    email = input('Email address (=account identifier) > ')
     if not email:
         sys.exit('Error: no email address provided')
     labels = []
     while True:
-        label = raw_input('Give label > ')
+        label = input('Give label > ')
         label = label.strip()
         if not label: break
         try:

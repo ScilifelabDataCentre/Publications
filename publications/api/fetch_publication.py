@@ -14,8 +14,6 @@ The function defined in the script can be imported and used in your
 own scripts.
 """
 
-from __future__ import print_function
-
 # Third-party package
 import requests
 

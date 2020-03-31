@@ -1,7 +1,5 @@
 "Home page."
 
-from __future__ import print_function
-
 import logging
 
 from . import constants
@@ -13,12 +11,13 @@ class Home(RequestHandler):
     "Home page."
 
     def get(self):
+        limit = self.get_limit(settings['SHORT_PUBLICATIONS_LIST_LIMIT'])
         docs = self.get_docs('publication/first_published',
                              key=constants.CEILING,
                              last='',
                              descending=True,
-                             limit=settings['SHORT_PUBLICATIONS_LIST_LIMIT'])
-        self.render('home.html', publications=docs)
+                             limit=limit)
+        self.render('home.html', publications=docs, limit=limit)
 
 
 class Contact(RequestHandler):

@@ -9,12 +9,11 @@ NOTE: The dabase instance must exist, and should be empty. If it is not
 empty, this script may overwrite existing documents.
 """
 
-from __future__ import print_function
-
 import json
 import logging
 import tarfile
 
+from publications import designs
 from publications import utils
 
 
@@ -40,14 +39,14 @@ def undump(db, filepath):
             atts = doc.pop('_attachments', dict())
             db.save(doc)
             count_items += 1
-            for attname, attinfo in atts.items():
+            for attname, attinfo in list(atts.items()):
                 key = "{0}_att/{1}".format(doc['_id'], attname)
                 attachments[key] = dict(filename=attname,
                                         content_type=attinfo['content_type'])
         if count_items % 100 == 0:
             logging.info("%s items loaded...", count_items)
     infile.close()
-    utils.regenerate_views(db)
+    designs.regenerate_indexes(db)
     logging.info("undumped %s items and %s files from %s",
                  count_items, count_files, filepath)
 
@@ -62,4 +61,5 @@ if __name__ == '__main__':
     args =  parser.parse_args()
     utils.load_settings(filepath=args.settings, ignore_logging_filepath=True)
     db = utils.get_db()
+    utils.initialize(db)
     undump(db, args.dumpfile)

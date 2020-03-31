@@ -10,9 +10,7 @@ unless the '--dumpdir' is used.
 Alternatively, the '--dumpfile' argument defines the full file path.
 """
 
-from __future__ import print_function
-
-import cStringIO
+import io
 import json
 import logging
 import tarfile
@@ -40,7 +38,7 @@ def dump(db, filepath):
         info = tarfile.TarInfo(doc['_id'])
         data = json.dumps(doc)
         info.size = len(data)
-        outfile.addfile(info, cStringIO.StringIO(data))
+        outfile.addfile(info, io.StringIO(data))
         count_items += 1
         for attname in doc.get('_attachments', dict()):
             info = tarfile.TarInfo("{0}_att/{1}".format(doc['_id'], attname))
@@ -51,7 +49,7 @@ def dump(db, filepath):
                 data = attfile.read()
                 attfile.close()
             info.size = len(data)
-            outfile.addfile(info, cStringIO.StringIO(data))
+            outfile.addfile(info, io.StringIO(data))
             count_files += 1
     outfile.close()
     logging.info("dumped %s items and %s files to %s",

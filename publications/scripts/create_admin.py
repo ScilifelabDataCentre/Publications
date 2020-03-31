@@ -1,7 +1,5 @@
 "Create an account with the 'admin' role."
 
-from __future__ import print_function
-
 import sys
 import getpass
 
@@ -29,7 +27,7 @@ if __name__ == '__main__':
     args = get_args()
     utils.load_settings(filepath=args.settings)
     db = utils.get_db()
-    email = raw_input('Email address (=account identifier) > ')
+    email = input('Email address (=account identifier) > ')
     if not email:
         sys.exit('Error: no email address provided')
     password = getpass.getpass('Password > ')

@@ -1,10 +1,8 @@
 "Publications: Simple publications reference database with web interface."
 
-from __future__ import print_function
-
 import os
 
-__version__ = '3.2.5'
+__version__ = '3.3.0'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -33,6 +31,7 @@ settings = dict(
     LONG_PUBLICATIONS_LIST_LIMIT=100,
     NUMBER_FIRST_AUTHORS=3,
     NUMBER_LAST_AUTHORS=2,
+    DISPLAY_TRANSLATIONS={},
     SITE_NAME='Publications',
     SITE_TITLE='Publications',
     SITE_TEXT='A simple publications reference database system.',

@@ -8,8 +8,6 @@ NOTE: The CouchDB database must exist.
 2) Loads the design documents (view index definitions).
 """
 
-from __future__ import print_function
-
 from publications import utils
 
 
@@ -18,7 +16,7 @@ def init_database(db):
     print('wiping out database (slow method)...')
     for doc in db: del db[doc]
     print('wiped out database')
-    utils.update_design_documents(db)
+    utils.initialize(db)
 
 
 if __name__ == '__main__':
@@ -31,7 +29,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     utils.load_settings(filepath=args.settings)
     if not args.force:
-        response = raw_input('about to delete everything; really sure? [n] > ')
+        response = input('about to delete everything; really sure? [n] > ')
         if not utils.to_bool(response):
             sys.exit('aborted')
     init_database(utils.get_db())

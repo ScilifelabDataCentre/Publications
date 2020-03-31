@@ -1,7 +1,5 @@
 "Various utility functions."
 
-from __future__ import print_function
-
 import argparse
 import datetime
 import email.mime.text
@@ -11,7 +9,7 @@ import optparse
 import os
 import socket
 import smtplib
-import urlparse
+import urllib.parse
 import uuid
 import unicodedata
 
@@ -34,7 +32,7 @@ class NocaseDict(object):
         for key in orig:
             self.lower[key.lower()] = orig[key]
     def keys(self):
-        return self.orig.keys()
+        return list(self.orig.keys())
     def __getitem__(self, key):
         return self.lower[key.lower()]
 
@@ -74,7 +72,7 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
         settings.update(yaml.safe_load(infile))
     settings['SETTINGS_FILEPATH'] = filepath
     # Expand environment variables (ROOT, SITE_DIR) once and for all
-    for key, value in settings.items():
+    for key, value in list(settings.items()):
         if isinstance(value, str):
             settings[key] = expand_filepath(value)
     # Set logging state
@@ -116,7 +114,7 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
     # Settings computable from others
     settings['DATABASE_SERVER_VERSION'] = get_dbserver().version()
     if 'PORT' not in settings:
-        parts = urlparse.urlparse(settings['BASE_URL'])
+        parts = urllib.parse.urlparse(settings['BASE_URL'])
         items = parts.netloc.split(':')
         if len(items) == 2:
             settings['PORT'] = int(items[1])
@@ -167,7 +165,7 @@ def initialize(db=None):
     designs.load_design_documents(db)
 
 def get_doc(db, key, viewname=None):
-    """Get the document with the given i, or from the given view.
+    """Get the document with the given identifier, or from the given view.
     Raise KeyError if not found.
     """
     if viewname is None:
@@ -178,7 +176,7 @@ def get_doc(db, key, viewname=None):
     else:
         result = list(db.view(viewname, include_docs=True, reduce=False)[key])
         if len(result) != 1:
-            raise KeyError("%i items found", len(result))
+            raise KeyError("%i items found" % len(result))
         return result[0].doc
 
 def get_docs(db, viewname, key=None, last=None, **kwargs):
@@ -237,6 +235,7 @@ def get_label(db, identifier):
         doc = get_doc(db, identifier)
     except KeyError:
         identifier = to_ascii(identifier).lower()
+        print('identifier', identifier)
         try:
             doc = get_doc(db, identifier, 'label/normalized_value')
         except KeyError:
@@ -263,8 +262,8 @@ def get_iuid():
 
 def hashed_password(password):
     "Return the password in hashed form."
-    sha256 = hashlib.sha256(settings['PASSWORD_SALT'])
-    sha256.update(to_utf8(password))
+    sha256 = hashlib.sha256(settings['PASSWORD_SALT'].encode('utf-8'))
+    sha256.update(password.encode('utf-8'))
     return sha256.hexdigest()
 
 def check_password(password):
@@ -330,18 +329,9 @@ def to_date(value):
 
 def to_ascii(value):
     "Convert any non-ASCII character to its closest ASCII equivalent."
-    if not isinstance(value, unicode):
-        value = unicode(value, 'utf-8')
-    return unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-
-def to_utf8(value):
-    "Convert value to UTF-8 representation."
-    if isinstance(value, basestring):
-        if not isinstance(value, unicode):
-            value = unicode(value, 'utf-8')
-        return value.encode('utf-8')
-    else:
-        return value
+    if not isinstance(value, str):
+        value = str(value)
+    return unicodedata.normalize('NFKD', value)
 
 def to_bool(value):
     "Convert the value into a boolean, interpreting various string values."
@@ -350,7 +340,7 @@ def to_bool(value):
     lowvalue = value.lower()
     if lowvalue in constants.TRUE: return True
     if lowvalue in constants.FALSE: return False
-    raise ValueError(u"invalid boolean: '{}'".format(value))
+    raise ValueError("invalid boolean: '{}'".format(value))
 
 def write_safe_csv_row(writer, row):
     """Remove any beginning character '=-+@' from string values to output.
@@ -358,7 +348,7 @@ def write_safe_csv_row(writer, row):
     """
     row = list(row)
     for pos, value in enumerate(row):
-        if not isinstance(value, basestring): continue
+        if not isinstance(value, str): continue
         while len(value) and value[0] in '=-+@':
             value = value[1:]
         row[pos] = value
@@ -379,13 +369,13 @@ def strip_prefix(value):
 def get_formatted_authors(authors, complete=False):
     "Get formatted list of authors; numbers in settings, or complete."
     if complete or len(authors) <= settings['NUMBER_FIRST_AUTHORS'] + settings['NUMBER_LAST_AUTHORS']:
-        result = ["%s %s" % (a['family'], a['initials'] or '')
+        result = ["%s %s" % (a['family'], a.get('initials') or '')
                   for a in authors]
     else:
-        result = ["%s %s" % (a['family'], a['initials'] or '')
+        result = ["%s %s" % (a['family'], a.get('initials') or '')
                   for a in authors[:settings['NUMBER_FIRST_AUTHORS']]]
         result.append('...')
-        result.extend(["%s %s" % (a['family'], a['initials'] or '')
+        result.extend(["%s %s" % (a['family'], a.get('initials') or '')
                        for a in authors[-settings['NUMBER_LAST_AUTHORS']:]])
     return ', '.join(result)
 

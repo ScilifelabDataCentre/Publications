@@ -11,8 +11,12 @@
 {% end %}
 
 {% block main_content %}
-{% set list_title = "The %s most recent publications" % settings['SHORT_PUBLICATIONS_LIST_LIMIT'] %}
-{% include 'publications_list.html' %}
+<h3>{{"The %s most recent publications" % limit }}</h3>
+
+{% for publication in publications %}
+{% include 'publication_item.html' %}
+{% end %} {# for #}
+
 {% end %} {# block main_content #}
 
 

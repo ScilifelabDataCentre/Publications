@@ -1,7 +1,5 @@
 "User web interface modules."
 
-from __future__ import print_function
-
 import tornado.web
 
 from . import constants
@@ -143,3 +141,17 @@ class QcFlags(tornado.web.UIModule):
                                            entry['account'], 
                                            aspect))
         return ' '.join(result)
+
+
+class Translate(tornado.web.UIModule):
+    "Translate the term, or keep as is."
+
+    def render(self, term):
+        istitle = term.istitle()
+        try:
+            term = settings['DISPLAY_TRANSLATIONS'][term.lower()]
+            if istitle:
+                term = term.title()
+        except KeyError:
+            pass
+        return term

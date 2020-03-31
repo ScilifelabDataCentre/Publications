@@ -1,7 +1,5 @@
 "CSV file of statistics for xrefs editing."
 
-from __future__ import print_function
-
 import csv
 import json
 
@@ -38,7 +36,7 @@ def xrefs_statistics(db, filename, since=None):
         for publication in utils.get_docs(db, 'publication/published'):
             print(publication['_id'])
             total += 1
-            for label, qualifier in publication.get('labels', {}).items():
+            for label, qualifier in list(publication.get('labels', {}).items()):
                 try:
                     qualifiers = label_count[label]
                 except KeyError:
@@ -106,7 +104,7 @@ def xrefs_statistics(db, filename, since=None):
             publs = curators[email]
             total_publs = len(publs)
             new = set()
-            for xrefs in publs.values():
+            for xrefs in list(publs.values()):
                 new.update(xrefs)
             total_xrefs = len(new)
             write((email, total_publs, total_xrefs))

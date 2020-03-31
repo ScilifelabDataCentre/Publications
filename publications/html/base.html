@@ -87,6 +87,18 @@
 		  </a>
 		</li>
 		<li>
+		  <a href="{{ reverse_url('publications_no_label') }}">
+		    <span class="glyphicon glyphicon-unchecked"></span>
+		    No label
+		  </a>
+		</li>
+		<li>
+		  <a href="{{ reverse_url('publications_duplicates') }}">
+		    <span class="glyphicon glyphicon-duplicate"></span>
+		    Duplicates
+		  </a>
+		</li>
+		<li>
 		  <a href="{{ reverse_url('publications_modified') }}">
 		    <span class="glyphicon glyphicon-time"></span>
                     Recently modified
@@ -123,27 +135,27 @@
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">
 		<span class="glyphicon glyphicon-tag"></span>
-		Labels
+		{% module Translate('Labels') %}
 		<span class="caret"></span>
 	      </a>
               <ul class="dropdown-menu">
 		<li>
 		  <a href="{{ reverse_url('labels') }}">
 		    <span class="glyphicon glyphicon-list"></span>
-		    Labels list
+		    {% module Translate('Labels') %} list
 		  </a>
 		</li>
 		<li>
 		  <a href="{{ reverse_url('labels_table') }}">
 		    <span class="glyphicon glyphicon-list-alt"></span>
-		    Labels table
+		    {% module Translate('Labels') %} table
 		  </a>
 		</li>
 		{% if is_admin %}
 		<li>
 		  <a href="{{ reverse_url('label_add') }}">
 		    <span class="glyphicon glyphicon-plus"></span>
-		    Add label
+		    Add {% module Translate('label') %}
 		  </a>
 		</li>
 		{% end %} {# if is_admin #}
@@ -348,7 +360,7 @@
 	       class="btn btn-default btn-sm"
 	       role="button">
 	      <span class="glyphicon glyphicon-tag"></span>
-	      Labels
+	      {% module Translate('Labels') %}
 	    </a>
 	  </p>
 	  <p>
@@ -375,24 +387,11 @@
       {% block footer %}
       <hr>
       <div class="row">
-	<div class="col-sm-2">
-	  <a href="{{ reverse_url('home') }}">
-	    <span class="glyphicon glyphicon-home"></span>
-	    {{ settings['SITE_NAME'] }}
-	  </a>
-	</div>
-	<div class="col-sm-2 col-sm-offset-3">
-	  {% if settings.get('SITE_PARENT_URL') %}
-	  <a href="{{ settings['SITE_PARENT_URL'] }}" target="_">
-	    <span class="glyphicon glyphicon-link"></span>
-	    {{ settings.get('SITE_PARENT_NAME') or 'parent site' }}
-	  </a>
-	  {% end %}
-	</div>
-	<div class="col-sm-2 col-sm-offset-3">
-	  <a href="{{ settings['SOURCE_URL'] }}" target="_">
+	<div class="col-sm-2 col-sm-offset-10">
+	  <a href="{{ settings['SOURCE_URL'] }}"
+             target="_blank" class="pull-right">
 	    <span class="glyphicon glyphicon-briefcase"></span>
-	    Software v{{ settings['SOURCE_VERSION'] }}
+	    Software {{ settings['SOURCE_VERSION'] }}
 	  </a>
 	</div>
       </div>

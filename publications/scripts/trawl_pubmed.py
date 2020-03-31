@@ -48,8 +48,6 @@ all_publ{year}.csv
   Aggregated CSV of all publications.
 """
 
-from __future__ import print_function
-
 from collections import OrderedDict
 import csv
 import os
@@ -102,8 +100,8 @@ def get_accounts(filename=ACCOUNTS_FILENAME):
     with open(filename, 'rb') as infile:
         reader = csv.reader(infile)
         # Skip 2 header rows
-        reader.next()
-        reader.next()
+        next(reader)
+        next(reader)
         result = []
         for row in reader:
             result.append(dict(email=row[EMAIL_COL],
@@ -117,7 +115,7 @@ def get_universities(filename=UNIVERSITIES_FILENAME):
     with open(filename, 'rb') as infile:
         reader = csv.reader(infile)
         # Skip 1 header row
-        reader.next()
+        next(reader)
         universities = {}
         for row in reader:
             universities[row[0].upper()] = [n for n in row[1:] if n]
@@ -139,8 +137,8 @@ def search_pubmed(accounts, universities, year=YEAR, verbose=True):
         outfilename = os.path.join(PUBL_DIR, "%s.csv" % account['email'])
         if os.path.exists(outfilename): continue
 
-        name = [to_unicode(account['lastname'])]
-        initials = ''.join([n[0] for n in to_unicode(account['firstname']).split()])
+        name = [account['lastname']]
+        initials = ''.join([n[0] for n in account['firstname'].split()])
         if initials:
             name.append(initials)
         name = ' '.join(name)
@@ -168,7 +166,7 @@ def search_pubmed(accounts, universities, year=YEAR, verbose=True):
                                 quoting=csv.QUOTE_NONNUMERIC)
             writer.writerow(HEADER_ROW)
             for entry in entries:
-                authors = [u"%s %s" % (a.get('family') or '',
+                authors = ["%s %s" % (a.get('family') or '',
                                        a.get('initials') or '')
                            for a in entry['authors']]
                 if len(authors) > MAX_AUTHORS:
@@ -176,17 +174,16 @@ def search_pubmed(accounts, universities, year=YEAR, verbose=True):
                             '...' + authors[-1]
                 else:
                     authors = ', '.join(authors)
-                writer.writerow(row_to_utf8(
-                    [authors,
-                     entry['title'],
-                     entry['journal']['title'],
-                     entry['journal'].get('volume') or '',
-                     entry['journal'].get('issue') or '',
-                     entry['journal'].get('pages') or '',
-                     entry['published'],
-                     entry['pmid'],
-                     entry['doi'],
-                     PUBMED_URL + entry['pmid']]))
+                writer.writerow([authors,
+                                 entry['title'],
+                                 entry['journal']['title'],
+                                 entry['journal'].get('volume') or '',
+                                 entry['journal'].get('issue') or '',
+                                 entry['journal'].get('pages') or '',
+                                 entry['published'],
+                                 entry['pmid'],
+                                 entry['doi'],
+                                 PUBMED_URL + entry['pmid']])
 
 def aggregate(verbose=True):
     "Aggregate all records from files in the publications directory."
@@ -204,7 +201,7 @@ def aggregate(verbose=True):
                 with open(os.path.join(dirpath, filename), 'rb') as infile:
                     reader = csv.reader(infile)
                     # Skip 1 header row
-                    reader.next()
+                    next(reader)
                     for row in reader:
                         count += 1
                         if row[7] in pmids: continue
@@ -220,7 +217,7 @@ def search(author=None, published=None, journal=None, doi=None,
     "Get list of PMIDs for PubMed hits given the data."
     parts = []
     if author:
-        parts.append("%s[AU]" % to_ascii(to_unicode(author)))
+        parts.append("%s[AU]" % to_ascii(author))
     if published:
         parts.append("%s[DP]" % published)
     if journal:
@@ -228,12 +225,12 @@ def search(author=None, published=None, journal=None, doi=None,
     if doi:
         parts.append("%s[LID]" % doi)
     if affiliation:
-        parts.append("%s[AD]" % to_ascii(to_unicode(affiliation)))
+        parts.append("%s[AD]" % to_ascii(affiliation))
     if title:
-        parts.append("%s[TI]" % to_ascii(to_unicode(title)))
+        parts.append("%s[TI]" % to_ascii(title))
     query = ' AND '.join(parts)
     if exclude_title:
-        query += " NOT %s[TI]" % to_ascii(to_unicode(exclude_title))
+        query += " NOT %s[TI]" % to_ascii(exclude_title)
     url = PUBMED_SEARCH_URL % (retmax, query)
     try:
         if delay > 0.0:
@@ -320,7 +317,7 @@ def get_authors(article):
                            ('initials', 'Initials')]:
             value = element.findtext(xkey)
             if not value: continue
-            value = to_unicode(value)
+            value = str(value)
             author[jkey] = value
             author[jkey + '_normalized'] = to_ascii(value).lower()
         # For consortia and such, names are a mess. Try to sort out.
@@ -330,7 +327,7 @@ def get_authors(article):
             except KeyError:
                 value = element.findtext('CollectiveName')
                 if not value: continue # Give up.
-                value = to_unicode(value)
+                value = str(value)
                 author['family'] = value
             author['given'] = ''
             author['initials'] = ''
@@ -482,26 +479,12 @@ def get_date(element):
     result.append(day)
     return result
 
-def to_unicode(value):
-    "Convert to unicode using UTF-8 if not already done."
-    if isinstance(value, unicode):
-        return value
-    else:
-        return unicode(value, 'utf-8')
-
 def to_ascii(value):
     "Convert any non-ASCII character to its closest equivalent."
     if value:
-        return unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+        return unicodedata.normalize('NFKD', value)
     else:
         return ''
-
-def row_to_utf8(row):
-    "Convert any unicode to utf-8, and return row."
-    for pos, item in enumerate(row):
-        if isinstance(item, unicode):
-            row[pos] = item.encode('utf-8')
-    return row
 
 
 if __name__ == '__main__':

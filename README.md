@@ -65,7 +65,7 @@ Implementation
 
 - [Python 2.7](https://www.python.org/)
 - [tornado 4](http://www.tornadoweb.org/en/stable/)
-- [CouchDB 1.6](http://couchdb.apache.org/)
+- [CouchDB 1.7](http://couchdb.apache.org/)
 - [CouchDB-python 1.1](https://pypi.python.org/pypi/CouchDB/1.1)
 - [pyyaml](https://pypi.python.org/pypi/PyYAML)
 - [requests](http://docs.python-requests.org/en/master/)
@@ -76,5 +76,3 @@ SciLifeLab
 The system was designed for keeping track of the publications
 to which the facilities of SciLifeLab contributed.
 See [SciLifeLab Publications](https://publications.scilifelab.se/).
-
-The data is available at [README](publications/scilifelab/README.md).

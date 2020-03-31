@@ -1,7 +1,5 @@
 "Logs page."
 
-from __future__ import print_function
-
 import logging
 
 import tornado.web

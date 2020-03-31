@@ -2,8 +2,6 @@
 been imported into the database.
 """
 
-from __future__ import print_function
-
 import csv
 from collections import OrderedDict
 
@@ -34,7 +32,7 @@ if __name__ == '__main__':
                         'publications_fellows.csv']:
         with open(csvfilename, 'rb') as infile:
             reader = csv.reader(infile)
-            header = reader.next()
+            header = next(reader)
             for row in reader:
                 identifier = row[9].strip()
                 if identifier == 'NULL':
@@ -48,5 +46,5 @@ if __name__ == '__main__':
     with open('unloaded.csv', 'wb') as outfile:
         writer = csv.writer(outfile)
         writer.writerow(header)
-        for row in unloaded.values():
+        for row in list(unloaded.values()):
             writer.writerow(row)

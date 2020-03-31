@@ -1,7 +1,4 @@
-"""Display all xrefs currently in database.
-"""
-
-from __future__ import print_function
+"Display all xrefs currently in database."
 
 from publications import utils
 

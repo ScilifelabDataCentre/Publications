@@ -1,7 +1,5 @@
 "Try to fix missing PMID in all publications by searching for title."
 
-from __future__ import print_function
-
 from publications.publication import PublicationSaver
 from publications import pubmed
 from publications import utils

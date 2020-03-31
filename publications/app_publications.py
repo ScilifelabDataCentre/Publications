@@ -1,7 +1,4 @@
-#!/usr/bin/python2
 "Web application server for a simple publications database."
-
-from __future__ import print_function
 
 import logging
 import os
@@ -36,6 +33,8 @@ from publications.publication import (Publication,
                                       PublicationsAcquired,
                                       PublicationsNoPmid,
                                       PublicationsNoDoi,
+                                      PublicationsNoLabel,
+                                      PublicationsDuplicates,
                                       PublicationsModified,
                                       PublicationAdd,
                                       PublicationFetch,
@@ -81,9 +80,9 @@ def main():
     handlers = [url(r'/', Home, name='home'),
                 url(r'/site/([^/]+)', tornado.web.StaticFileHandler,
                     {'path': settings['SITE_DIR']}, name='site'),
-                url(r'/publication/([^/.]+)', Publication, name='publication'),
-                url(r'/publication/([^/.]+).json',
+                url(r'/publication/(.+).json',
                     PublicationJson, name='publication_json'),
+                url(r'/publication/(.+)', Publication, name='publication'),
                 url(r'/publications/(\d{4})',
                     Publications, name='publications_year'),
                 url(r'/publications/(\d{4}).json',
@@ -103,6 +102,10 @@ def main():
                     PublicationsNoPmid, name='publications_no_pmid'),
                 url(r'/publications/no_doi',
                     PublicationsNoDoi, name='publications_no_doi'),
+                url(r'/publications/no_label',
+                    PublicationsNoLabel, name='publications_no_label'),
+                url(r'/publications/duplicates',
+                    PublicationsDuplicates, name='publications_duplicates'),
                 url(r'/publications/modified',
                     PublicationsModified, name='publications_modified'),
                 url(r'/edit/([^/]+)',

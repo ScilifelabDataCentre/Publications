@@ -1,7 +1,5 @@
 "Publications: Login and logout pages."
 
-from __future__ import print_function
-
 import logging
 
 import tornado.web

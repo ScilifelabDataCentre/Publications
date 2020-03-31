@@ -1,7 +1,5 @@
 "PubMed interface."
 
-from __future__ import print_function
-
 from collections import OrderedDict
 import os
 import time
@@ -22,13 +20,13 @@ MONTHS = dict(jan=1, feb=2, mar=3, apr=4, may=5, jun=6,
 
 def search(author=None, published=None, journal=None, doi=None,
            affiliation=None, title=None, exclude_title=None,
-           retmax=100, delay=0.0):
+           retmax=20, delay=0.0):
     """Get list of PMIDs for PubMed hits given the data.
     Delay the HTTP request if positive value (seconds).
     """
     parts = []
     if author:
-        parts.append("%s[AU]" % to_ascii(to_unicode(author)))
+        parts.append("%s[AU]" % to_ascii(str(author)))
     if published:
         parts.append("%s[DP]" % published)
     if journal:
@@ -36,12 +34,12 @@ def search(author=None, published=None, journal=None, doi=None,
     if doi:
         parts.append("%s[LID]" % doi)
     if affiliation:
-        parts.append("%s[AD]" % to_ascii(to_unicode(affiliation)))
+        parts.append("%s[AD]" % to_ascii(str(affiliation)))
     if title:
-        parts.append("%s[TI]" % to_ascii(to_unicode(title)))
+        parts.append("%s[TI]" % to_ascii(str(title)))
     query = ' AND '.join(parts)
     if exclude_title:
-        query += " NOT %s[TI]" % to_ascii(to_unicode(exclude_title))
+        query += " NOT %s[TI]" % to_ascii(str(exclude_title))
     url = PUBMED_SEARCH_URL % (retmax, query)
     if delay > 0.0:
         time.sleep(delay)
@@ -136,7 +134,7 @@ def get_authors(article):
                            ('initials', 'Initials')]:
             value = element.findtext(xkey)
             if not value: continue
-            value = to_unicode(value)
+            value = str(value)
             author[jkey] = value
             author[jkey + '_normalized'] = to_ascii(value).lower()
         # For consortia and such, names are a mess. Try to sort out.
@@ -146,7 +144,7 @@ def get_authors(article):
             except KeyError:
                 value = element.findtext('CollectiveName')
                 if not value: continue # Give up.
-                value = to_unicode(value)
+                value = str(value)
                 author['family'] = value
             author['given'] = ''
             author['initials'] = ''
@@ -301,24 +299,20 @@ def get_date(element):
     return result
 
 def get_text(element):
-    "Get all text from element and its children."
+    "Get all text from element and its children. Normalize blanks."
     text = []
     for elem in element.iter():
         text.append(elem.text)
         text.append(elem.tail)
-    return ''.join([t for t in text if t]).strip()
-
-def to_unicode(value):
-    "Convert to unicode using UTF-8 if not already done."
-    if isinstance(value, unicode):
-        return value
-    else:
-        return unicode(value, 'utf-8')
+    text = ''.join([t for t in text if t])
+    text = ''.join([t for t in text.split('\n')])
+    text = ' '.join([t for t in text.split()])
+    return text
 
 def to_ascii(value):
     "Convert any non-ASCII character to its closest equivalent."
     if value:
-        return unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+        return unicodedata.normalize('NFKD', value)
     else:
         return ''
 

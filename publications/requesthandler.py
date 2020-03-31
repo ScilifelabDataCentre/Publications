@@ -1,11 +1,9 @@
 "RequestHandler subclass."
 
-from __future__ import print_function
-
 import base64
 import json
 import logging
-import urllib
+import urllib.request, urllib.parse, urllib.error
 from collections import OrderedDict as OD
 
 import couchdb
@@ -68,9 +66,11 @@ class RequestHandler(tornado.web.RequestHandler):
         "Allow adding query arguments to the URL."
         url = super(RequestHandler, self).reverse_url(name, *args)
         url = url.rstrip('?')   # tornado bug? sometimes left-over '?'
+        # Skip query arguments with None as value
+        query = dict([(k, str(v)) for k,v in list(query.items())
+                      if v is not None])
         if query:
-            query = dict([(k, utils.to_utf8(v)) for k,v in query.items()])
-            url += '?' + urllib.urlencode(query)
+            url += '?' + urllib.parse.urlencode(query)
         return url
 
     def set_message_flash(self, message):
@@ -151,7 +151,7 @@ class RequestHandler(tornado.web.RequestHandler):
         else:
             try:
                 account = self.get_doc(api_key, 'account/api_key')
-            except tornado.web.HTTPError:
+            except KeyError:
                 raise ValueError
             if account.get('disabled'):
                 logging.info("API key login: DISABLED %s",
@@ -169,6 +169,7 @@ class RequestHandler(tornado.web.RequestHandler):
             constants.USER_COOKIE,
             max_age_days=settings['LOGIN_MAX_AGE_DAYS'])
         if not email: raise ValueError
+        email = email.decode('utf-8')
         try:
             account = self.get_account(email)
         except KeyError:
@@ -208,6 +209,15 @@ class RequestHandler(tornado.web.RequestHandler):
         else:
             logging.info("Basic auth login: %s", account['email'])
             return account
+
+    def get_limit(self, default=None):
+        "Get the limit query argument, or the default value."
+        try:
+            limit = int(self.get_argument('limit'))
+            if limit <= 0: raise ValueError
+        except (tornado.web.MissingArgumentError, ValueError, TypeError):
+            limit = default
+        return limit
 
     def get_logs(self, iuid):
         "Get the log entries for the document with the given IUID."
@@ -270,34 +280,46 @@ class RequestHandler(tornado.web.RequestHandler):
             self.db.delete(log)
         self.db.delete(doc)
 
-    def get_publication_json(self, publication):
+    def get_publication_json(self, publication, full=True, single=False):
         "JSON representation of publication."
         URL = self.absolute_reverse_url
         result = OD()
-        result['entity'] = 'publication'
-        result['iuid'] = publication['_id']
-        result['timestamp'] = utils.timestamp()
-        result['links'] = OD([
-            ('self', { 'href': URL('publication_json', publication['_id'])}),
-            ('display', {'href': URL('publication', publication['_id'])})])
+        if full:
+            result['entity'] = 'publication'
+            result['iuid'] = publication['_id']
+            if single:
+                result['timestamp'] = utils.timestamp()
+            result['links'] = OD([
+                ('self', { 'href': URL('publication_json',publication['_id'])}),
+                ('display', {'href': URL('publication', publication['_id'])})])
         result['title'] = publication['title']
-        result['authors'] = []
-        for author in publication['authors']:
-            au = OD()
-            au['family'] = author.get('family')
-            au['given'] = author.get('given')
-            au['initials'] = author.get('initials')
-            result['authors'].append(au)
-        for key in ['type', 'published', 'journal', 'abstract',
-                    'doi', 'pmid', 'labels', 'xrefs', 'notes', 'qc']:
-            result[key] = publication.get(key)
-        if self.current_user:
-            try:
-                result['acquired'] = publication['acquired']
-            except KeyError:
-                pass
-        result['created'] = publication['created']
-        result['modified'] = publication['modified']
+        if full:
+            result['authors'] = []
+            for author in publication['authors']:
+                au = OD()
+                au['family'] = author.get('family')
+                au['given'] = author.get('given')
+                au['initials'] = author.get('initials')
+                result['authors'].append(au)
+            result['type'] = publication.get('type')
+        result['published'] = publication.get('published')
+        result['journal'] = publication.get('journal')
+        if full:
+            result['abstract'] = publication.get('abstract')
+        result['doi'] = publication.get('doi')
+        result['pmid'] = publication.get('pmid')
+        result['labels'] = publication.get('labels')
+        result['xrefs'] = publication.get('xrefs')
+        if full:
+            result['notes'] = publication.get('notes')
+            result['qc'] = publication.get('qc')
+            if self.current_user:
+                try:
+                    result['acquired'] = publication['acquired']
+                except KeyError:
+                    pass
+            result['created'] = publication['created']
+            result['modified'] = publication['modified']
         return result
 
     def get_account_json(self, account, full=False):
@@ -327,7 +349,7 @@ class RequestHandler(tornado.web.RequestHandler):
         result['modified'] = account['modified']
         return result
 
-    def get_label_json(self, label, publications=None, accounts=None):
+    def get_label_json(self, label, publications=None,accounts=None,limit=None):
         "JSON representation of label."
         URL = self.absolute_reverse_url
         result = OD()
@@ -343,6 +365,8 @@ class RequestHandler(tornado.web.RequestHandler):
         if accounts is not None:
             result['accounts'] = [self.get_account_json(account)
                                   for account in accounts]
+        if limit is not None:
+            result['limit'] = limit
         if publications is None:
             try:
                 result['publications_count'] = label['count']

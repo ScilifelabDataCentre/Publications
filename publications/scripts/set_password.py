@@ -1,7 +1,5 @@
 "Set the password for an existing account."
 
-from __future__ import print_function
-
 import getpass
 
 from publications import constants

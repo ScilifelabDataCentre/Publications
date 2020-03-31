@@ -76,7 +76,7 @@
 {% end %} {# block meta_content #}
 
 {% block alt_format %}
-<a href="{{ reverse_url('label_json', label['value']) }}">
+<a href="{{ handler.reverse_url('label_json', label['value'], limit=limit) }}">
   <img src="{{ static_url('json.png') }}"> JSON
 </a>
 <br>

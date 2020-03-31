@@ -1,10 +1,8 @@
 "Publication pages."
 
-from __future__ import print_function
-
 from collections import OrderedDict as OD
 import csv
-from cStringIO import StringIO
+from io import StringIO
 import logging
 
 import requests
@@ -115,9 +113,13 @@ class PublicationSaver(Saver):
         If clean, then remove any missing allowed labels from existing entry.
         """
         if labels is None:
+            # Horrible kludge: Unicode issue for labels and qualifiers...
+            values = {}
+            for key in list(self.rqh.request.arguments.keys()):
+                values[utils.to_ascii(key)] =self.rqh.get_argument(key)
             labels = {}
             for label in self.rqh.get_arguments('label'):
-                qualifier = self.rqh.get_argument("%s_qualifier" % label, None)
+                qualifier = values.get(utils.to_ascii("%s_qualifier" % label))
                 if qualifier in settings['SITE_LABEL_QUALIFIERS']:
                     labels[label] = qualifier
                 else:
@@ -135,7 +137,7 @@ class PublicationSaver(Saver):
     def update(self, other):
         """Update any empty field in the publication 
         if there is a value in the other."""
-        for key, value in other.items():
+        for key, value in list(other.items()):
             if value is not None and self.get(key) is None:
                 self[key] = value
 
@@ -358,11 +360,16 @@ class Publication(PublicationMixin, RequestHandler):
         self.see_other('home')
 
 
-class PublicationJson(Publication):
+class PublicationJson(PublicationMixin, RequestHandler):
     "Publication JSON data."
 
-    def render(self, template, **kwargs):
-        self.write(self.get_publication_json(kwargs['publication']))
+    def get(self, identifier):
+        "Display the publication."
+        try:
+            publication = self.get_publication(identifier)
+        except KeyError as error:
+            raise tornado.web.HTTPError(404, reason='no such publication')
+        self.write(self.get_publication_json(publication, single=True))
 
 
 class Publications(RequestHandler):
@@ -371,15 +378,20 @@ class Publications(RequestHandler):
     TEMPLATE = 'publications.html'
 
     def get(self, year=None):
+        limit = self.get_limit()
         if year:
-            publications = self.get_docs('publication/year', key=year)
+            kwargs = dict(key=year)
+            if limit:
+                kwargs['limit'] = limit
+            publications = self.get_docs('publication/year', **kwargs)
             publications.sort(key=lambda i: i['published'], reverse=True)
         else:
-            publications = self.get_docs('publication/published',
-                                         key=constants.CEILING,
-                                         last='',
-                                         descending=True)
-        self.render(self.TEMPLATE, publications=publications, year=year)
+            kwargs = dict(key=constants.CEILING, last='', descending=True)
+            if limit:
+                kwargs['limit'] = limit
+            publications = self.get_docs('publication/published', **kwargs)
+        self.render(self.TEMPLATE,
+                    publications=publications, year=year, limit=limit)
 
 
 class PublicationsTable(Publications):
@@ -407,9 +419,13 @@ class PublicationsJson(Publications):
         else:
             links['self'] = {'href': URL('publications_json')}
             links['display'] = {'href': URL('publications')}
+        if kwargs['limit']:
+            result['limit'] = kwargs['limit']
         result['publications_count'] = len(publications)
-        result['publications'] = [self.get_publication_json(publication)
-                                  for publication in publications]
+        full = utils.to_bool(self.get_argument('full', True))
+        result['full'] = full
+        result['publications'] = [self.get_publication_json(publ, full=full)
+                                  for publ in publications]
         self.write(result)
 
 
@@ -440,9 +456,6 @@ class PublicationsCsv(Publications):
             delimiter = ';'
         else:
             delimiter = ','
-        encoding = self.get_argument('encoding', '').lower()
-        if encoding not in ('utf-8', 'iso-8859-1'):
-            encoding = 'utf-8'
         if years:
             for year in years:
                 publications.extend(self.get_docs('publication/year',key=year))
@@ -511,7 +524,7 @@ class PublicationsCsv(Publications):
             if issn:
                 row.append(journal.get('issn'))
             qc = '|'.join(["%s:%s" % (k, v['flag']) for 
-                           k, v in publication.get('qc', {}).items()])
+                           k, v in list(publication.get('qc', {}).items())])
             row.extend(
                 [year,
                  publication.get('published'),
@@ -530,17 +543,11 @@ class PublicationsCsv(Publications):
                  qc,
                 ]
             )
-            row = [(i or '').encode(encoding, errors='replace') for i in row]
-            if single_label:
-                for label, qualifier in zip(labels, qualifiers):
-                    row[11+offset] = label.encode(encoding, errors='replace')
-                    row[12+offset] = qualifier.encode(encoding, errors='replace')
-                    utils.write_safe_csv_row(writer, row)
-            else:
-                row[11+offset] = ', '.join(labels).encode(encoding, errors='replace')
-                row[12+offset] = ', '.join([q for q in qualifiers if q])
-                utils.write_safe_csv_row(writer, row)
-        self.write(csvbuffer.getvalue())
+            utils.write_safe_csv_row(writer, row)
+        value = csvbuffer.getvalue()
+        if self.get_argument('encoding', '').lower() == 'iso-8859-1':
+            value = value.encode('iso-8859-1', 'ignore')
+        self.write(value)
         self.set_header('Content-Type', constants.CSV_MIME)
         self.set_header('Content-Disposition', 
                         'attachment; filename="publications.csv')
@@ -564,8 +571,7 @@ class PublicationsNoPmid(RequestHandler):
     "Publications lacking PMID."
 
     def get(self):
-        publications = self.get_docs('publication/no_pmid',
-                                     descending=True)
+        publications = self.get_docs('publication/no_pmid', descending=True)
         self.render('publications_no_pmid.html', publications=publications)
 
 
@@ -573,9 +579,37 @@ class PublicationsNoDoi(RequestHandler):
     "Publications lacking DOI."
 
     def get(self):
-        publications = self.get_docs('publication/no_doi',
-                                     descending=True)
+        publications = self.get_docs('publication/no_doi', descending=True)
         self.render('publications_no_doi.html', publications=publications)
+
+
+class PublicationsNoLabel(RequestHandler):
+    "Publications lacking label."
+
+    def get(self):
+        publications = []
+        for publication in self.get_docs('publication/modified', descending=True):
+            if not publication.get('labels'):
+                publications.append(publication)
+        self.render('publications_no_label.html', publications=publications)
+
+
+class PublicationsDuplicates(RequestHandler):
+    "Apparently duplicated publications."
+
+    def get(self):
+        lookup = {}             # Key: 4 longest words in title
+        duplicates = []
+        for publication in self.get_docs('publication/modified'):
+            title = utils.to_ascii(publication['title']).lower()
+            parts = sorted(title.split(), key=len, reverse=True)
+            key = ' '.join(parts[:4])
+            try:
+                previous = lookup[key]
+                duplicates.append((previous, publication))
+            except KeyError:
+                lookup[key] = publication
+        self.render('publications_duplicates.html', duplicates=duplicates)
 
 
 class PublicationsModified(PublicationMixin, RequestHandler):
@@ -583,9 +617,9 @@ class PublicationsModified(PublicationMixin, RequestHandler):
 
     def get(self):
         self.check_curator()
-        docs = self.get_docs('publication/modified',
-                             descending=True,
-                             limit=settings['LONG_PUBLICATIONS_LIST_LIMIT'])
+        kwargs = dict(descending=True,
+                      limit=self.get_limit(settings['LONG_PUBLICATIONS_LIST_LIMIT']))
+        docs = self.get_docs('publication/modified', **kwargs)
         self.render('publications_modified.html', publications=docs)
 
 
