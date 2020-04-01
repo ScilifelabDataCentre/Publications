@@ -308,10 +308,10 @@ class RequestHandler(tornado.web.RequestHandler):
             result['abstract'] = publication.get('abstract')
         result['doi'] = publication.get('doi')
         result['pmid'] = publication.get('pmid')
-        result['labels'] = publication.get('labels')
-        result['xrefs'] = publication.get('xrefs')
+        result['labels'] = publication.get('labels') or []
+        result['xrefs'] = publication.get('xrefs') or []
         if full:
-            result['notes'] = publication.get('notes')
+            result['notes'] = publication.get('notes') or []
             result['qc'] = publication.get('qc')
             if self.current_user:
                 try:
@@ -333,6 +333,7 @@ class RequestHandler(tornado.web.RequestHandler):
             ('self', { 'href': URL('account_json', account['email'])}),
             ('display', {'href': URL('account', account['email'])})])
         result['email'] = account['email']
+        result['name'] = account['name']
         result['role'] = account['role']
         result['status'] = account.get('disabled') and 'disabled' or 'enabled'
         result['login'] = account.get('login')
