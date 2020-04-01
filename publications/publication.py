@@ -474,7 +474,9 @@ class PublicationsCsv(Publications):
             publications = kept
         publications.sort(key=lambda p: p.get('published'), reverse=True)
         csvbuffer = StringIO()
-        writer = csv.writer(csvbuffer, delimiter=delimiter)
+        writer = csv.writer(csvbuffer,
+                            delimiter=delimiter,
+                            quoting=csv.QUOTE_NONNUMERIC)
         row = ['Title',
                'Authors',
                'Journal']
