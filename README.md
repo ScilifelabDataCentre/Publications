@@ -64,8 +64,8 @@ Implementation
 ### Back-end (installed on server)
 
 - [Python 3.6](https://www.python.org/)
-- [tornado 4](http://www.tornadoweb.org/en/stable/)
-- [CouchDB 2.x](http://couchdb.apache.org/)
+- [tornado](http://www.tornadoweb.org/en/stable/)
+- [CouchDB](http://couchdb.apache.org/)
 - [CouchDB-python 1.2](https://pypi.python.org/pypi/CouchDB/1.2)
 - [pyyaml](https://pypi.python.org/pypi/PyYAML)
 - [requests](http://docs.python-requests.org/en/master/)
