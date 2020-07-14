@@ -63,10 +63,10 @@ Implementation
 
 ### Back-end (installed on server)
 
-- [Python 2.7](https://www.python.org/)
+- [Python 3.6](https://www.python.org/)
 - [tornado 4](http://www.tornadoweb.org/en/stable/)
-- [CouchDB 1.7](http://couchdb.apache.org/)
-- [CouchDB-python 1.1](https://pypi.python.org/pypi/CouchDB/1.1)
+- [CouchDB 2.x](http://couchdb.apache.org/)
+- [CouchDB-python 1.2](https://pypi.python.org/pypi/CouchDB/1.2)
 - [pyyaml](https://pypi.python.org/pypi/PyYAML)
 - [requests](http://docs.python-requests.org/en/master/)
 
