@@ -92,7 +92,7 @@ def parse(data):
     except ValueError:
         raise ValueError('no article with the given PMID')
     result = OrderedDict()
-    result['title']      = get_title(article)
+    result['title']      = squish(get_title(article))
     result['pmid']       = get_pmid(article)
     result['doi']        = None
     result['authors']    = get_authors(article)
@@ -310,12 +310,14 @@ def get_text(element):
     return text
 
 def to_ascii(value):
-    "Convert any non-ASCII character to its closest equivalent."
-    if value:
-        return unicodedata.normalize('NFKD', value)
-    else:
-        return ''
+    "Convert any non-ASCII character to its closest ASCII equivalent."
+    if value is None: return ''
+    value = unicodedata.normalize('NFKD', str(value))
+    return u''.join([c for c in value if not unicodedata.combining(c)])
 
+def squish(value):
+    "Remove all unnecessary white spaces."
+    return ' '.join([p for p in value.split() if p])
 
 def test_fetch():
     "Fetch a specific article."

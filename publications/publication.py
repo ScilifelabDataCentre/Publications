@@ -38,7 +38,7 @@ class PublicationSaver(Saver):
     def set_title(self):
         "Set title from form data."
         assert self.rqh, 'requires http request context'
-        self['title'] = self.rqh.get_argument('title', '') or '[no title]'
+        self['title'] = squish(self.rqh.get_argument('title', '') or '[no title]')
 
     def set_authors(self):
         "Set authors list from form data."

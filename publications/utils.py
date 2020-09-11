@@ -329,9 +329,13 @@ def to_date(value):
 
 def to_ascii(value):
     "Convert any non-ASCII character to its closest ASCII equivalent."
-    if not isinstance(value, str):
-        value = str(value)
-    return unicodedata.normalize('NFKD', value)
+    if value is None: return ''
+    value = unicodedata.normalize('NFKD', str(value))
+    return u''.join([c for c in value if not unicodedata.combining(c)])
+
+def squish(value):
+    "Remove all unnecessary white spaces."
+    return ' '.join([p for p in value.split() if p])
 
 def to_bool(value):
     "Convert the value into a boolean, interpreting various string values."

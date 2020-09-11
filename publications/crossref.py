@@ -27,7 +27,7 @@ def fetch(doi, debug=False, delay=None):
 def parse(data):
     "Parse JSON data for a publication into a dictionary."
     result = OrderedDict()
-    result['title']      = get_title(data)
+    result['title']      = squish(get_title(data))
     result['doi']        = get_doi(data)
     result['pmid']       = get_pmid(data)
     result['authors']    = get_authors(data)
@@ -143,12 +143,14 @@ def get_xrefs(data):
     return []
 
 def to_ascii(value):
-    "Convert any non-ASCII character to its closest equivalent."
-    if value:
-        return unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-    else:
-        return ''
+    "Convert any non-ASCII character to its closest ASCII equivalent."
+    if value is None: return ''
+    value = unicodedata.normalize('NFKD', str(value))
+    return u''.join([c for c in value if not unicodedata.combining(c)])
 
+def squish(value):
+    "Remove all unnecessary white spaces."
+    return ' '.join([p for p in value.split() if p])
 
 def test_fetch():
     "Fetch a specific article."

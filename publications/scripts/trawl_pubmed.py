@@ -480,11 +480,10 @@ def get_date(element):
     return result
 
 def to_ascii(value):
-    "Convert any non-ASCII character to its closest equivalent."
-    if value:
-        return unicodedata.normalize('NFKD', value)
-    else:
-        return ''
+    "Convert any non-ASCII character to its closest ASCII equivalent."
+    if value is None: return ''
+    value = unicodedata.normalize('NFKD', str(value))
+    return u''.join([c for c in value if not unicodedata.combining(c)])
 
 
 if __name__ == '__main__':
