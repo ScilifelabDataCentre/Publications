@@ -70,7 +70,7 @@
 {% if is_editable %}
 <p>
   <a href="{{ reverse_url('publication_edit', publication['_id']) }}"
-     class="btn btn-primary left" role="button">
+     class="btn btn-primary" role="button">
     <span class="glyphicon glyphicon-edit"></span>
     Edit
   </a>
@@ -80,7 +80,7 @@
 {% if is_xrefs_editable %}
 <p>
   <a href="{{ reverse_url('publication_xrefs', publication['_id']) }}"
-     class="btn btn-info left" role="button">
+     class="btn btn-info" role="button">
     <span class="glyphicon glyphicon-share"></span>
     Edit xrefs
   </a>
@@ -165,6 +165,7 @@
 
 {% if not is_locked %}
 <p>
+  <br>
   <h4>QC flags
     <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#qc"
        title="Explain 'QC'" target="_">
@@ -208,6 +209,7 @@
 {% end %} {# if not is_locked #}
 
 <p>
+  <br>
   <a href="{{ reverse_url('logs', publication['_id']) }}">
     <span class="badge">
       <span class="glyphicon glyphicon-list-alt"></span>
