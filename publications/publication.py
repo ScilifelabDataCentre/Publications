@@ -268,7 +268,10 @@ class PublicationMixin(object):
         # Fetch from external source according to identifier type.
         if constants.PMID_RX.match(identifier):
             try:
-                new = pubmed.fetch(identifier, api_key=settings.NCBI_API_KEY)
+                new = pubmed.fetch(identifier,
+                                   timeout=settings['NCBI_TIMEOUT'],
+                                   delay=settings['NCBI_DELAY'],
+                                   api_key=settings['NCBI_API_KEY'])
             except (IOError, ValueError, requests.exceptions.Timeout) as error:
                 raise IOError("%s: %s" % (identifier, str(error)))
             else:
