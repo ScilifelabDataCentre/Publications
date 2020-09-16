@@ -515,6 +515,8 @@ class PublicationsCsv(Publications):
             pmid = publication.get('pmid')
             if pmid:
                 pubmed_url = constants.PUBMED_URL % pmid
+            else:
+                pubmed_url = ''
             doi_url = publication.get('doi')
             if doi_url:
                 doi_url = constants.DOI_URL % doi_url
