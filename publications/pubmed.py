@@ -164,10 +164,6 @@ def get_authors(article):
             author['given'] = ''
             author['initials'] = ''
             author['family_normalized'] = to_ascii(author['family']).lower()
-            try:
-                author.pop('given_normalized')
-            except KeyError:
-                pass
             author['given_normalized'] = ''
             author['initials_normalized'] = ''
         if author:
