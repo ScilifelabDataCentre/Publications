@@ -268,7 +268,7 @@ class PublicationMixin(object):
         # Fetch from external source according to identifier type.
         if constants.PMID_RX.match(identifier):
             try:
-                new = pubmed.fetch(identifier)
+                new = pubmed.fetch(identifier, api_key=settings.NCBI_API_KEY)
             except (IOError, ValueError, requests.exceptions.Timeout) as error:
                 raise IOError("%s: %s" % (identifier, str(error)))
             else:
@@ -509,9 +509,9 @@ class PublicationsCsv(Publications):
             if year:
                 year = year.split('-')[0]
             journal = publication.get('journal') or {}
-            pubmed_url = publication.get('pmid')
-            if pubmed_url:
-                pubmed_url = constants.PUBMED_URL % pubmed_url
+            pmid = publication.get('pmid')
+            if pmid:
+                pubmed_url = constants.PUBMED_URL % pmid
             doi_url = publication.get('doi')
             if doi_url:
                 doi_url = constants.DOI_URL % doi_url

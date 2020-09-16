@@ -235,7 +235,6 @@ def get_label(db, identifier):
         doc = get_doc(db, identifier)
     except KeyError:
         identifier = to_ascii(identifier).lower()
-        print('identifier', identifier)
         try:
             doc = get_doc(db, identifier, 'label/normalized_value')
         except KeyError:

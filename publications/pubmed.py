@@ -12,7 +12,8 @@ PUBMED_FETCH_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db
 
 PUBMED_SEARCH_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=%s&term=%s'
 
-TIMEOUT = 5.0
+DEFAULT_TIMEOUT = 5.0
+DEFAULT_DELAY = 1.0
 
 MONTHS = dict(jan=1, feb=2, mar=3, apr=4, may=5, jun=6,
               jul=7, aug=8, sep=9, oct=10, nov=11, dec=12)
@@ -20,10 +21,13 @@ MONTHS = dict(jan=1, feb=2, mar=3, apr=4, may=5, jun=6,
 
 def search(author=None, published=None, journal=None, doi=None,
            affiliation=None, title=None, exclude_title=None,
-           retmax=20, delay=0.0):
+           retmax=20, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
+           api_key=None, debug=False):
     """Get list of PMIDs for PubMed hits given the data.
     Delay the HTTP request if positive value (seconds).
+    The API key is the one set for your NCBI account, if any.
     """
+    assert timeout > 0.0, 'timeout must be a positive value'
     parts = []
     if author:
         parts.append("%s[AU]" % to_ascii(str(author)))
@@ -41,10 +45,14 @@ def search(author=None, published=None, journal=None, doi=None,
     if exclude_title:
         query += " NOT %s[TI]" % to_ascii(str(exclude_title))
     url = PUBMED_SEARCH_URL % (retmax, query)
+    if api_key:
+        url += "&api_key=%s" % api_key
     if delay > 0.0:
         time.sleep(delay)
     try:
-        response = requests.get(url, timeout=TIMEOUT)
+        if debug:
+            print('url>', url)
+        response = requests.get(url, timeout=timeout)
     except (requests.exceptions.ReadTimeout,
             requests.exceptions.ConnectionError):
         raise IOError('timeout')
@@ -53,12 +61,15 @@ def search(author=None, published=None, journal=None, doi=None,
     root = xml.etree.ElementTree.fromstring(response.content)
     return [e.text for e in root.findall('IdList/Id')]
 
-def fetch(pmid, dirname=None, delay=0.0):
+def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
+           api_key=None, debug=False):
     """Fetch publication XML from PubMed and parse into a dictionary.
     Return None if no article data in XML.
     Use the file cache directory if given.
     Delay the HTTP request if positive value (seconds).
+    The API key is the one set for your NCBI account, if any.
     """
+    assert timeout > 0.0, 'timeout must be a positive value'
     filename = pmid + '.xml'
     content = None
     if dirname:
@@ -69,10 +80,14 @@ def fetch(pmid, dirname=None, delay=0.0):
             pass
     if not content:
         url = PUBMED_FETCH_URL % pmid
+        if api_key:
+            url += "&api_key=%s" % api_key
         if delay > 0.0:
             time.sleep(delay)
         try:
-            response = requests.get(url, timeout=TIMEOUT)
+            if debug:
+                print('url>', url)
+            response = requests.get(url, timeout=timeout)
         except (requests.exceptions.ReadTimeout,
                 requests.exceptions.ConnectionError):
             raise IOError('timeout')
@@ -332,8 +347,8 @@ def test_search():
 
 
 if __name__ == '__main__':
-    pmid = '28536306'
-    data = fetch(pmid)
+    pmid = '8142349'
+    data = fetch(pmid, timeout=10.0, debug=True)
     print(data['title'])
     print(data['abstract'])
     # url = PUBMED_FETCH_URL % pmid

@@ -47,7 +47,6 @@ class Saver(object):
     def __exit__(self, type, value, tb):
         if type is not None: return False # No exceptions handled here.
         self.finalize()
-        print(self.doc)
         try:
             self.db.save(self.doc)
         except couchdb.http.ResourceConflict:

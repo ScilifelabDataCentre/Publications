@@ -2,7 +2,7 @@
 
 import os
 
-__version__ = '3.3.4'
+__version__ = '3.3.5'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -24,6 +24,9 @@ settings = dict(
                SENDER=None),
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
+    NCBI_DELAY = 0.5,             # Delay before PubMed fetch, to avoid block.
+    NCBI_TIMEOUT = 5.0,           # Timeout limit for PubMed fetch.
+    NCBI_API_KEY = None,          # NCBI account API key, if any.
     PUBLICATION_ACQUIRE_PERIOD=1,           # In days.
     PUBLICATIONS_FETCHED_LIMIT=10,
     PUBLICATION_QC_ASPECTS=['bibliography', 'xrefs'],
