@@ -42,15 +42,16 @@ XREF_TEMPLATE_URLS:
   genbank: 'https://www.ncbi.nlm.nih.gov/nuccore/%s'
   dryad: 'https://datadryad.org/resource/doi:%s'
 
-# Email; server running on the host machine
-EMAIL:
-  HOST: 'localhost'
-
-# Email; Gmail
+# Email using server running on the host machine.
 # EMAIL:
-#   HOST: 'smtp.gmail.com'
-#   PORT: 587
-#   TLS: True
-#   USER: 'my.name@gmail.com'
-#   PASSWORD: 'Your password'
+#   HOST: 'localhost'
 #   SENDER: '"My Name" <my.name@google.com>'
+
+# Email using Gmail server and an app password.
+EMAIL:
+  HOST: 'smtp.gmail.com'
+  PORT: 465
+  SSL: true
+  USER: 'my.name@gmail.com'
+  PASSWORD: 'Your password'
+  SENDER: '"My Name" <my.name@google.com>'

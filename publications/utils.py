@@ -393,14 +393,14 @@ class EmailServer(object):
         host = settings['EMAIL']['HOST']
         if not host:
             raise ValueError('no email server host defined')
-        try:
-            port = settings['EMAIL']['PORT']
-        except KeyError:
-            self.server = smtplib.SMTP(host)
+        port = settings['EMAIL'].get('PORT', 0)
+        if settings['EMAIL'].get('SSL'):
+            self.server = smtplib.SMTP_SSL(host, port=port)
         else:
             self.server = smtplib.SMTP(host, port=port)
-        if settings['EMAIL'].get('TLS'):
-            self.server.starttls()
+            if settings['EMAIL'].get('TLS'):
+                self.server.starttls()
+        self.server.ehlo()
         try:
             user = settings['EMAIL']['USER']
             password = settings['EMAIL']['PASSWORD']

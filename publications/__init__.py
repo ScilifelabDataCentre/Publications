@@ -2,7 +2,7 @@
 
 import os
 
-__version__ = '3.3.5'
+__version__ = '3.3.6'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -14,14 +14,9 @@ settings = dict(
     LOGGING_FORMAT='%(levelname)s [%(asctime)s] %(message)s',
     DATABASE_SERVER='http://localhost:5984/',
     DATABASE_NAME='publications',
-    COOKIE_SECRET=None,         # Must be set!
-    PASSWORD_SALT=None,         # Must be set!
-    EMAIL=dict(HOST=None,       # No emails can be sent unless this is set.
-               PORT=None,
-               TLS=False,
-               USER=None,
-               PASSWORD=None,
-               SENDER=None),
+    COOKIE_SECRET=None,    # Must be set!
+    PASSWORD_SALT=None,    # Must be set!
+    EMAIL=None,            # No emails can be sent unless this is set.
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
     NCBI_DELAY = 0.5,             # Delay before PubMed fetch, to avoid block.
