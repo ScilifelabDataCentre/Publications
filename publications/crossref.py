@@ -102,19 +102,22 @@ def get_type(data):
 
 def get_published(data):
     "Get the print publication date from the article JSON."
-    # Try in order: print, issued, created
-    for key in ['published-print', 'issued', 'created']:
+    # Try in order: print, issued, created, deposited
+    for key in ['published-print', 'issued', 'created', 'deposited']:
         try:
             item = data['message'][key]
+            if item == [None]: raise KeyError # Seems to be used as dummy value
         except KeyError:
             pass
         else:
-            break
-    parts = [int(i) for i in item['date-parts'][0]]
-    # Add dummy values, if missing
-    if len(parts) == 1: parts.append(0)
-    if len(parts) == 2: parts.append(0)
-    return "%s-%02i-%02i" % tuple(parts)
+            parts = [int(i) for i in item['date-parts'][0]]
+            # Add dummy values, if missing
+            if len(parts) == 1: parts.append(0)
+            if len(parts) == 2: parts.append(0)
+            return "%s-%02i-%02i" % tuple(parts)
+    else:
+        # No such entry found; use a 'random' year.
+        return '1999-0-0'
 
 def get_epublished(data):
     "Get the online publication date from the article JSON, or None."
