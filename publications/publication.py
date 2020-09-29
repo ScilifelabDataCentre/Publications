@@ -668,8 +668,16 @@ class PublicationFetch(PublicationMixin, RequestHandler):
                     docs.append(self.get_doc(iuid))
                 except KeyError:
                     pass
+        checked_labels = {}
+        for label in self.get_argument('labels', '').split('|'):
+            parts = label.split('/')
+            if len(parts) == 1:
+                checked_labels[parts[0]] = None
+            elif len(parts) > 1:
+                checked_labels[parts[0]] = '/'.join(parts[1:])
         self.render('publication_fetch.html', 
                     labels=self.get_allowed_labels(),
+                    checked_labels= checked_labels,
                     publications=docs)
 
     @tornado.web.authenticated
@@ -704,6 +712,9 @@ class PublicationFetch(PublicationMixin, RequestHandler):
             kwargs = {'message': "%s publication fetched." % len(fetched)}
         else:
             kwargs = {'message': "%s publications fetched." % len(fetched)}
+        kwargs['labels'] = '|'.join([f"{label}/{qualifier}" if qualifier 
+                                     else label
+                                     for label, qualifier in labels.items()])
         self.set_cookie('fetched', '_'.join(fetched))
         if errors:
             kwargs['error'] = constants.FETCH_ERROR + ', '.join(errors)
