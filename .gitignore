@@ -2,4 +2,4 @@
 *.yaml
 *.xml
 *.pyc
-backup
+!publications/settings_template.yaml

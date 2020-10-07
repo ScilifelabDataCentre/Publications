@@ -43,15 +43,6 @@ XREF_TEMPLATE_URLS:
   dryad: 'https://datadryad.org/resource/doi:%s'
 
 # Email using server running on the host machine.
-# EMAIL:
-#   HOST: 'localhost'
-#   SENDER: '"My Name" <my.name@google.com>'
-
-# Email using Gmail server and an app password.
 EMAIL:
-  HOST: 'smtp.gmail.com'
-  PORT: 465
-  SSL: true
-  USER: 'my.name@gmail.com'
-  PASSWORD: 'Your password'
-  SENDER: '"My Name" <my.name@google.com>'
+  HOST: 'localhost'
+  SENDER: '"My Name" <my.name@whatever.site>'
