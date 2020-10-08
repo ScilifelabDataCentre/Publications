@@ -221,9 +221,9 @@ def get_publication(db, identifier):
             except KeyError:
                 pass
         else:
-            raise KeyError("no such publication %s" % identifier)
+            raise KeyError(f"no such publication {identifier}")
     if doc[constants.DOCTYPE] != constants.PUBLICATION:
-        raise KeyError("document %s is not a publication" % identifier)
+        raise KeyError(f"document {identifier} is not a publication")
     return doc
 
 def get_label(db, identifier):
@@ -357,16 +357,13 @@ def write_safe_csv_row(writer, row):
         row[pos] = value
     writer.writerow(row)
 
-PREFIXES = ['doi:', 'pmid:', 'pubmed:', 
-            'http://doi.org/', 'https://doi.org/', 'http://dx.doi.org/']
-
 def strip_prefix(value):
     "Strip any prefix from the string value."
     value = value.strip()
     lowcase = value.lower()
-    for prefix in PREFIXES:
+    for prefix in settings['IDENTIFIER_PREFIXES']:
         if lowcase.startswith(prefix):
-            return value[len(prefix)-1:].strip()
+            return value[len(prefix):].strip()
     return value
 
 def get_formatted_authors(authors, complete=False):

@@ -9,15 +9,23 @@ import requests
 
 CROSSREF_FETCH_URL = 'http://api.crossref.org/works/%s'
 
-TIMEOUT = 5.0
+DEFAULT_TIMEOUT = 5.0
+DEFAULT_DELAY = 1.0
 
 
-def fetch(doi, debug=False, delay=None):
+def fetch(doi, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY, debug=False):
     "Fetch publication JSON data from Crossref and parse into a dictionary."
+    assert timeout > 0.0, 'timeout must be a positive value'
     url = CROSSREF_FETCH_URL % doi
-    if delay:
+    if delay > 0.0:
         time.sleep(delay)
-    response = requests.get(url, timeout=TIMEOUT)
+    try:
+        if debug:
+            print('url>', url)
+        response = requests.get(url, timeout=timeout)
+    except (requests.exceptions.ReadTimeout,
+            requests.exceptions.ConnectionError):
+        raise IOError('timeout')
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
     if debug:
@@ -165,7 +173,7 @@ def test_fetch():
 if __name__ == '__main__':
     doi = '10.1126/science.1260419'
     url = CROSSREF_FETCH_URL % doi
-    response = requests.get(url, timeout=TIMEOUT)
+    response = requests.get(url, timeout=DEFAULT_TIMEOUT)
     if response.status_code != 200:
         raise IOError("HTTP status %s, %s " % (response.status_code, url))
     with open('data/%s' % doi.replace('/', '_'), 'w') as outfile:

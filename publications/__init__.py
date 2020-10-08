@@ -2,7 +2,7 @@
 
 import os
 
-__version__ = '3.3.10'
+__version__ = '3.3.11'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -22,6 +22,8 @@ settings = dict(
     NCBI_DELAY = 0.5,             # Delay before PubMed fetch, to avoid block.
     NCBI_TIMEOUT = 5.0,           # Timeout limit for PubMed fetch.
     NCBI_API_KEY = None,          # NCBI account API key, if any.
+    CROSSREF_DELAY = 0.5,         # Delay before Crossref fetch, to avoid block.
+    CROSSREF_TIMEOUT = 5.0,       # Timeout limit for Crossref fetch.
     PUBLICATION_ACQUIRE_PERIOD=1,           # In days.
     PUBLICATIONS_FETCHED_LIMIT=10,
     PUBLICATION_QC_ASPECTS=['bibliography', 'xrefs'],
@@ -42,6 +44,12 @@ settings = dict(
     SOURCE_URL='https://github.com/pekrau/Publications',
     SOURCE_VERSION=__version__,
     DOCS_URL='https://github.com/pekrau/Publications/wiki',
+    IDENTIFIER_PREFIXES=['doi:', 
+                         'pmid:',
+                         'pubmed:', 
+                         'http://doi.org/',
+                         'https://doi.org/',
+                         'http://dx.doi.org/'],
     XREF_TEMPLATE_URLS={
         'pmc': 'https://www.ncbi.nlm.nih.gov/pmc/articles/%s/',
         'bioproject': 'https://www.ncbi.nlm.nih.gov/bioproject/%s',

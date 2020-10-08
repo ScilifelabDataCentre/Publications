@@ -348,7 +348,7 @@ if __name__ == '__main__':
     print(data['title'])
     print(data['abstract'])
     # url = PUBMED_FETCH_URL % pmid
-    # response = requests.get(url, timeout=TIMEOUT)
+    # response = requests.get(url, timeout=DEFAULT_TIMEOUT)
     # if response.status_code != 200:
     #     raise IOError("HTTP status %s, %s " % (response.status_code, url))
     # with open(pmid.replace('/', '_'), 'w') as outfile:

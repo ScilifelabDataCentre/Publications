@@ -5,7 +5,6 @@ import csv
 from io import StringIO
 import logging
 
-import requests
 import tornado.web
 
 from . import constants
@@ -260,44 +259,54 @@ class PublicationMixin(object):
         Raise KeyError if publication is in the blacklist (and not override).
         """
         self.check_blacklisted(identifier, override=override)
-        # Has it already been fetched?
+
+        # Does the publication already exist in the database?
         try:
             current = self.get_publication(identifier)
         except KeyError:
             current = None
+
         # Fetch from external source according to identifier type.
-        if constants.PMID_RX.match(identifier):
+        identifier_is_pmid = constants.PMID_RX.match(identifier)
+        if identifier_is_pmid:
             try:
                 new = pubmed.fetch(identifier,
                                    timeout=settings['NCBI_TIMEOUT'],
                                    delay=settings['NCBI_DELAY'],
                                    api_key=settings['NCBI_API_KEY'])
-            except (IOError, ValueError, requests.exceptions.Timeout) as error:
-                raise IOError("%s: %s" % (identifier, str(error)))
-            else:
-                if current is None:
-                    # Maybe the publication has been loaded by DOI?
-                    try:
-                        current = self.get_publication(new.get('doi'))
-                    except KeyError:
-                        pass
-        # Not PMID identifier, assume DOI.
-        else:
+            except IOError:
+                msg = f"No response from PubMed for {identifier}."
+                if current:
+                    msg += " Publication exists, but could not be updated."
+                raise IOError(msg)
+            except ValueError as error:
+                raise IOError(f"{identifier}, {error}")
+
+        else: # Not PMID, assume DOI identifier.
             try:
                 new = crossref.fetch(identifier)
-            except (IOError, requests.exceptions.Timeout) as error:
-                raise IOError("%s: %s" % (identifier, str(error)))
-            else:
-                if current is None:
-                    # Maybe the publication has been loaded by PMID?
-                    try:
-                        current = self.get_publication(new.get('pmid'))
-                    except KeyError:
-                        pass
+            except IOError:
+                msg = f"No response from Crossref for {identifier}."
+                if current:
+                    msg += " Publication exists, but could not be updated."
+                raise IOError(msg)
         # Check blacklist registry again; other external id may be there.
         self.check_blacklisted(new.get('pmid'), override=override)
         self.check_blacklisted(new.get('doi'), override=override)
+
         # Update the existing entry.
+        if current is None:
+            # Maybe the publication has been fetched using the other identifier?
+            if identifier_is_pmid:
+                try:
+                    current = self.get_publication(new.get('doi'))
+                except KeyError:
+                    pass
+            else:
+                try:
+                    current = self.get_publication(new.get('pmid'))
+                except KeyError:
+                    pass
         if current:
             with PublicationSaver(current, rqh=self) as saver:
                 saver.update_labels(labels=labels, clean=clean)
