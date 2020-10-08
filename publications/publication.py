@@ -135,17 +135,28 @@ class PublicationSaver(Saver):
 
     def update(self, other):
         """Update any empty field in the publication 
-        if there is a value in the other."""
-        for key, value in list(other.items()):
+        if there is a value in the other.
+        Special case for journal field."""
+        for key, value in other.items():
             if value is not None and self.get(key) is None:
                 self[key] = value
+        try:
+            journal = self['journal']
+        except KeyError:
+            self['journal'] = journal = {}
+        for key, value in other.get('journal', {}).items():
+            if value is not None and journal.get(key) is None:
+                journal[key] = value
 
     def fix_journal(self):
         """Set the appropriate journal title and ISSN if not done.
         Creates the journal entity if it does not exist."""
         assert self.rqh, 'requires http request context'
         doc = None
-        journal = self['journal'].copy()
+        try:
+            journal = self['journal'].copy()
+        except KeyError:
+            journal = {}
         issn = journal.get('issn')
         title = journal.get('title')
         if issn:
@@ -294,7 +305,7 @@ class PublicationMixin(object):
         self.check_blacklisted(new.get('pmid'), override=override)
         self.check_blacklisted(new.get('doi'), override=override)
 
-        # Update the existing entry.
+        # Find the current entry again by the other identifier.
         if current is None:
             # Maybe the publication has been fetched using the other identifier?
             if identifier_is_pmid:
@@ -307,6 +318,8 @@ class PublicationMixin(object):
                     current = self.get_publication(new.get('pmid'))
                 except KeyError:
                     pass
+
+        # Update the current entry, if it exists.
         if current:
             with PublicationSaver(current, rqh=self) as saver:
                 saver.update_labels(labels=labels, clean=clean)
@@ -540,7 +553,7 @@ class PublicationsCsv(Publications):
             if issn:
                 row.append(journal.get('issn'))
             qc = '|'.join(["%s:%s" % (k, v['flag']) for 
-                           k, v in list(publication.get('qc', {}).items())])
+                           k, v in publication.get('qc', {}).items()])
             row.extend(
                 [year,
                  publication.get('published'),
