@@ -114,18 +114,18 @@ def get_published(data):
     for key in ['published-print', 'issued', 'created', 'deposited']:
         try:
             item = data['message'][key]
-            if item == [None]: raise KeyError # Seems to be used as dummy value
-        except KeyError:
+            if item == [None]: raise KeyError # Apparent dummy value
+            parts = [int(i) for i in item['date-parts'][0]]
+            if not parts: raise KeyError
+        except (KeyError, TypeError, ValueError):
             pass
         else:
-            parts = [int(i) for i in item['date-parts'][0]]
             # Add dummy values, if missing
             if len(parts) == 1: parts.append(0)
             if len(parts) == 2: parts.append(0)
             return "%s-%02i-%02i" % tuple(parts)
-    else:
-        # No such entry found; use a 'random' year.
-        return '1999-0-0'
+    # No such entry found; use a 'random' year.
+    return '1900-0-0'
 
 def get_epublished(data):
     "Get the online publication date from the article JSON, or None."
@@ -133,17 +133,16 @@ def get_epublished(data):
     for key in ['published-online', 'issued']:
         try:
             item = data['message'][key]
-        except KeyError:
+            parts = [int(i) for i in item['date-parts'][0]]
+            if not parts: raise KeyError
+        except (KeyError, TypeError, ValueError):
             pass
         else:
-            break
-    else:
-        return None
-    parts = [int(i) for i in item['date-parts'][0]]
-    # Add dummy values, if missing
-    if len(parts) == 1: parts.append(0)
-    if len(parts) == 2: parts.append(0)
-    return "%s-%02i-%02i" % tuple(parts)
+            # Add dummy values, if missing
+            if len(parts) == 1: parts.append(0)
+            if len(parts) == 2: parts.append(0)
+            return "%s-%02i-%02i" % tuple(parts)
+    return None
 
 def get_abstract(data):
     "Get the abstract from the article JSON; not present."
