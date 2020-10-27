@@ -35,6 +35,9 @@ class NocaseDict(object):
         return list(self.orig.keys())
     def __getitem__(self, key):
         return self.lower[key.lower()]
+    def __setitem__(self, key, value):
+        self.orig[key] = value
+        self.lower[key.lower()] = value
 
 
 def get_command_line_parser(description=None):
@@ -126,6 +129,8 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
             raise ValueError('Could not determine port from BASE_URL.')
     # Use caseless dictionary for the xref templates URLs
     settings['XREF_TEMPLATE_URLS'] = NocaseDict(settings['XREF_TEMPLATE_URLS'])
+    # Set the hard-wired URL xref
+    settings['XREF_TEMPLATE_URLS']['URL'] = '%s'
 
 def expand_filepath(filepath):
     "Expand environment variables (ROOT and SITE_DIR) in filepaths."

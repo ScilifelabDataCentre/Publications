@@ -2,7 +2,7 @@
 
 import os
 
-__version__ = '3.3.13'
+__version__ = '3.3.14'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -51,8 +51,8 @@ settings = dict(
                          'https://doi.org/',
                          'http://dx.doi.org/'],
     XREF_TEMPLATE_URLS={
-        'pmc': 'https://www.ncbi.nlm.nih.gov/pmc/articles/%s/',
-        'bioproject': 'https://www.ncbi.nlm.nih.gov/bioproject/%s',
-        'genbank': 'https://www.ncbi.nlm.nih.gov/nuccore/%s',
-        'dryad': 'https://datadryad.org/resource/doi:%s'},
+        'PMC': 'https://www.ncbi.nlm.nih.gov/pmc/articles/%s/',
+        'BioProject': 'https://www.ncbi.nlm.nih.gov/bioproject/%s',
+        'Genbank': 'https://www.ncbi.nlm.nih.gov/nuccore/%s',
+        'Dryad': 'https://datadryad.org/resource/doi:%s'},
 )

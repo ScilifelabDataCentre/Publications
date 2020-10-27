@@ -786,7 +786,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
 
 
 class PublicationXrefs(PublicationMixin, RequestHandler):
-    "Edit the publication database references."
+    "Edit the publication database references, including plain URLs."
 
     @tornado.web.authenticated
     def get(self, iuid):

@@ -47,31 +47,37 @@ class Xref(tornado.web.UIModule):
     "HTML for a general external database entry."
 
     ICON = '<span class="glyphicon glyphicon-share"></span>'
-    ATTRS = 'class="btn btn-info btn-xs" role="button" target="_"'
+    ATTRS = 'class="btn btn-link btn-xs" role="button" target="_"'
 
     def render(self, xref, full=False):
+        db = xref["db"].lower()
+        key = xref["key"]
+        description = xref.get("description") or ""
         try:
-            url = settings['XREF_TEMPLATE_URLS'][xref['db'].lower()]
+            url = settings['XREF_TEMPLATE_URLS'][db]
         except KeyError:
             url = None
         else:
-            if '%-s' in url:    # Use lowercase key
-                url.replace('%-s', '%s')
-                key = xref['key'].lower()
-            else:
-                key = xref['key']
+            if "%-s" in url:    # Use lowercase key
+                url.replace("%-s", "%s")
+                key = key.lower()
             url = url % key
-        if url:
-            result = '<a %s href="%s">%s %s</a>' % \
-                     (self.ATTRS, url, self.ICON, xref['db'])
+        if db == "url":
+            title = description or url
+        elif url:
+            title = f"{xref['db']} {key}"
+            if full and description:
+                title += " " + description
+        elif description.startswith("http:") or description.startswith("https:"):
+            url = description
+            title = key
+            description = ""
         else:
-            result = '<button disabled %s>%s %s</button>' % \
-                     (self.ATTRS, self.ICON, xref['db'])
-        if full:
-            result = '<p>' + result + ' ' + xref['key']
-            if xref.get('description'):
-                result += " [%s]" % xref['description']
-            result += '</p>'
+            title = f"{xref['db']} {description or key}"
+        if url:
+            result = f'<a {self.ATTRS} href="{url}">{self.ICON} {title}</a>'
+        else:
+            result = f'<button disabled {self.ATTRS}>{self.ICON} {title}</button>'
         return result
 
 
