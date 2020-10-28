@@ -29,7 +29,11 @@ class LabelSaver(Saver):
         except KeyError:
             pass
         else:
-            raise ValueError("label '%s' is not unique" % value)
+            raise ValueError("label '%s' already exists" % value)
+        if value.endswith("/edit"):
+            raise ValueError("label may not end with '/edit'")
+        if value.endswith("/merge"):
+            raise ValueError("label may not end with '/merge'")
 
 
 class Label(RequestHandler):
@@ -207,6 +211,10 @@ class LabelEdit(RequestHandler):
         except SaverError:
             self.set_error_flash(utils.REV_ERROR)
             self.see_other('label', label['value'])
+            return
+        except ValueError as error:
+            self.set_error_flash(str(error))
+            self.see_other("label_edit", old_value)
             return
         if new_value != old_value:
             for account in self.get_docs('account/label',
