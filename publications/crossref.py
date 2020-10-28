@@ -7,10 +7,10 @@ import unicodedata
 
 import requests
 
-CROSSREF_FETCH_URL = 'http://api.crossref.org/works/%s'
+CROSSREF_FETCH_URL = 'https://api.crossref.org/works/%s'
 
-DEFAULT_TIMEOUT = 5.0
-DEFAULT_DELAY = 1.0
+DEFAULT_TIMEOUT = 10.0
+DEFAULT_DELAY = 0.5
 
 
 def fetch(doi, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY, debug=False):
