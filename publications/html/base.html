@@ -205,11 +205,11 @@
 		    Contact
 		  </a>
 		</li>
-		{% if settings.get('SITE_PARENT_URL') %}
+		{% if settings['SITE_PARENT_URL'] %}
 		<li>
 		  <a href="{{ settings['SITE_PARENT_URL'] }}" target="_">
 		    <span class="glyphicon glyphicon-link"></span>
-		    {{ settings.get('SITE_PARENT_NAME') or 'parent site' }}
+		    {{ settings['SITE_PARENT_NAME'] }}
 		  </a>
 		</li>
 		{% end %}
@@ -282,16 +282,10 @@
       {% block body_header %}
       <div class="row">
 	<div class="col-sm-2">
-	  {% if settings.get('SITE_PARENT_URL') %}
-	  <a href="{{ settings['SITE_PARENT_URL'] }}">
-	  {% end %}
 	  <img src="{{ reverse_url('site', 'logo.png') }}"
 	       class="img-responsive"
 	       style="padding-bottom: 10px;"
-	       title="{{ settings.get('SITE_PARENT_NAME') or '' }}">
-	  {% if settings.get('SITE_PARENT_URL') %}
-	  </a>
-	  {% end %}
+	       title="{{ settings['SITE_NAME'] }}">
 	</div>
 	<div class="col-sm-8">
 	  <h1>{% block body_title %}{{ title }}{% end %}</h1>
@@ -387,7 +381,16 @@
       {% block footer %}
       <hr>
       <div class="row">
-	<div class="col-sm-2 col-sm-offset-10">
+	<div class="col-sm-8">
+	  {% if settings['SITE_PARENT_URL'] %}
+	  <a href="{{ settings['SITE_PARENT_URL'] }}">
+            {{ settings['SITE_PARENT_NAME'] }}
+          </a>
+          {% else %}
+            {{ settings['SITE_PARENT_NAME'] }}
+	  {% end %}
+        </div>
+	<div class="col-sm-2 col-sm-offset-2">
 	  <a href="{{ settings['SOURCE_URL'] }}"
              target="_blank" class="pull-right">
 	    <span class="glyphicon glyphicon-briefcase"></span>

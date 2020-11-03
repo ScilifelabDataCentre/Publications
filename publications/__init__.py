@@ -2,7 +2,7 @@
 
 import os
 
-__version__ = '3.3.15'
+__version__ = '3.3.16'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -36,6 +36,7 @@ settings = dict(
     SITE_TITLE='Publications',
     SITE_TEXT='A simple publications reference database system.',
     SITE_INSTRUCTIONS_URL='https://github.com/pekrau/Publications/wiki/Standard-operating-procedure',
+    SITE_PARENT_NAME='Site host',
     SITE_PARENT_URL=None,
     SITE_EMAIL=None,
     SITE_CONTACT='<p><i>No contact information available.</i></p>',
