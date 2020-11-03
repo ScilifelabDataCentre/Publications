@@ -14,10 +14,10 @@ Add publication manually
 
 {% block message %}
 <div class="row">
-  <div class="col-sm-9 col-sm-offset-2 lead alert alert-warning">
-    This page must <strong>not</strong> be used for publications which
-    have a PMID or DOI identifier. Use the page
-    <a href="{{ reverse_url('publication_fetch') }}">Fetch data</a>.
+  <div class="col-sm-9 col-sm-offset-2 alert alert-warning">
+    This page should <strong>not</strong> be used for publications which
+    have a known PMID or DOI. Use the
+    <a href="{{ reverse_url('publication_fetch') }}">Fetch data</a> page.
   </div>
 </div>
 {% end %} {# block message #}
@@ -39,7 +39,7 @@ Add publication manually
 
   <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="authors">Authors</label>
-    <div class="col-sm-7">
+    <div class="col-sm-8">
       <textarea class="form-control" rows="6"
 		name="authors" id="authors"></textarea>
       <span class="help-block">
@@ -50,8 +50,34 @@ Add publication manually
   </div>
 
   <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="pages">PMID</label>
+    <div class="col-sm-6">
+      <input type="text" class="form-control"
+	     name="pmid" id="pmid">
+      <span class="help-block">
+        PubMed Identifier. If you know it, you should probably be using
+        the <a href="{{ reverse_url('publication_fetch') }}">Fetch data</a>
+        page instead.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="pages">DOI</label>
+    <div class="col-sm-6">
+      <input type="text" class="form-control"
+	     name="doi" id="doi">
+      <span class="help-block">
+        Digital Object Identifier. If you know it, you should probably be using
+        the <a href="{{ reverse_url('publication_fetch') }}">Fetch data</a>
+        page instead.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="journal">Journal</label>
-    <div class="col-sm-5">
+    <div class="col-sm-6">
       <input type="text" class="form-control"
 	     name="journal" id="journal">
       <span class="help-block">
@@ -62,7 +88,7 @@ Add publication manually
 
   <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="issn">ISSN</label>
-    <div class="col-sm-5">
+    <div class="col-sm-6">
       <input type="text" class="form-control"
 	     name="issn" id="issn">
     </div>
@@ -70,7 +96,7 @@ Add publication manually
 
   <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="published">Published</label>
-    <div class="col-sm-5">
+    <div class="col-sm-6">
       <input type="text" class="form-control datepicker"
 	     name="published" id="published">
       <span class="help-block">
@@ -83,7 +109,7 @@ Add publication manually
 
   <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="epublished">Online</label>
-    <div class="col-sm-5">
+    <div class="col-sm-6">
       <input type="text" class="form-control datepicker"
 	     name="epublished" id="epublished">
       <span class="help-block">
@@ -96,7 +122,7 @@ Add publication manually
 
   <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="volume">Volume</label>
-    <div class="col-sm-5">
+    <div class="col-sm-6">
       <input type="text" class="form-control"
 	     name="volume" id="volume">
     </div>
@@ -104,7 +130,7 @@ Add publication manually
 
   <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="issue">Issue</label>
-    <div class="col-sm-5">
+    <div class="col-sm-6">
       <input type="text" class="form-control"
 	     name="issue" id="issue">
     </div>
@@ -112,7 +138,7 @@ Add publication manually
 
   <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="pages">Pages</label>
-    <div class="col-sm-5">
+    <div class="col-sm-6">
       <input type="text" class="form-control"
 	     name="pages" id="pages">
       <span class="help-block">

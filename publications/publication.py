@@ -666,6 +666,7 @@ class PublicationAdd(PublicationMixin, RequestHandler):
         with PublicationSaver(rqh=self) as saver:
             saver.set_title()
             saver.set_authors()
+            saver.set_pmid_doi()
             saver.set_published()
             saver.set_journal()
             saver.set_abstract()
