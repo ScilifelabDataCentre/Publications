@@ -282,8 +282,8 @@ class PublicationMixin(object):
         if identifier_is_pmid:
             try:
                 new = pubmed.fetch(identifier,
-                                   timeout=settings['NCBI_TIMEOUT'],
-                                   delay=settings['NCBI_DELAY'],
+                                   timeout=settings['PUBMED_TIMEOUT'],
+                                   delay=settings['PUBMED_DELAY'],
                                    api_key=settings['NCBI_API_KEY'])
             except IOError:
                 msg = f"No response from PubMed for {identifier}."
@@ -295,12 +295,17 @@ class PublicationMixin(object):
 
         else: # Not PMID, assume DOI identifier.
             try:
-                new = crossref.fetch(identifier)
+                new = crossref.fetch(identifier,
+                                     timeout=settings['CROSSREF_TIMEOUT'],
+                                     delay=settings['CROSSREF_DELAY'])
             except IOError:
                 msg = f"No response from Crossref for {identifier}."
                 if current:
                     msg += " Publication exists, but could not be updated."
                 raise IOError(msg)
+            except ValueError as error:
+                raise IOError(f"{identifier}, {error}")
+
         # Check blacklist registry again; other external id may be there.
         self.check_blacklisted(new.get('pmid'), override=override)
         self.check_blacklisted(new.get('doi'), override=override)
@@ -945,3 +950,70 @@ class PublicationQc(PublicationMixin, RequestHandler):
         except (tornado.web.MissingArgumentError, ValueError) as error:
             self.set_error_flash(str(error))
         self.see_other('publication', identifier)
+
+
+class PublicationUpdatePmid(PublicationMixin, RequestHandler):
+    """Update the publication by data from PubMed.
+    Same action as fetching an already existing publication.
+    """
+
+    @tornado.web.authenticated
+    def post(self, iuid):
+        try:
+            publication = self.get_publication(iuid)
+            self.check_editable(publication)
+            identifier = publication.get('pmid')
+            if not identifier:
+                raise KeyError('no PMID for publication')
+        except (KeyError, ValueError) as error:
+            self.see_other('publication', publication['_id'], error=str(error))
+            return
+        try:
+            new = pubmed.fetch(identifier,
+                               timeout=settings['PUBMED_TIMEOUT'],
+                               delay=settings['PUBMED_DELAY'],
+                               api_key=settings['NCBI_API_KEY'])
+        except IOError:
+            msg = f"No response from PubMed for {identifier}."
+            raise IOError(msg)
+        except ValueError as error:
+            raise IOError(f"{identifier}, {error}")
+
+        with PublicationSaver(doc=publication, rqh=self) as saver:
+            saver.update(new)
+            saver.fix_journal()
+        self.see_other('publication', publication['_id'],
+                       message='Updated from PubMed.')
+
+
+class PublicationUpdateDoi(PublicationMixin, RequestHandler):
+    """Update the publication by data from Crossref.
+    Same action as fetching an already existing publication.
+    """
+
+    @tornado.web.authenticated
+    def post(self, iuid):
+        try:
+            publication = self.get_publication(iuid)
+            self.check_editable(publication)
+            identifier = publication.get('doi')
+            if not identifier:
+                raise KeyError('no DOI for publication')
+        except (KeyError, ValueError) as error:
+            self.see_other('publication', publication['_id'], error=str(error))
+            return
+        try:
+            new = crossref.fetch(identifier,
+                                 timeout=settings['CROSSREF_TIMEOUT'],
+                                 delay=settings['CROSSREF_DELAY'])
+        except IOError:
+            msg = f"No response from PubMed for {identifier}."
+            raise IOError(msg)
+        except ValueError as error:
+            raise IOError(f"{identifier}, {error}")
+
+        with PublicationSaver(doc=publication, rqh=self) as saver:
+            saver.update(new)
+            saver.fix_journal()
+        self.see_other('publication', publication['_id'],
+                       message='Updated from Crossref.')

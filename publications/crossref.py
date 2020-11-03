@@ -9,7 +9,7 @@ import requests
 
 CROSSREF_FETCH_URL = 'https://api.crossref.org/works/%s'
 
-DEFAULT_TIMEOUT = 10.0
+DEFAULT_TIMEOUT = 5.0
 DEFAULT_DELAY = 0.5
 
 

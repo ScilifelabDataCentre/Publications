@@ -78,6 +78,32 @@
     Edit
   </a>
 </p>
+{% if publication.get('pmid') %}
+<p>
+  <form action="{{ reverse_url('publication_update_pmid', publication['_id']) }}"
+        method="POST"
+        role="form">
+    {% module xsrf_form_html() %}
+    <button type="submit" class="btn btn-primary left">
+      <span class="glyphicon glyphicon-refresh"></span>
+      Update by PMID
+    </button>
+  </form>
+</p>
+{% end %} {# if publication.get('pmid') #}
+{% if publication.get('doi') %}
+<p>
+  <form action="{{ reverse_url('publication_update_doi', publication['_id']) }}"
+        method="POST"
+        role="form">
+    {% module xsrf_form_html() %}
+    <button type="submit" class="btn btn-primary left">
+      <span class="glyphicon glyphicon-refresh"></span>
+      Update by DOI
+    </button>
+  </form>
+</p>
+{% end %} {# if publication.get('doi') #}
 {% end %} {# if is_editable #}
 
 {% if is_xrefs_editable %}
@@ -87,10 +113,10 @@
     <span class="glyphicon glyphicon-share"></span>
     Edit xrefs
   </a>
-    <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#xref"
-       title="Explain 'xref'" target="_">
-      <span class="glyphicon glyphicon-question-sign"></span>
-    </a>
+  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#xref"
+     title="Explain 'xref'" target="_">
+    <span class="glyphicon glyphicon-question-sign"></span>
+  </a>
 </p>
 {% end %} {# if is_xrefs_editable #}
 
