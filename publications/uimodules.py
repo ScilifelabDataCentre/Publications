@@ -47,37 +47,36 @@ class Xref(tornado.web.UIModule):
     "HTML for a general external database entry."
 
     ICON = '<span class="glyphicon glyphicon-share"></span>'
-    ATTRS = 'class="btn btn-link btn-xs" role="button" target="_"'
+    ATTRS = 'target="_" style="margin-right: 1em;"'
 
     def render(self, xref, full=False):
-        db = xref["db"].lower()
+        db = xref["db"]
         key = xref["key"]
         description = xref.get("description") or ""
-        try:
-            url = settings['XREF_TEMPLATE_URLS'][db]
-        except KeyError:
-            url = None
+        if db.lower() == "url":
+            url = key
+            title = description
         else:
-            if "%-s" in url:    # Use lowercase key
-                url.replace("%-s", "%s")
-                key = key.lower()
-            url = url % key
-        if db == "url":
-            title = description or url
-        elif url:
-            title = f"{xref['db']} {key}"
-            if full and description:
-                title += " " + description
-        elif description.startswith("http:") or description.startswith("https:"):
-            url = description
-            title = key
-            description = ""
-        else:
-            title = f"{xref['db']} {description or key}"
+            try:
+                url = settings['XREF_TEMPLATE_URLS'][db.lower()]
+            except KeyError:
+                url = None
+                title = f"{xref['db']}: {key}"
+                if full and description:
+                    title += f" {description}"
+            else:
+                if "%-s" in url:    # Use lowercase key
+                    url.replace("%-s", "%s")
+                    key = key.lower()
+                url = url % key
+                title = f"{xref['db']}: {key}"
+                if full and description:
+                    title += f" {description}"
         if url:
-            result = f'<a {self.ATTRS} href="{url}">{self.ICON} {title}</a>'
+            result = f'<a target="_" style="margin-right: 1em;" href="{url}">' \
+                     f'{self.ICON} <small>{title}</small></a>'
         else:
-            result = f'<button disabled {self.ATTRS}>{self.ICON} {title}</button>'
+            result = f'<span {self.ATTRS}>{self.ICON} <small>{title}</small></span>'
         return result
 
 

@@ -1,7 +1,7 @@
 {# Publication item within a list. #}
 
 <div class="well well-sm">
-  <div style="float: right">
+  <div class="pull-right">
     {% module PubmedButton(publication.get('pmid')) %}
     {% module DoiButton(publication.get('doi')) %}
     {% module CrossrefButton(publication.get('doi')) %}
@@ -19,7 +19,7 @@
   <div>
     {% module Authors(publication) %}
   </div>
-  <div style="float: right">
+  <div class="pull-right">
     {% for xref in publication.get('xrefs', []) %}
     {% module Xref(xref) %}
     {% end %}
