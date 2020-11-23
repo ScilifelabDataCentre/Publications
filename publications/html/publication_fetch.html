@@ -79,7 +79,6 @@ Fetch data for publication
       </a>
       {% end %} {# if settings['SITE_LABEL_QUALIFIERS'] #}
       <br>
-      {% if is_admin %}
       {% for label in sorted(labels) %}
       <div class="checkbox">
 	<label>
@@ -101,28 +100,6 @@ Fetch data for publication
       </div>
       {% end %} {# if settings['SITE_LABEL_QUALIFIERS'] #}
       {% end %} {# for label #}
-
-      {% else %} {# if is_admin #}
-      {% for label in sorted(labels) %}
-      <div class="checkbox">
-	<label>
-	  <input type="checkbox" checked
-                 name="label" value="{{ label }}">{{ label }}
-	</label>
-      </div>
-      {% if settings['SITE_LABEL_QUALIFIERS'] %}
-      <div style="padding-left: 2em;">
-	<label class="radio-inline">
-	{% for pos, qual in enumerate(settings['SITE_LABEL_QUALIFIERS']) %}
-	<label class="radio-inline">
-	  <input type="radio" {{ pos == 0 and 'checked' or '' }}
-                 name="{{ label }}_qualifier" value="{{ qual }}">{{ qual }}
-	</label>
-	{% end %}
-      </div>
-      {% end %} {# if settings['SITE_LABEL_QUALIFIERS'] #}
-      {% end %} {# for label #}
-      {% end %} {# if is_admin #}
     </div>
   </div>
 
