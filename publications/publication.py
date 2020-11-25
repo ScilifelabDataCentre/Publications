@@ -2,10 +2,11 @@
 
 from collections import OrderedDict as OD
 import csv
-from io import StringIO
+import io
 import logging
 
 import tornado.web
+import xlsxwriter
 
 from . import constants
 from . import crossref
@@ -459,33 +460,13 @@ class PublicationsJson(Publications):
         self.write(result)
 
 
-class PublicationsCsv(Publications):
-    "Publications CSV output."
+class TabularWriteMixin:
+    "Write publications in abstract tabular form, such as CSV or XLSX."
 
-    def get(self):
-        "Show output selection page."
-        self.render('publications_csv.html',
-                    year=self.get_argument('year', None),
-                    labels=set(self.get_arguments('label')),
-                    all_labels=sorted([l['value']
-                                       for l in self.get_docs('label/value')]))
-
-    # authentication is *not* required!
-    def post(self):
-        "Produce CSV output."
+    def write_publications(self):
+        "Collect output configuration settings and produce output."
         publications = []
         years = self.get_arguments('years')
-        all_authors = utils.to_bool(self.get_argument('all_authors', 'false'))
-        issn = utils.to_bool(self.get_argument('issn', 'false'))
-        labels = set(self.get_arguments('labels'))
-        single_label = utils.to_bool(self.get_argument('single_label','false'))
-        delimiter = self.get_argument('delimiter', '').lower()
-        if delimiter == 'comma':
-            delimiter = ','
-        elif delimiter == 'semi-colon':
-            delimiter = ';'
-        else:
-            delimiter = ','
         if years:
             for year in years:
                 publications.extend(self.get_docs('publication/year',key=year))
@@ -494,6 +475,11 @@ class PublicationsCsv(Publications):
                                          key=constants.CEILING,
                                          last='',
                                          descending=True)
+        all_authors = utils.to_bool(self.get_argument('all_authors', 'false'))
+        self.issn = utils.to_bool(self.get_argument('issn', 'false'))
+        single_label = utils.to_bool(self.get_argument('single_label','false'))
+        # Filter by labels if any given
+        labels = set(self.get_arguments('labels'))
         if labels:
             kept = []
             for publication in publications:
@@ -503,15 +489,14 @@ class PublicationsCsv(Publications):
                         break
             publications = kept
         publications.sort(key=lambda p: p.get('published'), reverse=True)
-        csvbuffer = StringIO()
-        writer = csv.writer(csvbuffer,
-                            delimiter=delimiter,
-                            quoting=csv.QUOTE_NONNUMERIC)
         row = ['Title',
                'Authors',
                'Journal']
-        if issn:
+        if self.issn:
             row.append('ISSN')
+            label_pos = 12
+        else:
+            label_pos = 11
         row.extend(
             ['Year', 
              'Published',
@@ -521,19 +506,15 @@ class PublicationsCsv(Publications):
              'Pages',
              'DOI',
              'PMID',
-             'Labels',        # pos = 11 or 12
-             'Qualifiers',    # pos = 12 or 13
+             'Labels',
+             'Qualifiers',
              'IUID',
              'URL',
              'DOI URL',
              'PubMed URL',
              'QC',
             ])
-        writer.writerow(row)
-        if issn:
-            offset = 1
-        else:
-            offset = 0
+        self.write_header(row)
         for publication in publications:
             year = publication.get('published')
             if year:
@@ -547,15 +528,12 @@ class PublicationsCsv(Publications):
             doi_url = publication.get('doi')
             if doi_url:
                 doi_url = constants.DOI_URL % doi_url
-            lookup = publication.get('labels', {})
-            labels = sorted(lookup.keys())
-            qualifiers = [lookup[k] or '' for k in labels]
             row = [
                 publication.get('title'),
                 utils.get_formatted_authors(publication['authors'],
                                             complete=all_authors),
                 journal.get('title')]
-            if issn:
+            if self.issn:
                 row.append(journal.get('issn'))
             qc = '|'.join(["%s:%s" % (k, v['flag']) for 
                            k, v in publication.get('qc', {}).items()])
@@ -568,8 +546,8 @@ class PublicationsCsv(Publications):
                  journal.get('pages'),
                  publication.get('doi'),
                  publication.get('pmid'),
-                 '',             # pos = 11 or 12
-                 '',             # pos = 12 or 13
+                 '',            # label_pos, see above
+                 '',            # label_pos, see above
                  publication['_id'],
                  self.absolute_reverse_url('publication', publication['_id']),
                  doi_url,
@@ -577,14 +555,132 @@ class PublicationsCsv(Publications):
                  qc,
                 ]
             )
-            utils.write_safe_csv_row(writer, row)
-        value = csvbuffer.getvalue()
+            # Labels to output, single per row, or concatenated.
+            labels = sorted(list(publication.get('labels', {}).items()))
+            if single_label:
+                for label, qualifier in labels:
+                    row[label_pos] = label
+                    row[label_pos+1] = qualifier
+                    self.write_row(row)
+            else:
+                row[label_pos] = "|".join([l[0] for l in labels])
+                row[label_pos+1] = "|".join([l[1] or '' for l in labels])
+                self.write_row(row)
+
+    def write_header(self, row):
+        "To be implemented by the inheriting subclass."
+        raise NotImplementedError
+
+    def write_row(self, row):
+        "To be implemented by the inheriting subclass."
+        raise NotImplementedError
+
+
+class PublicationsXlsx(TabularWriteMixin, Publications):
+    "Publications XLSX output."
+
+    def get(self):
+        "Show output selection page."
+        self.render('publications_xlsx.html',
+                    year=self.get_argument('year', None),
+                    labels=set(self.get_arguments('label')),
+                    all_labels=sorted([l['value']
+                                       for l in self.get_docs('label/value')]))
+
+    # Authentication is *not* required!
+    def post(self):
+        "Produce XLSX output."
+        self.xlsxbuffer = io.BytesIO()
+        self.workbook = xlsxwriter.Workbook(self.xlsxbuffer,
+                                            {'in_memory': True})
+        self.ws = self.workbook.add_worksheet("Publications")
+        self.write_publications()
+        self.workbook.close()
+        self.xlsxbuffer.seek(0)
+        self.write(self.xlsxbuffer.getvalue())
+        self.set_header('Content-Type', constants.XLSX_MIME)
+        self.set_header('Content-Disposition', 
+                        'attachment; filename="publications.xlsx')
+
+    def write_header(self, row):
+        "Write the XLSX header row."
+        self.ws.freeze_panes(1, 0)
+        self.ws.set_row(0, None, self.workbook.add_format({"bold": True}))
+        self.ws.set_column(0, 1, 40) # Title
+        self.ws.set_column(2, 2, 20) # Authors
+        self.ws.set_column(3, 3, 10) # Journal
+        if self.issn:
+            self.ws.set_column(10, 10, 30) # DOI
+            self.ws.set_column(11, 11, 10) # PMID
+            self.ws.set_column(12, 12, 30) # Labels
+            self.ws.set_column(13, 14, 20) # Qualifiers, IUID
+        else:
+            self.ws.set_column(9, 9, 30) # DOI
+            self.ws.set_column(10, 10, 10) # PMID
+            self.ws.set_column(11, 11, 30) # Labels
+            self.ws.set_column(12, 13, 20) # Qualifiers, IUID
+        self.x = 0
+        self.write_row(row)
+
+    def write_row(self, row):
+        "Write an XLSX data row."
+        for y, item in enumerate(row):
+            if isinstance(item, str): # Remove CR characters; keep newline.
+                self.ws.write(self.x, y, item.replace('\r', ''))
+            else:
+                self.ws.write(self.x, y, item)
+        self.x += 1
+
+class PublicationsCsv(TabularWriteMixin, Publications):
+    "Publications CSV output."
+
+    def get(self):
+        "Show output selection page."
+        self.render('publications_csv.html',
+                    year=self.get_argument('year', None),
+                    labels=set(self.get_arguments('label')),
+                    all_labels=sorted([l['value']
+                                       for l in self.get_docs('label/value')]))
+
+    # Authentication is *not* required!
+    def post(self):
+        "Produce CSV output."
+        delimiter = self.get_argument('delimiter', '').lower()
+        if delimiter == 'comma':
+            delimiter = ','
+        elif delimiter == 'semi-colon':
+            delimiter = ';'
+        else:
+            delimiter = ','
+        self.csvbuffer = io.StringIO()
+        self.writer = csv.writer(self.csvbuffer,
+                                 delimiter=delimiter,
+                                 quoting=csv.QUOTE_NONNUMERIC)
+        self.write_publications()
+        value = self.csvbuffer.getvalue()
         if self.get_argument('encoding', '').lower() == 'iso-8859-1':
             value = value.encode('iso-8859-1', 'ignore')
         self.write(value)
         self.set_header('Content-Type', constants.CSV_MIME)
         self.set_header('Content-Disposition', 
                         'attachment; filename="publications.csv')
+
+    def write_header(self, row):
+        "Write the XLSX header row."
+        self.write_row(row)
+
+    def write_row(self, row):
+        "Write a CSV data row."
+        for pos, value in enumerate(row):
+            if isinstance(value, str):
+                # Remove CR characters; keep newline.
+                value = value.replace('\r', '')
+                # Remove any beginning potentially dangerous character '=-+@'.
+                # See http://georgemauer.net/2017/10/07/csv-injection.html
+                while len(value) and value[0] in '=-+@':
+                    value = value[1:]
+                row[pos] = value
+        self.writer.writerow(row)
 
 
 class PublicationsAcquired(RequestHandler):

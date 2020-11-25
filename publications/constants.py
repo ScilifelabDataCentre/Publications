@@ -44,6 +44,7 @@ API_KEY_HEADER = 'X-Publications-API-key'
 HTML_MIME = 'text/html'
 JSON_MIME = 'application/json'
 CSV_MIME  = 'text/csv'
+XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
 # Various texts.
 FETCH_ERROR = 'Could not fetch data. '

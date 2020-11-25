@@ -63,6 +63,10 @@ Publications {{ year or '' }}
 <a href="{{ reverse_url('publications_csv', year=year) }}">
   <img src="{{ static_url('csv.png') }}"> CSV
 </a>
+<br>
+<a href="{{ reverse_url('publications_xlsx', year=year) }}">
+  <img src="{{ static_url('xlsx.png') }}"> XLSX
+</a>
 {% end %} {# block alt_format #}
 
 {% block javascript_code %}

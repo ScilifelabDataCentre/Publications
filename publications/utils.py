@@ -350,18 +350,6 @@ def to_bool(value):
     if lowvalue in constants.FALSE: return False
     raise ValueError("invalid boolean: '{}'".format(value))
 
-def write_safe_csv_row(writer, row):
-    """Remove any beginning character '=-+@' from string values to output.
-    See http://georgemauer.net/2017/10/07/csv-injection.html
-    """
-    row = list(row)
-    for pos, value in enumerate(row):
-        if not isinstance(value, str): continue
-        while len(value) and value[0] in '=-+@':
-            value = value[1:]
-        row[pos] = value
-    writer.writerow(row)
-
 def strip_prefix(value):
     "Strip any prefix from the string value."
     value = value.strip()
