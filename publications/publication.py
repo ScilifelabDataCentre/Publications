@@ -792,16 +792,26 @@ class PublicationFetch(PublicationMixin, RequestHandler):
                     docs.append(self.get_doc(iuid))
                 except KeyError:
                     pass
-        checked_labels = {}
-        for label in self.get_argument('labels', '').split('|'):
-            parts = label.split('/')
-            if len(parts) == 1:
-                checked_labels[parts[0]] = None
-            elif len(parts) > 1:
-                checked_labels[parts[0]] = '/'.join(parts[1:])
+        checked_labels = dict()
+        labels_arg = self.get_argument('labels', '')
+        if labels_arg:
+            for label in labels_arg.split('|'):
+                parts = label.split('/')
+                if len(parts) == 1:
+                    checked_labels[parts[0]] = None
+                elif len(parts) > 1:
+                    checked_labels[parts[0]] = '/'.join(parts[1:])
+        labels = self.get_allowed_labels()
+        # If curator for only a small number of labels (in settings),
+        # then check them to start with. Otherwise let be unchecked.
+        if not checked_labels and \
+           self.current_user['role'] == constants.CURATOR and \
+           len(labels) <= settings["MAX_NUMBER_LABELS_PRECHECKED"]:
+            for label in labels:
+                checked_labels[label] = None
         self.render('publication_fetch.html', 
-                    labels=self.get_allowed_labels(),
-                    checked_labels= checked_labels,
+                    labels=labels,
+                    checked_labels=checked_labels,
                     publications=docs)
 
     @tornado.web.authenticated
