@@ -85,7 +85,7 @@ class PublicationSaver(Saver):
         "Set journal from form data."
         assert self.rqh, 'requires http request context'
         journal = dict(title=self.rqh.get_argument('journal', '') or None)
-        for key in ['issn', 'e-issn', 'volume', 'issue', 'pages']:
+        for key in ['issn', 'issn-l', 'volume', 'issue', 'pages']:
             journal[key] = self.rqh.get_argument(key, '') or None
         self['journal'] = journal
 
@@ -137,7 +137,8 @@ class PublicationSaver(Saver):
     def update(self, other):
         """Update any empty field in the publication 
         if there is a value in the other.
-        Special case for journal field."""
+        Special case for journal field.
+        """
         for key, value in other.items():
             if value is not None and self.get(key) is None:
                 self[key] = value
@@ -150,31 +151,38 @@ class PublicationSaver(Saver):
                 journal[key] = value
 
     def fix_journal(self):
-        """Set the appropriate journal title and ISSN if not done.
-        Creates the journal entity if it does not exist."""
+        """Set the appropriate journal title, ISSN and ISSN-L if not done.
+        Create the journal entity if it does not exist.
+        """
         assert self.rqh, 'requires http request context'
         doc = None
         try:
             journal = self['journal'].copy()
         except KeyError:
             journal = {}
-        issn = journal.get('issn')
         title = journal.get('title')
+        issn = journal.get('issn')
+        issn_l = journal.get('issn-l')
         if issn:
             try:
                 doc = self.rqh.get_doc(issn, 'journal/issn')
+                issn_l = doc.get('issn-l') or issn_l
             except KeyError:
-                if title:
-                    try:
-                        doc = self.rqh.get_doc(title, 'journal/title')
-                    except KeyError:
-                        doc = None
-                    else:
-                        if issn != doc['issn']:
-                            journal['issn'] = doc['issn']
-            else:
-                if title != doc['title']:
-                    journal['title'] = doc['title']
+                try:
+                    doc = self.rqh.get_doc(issn, 'journal/issn_l')
+                    issn_l = issn
+                except KeyError:
+                    if title:
+                        try:
+                            doc = self.rqh.get_doc(title, 'journal/title')
+                        except KeyError:
+                            doc = None
+                        else:
+                            if issn != doc['issn']:
+                                journal['issn'] = doc['issn']
+                                journal['issn-l'] = doc.get('issn-l')
+            if doc and title != doc['title']:
+                journal['title'] = doc['title']
         self['journal'] = journal
         # Create journal entity if it does not exist, and if sufficient data.
         if doc is None and issn and title:
@@ -182,6 +190,7 @@ class PublicationSaver(Saver):
             from publications.journal import JournalSaver
             with JournalSaver(db=self.db) as saver:
                 saver['issn'] = issn
+                saver['issn-l'] = issn_l
                 saver['title'] = title
 
 
@@ -494,7 +503,8 @@ class TabularWriteMixin:
                'Journal']
         if self.output_issn:
             row.append('ISSN')
-            label_pos = 12
+            row.append('ISSN-L')
+            label_pos = 13
         else:
             label_pos = 11
         row.extend(
@@ -535,6 +545,7 @@ class TabularWriteMixin:
                 journal.get('title')]
             if self.output_issn:
                 row.append(journal.get('issn'))
+                row.append(self.get_issn_l(journal.get('issn')))
             qc = '|'.join(["%s:%s" % (k, v['flag']) for 
                            k, v in publication.get('qc', {}).items()])
             row.extend(
@@ -546,8 +557,8 @@ class TabularWriteMixin:
                  journal.get('pages'),
                  publication.get('doi'),
                  publication.get('pmid'),
-                 '',            # label_pos, see above
-                 '',            # label_pos, see above
+                 '',            # label_pos, see above; fixed below
+                 '',            # label_pos+1, see above; fixed below
                  publication['_id'],
                  self.absolute_reverse_url('publication', publication['_id']),
                  doi_url,
@@ -555,7 +566,7 @@ class TabularWriteMixin:
                  qc,
                 ]
             )
-            # Labels to output, single per row, or concatenated.
+            # Labels to output: single per row, or concatenated.
             labels = sorted(list(publication.get('labels', {}).items()))
             if single_label:
                 for label, qualifier in labels:
@@ -610,10 +621,10 @@ class PublicationsXlsx(TabularWriteMixin, Publications):
         self.ws.set_column(2, 2, 20) # Authors
         self.ws.set_column(3, 3, 10) # Journal
         if self.output_issn:
-            self.ws.set_column(10, 10, 30) # DOI
-            self.ws.set_column(11, 11, 10) # PMID
-            self.ws.set_column(12, 12, 30) # Labels
-            self.ws.set_column(13, 14, 20) # Qualifiers, IUID
+            self.ws.set_column(11, 11, 30) # DOI
+            self.ws.set_column(12, 12, 10) # PMID
+            self.ws.set_column(13, 13, 30) # Labels
+            self.ws.set_column(14, 15, 20) # Qualifiers, IUID
         else:
             self.ws.set_column(9, 9, 30) # DOI
             self.ws.set_column(10, 10, 10) # PMID

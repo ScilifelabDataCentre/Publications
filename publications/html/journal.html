@@ -17,6 +17,10 @@
 	<th>ISSN</th>
 	<td>{{ journal.get('issn') or '-' }}</td>
       </tr>
+      <tr>
+	<th>ISSN-L</th>
+	<td>{{ journal.get('issn-l') or '-' }}</td>
+      </tr>
       {% if duplicates %}
       <tr>
 	<th>Duplicates</th>

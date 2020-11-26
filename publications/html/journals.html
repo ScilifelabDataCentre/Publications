@@ -16,6 +16,7 @@ Journals
 	<tr>
 	  <th>Title</th>
 	  <th>ISSN</th>
+	  <th>ISSN-L</th>
 	  <th>Articles</th>
 	</tr>
       </thead>
@@ -29,6 +30,7 @@ Journals
 	    </a>
 	  </td>
 	  <td>{{ journal['issn'] }}</td>
+	  <td>{{ journal.get('issn-l') or '' }}</td>
 	  <td><span class="badge">{{ journal['count'] }}</span></td>
 	</tr>
 	{% end %}
@@ -49,7 +51,7 @@ Journals
   $(function() {
     $("#journals").DataTable( {
       "pagingType": "full_numbers",
-      "order": [[2, "desc"]],
+      "order": [[3, "desc"]],
     });
   });
 </script>

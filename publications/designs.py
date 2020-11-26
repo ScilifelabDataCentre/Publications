@@ -47,6 +47,11 @@ DESIGNS = dict(
   if (doc.publications_doctype !== 'journal') return;
   emit(doc.issn, doc.title);
 }"""),
+        issn_l=dict(map=          # journal/issn_l
+"""function (doc) {
+  if (doc.publications_doctype !== 'journal' || !doc['issn-l']) return;
+  emit(doc['issn-l'], doc.issn);
+}"""),
         title=dict(map=         # journal/title
 """function (doc) {
   if (doc.publications_doctype !== 'journal') return;

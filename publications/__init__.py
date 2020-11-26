@@ -2,7 +2,7 @@
 
 import os
 
-__version__ = '3.4.1'
+__version__ = '3.4.2'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(

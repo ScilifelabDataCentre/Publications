@@ -304,6 +304,10 @@ class RequestHandler(tornado.web.RequestHandler):
             result['type'] = publication.get('type')
         result['published'] = publication.get('published')
         result['journal'] = publication.get('journal')
+        # XXX Kludge: this is not stored in the publication,
+        # since it is not obtained (or at least not parsed) from
+        # PubMed or Crossref.
+        result['journal']['issn-l'] = self.get_issn_l(result['journal'].get('issn'))
         if full:
             result['abstract'] = publication.get('abstract')
         result['doi'] = publication.get('doi')
@@ -378,6 +382,17 @@ class RequestHandler(tornado.web.RequestHandler):
             result['publications'] = [self.get_publication_json(publication)
                                       for publication in publications]
         return result
+
+    def get_issn_l(self, issn):
+        """Get the ISSN-L for the ISSN. Returns None if none found.
+        Lazy evaluation; fetch the mapping only when actually requested.
+        """
+        try:
+            return self._issn_l_map.get(issn)
+        except AttributeError:
+            self._issn_l_map = dict([(r.value, r.key) for r in 
+                                     self.db.view('journal/issn_l')])
+            return self._issn_l_map.get(issn)
 
 
 class ApiMixin(object):
