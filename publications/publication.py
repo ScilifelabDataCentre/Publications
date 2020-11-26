@@ -85,7 +85,7 @@ class PublicationSaver(Saver):
         "Set journal from form data."
         assert self.rqh, 'requires http request context'
         journal = dict(title=self.rqh.get_argument('journal', '') or None)
-        for key in ['issn', 'volume', 'issue', 'pages']:
+        for key in ['issn', 'e-issn', 'volume', 'issue', 'pages']:
             journal[key] = self.rqh.get_argument(key, '') or None
         self['journal'] = journal
 
@@ -476,7 +476,7 @@ class TabularWriteMixin:
                                          last='',
                                          descending=True)
         all_authors = utils.to_bool(self.get_argument('all_authors', 'false'))
-        self.issn = utils.to_bool(self.get_argument('issn', 'false'))
+        self.output_issn = utils.to_bool(self.get_argument('issn', 'false'))
         single_label = utils.to_bool(self.get_argument('single_label','false'))
         # Filter by labels if any given
         labels = set(self.get_arguments('labels'))
@@ -492,7 +492,7 @@ class TabularWriteMixin:
         row = ['Title',
                'Authors',
                'Journal']
-        if self.issn:
+        if self.output_issn:
             row.append('ISSN')
             label_pos = 12
         else:
@@ -533,7 +533,7 @@ class TabularWriteMixin:
                 utils.get_formatted_authors(publication['authors'],
                                             complete=all_authors),
                 journal.get('title')]
-            if self.issn:
+            if self.output_issn:
                 row.append(journal.get('issn'))
             qc = '|'.join(["%s:%s" % (k, v['flag']) for 
                            k, v in publication.get('qc', {}).items()])
@@ -609,7 +609,7 @@ class PublicationsXlsx(TabularWriteMixin, Publications):
         self.ws.set_column(0, 1, 40) # Title
         self.ws.set_column(2, 2, 20) # Authors
         self.ws.set_column(3, 3, 10) # Journal
-        if self.issn:
+        if self.output_issn:
             self.ws.set_column(10, 10, 30) # DOI
             self.ws.set_column(11, 11, 10) # PMID
             self.ws.set_column(12, 12, 30) # Labels
