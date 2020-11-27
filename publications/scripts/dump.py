@@ -43,11 +43,9 @@ def dump(db, filepath):
         for attname in doc.get('_attachments', dict()):
             info = tarfile.TarInfo("{0}_att/{1}".format(doc['_id'], attname))
             attfile = db.get_attachment(doc, attname)
-            if attfile is None:
-                data = ''
-            else:
-                data = attfile.read()
-                attfile.close()
+            if attfile is None: continue
+            data = attfile.read()
+            attfile.close()
             info.size = len(data)
             outfile.addfile(info, io.BytesIO(data))
             count_files += 1
