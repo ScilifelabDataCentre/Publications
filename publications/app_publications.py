@@ -178,7 +178,7 @@ def main():
         cookie_secret=settings['COOKIE_SECRET'],
         xsrf_cookies=True,
         ui_modules=uimodules,
-        template_path='html',
+        template_path='templates',
         static_path='static',
         login_url=r'/login')
     application.listen(settings['PORT'], xheaders=True)

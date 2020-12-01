@@ -2,4 +2,5 @@
 *.yaml
 *.xml
 *.pyc
+site
 !publications/settings_template.yaml

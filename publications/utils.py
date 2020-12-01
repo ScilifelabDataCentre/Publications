@@ -7,6 +7,7 @@ import hashlib
 import logging
 import optparse
 import os
+import os.path
 import socket
 import smtplib
 import urllib.parse
@@ -49,31 +50,34 @@ def get_command_line_parser(description=None):
     return parser
 
 def load_settings(filepath=None, ignore_logging_filepath=False):
-    """Load and return the settings from the file path given by
-    1) the argument to this procedure,
-    2) the environment variable PUBLICATIONS_SETTINGS,
-    3) the file '{hostname}.yaml' in this directory,
-    4) the file 'settings.yaml' in this directory
-    Raise ValueError if no settings file was given.
+    """Load the settings from the first file given by:
+    1) The argument to this procedure.
+    2) The environment variable PUBLICATIONS_SETTINGS.
+    3) The file 'settings.yaml' in this directory.
+    4) The file '../site/settings.yaml' relative to this directory.
     Raise IOError if settings file could not be read.
     Raise KeyError if a settings variable is missing.
     Raise ValueError if a settings variable value is invalid.
     """
-    if not filepath:
-        filepath = os.environ.get('PUBLICATIONS_SETTINGS')
-    if not filepath:
-        hostname = socket.gethostname().split('.')[0]
-        basedir = os.path.dirname(__file__)
-        for filepath in [os.path.join(basedir, "{0}.yaml".format(hostname)),
-                         os.path.join(basedir, 'settings.yaml')]:
-            if os.path.exists(filepath) and os.path.isfile(filepath):
-                break
+    filepaths = []
+    if filepath:
+        filepaths.append(filepath)
+    try:
+        filepaths.append(os.environ['PUBLICATIONS_SETTINGS'])
+    except KeyError:
+        pass
+    for filepath in ['settings.yaml', '../site/settings.yaml']:
+        filepaths.append(
+            os.path.normpath(os.path.join(settings['ROOT'], filepath)))
+    for filepath in filepaths:
+        try:
+            with open(filepath) as infile:
+                settings.update(yaml.safe_load(infile))
+        except FileNotFoundError:
+            pass
         else:
-            raise ValueError('Cannot find any settings file.')
-    # Read the settings file, updating the defaults
-    with open(filepath) as infile:
-        settings.update(yaml.safe_load(infile))
-    settings['SETTINGS_FILEPATH'] = filepath
+            settings['SETTINGS_FILEPATH'] = filepath
+            break
     # Expand environment variables (ROOT, SITE_DIR) once and for all
     for key, value in list(settings.items()):
         if isinstance(value, str):

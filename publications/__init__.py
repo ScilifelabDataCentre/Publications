@@ -2,11 +2,11 @@
 
 import os
 
-__version__ = '3.4.3'
+__version__ = '3.4.4'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
-    ROOT=os.path.dirname(__file__),
+    ROOT=os.path.dirname(os.path.abspath(__file__)),
     BASE_URL='http://localhost:8885/',
     PORT=8885,
     TORNADO_DEBUG=False,
