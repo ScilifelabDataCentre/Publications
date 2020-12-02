@@ -1,0 +1,22 @@
+{# Settings page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Settings{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-cog"></span>
+Settings
+{% end %}
+
+{% block main_content %}
+
+<table class="table">
+  {% for key, value in cleaned_settings %}
+  <tr>
+    <th>{{ key }}</th>
+    <td>{{ value }}</td>
+  </tr>
+{% end %} {# for #}
+</table>
+{% end %} {# block main_content #}

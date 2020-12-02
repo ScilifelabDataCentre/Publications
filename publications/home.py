@@ -2,6 +2,8 @@
 
 import logging
 
+import tornado.web
+
 from . import constants
 from . import settings
 from .requesthandler import RequestHandler
@@ -25,3 +27,18 @@ class Contact(RequestHandler):
 
     def get(self):
         self.render('contact.html', contact=settings['SITE_CONTACT'])
+
+
+class Settings(RequestHandler):
+    "Settings page."
+
+    @tornado.web.authenticated
+    def get(self):
+        self.check_admin()
+        cleaned = settings.copy()
+        for key in ['PASSWORD_SALT', 'COOKIE_SECRET', 'DATABASE_PASSWORD']:
+            if key in cleaned:
+                cleaned[key] = '****'
+        if 'PASSWORD' in cleaned.get('EMAIL', {}):
+            cleaned['EMAIL']['PASSWORD'] = '****'
+        self.render('settings.html', cleaned_settings=sorted(cleaned.items()))

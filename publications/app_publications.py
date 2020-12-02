@@ -11,7 +11,8 @@ from publications import uimodules
 from publications import utils
 
 from publications.home import (Home,
-                               Contact)
+                               Contact,
+                               Settings)
 from publications.login import (Login,
                                 Logout)
 from publications.account import (Account,
@@ -165,6 +166,7 @@ def main():
                 url(r'/search.json', SearchJson, name='search_json'),
                 url(r'/logs/([^/]+)', Logs, name='logs'),
                 url(r'/contact', Contact, name='contact'),
+                url(r'/settings', Settings, name='settings'),
                 url(r'/login', Login, name='login'),
                 url(r'/logout', Logout, name='logout'),
                 url(r'/api/publication',

@@ -219,6 +219,14 @@
 		  </a>
 		</li>
 		{% end %}
+		{% if is_admin %}
+		<li>
+		  <a href="{{ reverse_url('settings') }}">
+	            <span class="glyphicon glyphicon-cog"></span>
+                    Settings
+		  </a>
+		</li>
+		{% end %} {# if is_admin #}
 		<li>
 		  <a href="{{ settings['SOURCE_URL'] }}" target="_">
 		    <span class="glyphicon glyphicon-briefcase"></span>

@@ -39,6 +39,8 @@ class NocaseDict(object):
     def __setitem__(self, key, value):
         self.orig[key] = value
         self.lower[key.lower()] = value
+    def __str__(self):
+        return str(dict([(k,self[k]) for k in self.keys()]))
 
 
 def get_command_line_parser(description=None):
