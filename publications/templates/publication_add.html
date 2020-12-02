@@ -169,21 +169,18 @@ Add publication manually
         Explain "qualifier"
       </a>
       <br>
-      {% set checked = not is_admin and 'checked' or '' %}
       {% for label in sorted(labels) %}
       <div class="checkbox">
 	<label>
-	  <input type="checkbox" {{ checked }}
-                 name="label" value="{{ label }}">{{ label }}
+	  <input type="checkbox" name="label" value="{{ label }}">{{ label }}
 	</label>
       </div>
       {% if settings['SITE_LABEL_QUALIFIERS'] %}
       <div style="padding-left: 2em;">
 	<label class="radio-inline">
           {% set qual = settings['SITE_LABEL_QUALIFIERS'][0] %}
-          {% set checked = not is_admin and 'checked' or '' %}
-	  <input type="radio" {{ checked }}
-                 name="{{ label }}_qualifier" value="{{ qual }}">{{ qual }}
+	  <input type="radio" name="{{ label }}_qualifier" value="{{ qual }}">
+          {{ qual }}
 	</label>
 	{% for qual in settings['SITE_LABEL_QUALIFIERS'][1:] %}
 	<label class="radio-inline">
