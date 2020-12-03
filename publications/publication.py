@@ -1090,12 +1090,14 @@ class PublicationUpdatePmid(PublicationMixin, RequestHandler):
                                timeout=settings['PUBMED_TIMEOUT'],
                                delay=settings['PUBMED_DELAY'],
                                api_key=settings['NCBI_API_KEY'])
-        except IOError:
-            msg = f"No response from PubMed for {identifier}."
-            raise IOError(msg)
+        except (OSError, IOError):
+            self.see_other('publication', publication['_id'],
+                           error=f"No response from PubMed for {identifier}.")
+            return
         except ValueError as error:
-            raise IOError(f"{identifier}, {error}")
-
+            self.see_other('publication', publication['_id'],
+                           error=f"{identifier}, {error}")
+            return
         with PublicationSaver(doc=publication, rqh=self) as saver:
             saver.update(new)
             saver.fix_journal()
@@ -1123,12 +1125,14 @@ class PublicationUpdateDoi(PublicationMixin, RequestHandler):
             new = crossref.fetch(identifier,
                                  timeout=settings['CROSSREF_TIMEOUT'],
                                  delay=settings['CROSSREF_DELAY'])
-        except IOError:
-            msg = f"No response from PubMed for {identifier}."
-            raise IOError(msg)
+        except (OSError, IOError):
+            self.see_other('publication', publication['_id'],
+                           error=f"No response from Crossref for {identifier}.")
+            return
         except ValueError as error:
-            raise IOError(f"{identifier}, {error}")
-
+            self.see_other('publication', publication['_id'],
+                           error=f"{identifier}, {error}")
+            return
         with PublicationSaver(doc=publication, rqh=self) as saver:
             saver.update(new)
             saver.fix_journal()
