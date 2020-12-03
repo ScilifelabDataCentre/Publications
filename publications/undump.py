@@ -52,8 +52,6 @@ def undump(db, filepath):
 
 
 if __name__ == '__main__':
-    import os
-    import time
     parser = utils.get_command_line_parser('Load tar.gz dump file'
                                            ' into the database.')
     parser.add_argument('dumpfile', metavar='FILE', type=str,

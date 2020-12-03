@@ -21,7 +21,7 @@ from publications import utils
 
 def dump(db, filepath):
     """Dump contents of the database to a tar file, optionally gzip compressed.
-    Skip any entity that does not contain a doctype field.
+    Skip any entity that does not contain a 'doctype' field.
     """
     count_items = 0
     count_files = 0
@@ -56,7 +56,6 @@ def dump(db, filepath):
 
 if __name__ == '__main__':
     import os
-    import sys
     import time
     parser = utils.get_command_line_parser('Dump all data into a tar.gz file.')
     parser.add_argument('-d', '--dumpfile', metavar='FILE',

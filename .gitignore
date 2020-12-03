@@ -3,4 +3,5 @@
 *.xml
 *.pyc
 site
+dumps
 !publications/settings_template.yaml
