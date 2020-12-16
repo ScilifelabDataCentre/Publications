@@ -154,8 +154,7 @@ class RequestHandler(tornado.web.RequestHandler):
             except KeyError:
                 raise ValueError
             if account.get('disabled'):
-                logging.info("API key login: DISABLED %s",
-                             account['email'])
+                logging.info("API key login: DISABLED %s", account['email'])
                 return None
             else:
                 logging.info("API key login: %s", account['email'])
@@ -177,8 +176,7 @@ class RequestHandler(tornado.web.RequestHandler):
         # Check if login session is invalidated.
         if account.get('login') is None: raise ValueError
         if account.get('disabled'):
-            logging.info("Session authentication: DISABLED %s",
-                         account['email'])
+            logging.info("Session authentication: DISABLED %s",account['email'])
             return None
         else:
             logging.info("Session authentication: %s", account['email'])
@@ -337,7 +335,7 @@ class RequestHandler(tornado.web.RequestHandler):
             ('self', { 'href': URL('account_json', account['email'])}),
             ('display', {'href': URL('account', account['email'])})])
         result['email'] = account['email']
-        result['name'] = account['name']
+        result['name'] = account.get('name') # May be absent.
         result['role'] = account['role']
         result['status'] = account.get('disabled') and 'disabled' or 'enabled'
         result['login'] = account.get('login')
