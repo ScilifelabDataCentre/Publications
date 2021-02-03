@@ -2,7 +2,7 @@
 
 import os
 
-__version__ = '3.4.9'
+__version__ = '3.4.10'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -14,6 +14,8 @@ settings = dict(
     LOGGING_FORMAT='%(levelname)s [%(asctime)s] %(message)s',
     DATABASE_SERVER='http://localhost:5984/',
     DATABASE_NAME='publications',
+    DATABASE_ACCOUNT=None,      # Should probably be set to connect to CouchDB.
+    DATABASE_PASSWORD=None,     # Should probably be set to connect to CouchDB.
     COOKIE_SECRET=None,    # Must be set!
     PASSWORD_SALT=None,    # Must be set!
     EMAIL=None,            # No emails can be sent unless this is set.

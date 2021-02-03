@@ -17,6 +17,11 @@ TORNADO_DEBUG: True
 LOGGING_DEBUG: True
 LOGGING_FILEPATH: '/var/log/nginx/publications.log'
 
+# CouchDB database connection
+DATABASE_NAME: 'publications'
+#DATABASE_ACCOUNT: 'admin'
+#DATABASE_PASSWORD: 'secret'
+
 # Login
 COOKIE_SECRET: 'long random string of characters'
 PASSWORD_SALT: 'another long random string of characters'
