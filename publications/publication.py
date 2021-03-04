@@ -469,35 +469,62 @@ class PublicationsJson(Publications):
         self.write(result)
 
 
-class TabularWriteMixin:
-    "Write publications in abstract tabular form, such as CSV or XLSX."
+class SelectionMixin:
+    "Procedures for getting publications by form arguments."
 
-    def write_publications(self):
-        "Collect output configuration settings and produce output."
-        publications = []
+    def get_publications(self):
+        "Get the publications according to form arguments."
+        result = []
+        # By years.
         years = self.get_arguments('years')
         if years:
             for year in years:
-                publications.extend(self.get_docs('publication/year',key=year))
+                result.extend(self.get_docs('publication/year',key=year))
+        # All publications.
         else:
-            publications = self.get_docs('publication/published',
-                                         key=constants.CEILING,
-                                         last='',
-                                         descending=True)
-        all_authors = utils.to_bool(self.get_argument('all_authors', 'false'))
-        self.output_issn = utils.to_bool(self.get_argument('issn', 'false'))
-        single_label = utils.to_bool(self.get_argument('single_label','false'))
-        # Filter by labels if any given
+            result = self.get_docs('publication/published',
+                                   key=constants.CEILING,
+                                   last='',
+                                   descending=True)
+        # Filter by labels if any given.
         labels = set(self.get_arguments('labels'))
         if labels:
             kept = []
-            for publication in publications:
+            for publication in result:
                 for label in publication.get('labels', {}):
                     if label in labels:
                         kept.append(publication)
                         break
-            publications = kept
-        publications.sort(key=lambda p: p.get('published'), reverse=True)
+            result = kept
+        result.sort(key=lambda p: p.get('published'), reverse=True)
+        return result
+
+    def set_parameters(self):
+        "Set additional output parameters."
+        self.all_authors = utils.to_bool(self.get_argument('all_authors',
+                                                           'false'))
+        self.output_issn = utils.to_bool(self.get_argument('issn', 'false'))
+        self.single_label = utils.to_bool(self.get_argument('single_label',
+                                                            'false'))
+        self.numbered = utils.to_bool(self.get_argument('numbered', 'false'))
+        self.doi_url= utils.to_bool(self.get_argument('doi_url', 'false'))
+        self.pmid_url= utils.to_bool(self.get_argument('pmid_url', 'false'))
+        try:
+            self.maxline = self.get_argument('maxline', None)
+            if self.maxline:
+                self.maxline = int(self.maxline)
+                if self.maxline <= 20: raise ValueError
+        except (ValueError, TypeError):
+            self.maxline = None
+
+
+class TabularWriteMixin(SelectionMixin):
+    "Write publications in abstract tabular form, such as CSV or XLSX."
+
+    def write_publications(self):
+        "Collect output parameters and produce output."
+        publications = self.get_publications()
+        self.set_parameters()
         row = ['Title',
                'Authors',
                'Journal']
@@ -541,7 +568,7 @@ class TabularWriteMixin:
             row = [
                 publication.get('title'),
                 utils.get_formatted_authors(publication['authors'],
-                                            complete=all_authors),
+                                            complete=self.all_authors),
                 journal.get('title')]
             if self.output_issn:
                 row.append(journal.get('issn'))
@@ -568,7 +595,7 @@ class TabularWriteMixin:
             )
             # Labels to output: single per row, or concatenated.
             labels = sorted(list(publication.get('labels', {}).items()))
-            if single_label:
+            if self.single_label:
                 for label, qualifier in labels:
                     row[label_pos] = label
                     row[label_pos+1] = qualifier
@@ -692,6 +719,80 @@ class PublicationsCsv(TabularWriteMixin, Publications):
                     value = value[1:]
                 row[pos] = value
         self.writer.writerow(row)
+
+
+class PublicationsTxt(SelectionMixin, Publications):
+    "Publications text file output."
+
+    def get(self):
+        "Show output selection page."
+        self.render('publications_txt.html',
+                    year=self.get_argument('year', None),
+                    labels=set(self.get_arguments('label')),
+                    all_labels=sorted([l['value']
+                                       for l in self.get_docs('label/value')]))
+
+    # Authentication is *not* required!
+    def post(self):
+        "Produce TXT output."
+        publications = self.get_publications()
+        self.set_parameters()
+        self.text = io.StringIO()
+        for number, publication in enumerate(publications, 1):
+            if self.numbered:
+                self.line = f'{number}.'
+                self.indent = ' ' * (len(self.line) + 1)
+            else:
+                self.line = ''
+                self.indent = ''
+            authors = utils.get_formatted_authors(publication['authors'],
+                                                  complete=self.all_authors)
+            self.write_fragment(authors, comma=False)
+            self.write_fragment(f'"{publication.get("title")}"')
+            journal = publication.get('journal') or {}
+            self.write_fragment(journal.get('title') or '')
+            year = publication.get('published')
+            if year:
+                year = year.split('-')[0]
+            self.write_fragment(year)
+            if journal.get('volume'):
+                self.write_fragment(journal['volume'])
+            if journal.get('issue'):
+                self.write_fragment(f"({journal['issue']})", comma=False)
+            if journal.get('pages'):
+                self.write_fragment(journal['pages'])
+            if self.doi_url:
+                doi_url = publication.get('doi')
+                if doi_url:
+                    self.write_fragment(constants.DOI_URL % doi_url)
+            if self.pmid_url:
+                pmid_url = publication.get('pmid')
+                if pmid_url:
+                    self.write_fragment(constants.PUBMED_URL % pmid_url)
+            if self.line:
+                self.text.write(self.line)
+                self.text.write('\n')
+            self.text.write('\n')
+        value = self.text.getvalue()
+        self.write(value)
+        self.set_header('Content-Type', constants.TXT_MIME)
+        self.set_header('Content-Disposition', 
+                        'attachment; filename="publications.txt')
+
+    def write_fragment(self, fragment, comma=True):
+        "Write the given fragment to the line."
+        if comma:
+            self.line += ","
+        parts = fragment.split()
+        for part in parts:
+            length = len(self.line) + len(part) + 1
+            if self.maxline is not None and length > self.maxline:
+                self.text.write(self.line + "\n")
+                self.line = self.indent + part
+            else:
+                if self.line:
+                    self.line += ' '
+                self.line += part
 
 
 class PublicationsAcquired(RequestHandler):

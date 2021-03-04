@@ -14,7 +14,7 @@ ISSUE = 7
 PAGES = 8
 DOI_URL = 15
 
-MAXLINE = 80
+MAXLINE = None  # Or the number of characters
 
 def write(outfile, line, extension, comma=True):
     parts = extension.split()
@@ -22,7 +22,7 @@ def write(outfile, line, extension, comma=True):
         length = len(line) + len(part) + 1
         if comma:
             length += 1
-        if length > MAXLINE:
+        if MAXLINE is not None and length > MAXLINE:
             outfile.write(line + "\n")
             line = indent + part
         else:

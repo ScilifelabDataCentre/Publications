@@ -1,15 +1,15 @@
-{# Publications CSV setup page. #}
+{# Publications TXT setup page. #}
 
 {% extends "base.html" %}
 
-{% block head_title %}Download Publications CSV{% end %}
+{% block head_title %}Download Publications TXT{% end %}
 {% block body_title %}
 <span class="glyphicon glyphicon-download-alt"></span>
-Download Publications CSV
+Download Publications TXT
 {% end %}
 
 {% block main_content %}
-<form action="{{ reverse_url('publications_csv') }}"
+<form action="{{ reverse_url('publications_txt') }}"
       role="form"
       class="form-horizontal"
       method="POST">
@@ -63,28 +63,11 @@ Download Publications CSV
   </div>
 
   <div class="form-group">
-    <label class="control-label col-sm-1" for="single_label">Label output</label>
-    <div class="checkbox col-sm-3">
-      <label>
-	<input type="checkbox" name="single_label" value="true">
-	Single label per record
-      </label>
-    </div>
-    <div class="col-sm-6 col-sm-offset-2 help-block">
-      Check the box to output one single label per record.
-      If a publication has more than one label, it will then be
-      represented by multiple records.
-      <br>
-      If unchecked, all labels will be concatenated, and 
-      one single record will be output per publication.
-    </div>
-  </div>
-
-  <div class="form-group">
     <label class="control-label col-sm-1" for="all_authors">Authors</label>
     <div class="checkbox col-sm-3">
       <label>
-	<input type="checkbox" name="all_authors" value="true">Complete list
+	<input type="checkbox" name="all_authors" id="all_authors"
+               value="true">Complete list
       </label>
     </div>
     <div class="col-sm-6 col-sm-offset-2 help-block">
@@ -95,48 +78,55 @@ Download Publications CSV
   </div>
 
   <div class="form-group">
-    <label class="control-label col-sm-1" for="all_authors">ISSN</label>
-    <div class="checkbox col-sm-5">
+    <label class="control-label col-sm-1" for="numbered">Numbers</label>
+    <div class="checkbox col-sm-3">
       <label>
-	<input type="checkbox" name="issn" value="true">
-        Include journal ISSN and ISSN-L
+	<input type="checkbox" name="numbered" id="numbered"
+               value="true">Output number
       </label>
     </div>
-    <div class="col-sm-6 help-block">
-      Check the box to include columns with the ISSN and ISSN-L of the journal.
+    <div class="col-sm-6 col-sm-offset-2 help-block">
+      Prepend a number for each publication.
     </div>
   </div>
 
   <div class="form-group">
-    <label class="control-label col-sm-1" for="delimiter">Delimiter</label>
-    <div class="col-sm-3">
-      <div class="radio">
-	<label><input type="radio" name="delimiter" value="comma" checked>Comma</label>
-      </div>
-      <div class="radio">
-	<label><input type="radio" name="delimiter" value="semi-colon">Semi-colon</label>
-      </div>
+    <label class="control-label col-sm-1" for="doi_url">DOI</label>
+    <div class="checkbox col-sm-3">
+      <label>
+	<input type="checkbox" name="doi_url" id="doi_url"
+               value="true">Include DOI link
+      </label>
     </div>
     <div class="col-sm-6 col-sm-offset-2 help-block">
-      The delimiter separating the columns in the CSV file.
+      If the publication has a DOI, include the link (URL) for it.
     </div>
   </div>
 
   <div class="form-group">
-    <label class="control-label col-sm-1" for="encoding">Character encoding</label>
-    <div class="col-sm-3">
-      <div class="radio">
-	<label><input type="radio" name="encoding" value="utf-8" checked>UTF-8</label>
-      </div>
-      <div class="radio">
-	<label><input type="radio" name="encoding" value="iso-8859-1">ISO-8859-1</label>
-      </div>
+    <label class="control-label col-sm-1" for="pmid_url">PubMed</label>
+    <div class="checkbox col-sm-3">
+      <label>
+	<input type="checkbox" name="pmid_url" id="pmid_url"
+               value="true">Include PubMed link
+      </label>
     </div>
     <div class="col-sm-6 col-sm-offset-2 help-block">
-      The character encoding used in the CSV file.
-      <br>
-      MS Excel on the 2011 version of Apple OSX has a known bug which
-      hopefully can be circumvented using the ISO-8859-1 character encoding.
+      If the publication has a PubMed identifier, include the link (URL) for it.
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-sm-1" for="maxline">Line length</label>
+    <div class="checkbox col-sm-3">
+      <label>
+	<input type="checkbox" name="maxline" id="maxline"
+               value="80">Max line length 80 characters
+      </label>
+    </div>
+    <div class="col-sm-6 col-sm-offset-2 help-block">
+      Add a newline whenever the number of characters reaches max 80
+      characters per line.
     </div>
   </div>
 

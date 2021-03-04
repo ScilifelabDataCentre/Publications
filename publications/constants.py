@@ -45,6 +45,7 @@ HTML_MIME = 'text/html'
 JSON_MIME = 'application/json'
 CSV_MIME  = 'text/csv'
 XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+TXT_MIME  = 'text/plain'
 
 # Various texts.
 FETCH_ERROR = 'Could not fetch data. '
