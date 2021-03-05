@@ -11,3 +11,8 @@ Publications lacking label
 {% block main_content %}
 {% include 'publications_list.html' %}
 {% end %} {# block main_content #}
+
+{% block alt_format %}
+{% set url = handler.reverse_url('publications_no_label_json') %}
+<a href="{{ url }}"><img src="{{ static_url('json.png') }}"> JSON</a>
+{% end %} {# block alt_format #}

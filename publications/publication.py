@@ -444,6 +444,7 @@ class PublicationsJson(Publications):
     "Publications JSON output."
 
     def render(self, template, **kwargs):
+        "Override; ignores template, and outputs JSON instead of HTML."
         URL = self.absolute_reverse_url
         publications = kwargs['publications']
         result = OD()
@@ -469,10 +470,10 @@ class PublicationsJson(Publications):
         self.write(result)
 
 
-class SelectionMixin:
-    "Procedures for getting publications by form arguments."
+class FilterMixin:
+    "Procedures for getting publications filtered by form arguments."
 
-    def get_publications(self):
+    def get_filtered_publications(self):
         "Get the publications according to form arguments."
         result = []
         # By years.
@@ -518,12 +519,12 @@ class SelectionMixin:
             self.maxline = None
 
 
-class TabularWriteMixin(SelectionMixin):
+class TabularWriteMixin(FilterMixin):
     "Write publications in abstract tabular form, such as CSV or XLSX."
 
     def write_publications(self):
         "Collect output parameters and produce output."
-        publications = self.get_publications()
+        publications = self.get_filtered_publications()
         self.set_parameters()
         row = ['Title',
                'Authors',
@@ -721,7 +722,7 @@ class PublicationsCsv(TabularWriteMixin, Publications):
         self.writer.writerow(row)
 
 
-class PublicationsTxt(SelectionMixin, Publications):
+class PublicationsTxt(FilterMixin, Publications):
     "Publications text file output."
 
     def get(self):
@@ -735,7 +736,7 @@ class PublicationsTxt(SelectionMixin, Publications):
     # Authentication is *not* required!
     def post(self):
         "Produce TXT output."
-        publications = self.get_publications()
+        publications = self.get_filtered_publications()
         self.set_parameters()
         self.text = io.StringIO()
         for number, publication in enumerate(publications, 1):
@@ -817,12 +818,50 @@ class PublicationsNoPmid(RequestHandler):
         self.render('publications_no_pmid.html', publications=publications)
 
 
+class PublicationsNoPmidJson(PublicationsNoPmid):
+    "Publications lacking PMID JSON output."
+
+    def render(self, template, **kwargs):
+        "Override; ignores template, and outputs JSON instead of HTML."
+        URL = self.absolute_reverse_url
+        publications = kwargs['publications']
+        result = OD()
+        result['entity'] = 'publications_no_pmid'
+        result['timestamp'] = utils.timestamp()
+        result['links'] = links = OD()
+        links['self'] = {'href': URL('publications_no_pmid_json')}
+        links['display'] = {'href': URL('publications_no_pmid')}
+        result['publications_count'] = len(publications)
+        result['publications'] = [self.get_publication_json(publ)
+                                  for publ in publications]
+        self.write(result)
+
+
 class PublicationsNoDoi(RequestHandler):
     "Publications lacking DOI."
 
     def get(self):
         publications = self.get_docs('publication/no_doi', descending=True)
         self.render('publications_no_doi.html', publications=publications)
+
+
+class PublicationsNoDoiJson(PublicationsNoDoi):
+    "Publications lacking DOI JSON output."
+
+    def render(self, template, **kwargs):
+        "Override; ignores template, and outputs JSON instead of HTML."
+        URL = self.absolute_reverse_url
+        publications = kwargs['publications']
+        result = OD()
+        result['entity'] = 'publications_no_doi'
+        result['timestamp'] = utils.timestamp()
+        result['links'] = links = OD()
+        links['self'] = {'href': URL('publications_no_doi_json')}
+        links['display'] = {'href': URL('publications_no_doi')}
+        result['publications_count'] = len(publications)
+        result['publications'] = [self.get_publication_json(publ)
+                                  for publ in publications]
+        self.write(result)
 
 
 class PublicationsNoLabel(RequestHandler):
@@ -834,6 +873,27 @@ class PublicationsNoLabel(RequestHandler):
             if not publication.get('labels'):
                 publications.append(publication)
         self.render('publications_no_label.html', publications=publications)
+
+
+class PublicationsNoLabelJson(PublicationsNoLabel):
+    "Publications lacking label JSON output."
+
+    def render(self, template, **kwargs):
+        "Override; ignores template, and outputs JSON instead of HTML."
+        URL = self.absolute_reverse_url
+        publications = kwargs['publications']
+        result = OD()
+        result['entity'] = 'publications_no_label'
+        result['timestamp'] = utils.timestamp()
+        result['links'] = links = OD()
+        links['self'] = {'href': URL('publications_no_label_json')}
+        links['display'] = {'href': URL('publications_no_label')}
+        result['publications_count'] = len(publications)
+        full = utils.to_bool(self.get_argument('full', True))
+        result['full'] = full
+        result['publications'] = [self.get_publication_json(publ, full=full)
+                                  for publ in publications]
+        self.write(result)
 
 
 class PublicationsDuplicates(RequestHandler):
