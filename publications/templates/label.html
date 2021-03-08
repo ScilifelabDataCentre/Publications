@@ -22,6 +22,12 @@
   <a href="{{ label.get('href') }}" target="_">{{ label.get('href') }}</a>
 </p>
 {% end %}
+<p>
+  <strong>Started:</strong> {{ label.get('started') or '-' }}
+</p>
+<p>
+  <strong>Ended:</strong> {{ label.get('ended') or 'Current' }}
+</p>
 {% if current_user %}
 <p>
   <strong>Curators:</strong>
@@ -45,7 +51,7 @@
 {% if is_admin %}
 <p>
   <a href="{{ reverse_url('label_edit', label['value']) }}"
-     class="btn btn-primary"
+     class="btn btn-primary btn-block"
      role="button">
     <span class="glyphicon glyphicon-edit"></span>
     Edit
@@ -53,7 +59,7 @@
 </p>
 <p>
   <a href="{{ reverse_url('label_merge', label['value']) }}"
-     class="btn btn-warning"
+     class="btn btn-warning btn-block"
      role="button">
     <span class="glyphicon glyphicon-resize-small"></span>
     Merge
@@ -65,7 +71,7 @@
 	method="POST">
     {% module xsrf_form_html() %}
     <input type="hidden" name="_http_method" value="delete">
-    <button type="submit" class="btn btn-danger"
+    <button type="submit" class="btn btn-danger btn-block"
 	    onclick="return confirm('Really delete this label?');">
       <span class="glyphicon glyphicon-trash"></span>
       Delete

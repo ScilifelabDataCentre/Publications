@@ -35,8 +35,8 @@ Merge '{{ label['value'] }}'
   </div>
 
   <div class="form-group">
-    <div class="col-md-11 col-md-offset-1">
-      <button type="submit" class="btn btn-success">
+    <div class="col-md-3 col-md-offset-1">
+      <button type="submit" class="btn btn-success btn-block">
 	<span class="glyphicon glyphicon-resize.small"></span>
 	Merge
       </button>
@@ -48,7 +48,7 @@ Merge '{{ label['value'] }}'
 
 {% block meta_content %}
 <a href="{{ reverse_url('label', label['value']) }}"
-   class="btn btn-default"
+   class="btn btn-default btn-block"
    role="button">
   <span class="glyphicon glyphicon-remove-circle"></span>
   Cancel

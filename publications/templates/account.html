@@ -80,7 +80,7 @@
 {% block meta_content %}
 <p>
   <a href="{{ reverse_url('account_edit', account['email']) }}"
-     class="btn btn-primary"
+     class="btn btn-primary btn-block"
      role="button">
     <span class="glyphicon glyphicon-edit"></span>
     Edit
@@ -89,7 +89,7 @@
 {% if settings['EMAIL']['HOST'] and not account.get('disabled') %}
 <p>
   <a href="{{ reverse_url('account_reset', account=account['email']) }}"
-     class="btn btn-warning"
+     class="btn btn-warning btn-block"
      role="button">
     <span class="glyphicon glyphicon-repeat"></span>
     Reset password
@@ -99,7 +99,7 @@
 {% if is_admin and not account.get('disabled') %}
 <p>
   <a href="{{ reverse_url('account_password', account=account['email']) }}"
-     class="btn btn-success"
+     class="btn btn-success btn-block"
      role="button">
     <span class="glyphicon glyphicon-arrow-down"></span>
     Set password
@@ -115,7 +115,7 @@
     {% module xsrf_form_html() %}
     <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
     <div class="form-group">
-      <button type="submit" class="btn btn-danger">
+      <button type="submit" class="btn btn-danger btn-block">
 	<span class="glyphicon glyphicon-ok-circle"></span>
 	Enable
       </button>
@@ -128,7 +128,7 @@
     {% module xsrf_form_html() %}
     <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
     <div class="form-group">
-      <button type="submit" class="btn btn-danger">
+      <button type="submit" class="btn btn-danger btn-block">
 	<span class="glyphicon glyphicon-ban-circle"></span>
 	Disable
       </button>

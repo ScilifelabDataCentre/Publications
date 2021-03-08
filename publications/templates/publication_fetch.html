@@ -38,7 +38,7 @@ Fetch data for publication
       </span>
     </div>
     <div class="col-sm-2">
-      <button type="submit" class="btn btn-success">
+      <button type="submit" class="btn btn-success btn-block">
 	<span class="glyphicon glyphicon-cloud-download"></span>
 	Fetch
       </button>
@@ -103,6 +103,15 @@ Fetch data for publication
     </div>
   </div>
 
+  <div class="form-group">
+    <div class="col-md-3 col-md-offset-2">
+      <button type="submit" class="btn btn-success btn-block">
+	<span class="glyphicon glyphicon-save"></span>
+        Fetch
+      </button>
+    </div>
+  </div>
+
 </form>
 
 {% if publications %}
@@ -116,7 +125,7 @@ Fetch data for publication
 {% block meta_content %}
 <p>
   <a href="{{ reverse_url('home') }}"
-     class="btn btn-default"
+     class="btn btn-default btn-block"
      role="button">
     <span class="glyphicon glyphicon-remove-circle"></span>
     Cancel

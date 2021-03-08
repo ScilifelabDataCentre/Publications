@@ -18,6 +18,8 @@
 	<tr>
 	  <th>{% module Translate('Label') %}</th>
 	  <th># Publications</th>
+	  <th>Started</th>
+	  <th>Ended</th>
 	  {% if is_curator %}
 	  <th>Curators</th>
 	  {% end %}
@@ -32,9 +34,14 @@
 	    </a>
 	  </td>
 	  <td>
-	    
 	    <span class="badge">{{ label['count'] }}</span>
 	  </td>
+          <td>
+            {{ label.get('started') or '-' }}
+          </td>
+          <td>
+            {{ label.get('ended') or 'Current' }}
+          </td>
 	  {% if is_curator %}
 	  <td>
 	    {% if len(label['accounts']) > 4 %}
@@ -59,7 +66,7 @@
 {% if is_admin %}
 <p>
   <a href="{{ reverse_url('label_add') }}"
-     class="btn btn-success left"
+     class="btn btn-success btn-block"
      role="button">
     <span class="glyphicon glyphicon-plus"></span>
     Add

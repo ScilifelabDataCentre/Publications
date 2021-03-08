@@ -40,8 +40,8 @@ Edit journal {{ journal['title'] }}
   </div>
 
   <div class="form-group">
-    <div class="col-sm-11 col-sm-offset-1">
-      <button type="submit" class="btn btn-lg btn-success">
+    <div class="col-sm-3 col-sm-offset-1">
+      <button type="submit" class="btn btn-success btn-block">
 	<span class="glyphicon glyphicon-save"></span>
 	Save
       </button>
@@ -53,7 +53,7 @@ Edit journal {{ journal['title'] }}
 
 {% block meta_content %}
 <a href="{{ reverse_url('journal', journal['title']) }}"
-   class="btn btn-default"
+   class="btn btn-default btn-block"
    role="button">
   <span class="glyphicon glyphicon-remove-circle"></span>
   Cancel

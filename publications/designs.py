@@ -62,13 +62,26 @@ DESIGNS = dict(
         normalized_value=dict(map= # label/normalized_value
 """function (doc) {
   if (doc.publications_doctype !== 'label') return;
-  emit(doc.normalized_value, null);
+  emit(doc.normalized_value, doc.value);
 }"""),
         value=dict(map=         # label/value
 """function (doc) {
   if (doc.publications_doctype !== 'label') return;
   emit(doc.value, null);
-}""")),
+}"""),
+        current=dict(map=       # label/current
+"""function (doc) {
+  if (doc.publications_doctype !== 'label') return;
+  if (doc.ended) return;
+  emit(doc.started, doc.value);
+}"""),
+        period=dict(map=        # label/period
+"""function (doc) {
+  if (doc.publications_doctype !== 'label') return;
+  if (!doc.started || !doc.ended) return;
+  emit([doc.started, doc.ended], doc.value);
+}""")
+    ),
 
     log=dict(
         account=dict(map=       # log/account

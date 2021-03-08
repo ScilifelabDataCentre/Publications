@@ -73,7 +73,7 @@
 {% if is_editable %}
 <p>
   <a href="{{ reverse_url('publication_edit', publication['_id']) }}"
-     class="btn btn-primary" role="button">
+     class="btn btn-primary btn-block" role="button">
     <span class="glyphicon glyphicon-edit"></span>
     Edit
   </a>
@@ -84,7 +84,7 @@
         method="POST"
         role="form">
     {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-primary left">
+    <button type="submit" class="btn btn-primary btn-block">
       <span class="glyphicon glyphicon-refresh"></span>
       Update by PMID
     </button>
@@ -97,7 +97,7 @@
         method="POST"
         role="form">
     {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-primary left">
+    <button type="submit" class="btn btn-primary btn-block">
       <span class="glyphicon glyphicon-refresh"></span>
       Update by DOI
     </button>
@@ -108,87 +108,127 @@
 
 {% if is_xrefs_editable %}
 <p>
-  <a href="{{ reverse_url('publication_xrefs', publication['_id']) }}"
-     class="btn btn-info" role="button">
-    <span class="glyphicon glyphicon-share"></span>
-    Edit xrefs
-  </a>
-  <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#xref"
-     title="Explain 'xref'" target="_">
-    <span class="glyphicon glyphicon-question-sign"></span>
-  </a>
+  <table width="100%">
+    <tr>
+      <td>
+        <a href="{{ reverse_url('publication_xrefs', publication['_id']) }}"
+           class="btn btn-info btn-block" role="button">
+          <span class="glyphicon glyphicon-share"></span>
+          Edit xrefs
+        </a>
+      </td>
+      <td style="padding-left: 4px">
+        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#xref"
+           title="Explain 'xref'" target="_">
+          <span class="glyphicon glyphicon-question-sign"></span>
+        </a>
+      </td>
+    </tr>
+  </table>
 </p>
 {% end %} {# if is_xrefs_editable #}
 
 {% if not is_locked %}
 <p>
-  <form action="{{ reverse_url('publication_acquire', publication['_id']) }}"
-        method="POST"
-        role="form">
-    {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-warning left">
-      <span class="glyphicon glyphicon-lock"></span>
-      Acquire
-    </button>
-    <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#acquire"
-       title="Explain 'acquire'" target="_">
-      <span class="glyphicon glyphicon-question-sign"></span>
-    </a>
-  </form>
+  <table width="100%">
+    <tr>
+      <td>
+        <form action="{{ reverse_url('publication_acquire', publication['_id']) }}"
+              method="POST"
+              role="form">
+          {% module xsrf_form_html() %}
+          <button type="submit" class="btn btn-warning btn-block">
+            <span class="glyphicon glyphicon-lock"></span>
+            Acquire
+          </button>
+        </form>
+      </td>
+      <td style="padding-left: 4px">
+        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#acquire"
+           title="Explain 'acquire'" target="_">
+          <span class="glyphicon glyphicon-question-sign"></span>
+        </a>
+      </td>
+    </tr>
+  </table>
 </p>
 {% end %} {# if not is_locked #}
 
 {% if is_releasable %}
 <p>
-  <form action="{{ reverse_url('publication_release', publication['_id']) }}"
-        method="POST"
-        role="form">
-    {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-success left">
-      <span class="glyphicon glyphicon-share"></span>
-      Release
-    </button>
-    <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#release"
-       title="Explain 'release'" target="_">
-      <span class="glyphicon glyphicon-question-sign"></span>
-    </a>
-  </form>
+  <table width="100%">
+    <tr>
+      <td>
+        <form action="{{ reverse_url('publication_release', publication['_id']) }}"
+              method="POST"
+              role="form">
+          {% module xsrf_form_html() %}
+          <button type="submit" class="btn btn-success btn-block">
+            <span class="glyphicon glyphicon-share"></span>
+            Release
+          </button>
+        </form>
+      </td>
+      <td style="padding-left: 4px">
+        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#release"
+           title="Explain 'release'" target="_">
+          <span class="glyphicon glyphicon-question-sign"></span>
+        </a>
+      </td>
+    </tr>
+  </table>
 </p>
 {% end %} {# if is_releasable #}
 
 {% if is_deletable %}
 <p>
-  <form action="{{ reverse_url('publication', publication['_id']) }}"
-	role="form"
-	method="POST">
-    {% module xsrf_form_html() %}
-    <input type="hidden" name="_http_method" value="delete">
-    <button type="submit" class="btn btn-danger"
-	    onclick="return confirm('Really delete this publication?');">
-      <span class="glyphicon glyphicon-trash"></span>
-      Delete
-    </button>
-    <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#delete"
-       title="Explain 'delete'" target="_">
-      <span class="glyphicon glyphicon-question-sign"></span>
-    </a>
-  </form>
+  <table width="100%">
+    <tr>
+      <td>
+        <form action="{{ reverse_url('publication', publication['_id']) }}"
+	      role="form"
+	      method="POST">
+          {% module xsrf_form_html() %}
+          <input type="hidden" name="_http_method" value="delete">
+          <button type="submit" class="btn btn-danger btn-block"
+	          onclick="return confirm('Really delete this publication?');">
+            <span class="glyphicon glyphicon-trash"></span>
+            Delete
+          </button>
+        </form>
+      </td>
+      <td style="padding-left: 4px">
+        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#delete"
+           title="Explain 'delete'" target="_">
+          <span class="glyphicon glyphicon-question-sign"></span>
+        </a>
+      </td>
+    </tr>
+  </table>
 </p>
 <p>
-  <form action="{{ reverse_url('publication_blacklist', publication['_id']) }}"
-	role="form"
-	method="POST">
-    {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-danger left"
-	    onclick="return confirm('Really blacklist this publication?');">
-      <span class="glyphicon glyphicon-ban-circle"></span>
-      Blacklist
-    </button>
-    <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#blacklist"
-       title="Explain 'blacklist'" target="_">
-      <span class="glyphicon glyphicon-question-sign"></span>
-    </a>
-  </form>
+  <table width="100%">
+    <tr>
+      <td>
+        <form action="{{ reverse_url('publication_blacklist', publication['_id']) }}"
+	      role="form"
+	      method="POST">
+          {% module xsrf_form_html() %}
+          <button type="submit" class="btn btn-danger btn-block"
+	          onclick="return confirm('Really blacklist this publication?');">
+            <span class="glyphicon glyphicon-ban-circle"></span>
+            Blacklist
+          </button>
+        </form>
+      </td>
+      <td style="padding-left: 4px">
+        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#blacklist"
+           title="Explain 'blacklist'" target="_">
+          <span class="glyphicon glyphicon-question-sign"></span>
+        </a>
+      </td>
+    </tr>
+  </table>
 </p>
 {% end %} {# if is_deletable #}
 
@@ -213,7 +253,7 @@
           {% module xsrf_form_html() %}
           <input type="hidden" name="aspect" value="{{ aspect }}">
           <input type="hidden" name="flag" value="true">
-          <button type="submit" class="btn btn-xs btn-success left">
+          <button type="submit" class="btn btn-xs btn-success">
             <span class="glyphicon glyphicon-ok"></span>
           </button>
         </form>
@@ -225,7 +265,7 @@
           {% module xsrf_form_html() %}
           <input type="hidden" name="aspect" value="{{ aspect }}">
           <input type="hidden" name="flag" value="false">
-          <button type="submit" class="btn btn-xs btn-danger left">
+          <button type="submit" class="btn btn-xs btn-danger">
             <span class="glyphicon glyphicon-remove"></span>
           </button>
         </form>
