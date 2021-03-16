@@ -74,14 +74,7 @@ DESIGNS = dict(
   if (doc.publications_doctype !== 'label') return;
   if (doc.ended) return;
   emit(doc.started, doc.value);
-}"""),
-        period=dict(map=        # label/period
-"""function (doc) {
-  if (doc.publications_doctype !== 'label') return;
-  if (!doc.started || !doc.ended) return;
-  emit([doc.started, doc.ended], doc.value);
-}""")
-    ),
+}""")),
 
     log=dict(
         account=dict(map=       # log/account

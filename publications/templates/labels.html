@@ -13,14 +13,14 @@
 {% if all is not None %}
 <p>
   {% if all %}
-  All labels are shown, regardless of when they were active.
+  All labels are shown, regardless of when they were active. Click
   <a href="{{ reverse_url('labels', all=False) }}">
-    Click here to see only current labels.
+    here to see only current labels.
   </a>
   {% else %}
-  Only current labels are shown.
+  Only current labels are shown. Click
   <a href="{{ reverse_url('labels', all=True) }}">
-    Click here to see all labels.
+    here to see all labels.
   </a>
   {% end %}
 </p>

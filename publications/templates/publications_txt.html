@@ -62,6 +62,26 @@ Download Publications TXT
     </div>
   </div>
 
+  {% if settings['TEMPORAL_LABELS'] %}
+  <div class="form-group">
+    <label class="control-label col-sm-1" for="active">Labels active year</label>
+    <div class="col-sm-3">
+      <select class="form-control" id="active" name="active">
+        <option value="" selected>Any</option>
+        <option>Current</option>
+	{% for y in utils.years()[:-1] %}
+	<option>{{ y }}</option>
+	{% end %}
+      </select>
+    </div>
+    <div class="col-sm-6 col-sm-offset-2 help-block">
+      Filter publications based on label activity during the selected
+      year. If a publication has no label active during the given
+      year, it will not be output.
+    </div>
+  </div>
+  {% end %}
+
   <div class="form-group">
     <label class="control-label col-sm-1" for="all_authors">Authors</label>
     <div class="checkbox col-sm-3">
@@ -131,8 +151,8 @@ Download Publications TXT
   </div>
 
   <div class="form-group">
-    <div class="col-md-12">
-      <button type="submit" class="btn btn-success">
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-success btn-block">
 	<span class="glyphicon glyphicon-download-alt"></span>
 	Download
       </button>

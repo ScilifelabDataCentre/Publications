@@ -110,7 +110,7 @@ class LabelJson(Label):
 
 class LabelsList(RequestHandler):
     """Labels list page. By default only current labels,
-    if the TEMPORAL_LABELS setting is True.
+    if the TEMPORAL_LABELS setting is not None.
     """
 
     def get(self):
@@ -221,8 +221,8 @@ class LabelEdit(RequestHandler):
                 saver['href'] = self.get_argument('href', None)
                 saver['description'] = self.get_argument('description', None)
                 if settings['TEMPORAL_LABELS']:
-                    saver['started'] = self.get_argument('started', None)
-                    saver['ended'] = self.get_argument('ended', None)
+                    saver['started'] = self.get_argument('started', '') or None
+                    saver['ended'] = self.get_argument('ended', '') or None
         except SaverError:
             self.set_error_flash(utils.REV_ERROR)
             self.see_other('label', label['value'])

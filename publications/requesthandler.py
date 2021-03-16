@@ -363,6 +363,9 @@ class RequestHandler(tornado.web.RequestHandler):
         links['self'] = {'href': URL('label_json', label['value'])}
         links['display'] = {'href': URL('label', label['value'])}
         result['value'] = label['value']
+        if settings['TEMPORAL_LABELS']:
+            result['started'] = label.get('started')
+            result['ended'] = label.get('ended')
         result['created'] = label['created']
         result['modified'] = label['modified']
         if accounts is not None:

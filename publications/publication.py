@@ -497,16 +497,44 @@ class FilterMixin:
                         kept.append(publication)
                         break
             result = kept
+
+        # Filter by active labels during a year.
+        active = self.get_argument('active', '')
+        if settings['TEMPORAL_LABELS'] and active:
+            if active.lower() == 'current':
+                labels = set([d['value'] 
+                              for d in self.get_docs('label/current')])
+            else:
+                labels = set()
+                for label in self.get_docs('label/value'):
+                    started = label.get('started')
+                    if started and started <= active: # Year as str
+                        ended = label.get('ended')
+                        if ended:
+                            if active <= ended: # Year as str
+                                labels.add(label['value'])
+                        else:
+                            labels.add(label['value'])
+            for publication in result:
+                publication['labels'] = dict([(k, publication['labels'][k]) 
+                                              for k in publication['labels']
+                                              if k in labels])
+            result = [p for p in result if p['labels']]
+
         result.sort(key=lambda p: p.get('published'), reverse=True)
         return result
 
     def set_parameters(self):
         "Set additional output parameters."
-        self.all_authors = utils.to_bool(self.get_argument('all_authors',
-                                                           'false'))
+        self.single_label = utils.to_bool(
+            self.get_argument('single_label', 'false'))
+        self.all_authors = utils.to_bool(
+            self.get_argument('all_authors', 'false'))
         self.output_issn = utils.to_bool(self.get_argument('issn', 'false'))
-        self.single_label = utils.to_bool(self.get_argument('single_label',
-                                                            'false'))
+        if settings['TEMPORAL_LABELS']:
+            self.temporal_label = self.get_argument('temporal_label', '') or None
+        else:
+            self.temporal_label = None
         self.numbered = utils.to_bool(self.get_argument('numbered', 'false'))
         self.doi_url= utils.to_bool(self.get_argument('doi_url', 'false'))
         self.pmid_url= utils.to_bool(self.get_argument('pmid_url', 'false'))

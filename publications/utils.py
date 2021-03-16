@@ -337,6 +337,10 @@ def to_date(value):
         raise ValueError("invalid date '%s'" % value)
     return "%s-%02i-%02i" % (year, month, day)
 
+def years():
+    "Return a list of years from the first year to the current."
+    return list(range(settings['FIRST_YEAR'], int(today().split('-')[0]) + 1))
+
 def to_ascii(value):
     "Convert any non-ASCII character to its closest ASCII equivalent."
     if value is None: return ''
