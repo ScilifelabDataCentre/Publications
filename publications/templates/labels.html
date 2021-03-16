@@ -10,6 +10,22 @@
 {% end %}
 
 {% block main_content %}
+{% if all is not None %}
+<p>
+  {% if all %}
+  All labels are shown, regardless of when they were active.
+  <a href="{{ reverse_url('labels', all=False) }}">
+    Click here to see only current labels.
+  </a>
+  {% else %}
+  Only current labels are shown.
+  <a href="{{ reverse_url('labels', all=True) }}">
+    Click here to see all labels.
+  </a>
+  {% end %}
+</p>
+{% end %}
+
 <div class="row">
   <ul class="col-md-6 list-unstyled">
     {% for label in labels[0::2] %}

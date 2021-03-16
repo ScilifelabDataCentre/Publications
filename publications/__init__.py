@@ -2,7 +2,7 @@
 
 import os
 
-__version__ = '3.5.0'
+__version__ = '3.5.1'
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -31,6 +31,7 @@ settings = dict(
     PUBLICATION_QC_ASPECTS=['bibliography', 'xrefs'],
     SHORT_PUBLICATIONS_LIST_LIMIT=10,
     LONG_PUBLICATIONS_LIST_LIMIT=100,
+    TEMPORAL_LABELS=False,
     MAX_NUMBER_LABELS_PRECHECKED=2,
     NUMBER_FIRST_AUTHORS=3,
     NUMBER_LAST_AUTHORS=2,

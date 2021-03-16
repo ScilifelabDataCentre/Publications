@@ -22,12 +22,14 @@
   <a href="{{ label.get('href') }}" target="_">{{ label.get('href') }}</a>
 </p>
 {% end %}
+{% if settings['TEMPORAL_LABELS'] %}
 <p>
   <strong>Started:</strong> {{ label.get('started') or '-' }}
 </p>
 <p>
   <strong>Ended:</strong> {{ label.get('ended') or 'Current' }}
 </p>
+{% end %}
 {% if current_user %}
 <p>
   <strong>Curators:</strong>

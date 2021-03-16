@@ -109,11 +109,22 @@ class LabelJson(Label):
 
 
 class LabelsList(RequestHandler):
-    "Labels list page."
+    """Labels list page. By default only current labels,
+    if the TEMPORAL_LABELS setting is True.
+    """
 
     def get(self):
-        labels = self.get_docs('label/value')
-        self.render('labels.html', labels=labels)
+        if settings['TEMPORAL_LABELS']:
+            all = utils.to_bool(self.get_argument('all', False))
+            if all:
+                labels = self.get_docs('label/value')
+            else:
+                labels = self.get_docs('label/current')
+        else:
+            labels = self.get_docs('label/value')
+            all = None
+        labels.sort(key=lambda d: d['value'].lower())
+        self.render('labels.html', labels=labels, all=all)
 
 
 class LabelsTable(RequestHandler):
@@ -121,6 +132,7 @@ class LabelsTable(RequestHandler):
 
     def get(self):
         labels = self.get_docs('label/value')
+        labels.sort(key=lambda d: d['value'].lower())
         if self.is_curator():
             accounts = dict([(l['value'], []) for l in labels])
             for account in self.get_docs('account/email'):
@@ -208,8 +220,9 @@ class LabelEdit(RequestHandler):
                 saver.set_value(new_value)
                 saver['href'] = self.get_argument('href', None)
                 saver['description'] = self.get_argument('description', None)
-                saver['started'] = self.get_argument('started', None)
-                saver['ended'] = self.get_argument('ended', None)
+                if settings['TEMPORAL_LABELS']:
+                    saver['started'] = self.get_argument('started', None)
+                    saver['ended'] = self.get_argument('ended', None)
         except SaverError:
             self.set_error_flash(utils.REV_ERROR)
             self.see_other('label', label['value'])

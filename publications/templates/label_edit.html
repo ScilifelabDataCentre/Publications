@@ -51,6 +51,7 @@ Edit '{{ label['value'] }}'
     </div>
   </div>
 
+  {% if settings['TEMPORAL_LABELS'] %}
   <div class="form-group has-feedback">
     <label class="control-label col-sm-2" for="started">Started</label>
     <div class="col-sm-6">
@@ -73,6 +74,7 @@ Edit '{{ label['value'] }}'
       </span>
     </div>
   </div>
+  {% end %}
 
   <div class="form-group">
     <div class="col-sm-3 col-sm-offset-2">

@@ -18,8 +18,10 @@
 	<tr>
 	  <th>{% module Translate('Label') %}</th>
 	  <th># Publications</th>
+          {% if settings['TEMPORAL_LABELS'] %}
 	  <th>Started</th>
 	  <th>Ended</th>
+          {% end %}
 	  {% if is_curator %}
 	  <th>Curators</th>
 	  {% end %}
@@ -36,12 +38,14 @@
 	  <td>
 	    <span class="badge">{{ label['count'] }}</span>
 	  </td>
+          {% if settings['TEMPORAL_LABELS'] %}
           <td>
             {{ label.get('started') or '-' }}
           </td>
           <td>
             {{ label.get('ended') or 'Current' }}
           </td>
+          {% end %}
 	  {% if is_curator %}
 	  <td>
 	    {% if len(label['accounts']) > 4 %}
