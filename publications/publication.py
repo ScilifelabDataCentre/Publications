@@ -1148,7 +1148,10 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
             self.set_error_flash(utils.REV_ERROR)
         except (tornado.web.MissingArgumentError, ValueError) as error:
             self.set_error_flash(str(error))
-        self.see_other('publication', publication['_id'])
+        if self.get_argument('__save__', '') == 'continue':
+            self.see_other('publication_xrefs', publication['_id'])
+        else:
+            self.see_other('publication', publication['_id'])
 
 
 class PublicationBlacklist(PublicationMixin, RequestHandler):
