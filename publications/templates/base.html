@@ -206,12 +206,6 @@
 	      </a>
               <ul class="dropdown-menu">
 		<li>
-		  <a href="{{ settings['DOCS_URL'] }}" target="_">
-		    <span class="glyphicon glyphicon-book"></span>
-		    Documentation
-		  </a>
-		</li>
-		<li>
 		  <a href="{{ reverse_url('contact') }}">
 		    <span class="glyphicon glyphicon-bullhorn"></span>
 		    Contact
@@ -233,6 +227,12 @@
 		  </a>
 		</li>
 		{% end %} {# if is_admin #}
+		<li>
+		  <a href="{{ settings['DOCS_URL'] }}" target="_">
+		    <span class="glyphicon glyphicon-book"></span>
+		    Software documentation
+		  </a>
+		</li>
 		<li>
 		  <a href="{{ settings['SOURCE_URL'] }}" target="_">
 		    <span class="glyphicon glyphicon-briefcase"></span>
