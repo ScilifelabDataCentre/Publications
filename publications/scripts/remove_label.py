@@ -9,7 +9,7 @@ from publications.publication import PublicationSaver
 def remove_label(db, label):
     if not label:
         raise ValueError('no label given')
-    view = db.view('label/value', key=label)
+    view = db.view('label/value', key=label, reduce=False)
     if len(view) == 0:
         raise ValueError("label %s does not exist" % label)
     

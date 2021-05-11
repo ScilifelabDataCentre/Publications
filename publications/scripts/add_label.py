@@ -13,11 +13,11 @@ def add_label(db, new_label, existing_labels):
         raise ValueError('no new label given')
     if not existing_labels:
         raise ValueError('no existing labels given')
-    view = db.view('label/value', key=new_label)
+    view = db.view('label/value', key=new_label, reduce=False)
     if len(view) == 0:
         raise ValueError("label %s does not exist" % new_label)
     for existing_label in existing_labels:
-        view = db.view('label/value', key=existing_label)
+        view = db.view('label/value', key=existing_label, reduce=False)
         if len(view) == 0:
             raise ValueError("label %s does not exist" % existing_label)
     

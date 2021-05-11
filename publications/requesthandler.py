@@ -36,6 +36,7 @@ class RequestHandler(tornado.web.RequestHandler):
         result['year_counts'] = [(r.key, r.value) for r in 
                                  self.db.view('publication/year',
                                               descending=True,
+                                              reduce=True,
                                               group_level=1)]
         return result
 

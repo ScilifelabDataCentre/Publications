@@ -11,7 +11,7 @@ def add_label_to_publications(db, label, qualifier, identifiers):
         raise ValueError('no new qualifier given')
     if not identifiers:
         raise ValueError('no identifiers given')
-    view = db.view('label/value', key=label)
+    view = db.view('label/value', key=label, reduce=False)
     if len(view) == 0:
         raise ValueError("label %s does not exist" % label)
 
