@@ -1,7 +1,9 @@
 "PubMed interface."
 
-from collections import OrderedDict
+import json
 import os
+import os.path
+import sys
 import time
 import unicodedata
 import xml.etree.ElementTree
@@ -72,6 +74,7 @@ def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
     assert timeout > 0.0, 'timeout must be a positive value'
     filename = pmid + '.xml'
     content = None
+    # Get the locally stored XML file if it exists.
     if dirname:
         try:
             with open(os.path.join(dirname, filename)) as infile:
@@ -95,7 +98,7 @@ def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
             raise IOError("HTTP status %s, %s " % (response.status_code, url))
         content = response.content
         if dirname:
-            with open(os.path.join(dirname, filename), 'w') as outfile:
+            with open(os.path.join(dirname, filename), 'wb') as outfile:
                 outfile.write(content)
     return parse(content)
 
@@ -106,7 +109,7 @@ def parse(data):
         article = get_element(tree, 'PubmedArticle')
     except ValueError:
         raise ValueError('no article with the given PMID')
-    result = OrderedDict()
+    result = dict()
     result['title']      = squish(get_title(article))
     result['pmid']       = get_pmid(article)
     result['doi']        = None
@@ -143,7 +146,8 @@ def get_authors(article):
     result = []
     existing = set()                # Handle pathological multi-mention.
     for element in authorlist.findall('Author'):
-        author = OrderedDict()
+        author = dict()
+        # Name of author
         for jkey, xkey in [('family', 'LastName'),
                            ('given', 'ForeName'),
                            ('initials', 'Initials')]:
@@ -166,8 +170,13 @@ def get_authors(article):
             author['family_normalized'] = to_ascii(author['family']).lower()
             author['given_normalized'] = ''
             author['initials_normalized'] = ''
+        for elem in element.findall("Identifier"):
+            if elem.attrib.get("Source") == "ORCID":
+                author["orcid"] = get_text(elem)
+        for elem in element.findall(".//Affiliation"):
+            author.setdefault("affiliations", []).append(get_text(elem))
         if author:
-            try:                    # Give up if this doesn't work
+            try:                    # Give up if this doesn't work.
                 key = "%(family)s %(given)s" % author
                 if key not in existing:
                     result.append(author)
@@ -179,7 +188,7 @@ def get_authors(article):
 def get_journal(article):
     "Get the journal data from the article XML tree."
     element = get_element(article, 'MedlineCitation/Article/Journal')
-    result = OrderedDict()
+    result = dict()
     if element is not None:
         result['title'] = element.findtext('ISOAbbreviation')
         if not result['title']:
@@ -330,26 +339,12 @@ def squish(value):
     "Remove all unnecessary white spaces."
     return ' '.join([p for p in value.split() if p])
 
-def test_fetch():
-    "Fetch a specific article."
-    key = '8142349'
-    result = fetch(key)
-    assert result['pmid'] == key
-    
-def test_search():
-    "Search for a specific set of PMIDs."
-    result = search(author='Kraulis PJ', published='1994')
-    assert set(result) == set(['7525970', '8142349'])
-
 
 if __name__ == '__main__':
-    pmid = '8142349'
-    data = fetch(pmid, timeout=10.0, debug=True)
-    print(data['title'])
-    print(data['abstract'])
-    # url = PUBMED_FETCH_URL % pmid
-    # response = requests.get(url, timeout=DEFAULT_TIMEOUT)
-    # if response.status_code != 200:
-    #     raise IOError("HTTP status %s, %s " % (response.status_code, url))
-    # with open(pmid.replace('/', '_'), 'w') as outfile:
-    #     outfile.write(response.text.encode('utf-8'))
+    dirname = os.getcwd()
+    pmids = sys.argv[1:]
+    if not pmids:
+        pmids = ["32283633", "8142349", "7525970"]
+    for pmid in pmids:
+        data = fetch(pmid, dirname=dirname, timeout=10.0, debug=True)
+        print(json.dumps(data, indent=2, ensure_ascii=False))
