@@ -1,7 +1,8 @@
 "Crossref interface."
 
-from collections import OrderedDict
 import json
+import os.path
+import sys
 import time
 import unicodedata
 
@@ -13,28 +14,46 @@ DEFAULT_TIMEOUT = 5.0
 DEFAULT_DELAY = 0.5
 
 
-def fetch(doi, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY, debug=False):
-    "Fetch publication JSON data from Crossref and parse into a dictionary."
-    assert timeout > 0.0, 'timeout must be a positive value'
-    url = CROSSREF_FETCH_URL % doi
-    if delay > 0.0:
-        time.sleep(delay)
-    try:
+def fetch(doi, dirname=None, timeout=DEFAULT_TIMEOUT,
+          delay=DEFAULT_DELAY, debug=False):
+    """Fetch publication JSON data from Crossref and parse into a dictionary.
+    Raise IOError if no connection or timeout.
+    Use the file cache directory if given.
+    Delay the HTTP request if positive value (seconds).
+    """
+    filename = doi.replace("/", "_") + ".json"
+    data = None
+    if dirname:
+        try:
+            with open(os.path.join(dirname, filename)) as infile:
+                data = json.load(infile)
+        except IOError:
+            pass
+    if not data:
+        url = CROSSREF_FETCH_URL % doi
+        if delay > 0.0:
+            time.sleep(delay)
         if debug:
             print('url>', url)
-        response = requests.get(url, timeout=timeout)
-    except (requests.exceptions.ReadTimeout,
-            requests.exceptions.ConnectionError):
-        raise IOError('timeout')
-    if response.status_code != 200:
-        raise IOError("HTTP status %s, %s " % (response.status_code, url))
-    if debug:
-        print(json.dumps(response.json(), indent=2))
-    return parse(response.json())
+        try:
+            response = requests.get(url, timeout=timeout)
+        except (requests.exceptions.ReadTimeout,
+                requests.exceptions.ConnectionError):
+            raise IOError('timeout')
+        if response.status_code != 200:
+            raise IOError("HTTP status %s, %s " % (response.status_code, url))
+        data = response.json()
+        # Store the JSON file locally.
+        if dirname:
+            with open(os.path.join(dirname, filename), "w") as outfile:
+                outfile.write(json.dumps(data,
+                                         indent=2,
+                                         ensure_ascii=False))
+    return parse(data)
 
 def parse(data):
     "Parse JSON data for a publication into a dictionary."
-    result = OrderedDict()
+    result = dict()
     result['title']      = squish(get_title(data))
     result['doi']        = get_doi(data)
     result['pmid']       = get_pmid(data)
@@ -68,7 +87,7 @@ def get_authors(data):
     "Get the list of authors from the article JSON."
     result = []
     for item in data['message'].get('author', []):
-        author = OrderedDict()
+        author = dict()
         author['family'] = item.get('family')
         author['family_normalized'] = to_ascii(author['family']).lower()
         # Remove dots and dashes
@@ -79,15 +98,16 @@ def get_authors(data):
         author['initials'] = ''.join([n[0] for n in given.split()])
         author['initials_normalized'] = to_ascii(author['initials']).lower()
         try:
-            author['orcid'] = item['ORCID']
+            author["orcid"] = item["ORCID"].split("/")[-1]
         except KeyError:
             pass
+        author["affiliations"] = item.get("affiliation") or []
         result.append(author)
     return result
 
 def get_journal(data):
     "Get the journal data from the article JSON."
-    result = OrderedDict()
+    result = dict()
     try:
         result['title'] = ' '.join(data['message']['short-container-title'])
     except KeyError:
@@ -170,10 +190,10 @@ def test_fetch():
 
 
 if __name__ == '__main__':
-    doi = '10.1126/science.1260419'
-    url = CROSSREF_FETCH_URL % doi
-    response = requests.get(url, timeout=DEFAULT_TIMEOUT)
-    if response.status_code != 200:
-        raise IOError("HTTP status %s, %s " % (response.status_code, url))
-    with open('data/%s' % doi.replace('/', '_'), 'w') as outfile:
-        outfile.write(json.dumps(response.json(), indent=2))
+    dirname = os.getcwd()
+    dois = sys.argv[1:]
+    if not dois:
+        dois = ["10.1126/science.1260419"]
+    for doi in dois:
+        data = fetch(doi, dirname=dirname, debug=True)
+        print(json.dumps(data, indent=2, ensure_ascii=False))

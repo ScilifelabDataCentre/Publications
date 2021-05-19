@@ -29,7 +29,6 @@ def search(author=None, published=None, journal=None, doi=None,
     Delay the HTTP request if positive value (seconds).
     The API key is the one set for your NCBI account, if any.
     """
-    assert timeout > 0.0, 'timeout must be a positive value'
     parts = []
     if author:
         parts.append("%s[AU]" % to_ascii(str(author)))
@@ -71,7 +70,6 @@ def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
     Delay the HTTP request if positive value (seconds).
     The API key is the one set for your NCBI account, if any.
     """
-    assert timeout > 0.0, 'timeout must be a positive value'
     filename = pmid + '.xml'
     content = None
     # Get the locally stored XML file if it exists.
@@ -87,9 +85,9 @@ def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
             url += "&api_key=%s" % api_key
         if delay > 0.0:
             time.sleep(delay)
+        if debug:
+            print('url>', url)
         try:
-            if debug:
-                print('url>', url)
             response = requests.get(url, timeout=timeout)
         except (requests.exceptions.ReadTimeout,
                 requests.exceptions.ConnectionError):
@@ -97,8 +95,9 @@ def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
         if response.status_code != 200:
             raise IOError("HTTP status %s, %s " % (response.status_code, url))
         content = response.content
+        # Store the XML file locally.
         if dirname:
-            with open(os.path.join(dirname, filename), 'wb') as outfile:
+            with open(os.path.join(dirname, filename), "wb") as outfile:
                 outfile.write(content)
     return parse(content)
 
@@ -346,5 +345,5 @@ if __name__ == '__main__':
     if not pmids:
         pmids = ["32283633", "8142349", "7525970"]
     for pmid in pmids:
-        data = fetch(pmid, dirname=dirname, timeout=10.0, debug=True)
+        data = fetch(pmid, dirname=dirname, debug=True)
         print(json.dumps(data, indent=2, ensure_ascii=False))
