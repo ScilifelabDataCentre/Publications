@@ -10,6 +10,8 @@ A few useful scripts to be run from the command line can be found in
 the `publications/scrips` subdirectory.
 See [its README](https://github.com/pekrau/Publications/tree/master/publications/scripts).
 
+Requires Python 3.6 or higher.
+
 Features
 --------
 

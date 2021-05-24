@@ -1,0 +1,85 @@
+{# Add author manually page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}
+Add author manually
+{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-plus"></span>
+<span class="glyphicon glyphicon-edit"></span>
+Add author manually
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<form action="{{ reverse_url('author_add') }}"
+      role="form"
+      class="form-horizontal"
+      method="POST">
+  {% module xsrf_form_html() %}
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="family">Family name</label>
+    <div class="col-sm-6">
+      <input type="text" class="form-control"
+	     name="family" id="family">
+      <span class="help-block">
+        Required.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="given">Given name</label>
+    <div class="col-sm-6">
+      <input type="text" class="form-control"
+	     name="given" id="given">
+      <span class="help-block">
+        Given name. Add as many whole given names as known.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="initials">Initials</label>
+    <div class="col-sm-6">
+      <input type="text" class="form-control"
+	     name="initials" id="initials">
+      <span class="help-block">
+        Initials; blanks will be removed.
+        If not given, computed from the given name.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="orcid">ORCID</label>
+    <div class="col-sm-6">
+      <input type="text" class="form-control"
+	     name="orcid" id="orcid">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-3 col-md-offset-1">
+      <button type="submit" class="btn btn-success btn-block">
+	<span class="glyphicon glyphicon-save"></span>
+	Save
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<p>
+  <a href="{{ reverse_url('home') }}"
+     class="btn btn-default btn-block"
+     role="button">
+    <span class="glyphicon glyphicon-remove-circle"></span>
+    Cancel
+  </a>
+</p>
+{% end %} {# block meta_content #}

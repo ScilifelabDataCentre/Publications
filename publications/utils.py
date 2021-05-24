@@ -23,7 +23,7 @@ from . import designs
 from . import settings
 
 
-REV_ERROR = 'Has been edited by someone else. Cannot overwrite.'
+REV_ERROR = "Has been edited by someone else. Cannot overwrite."
 
 class NocaseDict(object):
     "Keys are compared ignoring case."
@@ -41,14 +41,19 @@ class NocaseDict(object):
         self.lower[key.lower()] = value
     def __str__(self):
         return str(dict([(k,self[k]) for k in self.keys()]))
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
 
 def get_command_line_parser(description=None):
     "Get the base command line argument parser."
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('-s', '--settings',
-                        action='store', dest='settings', default=None,
-                        metavar='FILE', help='filename of settings YAML file')
+    parser.add_argument("-s", "--settings",
+                        action="store", dest="settings", default=None,
+                        metavar="FILE", help="filename of settings YAML file")
     return parser
 
 def load_settings(filepath=None, ignore_logging_filepath=False):
@@ -65,12 +70,12 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
     if filepath:
         filepaths.append(filepath)
     try:
-        filepaths.append(os.environ['PUBLICATIONS_SETTINGS'])
+        filepaths.append(os.environ["PUBLICATIONS_SETTINGS"])
     except KeyError:
         pass
-    for filepath in ['settings.yaml', '../site/settings.yaml']:
+    for filepath in ["settings.yaml", "../site/settings.yaml"]:
         filepaths.append(
-            os.path.normpath(os.path.join(settings['ROOT'], filepath)))
+            os.path.normpath(os.path.join(settings["ROOT"], filepath)))
     for filepath in filepaths:
         try:
             with open(filepath) as infile:
@@ -78,65 +83,65 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
         except FileNotFoundError:
             pass
         else:
-            settings['SETTINGS_FILEPATH'] = filepath
+            settings["SETTINGS_FILEPATH"] = filepath
             break
     # Expand environment variables (ROOT, SITE_DIR) once and for all
     for key, value in list(settings.items()):
         if isinstance(value, str):
             settings[key] = expand_filepath(value)
     # Set logging state
-    if settings.get('LOGGING_DEBUG'):
+    if settings.get("LOGGING_DEBUG"):
         kwargs = dict(level=logging.DEBUG)
     else:
         kwargs = dict(level=logging.INFO)
     try:
-        kwargs['format'] = settings['LOGGING_FORMAT']
+        kwargs["format"] = settings["LOGGING_FORMAT"]
     except KeyError:
         pass
     if not ignore_logging_filepath:
         try:
-            kwargs['filename'] = settings['LOGGING_FILEPATH']
+            kwargs["filename"] = settings["LOGGING_FILEPATH"]
         except KeyError:
             pass
         else:
             try:
-                kwargs['filemode'] = settings['LOGGING_FILEMODE']
+                kwargs["filemode"] = settings["LOGGING_FILEMODE"]
             except KeyError:
                 pass
     logging.basicConfig(**kwargs)
-    logging.info("Publications version %s", publications.__version__)
-    logging.info("settings from %s", settings['SETTINGS_FILEPATH'])
-    if settings['LOGGING_DEBUG']:
-        logging.info('logging debug')
-    if settings['TORNADO_DEBUG']:
-        logging.info('tornado debug')
+    logging.info(f"Publications version {publications.__version__}")
+    logging.info(f"settings from {settings['SETTINGS_FILEPATH']}")
+    if settings["LOGGING_DEBUG"]:
+        logging.info("logging debug")
+    if settings["TORNADO_DEBUG"]:
+        logging.info("tornado debug")
     # Check settings
-    for key in ['BASE_URL', 'DATABASE_SERVER', 'DATABASE_NAME']:
+    for key in ["BASE_URL", "DATABASE_SERVER", "DATABASE_NAME"]:
         if key not in settings:
-            raise KeyError("No settings['{0}'] item.".format(key))
+            raise KeyError(f"No settings['{key}'] item.")
         if not settings[key]:
-            raise ValueError("settings['{0}'] has invalid value.".format(key))
-    if len(settings.get('COOKIE_SECRET') or '') < 10:
+            raise ValueError(f"settings['{key}'] has invalid value.")
+    if len(settings.get("COOKIE_SECRET") or "") < 10:
         raise ValueError("settings['COOKIE_SECRET'] not set, or too short.")
-    if len(settings.get('PASSWORD_SALT') or '') < 10:
+    if len(settings.get("PASSWORD_SALT") or "") < 10:
         raise ValueError("settings['PASSWORD_SALT'] not set, or too short.")
     # Settings computable from others
-    settings['DATABASE_SERVER_VERSION'] = get_dbserver().version()
-    if 'PORT' not in settings:
-        parts = urllib.parse.urlparse(settings['BASE_URL'])
-        items = parts.netloc.split(':')
+    settings["DATABASE_SERVER_VERSION"] = get_dbserver().version()
+    if "PORT" not in settings:
+        parts = urllib.parse.urlparse(settings["BASE_URL"])
+        items = parts.netloc.split(":")
         if len(items) == 2:
-            settings['PORT'] = int(items[1])
-        elif parts.scheme == 'http':
-            settings['PORT'] =  80
-        elif parts.scheme == 'https':
-            settings['PORT'] =  443
+            settings["PORT"] = int(items[1])
+        elif parts.scheme == "http":
+            settings["PORT"] =  80
+        elif parts.scheme == "https":
+            settings["PORT"] =  443
         else:
-            raise ValueError('Could not determine port from BASE_URL.')
+            raise ValueError("Could not determine port from BASE_URL.")
     # Use caseless dictionary for the xref templates URLs
-    settings['XREF_TEMPLATE_URLS'] = NocaseDict(settings['XREF_TEMPLATE_URLS'])
+    settings["XREF_TEMPLATE_URLS"] = NocaseDict(settings["XREF_TEMPLATE_URLS"])
     # Set the hard-wired URL xref
-    settings['XREF_TEMPLATE_URLS']['URL'] = '%s'
+    settings["XREF_TEMPLATE_URLS"]["URL"] = "%s"
 
 def expand_filepath(filepath):
     "Expand environment variables (ROOT and SITE_DIR) in filepaths."
@@ -145,17 +150,17 @@ def expand_filepath(filepath):
     while filepath != old:
         old = filepath
         try:
-            filepath = filepath.replace('{SITE_DIR}', settings['SITE_DIR'])
+            filepath = filepath.replace("{SITE_DIR}", settings["SITE_DIR"])
         except KeyError:
             pass
-        filepath = filepath.replace('{ROOT}', settings['ROOT'])
+        filepath = filepath.replace("{ROOT}", settings["ROOT"])
     return filepath
 
 def get_dbserver():
-    server = couchdb.Server(settings['DATABASE_SERVER'])
-    if settings.get('DATABASE_ACCOUNT') and settings.get('DATABASE_PASSWORD'):
-        server.resource.credentials = (settings.get('DATABASE_ACCOUNT'),
-                                       settings.get('DATABASE_PASSWORD'))
+    server = couchdb.Server(settings["DATABASE_SERVER"])
+    if settings.get("DATABASE_ACCOUNT") and settings.get("DATABASE_PASSWORD"):
+        server.resource.credentials = (settings.get("DATABASE_ACCOUNT"),
+                                       settings.get("DATABASE_PASSWORD"))
     return server
 
 def get_db():
@@ -163,11 +168,11 @@ def get_db():
     The named database must exist.
     """
     server = get_dbserver()
-    name = settings['DATABASE_NAME']
+    name = settings["DATABASE_NAME"]
     try:
         return server[name]
     except couchdb.http.ResourceNotFound:
-        raise KeyError("CouchDB database '%s' does not exist." % name)
+        raise KeyError(f"CouchDB database '{name}' does not exist.")
 
 def initialize(db=None):
     "Load the design documents, or update."
@@ -187,7 +192,7 @@ def get_doc(db, key, viewname=None):
     else:
         result = list(db.view(viewname, include_docs=True, reduce=False)[key])
         if len(result) != 1:
-            raise KeyError("%i items found" % len(result))
+            raise KeyError(f"{len(result)} items found")
         return result[0].doc
 
 def get_docs(db, viewname, key=None, last=None, **kwargs):
@@ -208,11 +213,11 @@ def get_account(db, email):
     Raise KeyError if no such account.
     """
     try:
-        doc = get_doc(db, email.strip().lower(), 'account/email')
+        doc = get_doc(db, email.strip().lower(), "account/email")
     except KeyError:
-        raise KeyError("no such account %s" % email)
+        raise KeyError(f"no such account '{email}'")
     if doc[constants.DOCTYPE] != constants.ACCOUNT:
-        raise KeyError("document %s is not an account" % email)
+        raise KeyError(f"document '{email}' is not an account")
     return doc
 
 def get_publication(db, identifier):
@@ -225,33 +230,50 @@ def get_publication(db, identifier):
         doc = get_doc(db, identifier)
     except KeyError:
         doc = None
-        for viewname in ['publication/doi', 'publication/pmid']:
+        for viewname in ["publication/doi", "publication/pmid"]:
             try:
                 doc = get_doc(db, identifier, viewname=viewname)
                 break
             except KeyError:
                 pass
         else:
-            raise KeyError(f"no such publication {identifier}")
+            raise KeyError(f"no such publication '{identifier}'.")
     if doc[constants.DOCTYPE] != constants.PUBLICATION:
-        raise KeyError(f"document {identifier} is not a publication")
+        raise KeyError(f"Document {identifier} is not a publication.")
+    return doc
+
+def get_author(db, identifier):
+    """Get the author entity given its IUID or ORCID.
+    Raise KeyError if no such author.
+    """
+    if not identifier: raise KeyError
+    identifier = identifier.lower()
+    try:
+        doc = get_doc(db, identifier)
+    except KeyError:
+        try:
+            doc = get_doc(db, identifier, viewname="author/orcid")
+        except KeyError:
+            raise KeyError(f"no such author '{identifier}'.")
+    if doc[constants.DOCTYPE] != constants.AUTHOR:
+        raise KeyError(f"Document {identifier} is not a author.")
     return doc
 
 def get_label(db, identifier):
     """Get the label document by its IUID or value.
     Raise KeyError if no such label.
     """
-    if not identifier: raise KeyError('no identifier provided')
+    if not identifier: raise KeyError("no identifier provided")
     try:
         doc = get_doc(db, identifier)
     except KeyError:
         identifier = to_ascii(identifier).lower()
         try:
-            doc = get_doc(db, identifier, 'label/normalized_value')
+            doc = get_doc(db, identifier, "label/normalized_value")
         except KeyError:
-            raise KeyError("no such label '%s'" % identifier)
+            raise KeyError(f"no such label '{identifier}'")
     if doc[constants.DOCTYPE] != constants.LABEL:
-        raise KeyError("wrong document type '%s'", doc[constants.DOCTYPE])
+        raise KeyError(f"wrong document type '{doc[constants.DOCTYPE]}'")
     return doc
 
 def get_blacklisted(db, identifier):
@@ -259,7 +281,7 @@ def get_blacklisted(db, identifier):
     the external identifier has been blacklisted.
     """
     if not identifier: return None
-    for viewname in ['blacklist/doi', 'blacklist/pmid']:
+    for viewname in ["blacklist/doi", "blacklist/pmid"]:
         try:
             return get_doc(db, identifier, viewname)
         except KeyError:
@@ -272,16 +294,16 @@ def get_iuid():
 
 def hashed_password(password):
     "Return the password in hashed form."
-    sha256 = hashlib.sha256(settings['PASSWORD_SALT'].encode('utf-8'))
-    sha256.update(password.encode('utf-8'))
+    sha256 = hashlib.sha256(settings["PASSWORD_SALT"].encode("utf-8"))
+    sha256.update(password.encode("utf-8"))
     return sha256.hexdigest()
 
 def check_password(password):
     """Check that the password is long and complex enough.
     Raise ValueError otherwise."""
-    if len(password) < settings['MIN_PASSWORD_LENGTH']:
+    if len(password) < settings["MIN_PASSWORD_LENGTH"]:
         raise ValueError("Password must be at least {0} characters.".
-                         format(settings['MIN_PASSWORD_LENGTH']))
+                         format(settings["MIN_PASSWORD_LENGTH"]))
 
 def timestamp(days=None):
     """Current date and time (UTC) in ISO format, with millisecond precision.
@@ -298,7 +320,7 @@ def epoch_to_iso(epoch):
     to date and time in ISO format.
     """
     dt = datetime.datetime.fromtimestamp(float(epoch))
-    return dt.isoformat() + 'Z'
+    return dt.isoformat() + "Z"
 
 def today(days=None):
     """Current date (UTC) in ISO format.
@@ -308,7 +330,7 @@ def today(days=None):
     if days:
         instant += datetime.timedelta(days=days)
     result = instant.isoformat()
-    return result[:result.index('T')]
+    return result[:result.index("T")]
 
 def to_date(value):
     """Convert value to proper ISO format date.
@@ -318,7 +340,7 @@ def to_date(value):
     if not value:
         return today()
     result = []
-    parts = value.split('-')
+    parts = value.split("-")
     try:
         year = int(parts[0])
         try:
@@ -334,22 +356,22 @@ def to_date(value):
         except IndexError:
             day = 0
     except (TypeError, ValueError):
-        raise ValueError("invalid date '%s'" % value)
+        raise ValueError(f"invalid date '{value}'")
     return "%s-%02i-%02i" % (year, month, day)
 
 def years():
     "Return a list of years from the first year to the current."
-    return list(range(settings['FIRST_YEAR'], int(today().split('-')[0]) + 1))
+    return list(range(settings["FIRST_YEAR"], int(today().split("-")[0]) + 1))
 
 def to_ascii(value):
     "Convert any non-ASCII character to its closest ASCII equivalent."
-    if value is None: return ''
-    value = unicodedata.normalize('NFKD', str(value))
-    return u''.join([c for c in value if not unicodedata.combining(c)])
+    if value is None: return ""
+    value = unicodedata.normalize("NFKD", str(value))
+    return u"".join([c for c in value if not unicodedata.combining(c)])
 
 def squish(value):
     "Remove all unnecessary white spaces."
-    return ' '.join([p for p in value.split() if p])
+    return " ".join([p for p in value.split() if p])
 
 def to_bool(value):
     "Convert the value into a boolean, interpreting various string values."
@@ -358,7 +380,7 @@ def to_bool(value):
     lowvalue = value.lower()
     if lowvalue in constants.TRUE: return True
     if lowvalue in constants.FALSE: return False
-    raise ValueError("invalid boolean: '{}'".format(value))
+    raise ValueError("invalid boolean: '{value}'")
 
 def strip_prefix(value):
     "Strip any prefix from the string value."
@@ -372,15 +394,15 @@ def strip_prefix(value):
 def get_formatted_authors(authors, complete=False):
     "Get formatted list of authors; numbers in settings, or complete."
     if complete or len(authors) <= settings['NUMBER_FIRST_AUTHORS'] + settings['NUMBER_LAST_AUTHORS']:
-        result = ["%s %s" % (a['family'], a.get('initials') or '')
+        result = ["%s %s" % (a["family"], a.get("initials") or "")
                   for a in authors]
     else:
-        result = ["%s %s" % (a['family'], a.get('initials') or '')
-                  for a in authors[:settings['NUMBER_FIRST_AUTHORS']]]
-        result.append('...')
-        result.extend(["%s %s" % (a['family'], a.get('initials') or '')
-                       for a in authors[-settings['NUMBER_LAST_AUTHORS']:]])
-    return ', '.join(result)
+        result = ["%s %s" % (a["family"], a.get("initials") or "")
+                  for a in authors[:settings["NUMBER_FIRST_AUTHORS"]]]
+        result.append("...")
+        result.extend(["%s %s" % (a["family"], a.get("initials") or "")
+                       for a in authors[-settings["NUMBER_LAST_AUTHORS"]:]])
+    return ", ".join(result)
 
 
 class EmailServer(object):
@@ -390,25 +412,25 @@ class EmailServer(object):
         """Open the connection to the email server.
         Raise ValueError if no email server host has been defined.
         """
-        host = settings['EMAIL']['HOST']
+        host = settings["EMAIL"]["HOST"]
         if not host:
-            raise ValueError('no email server host defined')
-        port = settings['EMAIL'].get('PORT', 0)
-        if settings['EMAIL'].get('SSL'):
+            raise ValueError("no email server host defined")
+        port = settings["EMAIL"].get("PORT", 0)
+        if settings["EMAIL"].get("SSL"):
             self.server = smtplib.SMTP_SSL(host, port=port)
         else:
             self.server = smtplib.SMTP(host, port=port)
-            if settings['EMAIL'].get('TLS'):
+            if settings["EMAIL"].get("TLS"):
                 self.server.starttls()
         self.server.ehlo()
         try:
-            user = settings['EMAIL']['USER']
-            password = settings['EMAIL']['PASSWORD']
+            user = settings["EMAIL"]["USER"]
+            password = settings["EMAIL"]["PASSWORD"]
         except KeyError:
             pass
         else:
             self.server.login(user, password)
-        self.email = settings.get('SITE_EMAIL') or settings['EMAIL']['SENDER']
+        self.email = settings.get("SITE_EMAIL") or settings["EMAIL"]["SENDER"]
 
     def __del__(self):
         "Close the connection to the email server."
@@ -419,8 +441,8 @@ class EmailServer(object):
 
     def send(self, recipient, subject, text):
         "Send an email."
-        mail = email.mime.text.MIMEText(text, 'plain', 'utf-8')
-        mail['Subject'] = subject
-        mail['From'] = self.email
-        mail['To'] = recipient
+        mail = email.mime.text.MIMEText(text, "plain", "utf-8")
+        mail["Subject"] = subject
+        mail["From"] = self.email
+        mail["To"] = recipient
         self.server.sendmail(self.email, [recipient], mail.as_string())

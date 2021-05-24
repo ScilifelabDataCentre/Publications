@@ -266,6 +266,19 @@ function (doc) {
   }
 }"""),
     ),
+
+    author=dict(
+        orcid=dict(map=         # author/orcid
+"""function (doc) {
+  if (doc.publications_doctype !== 'author') return;
+  if (doc.orcid) emit(doc.orcid, doc.family + ' ' + doc.initials);
+}"""),
+        family=dict(map=        # author/family
+"""function (doc) {
+  if (doc.publications_doctype !== 'author') return;
+  emit(doc.family_normalized, doc.family + ' ' + doc.initials);
+}"""),
+    ),
 )
 
 

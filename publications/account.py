@@ -40,40 +40,40 @@ Or, go to %(url)s and fill in the one-time code %(code)s manually and provide yo
 /The %(site)s administrator.
 """
 
-EMAIL_ERROR = 'Could not send email! Contact the administrator.'
+EMAIL_ERROR = "Could not send email! Contact the administrator."
 
 
 class AccountSaver(Saver):
     doctype = constants.ACCOUNT
 
     def set_email(self, email):
-        assert self.get('email') is None # Email must not have been set.
+        assert self.get("email") is None # Email must not have been set.
         email = email.strip().lower()
-        if not email: raise ValueError('No email given.')
+        if not email: raise ValueError("No email given.")
         if not constants.EMAIL_RX.match(email):
-            raise ValueError('Malformed email value.')
-        if len(list(self.db.view('account/email', key=email))) > 0:
-            raise ValueError('Email is already in use.')
-        self['email'] = email
+            raise ValueError("Malformed email value.")
+        if len(list(self.db.view("account/email", key=email))) > 0:
+            raise ValueError("Email is already in use.")
+        self["email"] = email
 
     def erase_password(self):
-        self['password'] = None
+        self["password"] = None
 
     def set_password(self, new):
         utils.check_password(new)
-        self['code'] = None
+        self["code"] = None
         # Bypass ordinary 'set'; avoid logging password.
-        self.doc['password'] = utils.hashed_password(new)
-        self.changed['password'] = '******'
+        self.doc["password"] = utils.hashed_password(new)
+        self.changed["password"] = "******"
 
     def reset_password(self):
         "Invalidate any previous password and set activation code."
         self.erase_password()
-        self['code'] = utils.get_iuid()
+        self["code"] = utils.get_iuid()
 
     def renew_api_key(self):
         "Set a new API key."
-        self['api_key'] = utils.get_iuid()
+        self["api_key"] = utils.get_iuid()
 
 
 class AccountMixin(object):
@@ -88,7 +88,7 @@ class AccountMixin(object):
     def check_readable(self, account):
         "Check that the account is readable by the current user."
         if self.is_readable(account): return
-        raise ValueError('You may not read the account.')
+        raise ValueError("You may not read the account.")
 
     def is_editable(self, account):
         "Is the account editable by the current user?"
@@ -99,7 +99,7 @@ class AccountMixin(object):
     def check_editable(self, account):
         "Check that the account is editable by the current user."
         if self.is_editable(account): return
-        raise ValueError('You may not edit the account.')
+        raise ValueError("You may not edit the account.")
 
 
 class Account(AccountMixin, RequestHandler):
@@ -112,16 +112,16 @@ class Account(AccountMixin, RequestHandler):
             self.check_readable(account)
         except (KeyError, ValueError) as error:
             self.set_error_flash(str(error))
-            self.see_other('home')
+            self.see_other("home")
             return
-        self.render('account.html', account=account)
+        self.render("account.html", account=account)
 
 
 class AccountJson(Account):
     "Account JSON data."
 
     def render(self, template, **kwargs):
-        self.write(self.get_account_json(kwargs['account'], full=True))
+        self.write(self.get_account_json(kwargs["account"], full=True))
 
 
 class Accounts(RequestHandler):
@@ -130,8 +130,8 @@ class Accounts(RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        accounts = self.get_docs('account/email')
-        self.render('accounts.html', accounts=accounts)
+        accounts = self.get_docs("account/email")
+        self.render("accounts.html", accounts=accounts)
 
 
 class AccountsJson(Accounts):
@@ -139,12 +139,12 @@ class AccountsJson(Accounts):
 
     def render(self, template, **kwargs):
         URL = self.absolute_reverse_url
-        accounts = kwargs['accounts']
+        accounts = kwargs["accounts"]
         result = OD()
-        result['entity'] = 'accounts'
-        result['timestamp'] = utils.timestamp()
-        result['accounts_count'] = len(accounts)
-        result['accounts'] = [self.get_account_json(account, full=True)
+        result["entity"] = "accounts"
+        result["timestamp"] = utils.timestamp()
+        result["accounts_count"] = len(accounts)
+        result["accounts"] = [self.get_account_json(account, full=True)
                                   for account in accounts]
         self.write(result)
 
@@ -155,63 +155,63 @@ class AccountAdd(RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        self.render('account_add.html',
-                    all_labels=[l['value'] for l in
-                                self.get_docs('label/value')])
+        self.render("account_add.html",
+                    all_labels=[l["value"] for l in
+                                self.get_docs("label/value")])
 
     @tornado.web.authenticated
     def post(self):
         self.check_admin()
         try:
-            email = self.get_argument('account')
+            email = self.get_argument("account")
         except tornado.web.MissingArgumentError:
-            self.set_error_flash('No account email provided.')
-            self.see_other('account_add')
+            self.set_error_flash("No account email provided.")
+            self.see_other("account_add")
             return
         try:
             account = self.get_account(email)
         except KeyError:
             pass
         else:
-            self.set_error_flash('Account already exists.')
-            self.see_other('account', account['email'])
+            self.set_error_flash("Account already exists.")
+            self.see_other("account", account["email"])
             return
-        role = self.get_argument('role', constants.CURATOR)
+        role = self.get_argument("role", constants.CURATOR)
         if role not in constants.ROLES:
             role = constants.CURATOR
         try:
             with AccountSaver(rqh=self) as saver:
                 saver.set_email(email)
-                saver['owner'] = email
-                saver['name'] = self.get_argument('name', None)
-                saver['role'] = role
-                labels = set([l['value'] for l in self.get_docs('label/value')])
-                saver['labels'] = sorted(l for l in self.get_arguments('labels')
+                saver["owner"] = email
+                saver["name"] = self.get_argument("name", None)
+                saver["role"] = role
+                labels = set([l["value"] for l in self.get_docs("label/value")])
+                saver["labels"] = sorted(l for l in self.get_arguments("labels")
                                          if l in labels)
                 saver.reset_password()
             account = saver.doc
         except ValueError as error:
             self.set_error_flash(str(error))
-            self.see_other('account_add')
+            self.see_other("account_add")
             return
-        if self.get_argument('email', False):
-            data = dict(site=settings['SITE_NAME'],
-                        site_url=self.absolute_reverse_url('home'),
-                        email=account['email'],
-                        code=account['code'],
-                        url=self.absolute_reverse_url('account_password'),
-                        link=self.absolute_reverse_url('account_password',
-                                                       account=account['email'],
-                                                       code=account['code']))
+        if self.get_argument("email", False):
+            data = dict(site=settings["SITE_NAME"],
+                        site_url=self.absolute_reverse_url("home"),
+                        email=account["email"],
+                        code=account["code"],
+                        url=self.absolute_reverse_url("account_password"),
+                        link=self.absolute_reverse_url("account_password",
+                                                       account=account["email"],
+                                                       code=account["code"]))
             try:
                 server = utils.EmailServer()
             except ValueError:
-                self.set_error_flash('Could not send email to user!')
+                self.set_error_flash("Could not send email to user!")
             else:
-                server.send(account['email'],
-                            ADD_TITLE % settings['SITE_NAME'],
+                server.send(account["email"],
+                            ADD_TITLE % settings["SITE_NAME"],
                             ADD_TEXT % data)
-        self.see_other('account', email)
+        self.see_other("account", email)
 
 
 class AccountEdit(AccountMixin, RequestHandler):
@@ -223,21 +223,21 @@ class AccountEdit(AccountMixin, RequestHandler):
             account = self.get_account(email)
         except KeyError as error:
             self.set_error_flash(str(error))
-            self.see_other('home')
+            self.see_other("home")
             return
         try:
             self.check_editable(account)
         except ValueError as error:
             self.set_error_flash(str(error))
-            self.see_other('account', account['email'])
+            self.see_other("account", account["email"])
             return
         if self.is_admin():
-            self.render('account_edit.html',
+            self.render("account_edit.html",
                         account=account,
-                        labels=[l['value'] for l in
-                                self.get_docs('label/value')])
+                        labels=[l["value"] for l in
+                                self.get_docs("label/value")])
         else:
-            self.render('account_edit.html', account=account)
+            self.render("account_edit.html", account=account)
 
     @tornado.web.authenticated
     def post(self, email):
@@ -245,29 +245,29 @@ class AccountEdit(AccountMixin, RequestHandler):
             account = self.get_account(email)
         except KeyError as error:
             self.set_error_flash(str(error))
-            self.see_other('home')
+            self.see_other("home")
             return
         try:
             self.check_editable(account)
         except ValueError as error:
             self.set_error_flash(str(error))
-            self.see_other('account', account['email'])
+            self.see_other("account", account["email"])
             return
         try:
             with AccountSaver(account, rqh=self) as saver:
                 if self.is_admin():
-                    saver['role'] = self.get_argument('role', account['role'])
-                    labels = set([l['value'] for l in
-                                  self.get_docs('label/value')])
-                    saver['labels'] = sorted(l for l
-                                             in self.get_arguments('labels')
+                    saver["role"] = self.get_argument("role", account["role"])
+                    labels = set([l["value"] for l in
+                                  self.get_docs("label/value")])
+                    saver["labels"] = sorted(l for l
+                                             in self.get_arguments("labels")
                                              if l in labels)
-                saver['name'] = self.get_argument('name', None)
-                if self.get_argument('api_key', None):
+                saver["name"] = self.get_argument("name", None)
+                if self.get_argument("api_key", None):
                     saver.renew_api_key()
         except SaverError:
             self.set_error_flash(utils.REV_ERROR)
-        self.see_other('account', account['email'])
+        self.see_other("account", account["email"])
 
 
 class AccountReset(RequestHandler):
@@ -275,55 +275,54 @@ class AccountReset(RequestHandler):
 
     def get(self):
         if self.is_admin():
-            account = self.get_argument('account', self.current_user['email'])
+            account = self.get_argument("account", self.current_user["email"])
         elif self.current_user:
-            account = self.current_user['email']
+            account = self.current_user["email"]
         else:
             account = None
-        if settings['EMAIL']['HOST']:
-            self.render('account_reset.html', account=account)
+        if settings["EMAIL"]["HOST"]:
+            self.render("account_reset.html", account=account)
         else:
-            self.set_error_flash('Cannot reset password since'
-                                 ' no email server configuration.')
-            self.see_other('home')
+            self.set_error_flash("Cannot reset password since"
+                                 " no email server configuration.")
+            self.see_other("home")
 
     def post(self):
         try:
-            email = self.get_argument('account')
+            email = self.get_argument("account")
         except tornado.web.MissingArgumentError:
-            self.see_other('home')
+            self.see_other("home")
             return
         try:
             account = self.get_account(email)
         except KeyError:
-            self.see_other('home')
+            self.see_other("home")
             return
         # Check if disabled
-        if account.get('disabled'):
+        if account.get("disabled"):
             if self.is_admin():
-                self.set_error_flash('Account is disabled.')
-            self.see_other('home')
+                self.set_error_flash("Account is disabled.")
+            self.see_other("home")
             return
         with AccountSaver(account, rqh=self) as saver:
             saver.reset_password()
-        data = dict(site=settings['SITE_NAME'],
-                    site_url=self.absolute_reverse_url('home'),
-                    email=account['email'],
-                    code=account['code'],
-                    url=self.absolute_reverse_url('account_password'),
-                    link=self.absolute_reverse_url('account_password',
-                                                   account=account['email'],
-                                                   code=account['code']))
+        data = dict(site=settings["SITE_NAME"],
+                    site_url=self.absolute_reverse_url("home"),
+                    email=account["email"],
+                    code=account["code"],
+                    url=self.absolute_reverse_url("account_password"),
+                    link=self.absolute_reverse_url("account_password",
+                                                   account=account["email"],
+                                                   code=account["code"]))
         try:
             server = utils.EmailServer()
         except ValueError:
             self.set_error_flash(EMAIL_ERROR)
         else:
-            server.send(account['email'],
-                       "Reset your password in website %s" 
-                        % settings['SITE_NAME'],
+            server.send(account["email"],
+                        f"Reset your password in website {settings['SITE_NAME']}",
                         RESET_TEXT % data)
-        self.see_other('home')
+        self.see_other("home")
 
 
 class AccountPassword(RequestHandler):
@@ -332,17 +331,17 @@ class AccountPassword(RequestHandler):
     """
 
     def get(self):
-        self.render('account_password.html',
-                    email=self.get_argument('account', ''),
-                    code=self.get_argument('code', ''))
+        self.render("account_password.html",
+                    email=self.get_argument("account", ""),
+                    code=self.get_argument("code", ""))
 
     def post(self):
         try:
-            email = self.get_argument('account')
-            password = self.get_argument('password')
-            code = self.get_argument('code', '')
+            email = self.get_argument("account")
+            password = self.get_argument("password")
+            code = self.get_argument("code", "")
             account = self.get_account(email)
-            if not self.is_admin() and code != account.get('code'):
+            if not self.is_admin() and code != account.get("code"):
                 raise ValueError
             with AccountSaver(account, rqh=self) as saver:
                 saver.set_password(password)
@@ -350,14 +349,14 @@ class AccountPassword(RequestHandler):
                 if not self.current_user:
                     self.set_secure_cookie(
                         constants.USER_COOKIE,
-                        account['email'],
-                        expires_days=settings['LOGIN_MAX_AGE_DAYS'])
-                    saver['login'] = utils.timestamp()
+                        account["email"],
+                        expires_days=settings["LOGIN_MAX_AGE_DAYS"])
+                    saver["login"] = utils.timestamp()
         except (tornado.web.MissingArgumentError, KeyError, ValueError):
-            self.set_error_flash('Missing or wrong data in field(s).')
-            self.see_other('account_password')
+            self.set_error_flash("Missing or wrong data in field(s).")
+            self.see_other("account_password")
         else:
-            self.see_other('account', account['email'])
+            self.see_other("account", account["email"])
 
 
 class AccountDisable(RequestHandler):
@@ -366,22 +365,22 @@ class AccountDisable(RequestHandler):
     @tornado.web.authenticated
     def post(self, email):
         if not self.is_admin():
-            self.set_error_flash('Only admin may disable an account.')
-            self.see_other('home')
+            self.set_error_flash("Only admin may disable an account.")
+            self.see_other("home")
             return
         try:
             account = self.get_account(email)
         except KeyError as error:
             self.set_error_flash(str(error))
-            self.see_other('home')
+            self.see_other("home")
             return
         if account == self.current_user:
-            self.set_error_flash('May not disable self.')
-            self.see_other('home')
+            self.set_error_flash("May not disable self.")
+            self.see_other("home")
             return
         with AccountSaver(account, rqh=self) as saver:
-            saver['disabled'] = True
-        self.see_other('account', email)
+            saver["disabled"] = True
+        self.see_other("account", email)
 
 
 class AccountEnable(RequestHandler):
@@ -390,33 +389,32 @@ class AccountEnable(RequestHandler):
     @tornado.web.authenticated
     def post(self, email):
         if not self.is_admin():
-            self.set_error_flash('Only admin may enable an account.')
-            self.see_other('home')
+            self.set_error_flash("Only admin may enable an account.")
+            self.see_other("home")
             return
         try:
             account = self.get_account(email)
         except KeyError as error:
             self.set_error_flash(str(error))
-            self.see_other('home')
+            self.see_other("home")
             return
         with AccountSaver(account, rqh=self) as saver:
-            del saver['disabled']
+            del saver["disabled"]
             saver.reset_password()
-        data = dict(site=settings['SITE_NAME'],
-                    site_url=self.absolute_reverse_url('home'),
-                    email=account['email'],
-                    code=account['code'],
-                    url=self.absolute_reverse_url('account_password'),
-                    link=self.absolute_reverse_url('account_password',
-                                                   account=account['email'],
-                                                   code=account['code']))
+        data = dict(site=settings["SITE_NAME"],
+                    site_url=self.absolute_reverse_url("home"),
+                    email=account["email"],
+                    code=account["code"],
+                    url=self.absolute_reverse_url("account_password"),
+                    link=self.absolute_reverse_url("account_password",
+                                                   account=account["email"],
+                                                   code=account["code"]))
         try:
             server = utils.EmailServer()
         except ValueError:
             self.set_error_flash(EMAIL_ERROR)
         else:
-            server.send(account['email'],
-                       "Enabled your account in website %s" 
-                        % settings['SITE_NAME'],
-                       ENABLED_TEXT % data)
-        self.see_other('account', email)
+            server.send(account["email"],
+                        f"Enabled your account in website {settings['SITE_NAME']}",
+                        ENABLED_TEXT % data)
+        self.see_other("account", email)

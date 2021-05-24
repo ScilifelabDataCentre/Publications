@@ -142,6 +142,7 @@ def get_authors(article):
     "Get the list of authors from the article XML tree."
     element = get_element(article, 'MedlineCitation/Article')
     authorlist = element.find('AuthorList')
+    if not authorlist: return []
     result = []
     existing = set()                # Handle pathological multi-mention.
     for element in authorlist.findall('Author'):

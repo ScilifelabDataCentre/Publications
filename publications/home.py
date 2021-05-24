@@ -13,20 +13,20 @@ class Home(RequestHandler):
     "Home page."
 
     def get(self):
-        limit = self.get_limit(settings['SHORT_PUBLICATIONS_LIST_LIMIT'])
-        docs = self.get_docs('publication/first_published',
+        limit = self.get_limit(settings["SHORT_PUBLICATIONS_LIST_LIMIT"])
+        docs = self.get_docs("publication/first_published",
                              key=constants.CEILING,
-                             last='',
+                             last="",
                              descending=True,
                              limit=limit)
-        self.render('home.html', publications=docs, limit=limit)
+        self.render("home.html", publications=docs, limit=limit)
 
 
 class Contact(RequestHandler):
     "Contact page."
 
     def get(self):
-        self.render('contact.html', contact=settings['SITE_CONTACT'])
+        self.render("contact.html", contact=settings["SITE_CONTACT"])
 
 
 class Settings(RequestHandler):
@@ -36,12 +36,12 @@ class Settings(RequestHandler):
     def get(self):
         self.check_admin()
         cleaned = settings.copy()
-        for key in ['PASSWORD_SALT', 'COOKIE_SECRET', 'DATABASE_PASSWORD']:
+        for key in ["PASSWORD_SALT", "COOKIE_SECRET", "DATABASE_PASSWORD"]:
             if key in cleaned:
-                cleaned[key] = '****'
-        if 'PASSWORD' in cleaned.get('EMAIL', {}):
-            cleaned['EMAIL']['PASSWORD'] = '****'
-        self.render('settings.html', cleaned_settings=sorted(cleaned.items()))
+                cleaned[key] = "****"
+        if "PASSWORD" in cleaned.get("EMAIL", {}):
+            cleaned["EMAIL"]["PASSWORD"] = "****"
+        self.render("settings.html", cleaned_settings=sorted(cleaned.items()))
 
 
 class Status(RequestHandler):
