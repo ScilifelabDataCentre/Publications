@@ -41,7 +41,7 @@ def fetch(doi, dirname=None, timeout=DEFAULT_TIMEOUT,
                 requests.exceptions.ConnectionError):
             raise IOError('timeout')
         if response.status_code != 200:
-            raise IOError("HTTP status %s, %s " % (response.status_code, url))
+            raise IOError(f"HTTP status {response.status_code} {url}")
         data = response.json()
         # Store the JSON file locally.
         if dirname:

@@ -1,0 +1,50 @@
+{# Researcher page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}{{ researcher['family'] }} {{ researcher['initials'] }}{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-user"></span>
+{{ researcher['family'] }} {{ researcher['initials'] }}
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<table class="table">
+  <tr>
+    <th>Family name</th>
+    <td>{{ researcher['family'] }}</td>
+  </tr>
+  <tr>
+    <th>Given name</th>
+    <td>{{ researcher['given'] }}</td>
+  </tr>
+  <tr>
+    <th>Initials</th>
+    <td>{{ researcher['initials'] }}</td>
+  </tr>
+  <tr>
+    <th>ORCID</th>
+    <td>
+      {% if researcher['orcid'] and settings['XREF_TEMPLATE_URLS'].get('ORCID') %}
+      <a href="{{ settings['XREF_TEMPLATE_URLS']['ORCID'] % researcher['orcid'] }}"
+         target="_blank">{{ researcher['orcid'] }}</a>
+      {% else %}
+      {{ researcher['orcid'] or '-' }}
+      {% end %}
+    </td>
+  </tr>
+  <tr>
+    <th>Affiliations</th>
+    <td>
+      {% for aff in researcher.get('affiliations', []) %}
+      {{ aff }}<br>
+      {% end %}
+    </td>
+  </tr>
+  <tr>
+    <th>IUID</th>
+    <td>{{ researcher['_id'] }}</td>
+  </tr>
+</table>
+{% end %} {# block main_content #}

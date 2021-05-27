@@ -47,7 +47,7 @@ def search(author=None, published=None, journal=None, doi=None,
         query += " NOT %s[TI]" % to_ascii(str(exclude_title))
     url = PUBMED_SEARCH_URL % (retmax, query)
     if api_key:
-        url += "&api_key=%s" % api_key
+        url += f"&api_key={api_key}"
     if delay > 0.0:
         time.sleep(delay)
     try:
@@ -58,7 +58,7 @@ def search(author=None, published=None, journal=None, doi=None,
             requests.exceptions.ConnectionError):
         raise IOError('timeout')
     if response.status_code != 200:
-        raise IOError("HTTP status %s, %s " % (response.status_code, url))
+        raise IOError(f"HTTP status {response.status_code} {url}")
     root = xml.etree.ElementTree.fromstring(response.content)
     return [e.text for e in root.findall('IdList/Id')]
 
@@ -82,7 +82,7 @@ def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
     if not content:
         url = PUBMED_FETCH_URL % pmid
         if api_key:
-            url += "&api_key=%s" % api_key
+            url += f"&api_key={api_key}"
         if delay > 0.0:
             time.sleep(delay)
         if debug:
@@ -93,7 +93,7 @@ def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
                 requests.exceptions.ConnectionError):
             raise IOError('timeout')
         if response.status_code != 200:
-            raise IOError("HTTP status %s, %s " % (response.status_code, url))
+            raise IOError(f"HTTP status {response.status_code} {url}")
         content = response.content
         # Store the XML file locally.
         if dirname:
@@ -176,8 +176,8 @@ def get_authors(article):
         for elem in element.findall(".//Affiliation"):
             author.setdefault("affiliations", []).append(get_text(elem))
         if author:
-            try:                    # Give up if this doesn't work.
-                key = "%(family)s %(given)s" % author
+            try:                    # Don't add author if this doesn't work.
+                key = f"{author['family']} {author['given']}"
                 if key not in existing:
                     result.append(author)
                     existing.add(key)
@@ -292,7 +292,7 @@ def get_xrefs(article):
 
 def get_element(tree, key):
     element = tree.find(key)
-    if element is None: raise ValueError("could not find %s element" % key)
+    if element is None: raise ValueError(f"Could not find '{key}' element.")
     return element
 
 def get_date(element):

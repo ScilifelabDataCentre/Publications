@@ -1,4 +1,4 @@
-"Author (author; possibly consortium or similar) pages."
+"Researcher (person, but also possibly consortium or similar) pages."
 
 import tornado.web
 
@@ -9,8 +9,8 @@ from .saver import Saver, SaverError
 from .requesthandler import RequestHandler, ApiMixin
 
 
-class AuthorSaver(Saver):
-    doctype = constants.AUTHOR
+class ResearcherSaver(Saver):
+    doctype = constants.RESEARCHER
 
     def set_family(self):
         "Set then family name from form data."
@@ -49,16 +49,16 @@ class AuthorSaver(Saver):
             self["initials_normalized"] = utils.to_ascii(value).lower()
 
     
-class AuthorMixin(object):
+class ResearcherMixin(object):
     "Mixin for access check methods."
 
-    def get_authors(self,  family, given=None, initials=None):
-        """Get the author entities for the family name,
+    def get_researchers(self,  family, given=None, initials=None):
+        """Get the researcher entities for the family name,
         optionally filtering by given name, and/or initials.
-        Return a list of author documents.
+        Return a list of researcher documents.
         """
         family = utils.to_ascii(family).lower()
-        result = self.get_docs("author/family", key=family)
+        result = self.get_docs("researcher/family", key=family)
         if given:
             given = utils.to_ascii(given).lower()
             result = [p for p in result 
@@ -69,42 +69,42 @@ class AuthorMixin(object):
                       if p["initials_normalized"].startswith(initials)]
         return result
 
-    def is_editable(self, author):
-        "Is the author editable by the current user?"
+    def is_editable(self, researcher):
+        "Is the researcher editable by the current user?"
         return self.is_admin()
 
-    def check_editable(self, author):
-        "Raise ValueError if author is not editable."
-        if self.is_editable(author): return
-        raise ValueError("You may not edit the journal.")
+    def check_editable(self, researcher):
+        "Raise ValueError if researcher is not editable."
+        if self.is_editable(researcher): return
+        raise ValueError("You may not edit the researcher.")
 
-    def is_deletable(self, author):
-        "Is the author deletable by the current user?"
+    def is_deletable(self, researcher):
+        "Is the researcher deletable by the current user?"
         if not self.is_admin(): return False
-        if self.get_docs("publication/author", key=author["_id"]):
+        if self.get_docs("publication/researcher", key=researcher["_id"]):
             return False
         return True
 
     def check_deletable(self, journal):
-        "Raise ValueError if author is not deletable."
+        "Raise ValueError if researcher is not deletable."
         if self.is_deletable(journal): return
-        raise ValueError("You may not delete the author.")
+        raise ValueError("You may not delete the researcher.")
 
 
-class Author(AuthorMixin, RequestHandler):
-    "Author page with list of publications."
+class Researcher(ResearcherMixin, RequestHandler):
+    "Researcher page with list of publications."
 
     def get(self, identifier):
-        "Display the author."
+        "Display the researcher."
         try:
-            author = self.get_author(identifier)
+            researcher = self.get_researcher(identifier)
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        self.render("author.html",
-                    author=author,
-                    is_editable=self.is_editable(author),
-                    is_deletable=self.is_deletable(author))
+        self.render("researcher.html",
+                    researcher=researcher,
+                    is_editable=self.is_editable(researcher),
+                    is_deletable=self.is_deletable(researcher))
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -116,66 +116,66 @@ class Author(AuthorMixin, RequestHandler):
     @tornado.web.authenticated
     def delete(self, identifier):
         try:
-            author = self.get_author(identifier)
-            self.check_deletable(author)
+            researcher = self.get_researcher(identifier)
+            self.check_deletable(researcher)
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
         # Delete log entries
-        for log in self.get_logs(author["_id"]):
+        for log in self.get_logs(researcher["_id"]):
             self.db.delete(log)
-        self.db.delete(author)
+        self.db.delete(researcher)
         self.see_other("home")
 
 
-class AuthorAdd(AuthorMixin, RequestHandler):
-    "Author addition page."
+class ResearcherAdd(ResearcherMixin, RequestHandler):
+    "Researcher addition page."
 
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        self.render("author_add.html")
+        self.render("researcher_add.html")
 
     @tornado.web.authenticated
     def post(self):
         self.check_admin()
         try:
-            with AuthorSaver(rqh=self) as saver:
+            with ResearcherSaver(rqh=self) as saver:
                 saver.set_family()
                 saver.set_given()
                 saver.set_initials()
                 saver.set_orcid()
-                author = saver.doc
+                researcher = saver.doc
         except ValueError as error:
             self.set_error_flash(str(error))
-            self.see_other("author_add")
+            self.see_other("researcher_add")
             return
-        self.see_other("author", author["_id"])
+        self.see_other("researcher", researcher["_id"])
 
 
-class AuthorEdit(AuthorMixin, RequestHandler):
-    "Author edit page."
+class ResearcherEdit(ResearcherMixin, RequestHandler):
+    "Researcher edit page."
 
     @tornado.web.authenticated
     def get(self, identifier):
         try:
-            author = self.get_author(identifier)
-            self.check_editable(author)
+            researcher = self.get_researcher(identifier)
+            self.check_editable(researcher)
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
-        self.render("author_edit.html", author=author)
+        self.render("researcher_edit.html", researcher=researcher)
 
     @tornado.web.authenticated
     def post(self, identifier):
         try:
-            author = self.get_author(identifier)
-            self.check_editable(author)
+            researcher = self.get_researcher(identifier)
+            self.check_editable(researcher)
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
         try:
-            with AuthorSaver(doc=author, rqh=self) as saver:
+            with ResearcherSaver(doc=researcher, rqh=self) as saver:
                 saver.check_revision()
                 saver.set_family()
                 saver.set_given()
@@ -185,4 +185,13 @@ class AuthorEdit(AuthorMixin, RequestHandler):
             self.set_error_flash(str(error))
         except SaverError:
             self.set_error_flash(utils.REV_ERROR)
-        self.see_other("author", author["_id"])
+        self.see_other("researcher", researcher["_id"])
+
+
+class Researchers(object):
+    "Researchers list page."
+
+    def get(self):
+        researchers = self.get_docs("researcher/family")
+        # XXX create template
+        self.render("researchers.html", researchers=researchers)

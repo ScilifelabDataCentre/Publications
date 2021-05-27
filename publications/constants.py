@@ -21,11 +21,11 @@ DOCTYPE     = 'publications_doctype'
 PUBLICATION = 'publication'
 JOURNAL     = 'journal'
 ACCOUNT     = 'account'
-AUTHOR      = 'author'
+RESEARCHER      = 'researcher'
 LABEL       = 'label'
 BLACKLIST   = 'blacklist'
 LOG         = 'log'
-ENTITIES    = (PUBLICATION, JOURNAL, ACCOUNT, LABEL, AUTHOR)
+ENTITIES    = (PUBLICATION, JOURNAL, ACCOUNT, LABEL, RESEARCHER)
 
 # Account roles
 ADMIN   = 'admin'

@@ -267,15 +267,15 @@ function (doc) {
 }"""),
     ),
 
-    author=dict(
-        orcid=dict(map=         # author/orcid
+    researcher=dict(
+        orcid=dict(map=         # researcher/orcid
 """function (doc) {
-  if (doc.publications_doctype !== 'author') return;
+  if (doc.publications_doctype !== 'researcher') return;
   if (doc.orcid) emit(doc.orcid, doc.family + ' ' + doc.initials);
 }"""),
-        family=dict(map=        # author/family
+        family=dict(map=        # researcher/family
 """function (doc) {
-  if (doc.publications_doctype !== 'author') return;
+  if (doc.publications_doctype !== 'researcher') return;
   emit(doc.family_normalized, doc.family + ' ' + doc.initials);
 }"""),
     ),

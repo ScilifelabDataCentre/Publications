@@ -1,19 +1,19 @@
-{# Add author manually page. #}
+{# Add researcher manually page. #}
 
 {% extends "base.html" %}
 
 {% block head_title %}
-Add author manually
+Add researcher manually
 {% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-plus"></span>
 <span class="glyphicon glyphicon-edit"></span>
-Add author manually
+Add researcher manually
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<form action="{{ reverse_url('author_add') }}"
+<form action="{{ reverse_url('researcher_add') }}"
       role="form"
       class="form-horizontal"
       method="POST">
