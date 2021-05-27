@@ -1,0 +1,49 @@
+{# Researchers table page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Researchers{% end %}
+{% block body_title %}
+<span class="glyphicon glyphicon-education"></span>
+<span class="glyphicon glyphicon-list-alt"></span>
+Researchers
+{% end %}
+
+{% block main_content %}
+<table id="researchers" class="table table-striped table-condensed">
+  <thead>
+    <tr>
+      <th>Family name</th>
+      <th>Given name</th>
+      <th>Initials</th>
+      <th>ORCID</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for researcher in researchers %}
+    <tr>
+      <td>
+	<a href="{{ reverse_url('researcher', researcher['_id']) }}">
+	  <span class="glyphicon glyphicon-education"></span>
+	  {{ researcher['family'] }}
+	</a>
+      </td>
+      <td>{{ researcher['given'] }}</td>
+      <td>{{ researcher['initials'] }}</td>
+      <td>{% module Orcid(researcher['orcid']) %}</td>
+    </tr>
+    {% end %}
+  </tbody>
+</table>
+{% end %} {# block main_content #}
+
+{% block javascript_code %}
+<script>
+  $(function() {
+    $("#researchers").DataTable( {
+      "pagingType": "full_numbers",
+      "order": [[0, "asc"]],
+    });
+  });
+</script>
+{% end %}

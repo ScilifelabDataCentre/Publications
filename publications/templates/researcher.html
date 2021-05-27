@@ -5,7 +5,7 @@
 {% block head_title %}{{ researcher['family'] }} {{ researcher['initials'] }}{% end %}
 
 {% block body_title %}
-<span class="glyphicon glyphicon-user"></span>
+<span class="glyphicon glyphicon-education"></span>
 {{ researcher['family'] }} {{ researcher['initials'] }}
 {% end %} {# block body_title #}
 
@@ -25,14 +25,7 @@
   </tr>
   <tr>
     <th>ORCID</th>
-    <td>
-      {% if researcher['orcid'] and settings['XREF_TEMPLATE_URLS'].get('ORCID') %}
-      <a href="{{ settings['XREF_TEMPLATE_URLS']['ORCID'] % researcher['orcid'] }}"
-         target="_blank">{{ researcher['orcid'] }}</a>
-      {% else %}
-      {{ researcher['orcid'] or '-' }}
-      {% end %}
-    </td>
+    <td>{% module Orcid(researcher['orcid']) %}</td>
   </tr>
   <tr>
     <th>Affiliations</th>

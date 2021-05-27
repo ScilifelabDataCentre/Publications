@@ -242,21 +242,20 @@ def get_publication(db, identifier):
         raise KeyError(f"Document {identifier} is not a publication.")
     return doc
 
-def get_author(db, identifier):
-    """Get the author entity given its IUID or ORCID.
-    Raise KeyError if no such author.
+def get_researcher(db, identifier):
+    """Get the researcher entity given its IUID or ORCID.
+    Raise KeyError if no such researcher.
     """
     if not identifier: raise KeyError
-    identifier = identifier.lower()
     try:
-        doc = get_doc(db, identifier)
+        doc = get_doc(db, identifier.lower())
     except KeyError:
         try:
-            doc = get_doc(db, identifier, viewname="author/orcid")
+            doc = get_doc(db, identifier, viewname="researcher/orcid")
         except KeyError:
-            raise KeyError(f"no such author '{identifier}'.")
-    if doc[constants.DOCTYPE] != constants.AUTHOR:
-        raise KeyError(f"Document {identifier} is not a author.")
+            raise KeyError(f"no such researcher '{identifier}'.")
+    if doc[constants.DOCTYPE] != constants.RESEARCHER:
+        raise KeyError(f"Document {identifier} is not a researcher.")
     return doc
 
 def get_label(db, identifier):
@@ -392,16 +391,18 @@ def strip_prefix(value):
     return value
 
 def get_formatted_authors(authors, complete=False):
-    "Get formatted list of authors; numbers in settings, or complete."
-    if complete or len(authors) <= settings['NUMBER_FIRST_AUTHORS'] + settings['NUMBER_LAST_AUTHORS']:
-        result = ["%s %s" % (a["family"], a.get("initials") or "")
-                  for a in authors]
-    else:
-        result = ["%s %s" % (a["family"], a.get("initials") or "")
-                  for a in authors[:settings["NUMBER_FIRST_AUTHORS"]]]
-        result.append("...")
-        result.extend(["%s %s" % (a["family"], a.get("initials") or "")
-                       for a in authors[-settings["NUMBER_LAST_AUTHORS"]:]])
+    "Get formatted list of authors; partial or complete list."
+    if not complete and len(authors) > settings['NUMBER_FIRST_AUTHORS'] + settings['NUMBER_LAST_AUTHORS']:
+        authors = authors[:settings["NUMBER_FIRST_AUTHORS"]] + \
+            [None] + \
+            authors[-settings["NUMBER_LAST_AUTHORS"]:]
+    result = []
+    for author in authors:
+        if author:
+            result.append("%s %s" % (author["family"], 
+                                     author.get("initials") or ""))
+        else:
+            result.append("...")
     return ", ".join(result)
 
 

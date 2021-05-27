@@ -172,7 +172,8 @@ def get_authors(article):
             author['initials_normalized'] = ''
         for elem in element.findall("Identifier"):
             if elem.attrib.get("Source") == "ORCID":
-                author["orcid"] = get_text(elem)
+                # ORCID may be given as an URL; split away all except id proper.
+                author["orcid"] = get_text(elem).split("/")[-1]
         for elem in element.findall(".//Affiliation"):
             author.setdefault("affiliations", []).append(get_text(elem))
         if author:

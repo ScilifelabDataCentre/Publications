@@ -38,7 +38,9 @@ class ResearcherSaver(Saver):
     def set_orcid(self):
         "Set ORCID from form data."
         assert self.rqh, "requires http request context"
-        self["orcid"] = utils.squish(self.rqh.get_argument("orcid", "")) or None
+        orcid = self.rqh.get_argument("orcid", "").strip() or None
+
+        self["orcid"] = orcid
 
     def finalize(self):
         "Set the initials, in not done explicitly."
@@ -188,7 +190,7 @@ class ResearcherEdit(ResearcherMixin, RequestHandler):
         self.see_other("researcher", researcher["_id"])
 
 
-class Researchers(object):
+class Researchers(RequestHandler):
     "Researchers list page."
 
     def get(self):

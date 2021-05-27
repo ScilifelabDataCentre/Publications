@@ -8,15 +8,34 @@ from . import utils
 
 
 class Authors(tornado.web.UIModule):
-    "HTML for authors list."
+    "HTML for authors list, including links to researcher page when available."
 
-    def render(self, publication, complete=False):
-        return utils.get_formatted_authors(publication['authors'],
-                                           complete=complete)
+    def render(self, authors, complete=False):
+        if not complete and len(authors) > settings['NUMBER_FIRST_AUTHORS'] + settings['NUMBER_LAST_AUTHORS']:
+            authors = authors[:settings["NUMBER_FIRST_AUTHORS"]] + \
+                [None] + \
+                authors[-settings["NUMBER_LAST_AUTHORS"]:]
+        result = []
+        for author in authors:
+            if not author:
+                result.append("...")
+                continue
+            name = "%s %s" % (author["family"], author.get("initials") or "")
+            if author.get("researcher"):
+                try:
+                    researcher = self.handler.get_researcher(author["researcher"])
+                except KeyError:
+                    pass
+                else:
+                    url = self.handler.reverse_url("researcher", researcher["_id"])
+                    result.append(f'<a href="{url}">{name}</a>')
+                    continue
+            result.append(name)
+        return ", ".join(result)
 
 
 class Journal(tornado.web.UIModule):
-    "HTML for authors list."
+    "HTML for journal reference."
 
     def render(self, publication):
         journal = publication['journal']
@@ -30,6 +49,21 @@ class Journal(tornado.web.UIModule):
         result.append("(%s)" % (journal.get('issue') or '-'))
         result.append(journal.get('pages') or '-')
         return ' '.join(result)
+
+
+class Orcid(tornado.web.UIModule):
+    "Link to ORCID entry, if any."
+
+    def render(self, orcid):
+        if orcid:
+            url = settings["XREF_TEMPLATE_URLS"].get("ORCID")
+            if url:
+                url = url % orcid
+                return f'<a href="{url}" target="_blank">{orcid}'
+            else:
+                return orcid
+        else:
+            return "-"
 
 
 class Published(tornado.web.UIModule):

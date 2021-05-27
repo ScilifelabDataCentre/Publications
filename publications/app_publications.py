@@ -55,6 +55,7 @@ from publications.publication import (Publication,
                                       PublicationUpdatePmid,
                                       PublicationUpdateDoi)
 from publications.researcher import (Researcher,
+                                     Researchers,
                                      ResearcherAdd,
                                      ResearcherEdit)
 from publications.journal import (Journal,
@@ -152,6 +153,7 @@ def main():
                 url(r"/update/([^/]+)/doi",
                     PublicationUpdateDoi, name="publication_update_doi"),
                 url(r"/researcher", ResearcherAdd, name="researcher_add"),
+                url(r"/researchers", Researchers, name="researchers"),
                 url(r"/researcher/([^/]+)", Researcher, name="researcher"),
                 url(r"/researcher/([^/]+)/edit", 
                     ResearcherEdit, name="researcher_edit"),

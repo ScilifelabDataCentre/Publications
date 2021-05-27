@@ -17,7 +17,7 @@
     </a>
   </div>
   <div>
-    {% module Authors(publication) %}
+    {% module Authors(publication['authors']) %}
   </div>
   <div class="pull-right">
     {% for xref in publication.get('xrefs', []) %}

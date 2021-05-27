@@ -98,6 +98,7 @@ def get_authors(data):
         author['initials'] = ''.join([n[0] for n in given.split()])
         author['initials_normalized'] = to_ascii(author['initials']).lower()
         try:
+            # ORCID given as URL; split away all except id proper.
             author["orcid"] = item["ORCID"].split("/")[-1]
         except KeyError:
             pass

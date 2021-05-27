@@ -106,11 +106,11 @@ class RequestHandler(tornado.web.RequestHandler):
         """
         return utils.get_publication(self.db, identifier)
 
-    def get_author(self, identifier):
-        """Get the author for the identifier, which is an IUID or an ORCID.
+    def get_researcher(self, identifier):
+        """Get the researcher for the identifier, which is an IUID or an ORCID.
         Raise KeyError if not found.
         """
-        return utils.get_author(self.db, identifier)
+        return utils.get_researcher(self.db, identifier)
 
     def get_label(self, identifier):
         """Get the label document by its IUID or value.

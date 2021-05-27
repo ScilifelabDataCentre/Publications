@@ -11,7 +11,7 @@
 
 {% block main_content %}
 <p class="lead">
-  {% module Authors(publication, complete=True) %}
+  {% module Authors(publication['authors'], complete=True) %}
 </p>
 <p>
   {{ publication['journal'].get('title') or '-' }}

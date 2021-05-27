@@ -177,14 +177,20 @@
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">
 		<span class="glyphicon glyphicon-education"></span>
-		Authors
+		Researchers
 		<span class="caret"></span>
 	      </a>
               <ul class="dropdown-menu">
 		<li>
-		  <a href="{{ reverse_url('author_add') }}">
+		  <a href="{{ reverse_url('researchers') }}">
+		    <span class="glyphicon glyphicon-list-alt"></span>
+		    Researchers
+		  </a>
+		</li>
+		<li>
+		  <a href="{{ reverse_url('researcher_add') }}">
 		    <span class="glyphicon glyphicon-plus"></span>
-		    Add author
+		    Add researcher
 		  </a>
 		</li>
 	      </ul>
