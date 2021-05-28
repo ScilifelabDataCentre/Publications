@@ -121,6 +121,17 @@ DESIGNS = dict(
     }
   }
 }"""),
+        researcher=dict(reduce="_count", # publication/researcher
+                        map=
+"""function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var au;
+  var length = doc.authors.length;
+  for (var i=0; i<length; i++) {
+    au = doc.authors[i];
+    if (au.researcher) emit(au.researcher, doc.family + ' ' + doc.initials);
+  }
+}"""),
         doi=dict(map=           # publication/doi
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;

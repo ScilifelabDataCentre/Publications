@@ -2,7 +2,9 @@
 
 {% extends "base.html" %}
 
-{% block head_title %}{{ researcher['family'] }} {{ researcher['initials'] }}{% end %}
+{% block head_title %}
+{{ researcher['family'] }} {{ researcher['initials'] }}
+{% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-education"></span>
@@ -25,14 +27,12 @@
   </tr>
   <tr>
     <th>ORCID</th>
-    <td>{% module Orcid(researcher['orcid']) %}</td>
+    <td>{% module OrcidButton(researcher['orcid'], full=True) %}</td>
   </tr>
   <tr>
     <th>Affiliations</th>
     <td>
-      {% for aff in researcher.get('affiliations', []) %}
-      {{ aff }}<br>
-      {% end %}
+      {{ '<br>'.join(researcher.get('affiliations') or []) }}
     </td>
   </tr>
   <tr>
@@ -41,3 +41,30 @@
   </tr>
 </table>
 {% end %} {# block main_content #}
+
+{% block meta_content %}
+{% if is_editable %}
+<p>
+  <a href="{{ reverse_url('researcher_edit', researcher['_id']) }}"
+     role="button" class="btn btn-primary btn-block">
+    <span class="glyphicon glyphicon-edit"></span>
+    Edit
+  </a>
+</p>
+{% end %} {# if is_editable #}
+{% if is_deletable %}
+<p>
+  <form action="{{ reverse_url('researcher', researcher['_id']) }}"
+	role="form"
+	method="POST">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_http_method" value="delete">
+    <button type="submit" class="btn btn-danger"
+	    onclick="return confirm('Really delete this researcher?');">
+      <span class="glyphicon glyphicon-remove"></span>
+      Delete
+    </button>
+  </form>
+</p>
+{% end %} {# if is_deletable #}
+{% end %} {# block meta_content #}

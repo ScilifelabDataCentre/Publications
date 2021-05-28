@@ -30,7 +30,7 @@ Researchers
       </td>
       <td>{{ researcher['given'] }}</td>
       <td>{{ researcher['initials'] }}</td>
-      <td>{% module Orcid(researcher['orcid']) %}</td>
+      <td>{% module OrcidButton(researcher['orcid'], full=True) %}</td>
     </tr>
     {% end %}
   </tbody>

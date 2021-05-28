@@ -51,21 +51,6 @@ class Journal(tornado.web.UIModule):
         return ' '.join(result)
 
 
-class Orcid(tornado.web.UIModule):
-    "Link to ORCID entry, if any."
-
-    def render(self, orcid):
-        if orcid:
-            url = settings["XREF_TEMPLATE_URLS"].get("ORCID")
-            if url:
-                url = url % orcid
-                return f'<a href="{url}" target="_blank">{orcid}'
-            else:
-                return orcid
-        else:
-            return "-"
-
-
 class Published(tornado.web.UIModule):
     "Published date, and online, if present."
 
@@ -147,6 +132,11 @@ class DoiButton(ExternalButton):
 class CrossrefButton(ExternalButton):
     NAME = 'Crossref'
     URL = 'https://search.crossref.org/?q=%s'
+
+
+class OrcidButton(ExternalButton):
+    NAME = "ORCID"
+    URL  = constants.ORCID_URL
 
 
 class QcFlags(tornado.web.UIModule):

@@ -2,7 +2,7 @@
 
 import os
 
-__version__ = "4.0.0"
+__version__ = "4.0.1"
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -61,6 +61,5 @@ settings = dict(
         "BioProject": "https://www.ncbi.nlm.nih.gov/bioproject/%s",
         "Genbank": "https://www.ncbi.nlm.nih.gov/nuccore/%s",
         "Dryad": "https://datadryad.org/resource/doi:%s",
-        "ORCID": "https://orcid.org/%s",
     },
 )

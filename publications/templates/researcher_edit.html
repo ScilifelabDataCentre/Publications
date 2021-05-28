@@ -1,23 +1,23 @@
-{# Journal edit page. #}
+{# Researcher edit page. #}
 
 {% extends "base.html" %}
 
 {% block head_title %}
-Edit journal {{ journal['title'] }}
+Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
 {% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-edit"></span>
-<span class="glyphicon glyphicon-book"></span>
-Edit journal {{ journal['title'] }}
+<span class="glyphicon glyphicon-education"></span>
+Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<form action="{{ reverse_url('journal_edit', journal['title']) }}"
+<form action="{{ reverse_url('researcher_edit', researcher['_id']) }}"
       role="form" class="form-horizontal"
       method="POST">
   {% module xsrf_form_html() %}
-  <input type="hidden" name="_rev" value="{{ journal['_rev'] }}">
+  <input type="hidden" name="_rev" value="{{ researcher['_rev'] }}">
 
     <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="title">Title</label>
@@ -51,7 +51,7 @@ Edit journal {{ journal['title'] }}
 {% end %} {# block main_content #}
 
 {% block meta_content %}
-<a href="{{ reverse_url('journal', journal['title']) }}"
+<a href="{{ reverse_url('researcher', researcher['_id']) }}"
    role="button" class="btn btn-default btn-block">
   <span class="glyphicon glyphicon-remove-circle"></span>
   Cancel

@@ -38,9 +38,16 @@ class ResearcherSaver(Saver):
     def set_orcid(self):
         "Set ORCID from form data."
         assert self.rqh, "requires http request context"
-        orcid = self.rqh.get_argument("orcid", "").strip() or None
+        orcid = self.rqh.get_argument("orcid", "").strip()
+        self["orcid"] = orcid or None
 
-        self["orcid"] = orcid
+    def set_affiliations(self):
+        "Set affiliations from form data."
+        assert self.rqh, "requires http request context"
+        affiliations = [a.strip()
+                        for a in self.rqh.get_argument("orcid", "").split("\n")
+                        if a.strip()]
+        self["affiliations"] = affiliations
 
     def finalize(self):
         "Set the initials, in not done explicitly."
