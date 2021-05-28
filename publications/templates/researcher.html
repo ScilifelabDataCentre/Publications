@@ -32,12 +32,11 @@
   <tr>
     <th>Affiliations</th>
     <td>
-      {{ '<br>'.join(researcher.get('affiliations') or []) }}
+      {% for affiliation in researcher.get('affiliations') or [] %}
+      {{ affiliation }}
+      <br>
+      {% end %}
     </td>
-  </tr>
-  <tr>
-    <th>IUID</th>
-    <td>{{ researcher['_id'] }}</td>
   </tr>
 </table>
 {% end %} {# block main_content #}
@@ -59,7 +58,7 @@
 	method="POST">
     {% module xsrf_form_html() %}
     <input type="hidden" name="_http_method" value="delete">
-    <button type="submit" class="btn btn-danger"
+    <button type="submit" class="btn btn-block btn-danger"
 	    onclick="return confirm('Really delete this researcher?');">
       <span class="glyphicon glyphicon-remove"></span>
       Delete

@@ -19,27 +19,63 @@ Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
   {% module xsrf_form_html() %}
   <input type="hidden" name="_rev" value="{{ researcher['_rev'] }}">
 
-    <div class="form-group has-feedback">
-    <label class="control-label col-sm-1" for="title">Title</label>
-    <div class="col-sm-8">
-      <input type="text" name="title" id="title"
-             class="form-control"
-	     value="{{ journal.get('title') or '' }}">
-      <span class="glyphicon glyphicon-star text-danger form-control-feedback"></span>
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="family">Family name</label>
+    <div class="col-sm-6">
+      <input type="text" name="family" id="family" class="form-control"
+             value="{{ researcher['family'] }}">
+      <span class="help-block">
+        Required.
+      </span>
     </div>
   </div>
 
   <div class="form-group has-feedback">
-    <label class="control-label col-sm-1" for="issn">ISSN</label>
-    <div class="col-sm-4">
-      <input type="text" name="issn" id="issn"
-             class="form-control"
-	     value="{{ journal.get('issn') or '' }}">
+    <label class="control-label col-sm-1" for="given">Given name</label>
+    <div class="col-sm-6">
+      <input name="given" id="given" type="text" class="form-control"
+             value="{{ researcher['given'] }}">
+      <span class="help-block">
+        Given name. Add as many whole given names as known.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="initials">Initials</label>
+    <div class="col-sm-6">
+      <input name="initials" id="initials" type="text" class="form-control"
+             value="{{ researcher['initials'] }}">
+      <span class="help-block">
+        Initials; blanks will be removed.
+        If not given, computed from the given name.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="orcid">ORCID</label>
+    <div class="col-sm-6">
+      <input type="text" name="orcid" id="orcid" class="form-control"
+             value="{{ researcher.get('orcid') or '' }}">
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="affiliations">
+      Affiliations</label>
+    <div class="col-sm-8">
+      <textarea name="affiliations" id="affiliations"
+                class="form-control" rows="6"
+                >{{ '\n'.join(researcher['affiliations']) }}</textarea>
+      <span class="help-block">
+	One affiliation per line.
+      </span>
     </div>
   </div>
 
   <div class="form-group">
-    <div class="col-sm-3 col-sm-offset-1">
+    <div class="col-md-3 col-md-offset-1">
       <button type="submit" class="btn btn-success btn-block">
 	<span class="glyphicon glyphicon-save"></span>
 	Save

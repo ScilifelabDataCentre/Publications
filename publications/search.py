@@ -32,6 +32,7 @@ class Search(RequestHandler):
             terms = [t.lower() for t in terms if t]
         iuids = set()
         for viewname in [None,
+                         'publication/author',
                          'publication/doi',
                          'publication/published',
                          'publication/epublished',
@@ -43,8 +44,7 @@ class Search(RequestHandler):
         terms = [''.join([c for c in t if c not in SEARCH_REMOVE])
                  for t in terms]
         terms = [t for t in terms if t]
-        for viewname in ['publication/author',
-                         'publication/title',
+        for viewname in ['publication/title',
                          'publication/notes',
                          'publication/pmid',
                          'publication/label_parts']:

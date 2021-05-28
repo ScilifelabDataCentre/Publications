@@ -275,12 +275,10 @@
 	      </li>
 	      <li>
 		<form action="{{ reverse_url('logout') }}"
-		      role="form"
-		      class="navbar-form"
+		      role="form" class="navbar-form"
 		      method="POST">
 		  {% module xsrf_form_html() %}
-		  <button type="submit"
-			  title="Logout"
+		  <button type="submit" title="Logout"
 			  class="btn btn-default">
 		    <span class="glyphicon glyphicon-log-out"></span>
                     Logout
@@ -291,8 +289,7 @@
 	      <li>
 		<div class="navbar-btn">
 		  <a href="{{ reverse_url('login') }}"
-		     class="btn btn-default"
-		     role="button">
+		     role="button" class="btn btn-default">
 		    <span class="glyphicon glyphicon-log-in"></span>
 		    Login
 		  </a>
@@ -370,38 +367,35 @@
       {% block content %}
       <div class="row">
 	<div class="col-sm-2">
-          <p>
+          <p class="text-center">
 	    <span class="glyphicon glyphicon-file"></span> Publications
           </p>
 	  {% block menu_content %}
 	  {% for y, c in year_counts %}
 	  <p>
 	    <a href="{{ reverse_url('publications_year', y) }}"
-	       class="btn btn-default btn-xs"
-	       role="button">
+	       role="button" class="btn btn-default btn-block btn-xs">
 	      {{ y }} ({{ c }})
 	    </a>
 	  </p>
 	  {% end %} {# for y, c #}
           <p>
 	    <a href="{{ reverse_url('publications') }}"
-	       class="btn btn-default btn-xs"
-	       role="button">
+	       role="button" class="btn btn-default btn-block btn-xs">
 	      All ({{ sum([c for y, c in year_counts]) }})
 	    </a>
           </p>
           <br>
 	  <p>
 	    <a href="{{ reverse_url('labels') }}"
-	       class="btn btn-default btn-sm"
-	       role="button">
+	       role="button" class="btn btn-default btn-block btn-sm">
 	      <span class="glyphicon glyphicon-tag"></span>
 	      {% module Translate('Labels') %}
 	    </a>
 	  </p>
 	  <p>
 	    <a href="{{ reverse_url('journals') }}"
-	       class="btn btn-default btn-sm"
+	       class="btn btn-default btn-block btn-sm"
 	       role="button">
 	      <span class="glyphicon glyphicon-book"></span>
 	      Journals

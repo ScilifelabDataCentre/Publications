@@ -44,8 +44,8 @@ class ResearcherSaver(Saver):
     def set_affiliations(self):
         "Set affiliations from form data."
         assert self.rqh, "requires http request context"
-        affiliations = [a.strip()
-                        for a in self.rqh.get_argument("orcid", "").split("\n")
+        affiliations = [a.strip() for a in
+                        self.rqh.get_argument("affiliations", "").split("\n")
                         if a.strip()]
         self["affiliations"] = affiliations
 
@@ -154,6 +154,7 @@ class ResearcherAdd(ResearcherMixin, RequestHandler):
                 saver.set_given()
                 saver.set_initials()
                 saver.set_orcid()
+                saver.set_affiliations()
                 researcher = saver.doc
         except ValueError as error:
             self.set_error_flash(str(error))
@@ -190,6 +191,7 @@ class ResearcherEdit(ResearcherMixin, RequestHandler):
                 saver.set_given()
                 saver.set_initials()
                 saver.set_orcid()
+                saver.set_affiliations()
         except ValueError as error:
             self.set_error_flash(str(error))
         except SaverError:
