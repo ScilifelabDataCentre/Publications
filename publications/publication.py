@@ -20,6 +20,25 @@ from .requesthandler import RequestHandler, ApiMixin
 class PublicationSaver(Saver):
     doctype = constants.PUBLICATION
 
+    def initialize(self):
+        """Set the initial values for the new document.
+        Create the slots with empty starting values;
+        allows using 'update' for new entities.
+        """
+        super().initialize()
+        self["title"] = ""
+        self["pmid"] = None
+        self["doi"] = None
+        self["authors"] = []
+        self["type"] = None
+        self["published"] = None
+        self["epublished"] = None
+        self["abstract"] = None
+        self["journal"] = {}
+        self["xrefs"] = []
+        self["labels"] = {}
+        self["notes"] = None
+
     def check_published(self, value):
         utils.to_date(value)
 
@@ -94,6 +113,11 @@ class PublicationSaver(Saver):
         assert self.rqh, "requires http request context"
         self["abstract"] = self.rqh.get_argument("abstract", "") or None
 
+    def set_notes(self):
+        "Set the notes entry from form data."
+        assert self.rqh, "requires http request context"
+        self["notes"] = self.get_argument("notes", "") or None
+
     def set_qc(self, aspect, flag):
         "Set the QC flag for a given aspect."
         assert self.rqh, "requires http request context"
@@ -113,8 +137,8 @@ class PublicationSaver(Saver):
         Create a researcher, if ORCID is available.
         """
         self["title"] = other["title"] or self["title"]
-        self["doi"] = other["doi"] or self["doi"]
         self["pmid"] = other["pmid"] or self["pmid"]
+        self["doi"] = other["doi"] or self["doi"]
         self["type"] = other.get("type") or self.get("type")
         self["published"] = other.get("published") or self.get("published")
         self["epublished"] = other.get("epublished") or self.get("epublished")
@@ -387,10 +411,11 @@ class PublicationMixin(object):
             return current
         # Else create a new entry.
         else:
-            with PublicationSaver(new, rqh=self) as saver:
+            with PublicationSaver(rqh=self) as saver:
+                saver.update(new)
                 saver.fix_journal()
                 saver.update_labels(labels=labels)
-            return new
+            return saver.doc
 
     def check_blacklisted(self, identifier, override=False):
         """Raise KeyError if identifier blacklisted.
@@ -1132,7 +1157,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.set_journal()
                 saver.set_abstract()
                 saver.update_labels()
-                saver["notes"] = self.get_argument("notes", None)
+                saver.set_notes()
         except SaverError:
             self.set_error_flash(utils.REV_ERROR)
         self.see_other("publication", publication["_id"])

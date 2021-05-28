@@ -176,8 +176,7 @@ function (doc) {
     }
   }
 }""" % (REMOVE, IGNORE)),
-        issn=dict(reduce="_count", # publication/issn
-                  map=
+        issn=dict(map=          # publication/issn
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   if (!doc.journal) return;

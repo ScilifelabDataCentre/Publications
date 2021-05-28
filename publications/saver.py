@@ -101,7 +101,7 @@ class Saver(object):
         self.doc['created'] = utils.timestamp()
 
     def setup(self):
-        "Any additional setup. To be redefined."
+        "Any additional setup on entering the context. To be redefined."
         pass
 
     def check_revision(self):
