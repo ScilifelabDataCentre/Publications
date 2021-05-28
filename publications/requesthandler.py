@@ -100,6 +100,10 @@ class RequestHandler(tornado.web.RequestHandler):
         """
         return utils.get_docs(self.db, viewname, key=key, last=last, **kwargs)
 
+    def get_count(self, viewname, key=None):
+        "Get the reduce value for the name view and the given key."
+        return utils.get_count(self.db, viewname, key=key)
+
     def get_publication(self, identifier):
         """Get the publication given its IUID, DOI or PMID.
         Raise KeyError if no such publication.

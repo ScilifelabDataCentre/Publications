@@ -13,10 +13,9 @@ Researchers
 <table id="researchers" class="table table-striped table-condensed">
   <thead>
     <tr>
-      <th>Family name</th>
-      <th>Given name</th>
-      <th>Initials</th>
+      <th>Name</th>
       <th>ORCID</th>
+      <th># publications</th>
     </tr>
   </thead>
   <tbody>
@@ -25,12 +24,11 @@ Researchers
       <td>
 	<a href="{{ reverse_url('researcher', researcher['_id']) }}">
 	  <span class="glyphicon glyphicon-education"></span>
-	  {{ researcher['family'] }}
+	  {{ researcher['family'] }} {{ researcher['initials'] }}
 	</a>
       </td>
-      <td>{{ researcher['given'] }}</td>
-      <td>{{ researcher['initials'] }}</td>
       <td>{% module OrcidButton(researcher['orcid'], full=True) %}</td>
+      <td>{{ researcher["n_publications"] }}</td>
     </tr>
     {% end %}
   </tbody>

@@ -12,41 +12,46 @@ from .requesthandler import RequestHandler, ApiMixin
 class ResearcherSaver(Saver):
     doctype = constants.RESEARCHER
 
-    def set_family(self):
+    def set_family(self, value=None):
         "Set then family name from form data."
         assert self.rqh, "requires http request context"
-        value = utils.squish(self.rqh.get_argument("family", ""))
+        if value is None:
+            value = utils.squish(self.rqh.get_argument("family", ""))
         if not value:
             raise ValueError("No family name provided.")
         self["family"] = value
         self["family_normalized"] = utils.to_ascii(value).lower()
 
-    def set_given(self):
+    def set_given(self, value=None):
         "Set the given name from form data."
         assert self.rqh, "requires http request context"
-        value = utils.squish(self.rqh.get_argument("given", ""))
+        if value is None:
+            value = utils.squish(self.rqh.get_argument("given", ""))
         self["given"] = value
         self["given_normalized"] = utils.to_ascii(value).lower()
 
-    def set_initials(self):
+    def set_initials(self, value=None):
         "Set the initials from form data."
         assert self.rqh, "requires http request context"
-        value = "".join(self.rqh.get_argument("initials", "").split())
+        if value is None:
+            value = "".join(self.rqh.get_argument("initials", "").split())
         self["initials"] = value
         self["initials_normalized"] = utils.to_ascii(value).lower()
 
-    def set_orcid(self):
+    def set_orcid(self, value=None):
         "Set ORCID from form data."
         assert self.rqh, "requires http request context"
-        orcid = self.rqh.get_argument("orcid", "").strip()
-        self["orcid"] = orcid or None
+        if value is None:
+            value = self.rqh.get_argument("orcid", "").strip()
+        self["orcid"] = value or None
 
-    def set_affiliations(self):
+    def set_affiliations(self, affiliations=None):
         "Set affiliations from form data."
         assert self.rqh, "requires http request context"
-        affiliations = [a.strip() for a in
-                        self.rqh.get_argument("affiliations", "").split("\n")
-                        if a.strip()]
+        if affiliations is None:
+            affiliations = [a.strip() for a in
+                            self.rqh.get_argument("affiliations", "").split("\n")
+                            if a.strip()]
         self["affiliations"] = affiliations
 
     def finalize(self):
@@ -90,7 +95,7 @@ class ResearcherMixin(object):
     def is_deletable(self, researcher):
         "Is the researcher deletable by the current user?"
         if not self.is_admin(): return False
-        if self.get_docs("publication/researcher", key=researcher["_id"]):
+        if self.get_count("publication/researcher", key=researcher["_id"]):
             return False
         return True
 
@@ -110,8 +115,12 @@ class Researcher(ResearcherMixin, RequestHandler):
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
+        publications = self.get_docs("publication/researcher",
+                                     key=researcher["_id"])
+        publications.sort(key=lambda i: i["published"], reverse=True)
         self.render("researcher.html",
                     researcher=researcher,
+                    publications=publications,
                     is_editable=self.is_editable(researcher),
                     is_deletable=self.is_deletable(researcher))
 
@@ -155,7 +164,7 @@ class ResearcherAdd(ResearcherMixin, RequestHandler):
                 saver.set_initials()
                 saver.set_orcid()
                 saver.set_affiliations()
-                researcher = saver.doc
+            researcher = saver.doc
         except ValueError as error:
             self.set_error_flash(str(error))
             self.see_other("researcher_add")
@@ -203,6 +212,8 @@ class Researchers(RequestHandler):
     "Researchers list page."
 
     def get(self):
-        researchers = self.get_docs("researcher/family")
-        # XXX create template
+        researchers = self.get_docs("researcher/name")
+        for researcher in researchers:
+            researcher["n_publications"] = \
+                self.get_count("publication/researcher", key=researcher["_id"])
         self.render("researchers.html", researchers=researchers)

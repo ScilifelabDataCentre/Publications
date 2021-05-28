@@ -208,6 +208,17 @@ def get_docs(db, viewname, key=None, last=None, **kwargs):
         iterator = view[key:last]
     return [i.doc for i in iterator]
 
+def get_count(db, viewname, key=None):
+    "Get the reduce value for the name view and the given key."
+    if key is None:
+        view = db.view(viewname, reduce=True)
+    else:
+        view = db.view(viewname, key=key, reduce=True)
+    try:
+        return list(view)[0].value
+    except IndexError:
+        return 0
+
 def get_account(db, email):
     """Get the account identified by the email address.
     Raise KeyError if no such account.

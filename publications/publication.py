@@ -107,47 +107,64 @@ class PublicationSaver(Saver):
         except KeyError:
             self["qc"] = {aspect: entry}
 
-    def update_labels(self, labels=None, allowed_labels=None, clean=True):
-        """Update the labels. If no labels dictionary given, get HTTP form data.
-        Only changes the allowed labels for the current user.
-        If clean, then remove any missing allowed labels from existing entry.
-        """
-        if labels is None:
-            # Horrible kludge: Unicode issue for labels and qualifiers...
-            values = {}
-            for key in self.rqh.request.arguments.keys():
-                values[utils.to_ascii(key)] =self.rqh.get_argument(key)
-            labels = {}
-            for label in self.rqh.get_arguments("label"):
-                qualifier = values.get(utils.to_ascii(f"{label}_qualifier"))
-                if qualifier in settings["SITE_LABEL_QUALIFIERS"]:
-                    labels[label] = qualifier
-                else:
-                    labels[label] = None
-        if allowed_labels is None:
-            allowed_labels = self.rqh.get_allowed_labels()
-        updated = self.get("labels", {}).copy()
-        for label in allowed_labels:
-            try:
-                updated[label] = labels[label]
-            except KeyError:
-                if clean: updated.pop(label, None)
-        self["labels"] = updated
-
     def update(self, other):
-        """Update any empty field in the publication 
-        if there is a value in the other.
-        Special case for journal field.
+        """Update a field in the publication if there is a value in the other.
+        Check if author can be associated with a researcher.
+        Create a researcher, if ORCID is available.
         """
-        for key, value in other.items():
-            if value is not None and self.get(key) is None:
-                self[key] = value
+        self["title"] = other["title"] or self["title"]
+        self["doi"] = other["doi"] or self["doi"]
+        self["pmid"] = other["pmid"] or self["pmid"]
+        self["type"] = other.get("type") or self.get("type")
+        self["published"] = other.get("published") or self.get("published")
+        self["epublished"] = other.get("epublished") or self.get("epublished")
+        self["abstract"] = other.get("abstract") or self.get("abstract")
+        self["xrefs"] = other.get("xrefs") or self.get("xrefs")
+
+        # Authors: Remember previously associated researchers.
+        researchers = {}
+        for author in self["authors"]:
+            researcher = author.get("researcher")
+            if not researcher: continue
+            key = "%s %s" % (author["family_normalized"],
+                             author["initials_normalized"])
+            researchers[key] = researcher
+        self["authors"] = other["authors"]
+        for author in self["authors"]:
+            key = "%s %s" % (author["family_normalized"],
+                             author["initials_normalized"])
+            try:
+                # Previously associated researcher; just set it.
+                author["researcher"] = researchers[key]
+            except KeyError:
+                orcid = author.pop("orcid", None)
+                # If ORCID, then associate with researcher.
+                if orcid:
+                    from publications.researcher import ResearcherSaver
+                    # Existing reseacher based on ORCID.
+                    try:
+                        author["researcher"] = self.rqh.get_researcher(orcid)
+                    except KeyError:
+                        # Create a new researcher.
+                        try:
+                            with ResearcherSaver(rqh=self.rqh) as saver:
+                                saver.set_family(author.get("family"))
+                                saver.set_given(author.get("given"))
+                                saver.set_initials(author.get("initials"))
+                                saver.set_orcid(orcid)
+                                saver.set_affiliations(author.get("affiliations"))
+                            author["researcher"] = saver.doc["_id"]
+                        except ValueError:
+                            pass    # Just skip if any problem.
+            # Don't save affiliations in publication itself.
+            author.pop("affiliations", None)
+        # Special case for journal field: copy each component field.
         try:
             journal = self["journal"]
         except KeyError:
             self["journal"] = journal = {}
         for key, value in other.get("journal", {}).items():
-            if value is not None and journal.get(key) is None:
+            if value is not None:
                 journal[key] = value
 
     def fix_journal(self):
@@ -192,6 +209,33 @@ class PublicationSaver(Saver):
                 saver["issn"] = issn
                 saver["issn-l"] = issn_l
                 saver["title"] = title
+
+    def update_labels(self, labels=None, allowed_labels=None, clean=True):
+        """Update the labels. If no labels dictionary given, get HTTP form data.
+        Only changes the allowed labels for the current user.
+        If clean, then remove any missing allowed labels from existing entry.
+        """
+        if labels is None:
+            # Horrible kludge: Unicode issue for labels and qualifiers...
+            values = {}
+            for key in self.rqh.request.arguments.keys():
+                values[utils.to_ascii(key)] =self.rqh.get_argument(key)
+            labels = {}
+            for label in self.rqh.get_arguments("label"):
+                qualifier = values.get(utils.to_ascii(f"{label}_qualifier"))
+                if qualifier in settings["SITE_LABEL_QUALIFIERS"]:
+                    labels[label] = qualifier
+                else:
+                    labels[label] = None
+        if allowed_labels is None:
+            allowed_labels = self.rqh.get_allowed_labels()
+        updated = self.get("labels", {}).copy()
+        for label in allowed_labels:
+            try:
+                updated[label] = labels[label]
+            except KeyError:
+                if clean: updated.pop(label, None)
+        self["labels"] = updated
 
 
 class PublicationMixin(object):
@@ -337,9 +381,9 @@ class PublicationMixin(object):
         # Update the current entry, if it exists.
         if current:
             with PublicationSaver(current, rqh=self) as saver:
-                saver.update_labels(labels=labels, clean=clean)
                 saver.update(new)
                 saver.fix_journal()
+                saver.update_labels(labels=labels, clean=clean)
             return current
         # Else create a new entry.
         else:

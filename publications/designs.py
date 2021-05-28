@@ -129,7 +129,7 @@ DESIGNS = dict(
   var length = doc.authors.length;
   for (var i=0; i<length; i++) {
     au = doc.authors[i];
-    if (au.researcher) emit(au.researcher, doc.family + ' ' + doc.initials);
+    if (au.researcher) emit(au.researcher, au.family + ' ' + au.initials);
   }
 }"""),
         doi=dict(map=           # publication/doi
@@ -288,6 +288,12 @@ function (doc) {
 """function (doc) {
   if (doc.publications_doctype !== 'researcher') return;
   emit(doc.family_normalized, doc.family + ' ' + doc.initials);
+}"""),
+        name=dict(reduce="_count", # researcher/name
+                  map=
+"""function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  emit(doc.family_normalized + ' ' + doc.initials_normalized, null);
 }"""),
     ),
 )

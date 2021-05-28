@@ -372,14 +372,14 @@
           </p>
 	  {% block menu_content %}
 	  {% for y, c in year_counts %}
-	  <p>
+	  <p style="padding: 0px 10px">
 	    <a href="{{ reverse_url('publications_year', y) }}"
 	       role="button" class="btn btn-default btn-block btn-xs">
 	      {{ y }} ({{ c }})
 	    </a>
 	  </p>
 	  {% end %} {# for y, c #}
-          <p>
+          <p style="padding: 0px 10px">
 	    <a href="{{ reverse_url('publications') }}"
 	       role="button" class="btn btn-default btn-block btn-xs">
 	      All ({{ sum([c for y, c in year_counts]) }})

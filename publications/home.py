@@ -48,14 +48,7 @@ class Status(RequestHandler):
     "Return JSON for the current status and some counts for the database."
 
     def get(self):
-        try:
-            n_publications = list(self.db.view("publication/year", reduce=True))[0].value
-        except IndexError:
-            n_publications = 0
-        try:
-            n_labels = list(self.db.view("label/value", reduce=True))[0].value
-        except IndexError:
-            n_labels = 0
         self.write(dict(status="OK",
-                        n_publications=n_publications,
-                        n_labels=n_labels))
+                        n_publications=self.get_count("publication/year"),
+                        n_labels=self.get_count("label/value"),
+                        n_researchers=self.get_count("researcher/name")))
