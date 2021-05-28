@@ -43,6 +43,9 @@ class ResearcherSaver(Saver):
         assert self.rqh, "requires http request context"
         if value is None:
             value = self.rqh.get_argument("orcid", "").strip()
+        if value:
+            if self.rqh.get_researcher(value):
+                raise ValueError(f"Researcher entry exists for ORCID '{value}'")
         self["orcid"] = value or None
 
     def set_affiliations(self, affiliations=None):
