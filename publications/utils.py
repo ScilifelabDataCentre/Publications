@@ -187,7 +187,7 @@ def get_doc(db, key, viewname=None):
     if viewname is None:
         try:
             return db[key]
-        except couchdb.ResourceNotFound:
+        except couchdb.http.ResourceNotFound:
             raise KeyError
     else:
         result = list(db.view(viewname, include_docs=True, reduce=False)[key])

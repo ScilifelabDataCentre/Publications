@@ -44,7 +44,11 @@ class ResearcherSaver(Saver):
         if value is None:
             value = self.rqh.get_argument("orcid", "").strip()
         if value:
-            if self.rqh.get_researcher(value):
+            try:
+                self.rqh.get_researcher(value)
+            except KeyError:
+                pass
+            else:
                 raise ValueError(f"Researcher entry exists for ORCID '{value}'")
         self["orcid"] = value or None
 
