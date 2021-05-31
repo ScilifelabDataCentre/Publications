@@ -102,7 +102,16 @@ def get_authors(data):
             author["orcid"] = item["ORCID"].split("/")[-1]
         except KeyError:
             pass
-        author["affiliations"] = item.get("affiliation") or []
+        author["affiliations"] = []
+        for affiliation in item.get("affiliation") or []:
+            # Affiliations are sometimes given as dictionaries...
+            if isinstance(affiliation, str):
+                author["affiliations"].append(affiliation)
+            else:
+                try:
+                    author["affiliations"].append(affiliation["name"])
+                except (KeyError, TypeError):
+                    pass
         result.append(author)
     return result
 
