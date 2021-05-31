@@ -284,7 +284,7 @@
 	      <li>
 		<div class="navbar-btn">
 		  <a href="{{ reverse_url('login') }}"
-		     role="button" class="btn btn-default">
+                     role="button" class="btn btn-default">
 		    <span class="glyphicon glyphicon-log-in"></span>
 		    Login
 		  </a>
@@ -294,8 +294,7 @@
 	      {% block search_field %}
 	      <li>
 		<form action="{{ reverse_url('search') }}"
-		      role="form"
-		      class="navbar-form form-inline"
+		      role="form" class="navbar-form form-inline"
 		      method="GET">
 		  <div class="form-group has-feedback">
 		    <input type="search" id="terms" name="terms"
@@ -390,8 +389,7 @@
 	  </p>
 	  <p>
 	    <a href="{{ reverse_url('journals') }}"
-	       class="btn btn-default btn-block btn-sm"
-	       role="button">
+	       role="button" class="btn btn-default btn-block btn-sm">
 	      <span class="glyphicon glyphicon-book"></span>
 	      Journals
 	    </a>

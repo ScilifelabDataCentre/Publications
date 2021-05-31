@@ -2,6 +2,20 @@
 
 <div class="well well-sm">
   <div class="pull-right">
+    {% if publication.get('find_pmid') %}
+    <form action="{{ reverse_url('publication_find_pmid', publication['_id']) }}"
+          role="form"
+          method="POST">
+      {% module xsrf_form_html() %}
+      <input type="hidden" name="source" value="no_pmid">
+      <div class="form-group">
+        <button type="submit" class="btn btn-xs btn-primary">
+          <span class="glyphicon glyphicon-ok-circle"></span>
+          Find PMID
+        </button>
+      </div>
+    </form>
+    {% end %}
     {% module PubmedButton(publication.get('pmid')) %}
     {% module DoiButton(publication.get('doi')) %}
     {% module CrossrefButton(publication.get('doi')) %}

@@ -62,7 +62,7 @@ class PublicationSaver(Saver):
     def set_authors(self):
         "Set authors list from form data."
         assert self.rqh, "requires http request context"
-        # XXX Keep associations with researchers!
+        # XXX How to keep associations with researchers!
         authors = []
         for author in self.rqh.get_argument("authors", "").split("\n"):
             author = author.strip()
@@ -929,11 +929,14 @@ class PublicationsAcquired(RequestHandler):
         self.render("publications_acquired.html", publications=publications)
 
 
-class PublicationsNoPmid(RequestHandler):
+class PublicationsNoPmid(PublicationMixin, RequestHandler):
     "Publications lacking PMID."
 
     def get(self):
         publications = self.get_docs("publication/no_pmid", descending=True)
+        for publication in publications:
+            publication["find_pmid"] = self.is_editable(publication) and \
+                not publication.get("pmnid")
         self.render("publications_no_pmid.html", publications=publications)
 
 
@@ -1418,6 +1421,44 @@ class PublicationUpdatePmid(PublicationMixin, RequestHandler):
             saver.fix_journal()
         self.see_other("publication", publication["_id"],
                        message="Updated from PubMed.")
+
+
+class PublicationFindPmid(PublicationMixin, RequestHandler):
+    "Given DOI, try to locate publication at PubMed and set PMID."
+
+    @tornado.web.authenticated
+    def post(self, iuid):
+        if self.get_argument("source", None) == "no_pmid":
+            url = self.absolute_reverse_url("publications_no_pmid")
+        else:
+            url = self.absolute_reverse_url("publication", publication["_id"])
+        try:
+            try:
+                publication = self.get_publication(iuid)
+                self.check_editable(publication)
+                identifier = publication.get("doi")
+                if not identifier:
+                    raise ValueError("no DOI for publication")
+            except KeyError as error:
+                raise ValueError(str(error))
+            try:
+                found = pubmed.search(doi=identifier,
+                                      timeout=settings["PUBMED_TIMEOUT"],
+                                      delay=settings["PUBMED_DELAY"],
+                                      api_key=settings["NCBI_API_KEY"])
+                if len(found) == 0: 
+                    raise ValueError("No PubMed entry found")
+                if len(found) > 1:
+                    raise ValueError("More than one PubMed entry found")
+            except (OSError, IOError):
+                raise ValueError(f"No response from PubMed for {identifier}.")
+            except ValueError as error:
+                raise ValueError(f"{identifier}, {error}")
+            with PublicationSaver(doc=publication, rqh=self) as saver:
+                saver["pmid"] = found[0]
+        except ValueError as error:
+            self.set_error_flash(str(error))
+        self.redirect(url, status=303)
 
 
 class PublicationUpdateDoi(PublicationMixin, RequestHandler):
