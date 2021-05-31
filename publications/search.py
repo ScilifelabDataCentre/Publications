@@ -20,7 +20,7 @@ class Search(RequestHandler):
     """
 
     def get(self):
-        terms = self.get_argument('terms', '')
+        terms = self.get_argument("terms", "")
         # The search term is quoted; consider a single phrase.
         if terms.startswith('"') and terms.endswith('"'):
             terms = [terms[1:-1]]
@@ -28,32 +28,48 @@ class Search(RequestHandler):
         else:
             # Remove DOI and PMID prefixes and lowercase.
             terms = [utils.strip_prefix(t)
-                     for t in self.get_argument('terms', '').split()]
-            terms = [t.lower() for t in terms if t]
+                     for t in self.get_argument("terms", "").split()]
+
         iuids = set()
+
+        # If a term is an ORCID, find researcher and her publications.
+        # This must be done before the terms are lower-cased.
+        researchers = set()
+        for term in terms:
+            view = self.db.view("researcher/orcid", key=term)
+            researchers.update([r.id for r in view])
+        iuids.update(self.search("publication/researcher", researchers))
+
+        # For subsequent searches, lower-case all terms.
+        terms = [t.lower() for t in terms if t]
+
+        # Keep all characters for these searches.
         for viewname in [None,
-                         'publication/author',
-                         'publication/doi',
-                         'publication/published',
-                         'publication/epublished',
-                         'publication/issn',
-                         'publication/journal',
-                         'publication/xref']:
+                         "publication/author",
+                         "publication/doi",
+                         "publication/published",
+                         "publication/epublished",
+                         "publication/issn",
+                         "publication/journal",
+                         "publication/xref"]:
             iuids.update(self.search(viewname, terms))
-        # Now remove set of insignificant characters.
-        terms = [''.join([c for c in t if c not in SEARCH_REMOVE])
+
+        # Remove set of insignificant characters for these seaches.
+        terms = ["".join([c for c in t if c not in SEARCH_REMOVE])
                  for t in terms]
         terms = [t for t in terms if t]
-        for viewname in ['publication/title',
-                         'publication/notes',
-                         'publication/pmid',
-                         'publication/label_parts']:
+        for viewname in ["publication/title",
+                         "publication/notes",
+                         "publication/pmid",
+                         "publication/label_parts"]:
             iuids.update(self.search(viewname, terms))
+
+        # Finally get the publication documents for IUIDs
         publications = [self.get_publication(iuid) for iuid in iuids]
-        publications.sort(key=lambda p: p['published'], reverse=True)
-        self.render('search.html',
+        publications.sort(key=lambda p: p["published"], reverse=True)
+        self.render("search.html",
                     publications=publications,
-                    terms=self.get_argument('terms', ''))
+                    terms=self.get_argument("terms", ""))
 
     def search(self, viewname, terms):
         "Search the given view using the terms. Return set of IUIDs."
@@ -77,16 +93,16 @@ class SearchJson(Search):
 
     def render(self, template, **kwargs):
         URL = self.absolute_reverse_url
-        publications = kwargs['publications']
-        terms = kwargs['terms']
+        publications = kwargs["publications"]
+        terms = kwargs["terms"]
         result = OD()
-        result['entity'] = 'publications search'
-        result['timestamp'] = utils.timestamp()
-        result['terms'] = terms
-        result['links'] = links = OD()
-        links['self'] = {'href': URL('search_json', terms=terms)}
-        links['display'] = {'href': URL('search', terms=terms)}
-        result['publications_count'] = len(publications)
-        result['publications'] = [self.get_publication_json(publication)
+        result["entity"] = "publications search"
+        result["timestamp"] = utils.timestamp()
+        result["terms"] = terms
+        result["links"] = links = OD()
+        links["self"] = {"href": URL("search_json", terms=terms)}
+        links["display"] = {"href": URL("search", terms=terms)}
+        result["publications_count"] = len(publications)
+        result["publications"] = [self.get_publication_json(publication)
                                   for publication in publications]
         self.write(result)
