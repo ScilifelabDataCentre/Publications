@@ -1198,9 +1198,8 @@ class PublicationResearchers(PublicationMixin, RequestHandler):
             return
         for author in publication["authors"]:
             if not author.get("researcher"):
-                author["researchers"] = \
-                    self.get_researchers(author["family"],
-                                         initials=author["initials"])
+                author["researchers"] = self.get_researchers(
+                    author["family"], initials=author["initials"])
         self.render("publication_researchers.html",
                     publication=publication)
 

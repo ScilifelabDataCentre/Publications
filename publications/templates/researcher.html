@@ -53,6 +53,13 @@
     Edit
   </a>
 </p>
+<p>
+  <a href="{{ reverse_url('researcher_publications', researcher['_id']) }}"
+     role="button" class="btn btn-primary btn-block">
+    <span class="glyphicon glyphicon-edit"></span>
+    Edit publications
+  </a>
+</p>
 {% end %} {# if is_editable #}
 {% if is_deletable %}
 <p>

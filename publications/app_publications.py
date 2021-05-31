@@ -58,7 +58,8 @@ from publications.publication import (Publication,
 from publications.researcher import (Researcher,
                                      Researchers,
                                      ResearcherAdd,
-                                     ResearcherEdit)
+                                     ResearcherEdit,
+                                     ResearcherPublications)
 from publications.journal import (Journal,
                                   JournalJson,
                                   JournalEdit,
@@ -160,6 +161,8 @@ def main():
                 url(r"/researcher/([^/]+)", Researcher, name="researcher"),
                 url(r"/researcher/([^/]+)/edit", 
                     ResearcherEdit, name="researcher_edit"),
+                url(r"/researcher/([^/]+)/publications", 
+                    ResearcherPublications, name="researcher_publications"),
                 url(r"/journals", Journals, name="journals"),
                 url(r"/journals.json", JournalsJson, name="journals_json"),
                 url(r"/journal/([^/]+).json", JournalJson,name="journal_json"),

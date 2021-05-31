@@ -75,9 +75,13 @@ class Search(RequestHandler):
         "Search the given view using the terms. Return set of IUIDs."
         result = set()
         if viewname is None:
-            # IUID of publicaton entry.
+            # IUID of publication entry; check that it really is a publication.
             for term in terms:
-                if term in self.db:
+                try:
+                    self.get_publication(term)
+                except KeyError:
+                    pass
+                else:
                     result.add(term)
         else:
             view = self.db.view(viewname, reduce=False)

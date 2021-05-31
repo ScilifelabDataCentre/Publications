@@ -194,6 +194,73 @@ class ResearcherEdit(ResearcherMixin, RequestHandler):
         self.see_other("researcher", researcher["_id"])
 
 
+class ResearcherPublications(ResearcherMixin, RequestHandler):
+    "Researcher publications edit page."
+
+    @tornado.web.authenticated
+    def get(self, identifier):
+        try:
+            researcher = self.get_researcher(identifier)
+            self.check_editable(researcher)
+        except (KeyError, ValueError) as error:
+            self.see_other("home", error=str(error))
+            return
+        publications = self.get_publications(researcher)
+        publications.sort(key=lambda p: p["published"], reverse=True)
+        self.render("researcher_publications.html",
+                    researcher=researcher,
+                    publications=publications)
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        from publications.publication import PublicationSaver
+        try:
+            researcher = self.get_researcher(identifier)
+            self.check_editable(researcher)
+        except (KeyError, ValueError) as error:
+            self.see_other("home", error=str(error))
+            return
+        publications = self.get_publications(researcher)
+        add = self.get_arguments("add")
+        try:
+            for publication in publications:
+                try:
+                    if utils.to_bool(self.get_argument(publication["_id"])):
+                        continue
+                    with PublicationSaver(doc=publication, rqh=self) as saver:
+                        for author in saver["authors"]:
+                            if author.get("researcher") == researcher["_id"]:
+                                author.pop("researcher")
+                except tornado.web.MissingArgumentError:
+                    if publication["_id"] not in add: continue
+                    with PublicationSaver(doc=publication, rqh=self) as saver:
+                        for author in saver["authors"]:
+                            if author.get("researcher"): continue
+                            if author["family_normalized"] != researcher["family_normalized"]: continue
+                            length = min(len(author["initials_normalized"]),
+                                         len(researcher["initials_normalized"]))
+                            if author["initials_normalized"][:length] != researcher["initials_normalized"][:length]: continue
+                            author["researcher"] = researcher["_id"]
+                            break
+        except ValueError as error:
+            self.set_error_flash(str(error))
+        except SaverError:
+            self.set_error_flash(utils.REV_ERROR)
+        self.see_other("researcher", researcher["_id"])
+
+    def get_publications(self, researcher):
+        "Get the publications for the researcher, including candidates."
+        result = dict([(d["_id"], d)
+                       for d in self.get_docs("publication/researcher",
+                                              key=researcher["_id"])])
+        name = f"{researcher['family_normalized']} {researcher['initials_normalized'][:1]}".strip()
+        result.update(dict([(d["_id"], d)
+                            for d in self.get_docs("publication/author",
+                                                   key=name,
+                                                   last=name+constants.CEILING)]))
+        return list(result.values())
+
+
 class Researchers(RequestHandler):
     "Researchers list page."
 
