@@ -62,6 +62,7 @@ class PublicationSaver(Saver):
     def set_authors(self):
         "Set authors list from form data."
         assert self.rqh, "requires http request context"
+        # XXX Keep associations with researchers!
         authors = []
         for author in self.rqh.get_argument("authors", "").split("\n"):
             author = author.strip()
@@ -87,6 +88,27 @@ class PublicationSaver(Saver):
                      initials=initials,
                      initials_normalized=utils.to_ascii(initials).lower()))
         self["authors"] = authors
+
+    def set_researchers(self):
+        "Set associations of researcher to author from form data."
+        assert self.rqh, "requires http request context"
+        for author in self["authors"]:
+            name = f"{author['family_normalized']} {author['initials_normalized']}"
+            # Remove current association?
+            if author.get("researcher"):
+                try:
+                    if not utils.to_bool(self.rqh.get_argument(name)):
+                        author.pop("researcher")
+                except tornado.web.MissingArgumentError:
+                    pass
+            # Set a new association?
+            else:
+                try:
+                    researcher = self.rqh.get_researcher(self.rqh.get_argument(name))
+                except (tornado.web.MissingArgumentError, ValueError):
+                    pass
+                else:
+                    author["researcher"] = researcher["_id"]
 
     def set_pmid_doi(self):
         "Set pmid and doi from form data. No validity checks are made."
@@ -116,7 +138,7 @@ class PublicationSaver(Saver):
     def set_notes(self):
         "Set the notes entry from form data."
         assert self.rqh, "requires http request context"
-        self["notes"] = self.get_argument("notes", "") or None
+        self["notes"] = self.rqh.get_argument("notes", "") or None
 
     def set_qc(self, aspect, flag):
         "Set the QC flag for a given aspect."
@@ -167,7 +189,7 @@ class PublicationSaver(Saver):
                     from publications.researcher import ResearcherSaver
                     # Existing reseacher based on ORCID.
                     try:
-                        author["researcher"] = self.rqh.get_researcher(orcid)
+                        author["researcher"] = self.rqh.get_researcher(orcid)["_id"]
                     except KeyError:
                         # Create a new researcher.
                         try:
@@ -1158,6 +1180,42 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.set_abstract()
                 saver.update_labels()
                 saver.set_notes()
+        except SaverError:
+            self.set_error_flash(utils.REV_ERROR)
+        self.see_other("publication", publication["_id"])
+
+
+class PublicationResearchers(PublicationMixin, RequestHandler):
+    "Edit the publication's associations with researchers."
+
+    @tornado.web.authenticated
+    def get(self, iuid):
+        try:
+            publication = self.get_publication(iuid)
+            self.check_editable(publication)
+        except (KeyError, ValueError) as error:
+            self.see_other("home", error=str(error))
+            return
+        for author in publication["authors"]:
+            if not author.get("researcher"):
+                author["researchers"] = \
+                    self.get_researchers(author["family"],
+                                         initials=author["initials"])
+        self.render("publication_researchers.html",
+                    publication=publication)
+
+    @tornado.web.authenticated
+    def post(self, iuid):
+        try:
+            publication = self.get_publication(iuid)
+            self.check_editable(publication)
+        except (KeyError, ValueError) as error:
+            self.see_other("home", error=str(error))
+            return
+        try:
+            with PublicationSaver(doc=publication, rqh=self) as saver:
+                saver.check_revision()
+                saver.set_researchers()
         except SaverError:
             self.set_error_flash(utils.REV_ERROR)
         self.see_other("publication", publication["_id"])

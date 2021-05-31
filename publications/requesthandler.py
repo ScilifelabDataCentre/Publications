@@ -116,6 +116,23 @@ class RequestHandler(tornado.web.RequestHandler):
         """
         return utils.get_researcher(self.db, identifier)
 
+    def get_researchers(self,  family, given=None, initials=None):
+        """Get the researcher entities for the family name,
+        optionally filtering by given name, and/or initials.
+        Return a list of researcher documents.
+        """
+        family = utils.to_ascii(family).lower()
+        result = self.get_docs("researcher/family", key=family)
+        if given:
+            given = utils.to_ascii(given).lower()
+            result = [p for p in result 
+                      if p["given_normalized"] == given]
+        if initials:
+            initials = utils.to_ascii(initials).lower()
+            result = [p for p in result
+                      if p["initials_normalized"].startswith(initials)]
+        return result
+
     def get_label(self, identifier):
         """Get the label document by its IUID or value.
         Raise KeyError if no such publication.

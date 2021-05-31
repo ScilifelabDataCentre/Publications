@@ -110,14 +110,14 @@ DESIGNS = dict(
   for (var i=0; i<length; i++) {
     au = doc.authors[i];
     if (!au.family_normalized) continue;
-    emit(au.family_normalized.toLowerCase(), null);
+    emit(au.family_normalized, null);
     if (au.initials_normalized) {
       name = au.family_normalized + ' ' + au.initials_normalized;
-      emit(name.toLowerCase(), null);
+      emit(name, null);
     }
     if (au.given_normalized) {
       name = au.family_normalized + ' ' + au.given_normalized;
-      emit(name.toLowerCase(), null);
+      emit(name, null);
     }
   }
 }"""),

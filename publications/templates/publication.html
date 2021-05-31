@@ -78,6 +78,13 @@
     Edit
   </a>
 </p>
+<p>
+  <a href="{{ reverse_url('publication_researchers', publication['_id']) }}"
+     class="btn btn-primary btn-block" role="button">
+    <span class="glyphicon glyphicon-edit"></span>
+    Edit researchers
+  </a>
+</p>
 {% if publication.get('pmid') %}
 <p>
   <form action="{{ reverse_url('publication_update_pmid', publication['_id']) }}"
