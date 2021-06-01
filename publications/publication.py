@@ -1374,7 +1374,7 @@ class PublicationQc(PublicationMixin, RequestHandler):
         try:
             publication = self.get_publication(identifier)
             self.check_not_locked(publication)
-        except KeyError as error:
+        except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
         try:
@@ -1396,6 +1396,10 @@ class PublicationUpdatePmid(PublicationMixin, RequestHandler):
     def post(self, iuid):
         try:
             publication = self.get_publication(iuid)
+        except KeyError as error:
+            self.see_other("home", error=str(error))
+            return
+        try:
             self.check_editable(publication)
             identifier = publication.get("pmid")
             if not identifier:
@@ -1428,19 +1432,20 @@ class PublicationFindPmid(PublicationMixin, RequestHandler):
 
     @tornado.web.authenticated
     def post(self, iuid):
-        if self.get_argument("source", None) == "no_pmid":
-            url = self.absolute_reverse_url("publications_no_pmid")
-        else:
-            url = self.absolute_reverse_url("publication", publication["_id"])
         try:
-            try:
-                publication = self.get_publication(iuid)
-                self.check_editable(publication)
-                identifier = publication.get("doi")
-                if not identifier:
-                    raise ValueError("no DOI for publication")
-            except KeyError as error:
-                raise ValueError(str(error))
+            publication = self.get_publication(iuid)
+        except KeyError as error:
+            self.see_other("home", error=str(error))
+            return
+        try:
+            self.check_editable(publication)
+            identifier = publication.get("doi")
+            if not identifier:
+                raise ValueError("no DOI for publication")
+        except KeyError as error:
+            self.see_other("publication", publication["_id"], error=str(error))
+            return
+        try:
             try:
                 found = pubmed.search(doi=identifier,
                                       timeout=settings["PUBMED_TIMEOUT"],
@@ -1458,6 +1463,10 @@ class PublicationFindPmid(PublicationMixin, RequestHandler):
                 saver["pmid"] = found[0]
         except ValueError as error:
             self.set_error_flash(str(error))
+        if self.get_argument("source", None) == "no_pmid":
+            url = self.absolute_reverse_url("publications_no_pmid")
+        else:
+            url = self.absolute_reverse_url("publication", publication["_id"])
         self.redirect(url, status=303)
 
 
@@ -1470,6 +1479,10 @@ class PublicationUpdateDoi(PublicationMixin, RequestHandler):
     def post(self, iuid):
         try:
             publication = self.get_publication(iuid)
+        except KeyError as error:
+            self.see_other("home", error=str(error))
+            return
+        try:
             self.check_editable(publication)
             identifier = publication.get("doi")
             if not identifier:
