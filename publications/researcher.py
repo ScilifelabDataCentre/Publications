@@ -3,6 +3,7 @@
 import tornado.web
 
 from . import constants
+from . import publication
 from . import settings
 from . import utils
 from .saver import Saver, SaverError
@@ -136,7 +137,28 @@ class Researcher(ResearcherMixin, RequestHandler):
         self.see_other("home")
 
 
-class ResearcherJson(Researcher):
+class JsonMixin:
+    "Get JSON for researcher."
+
+    def get_json(self, researcher):
+        URL = self.absolute_reverse_url
+        result = dict()
+        result["family"] = researcher["family"]
+        result["given"] = researcher["given"]
+        result["initials"] = researcher["initials"]
+        result["orcid"] = researcher.get("orcid")
+        result["affiliations"] = researcher["affiliations"]
+        result["links"] = links = dict()
+        links["self"] = {"href": URL("researcher_json", researcher["_id"])}
+        links["display"] = {"href": URL("researcher", researcher["_id"])}
+        try:
+            result["n_publications"] = researcher["n_publications"]
+        except KeyError:
+            pass
+        return result
+
+
+class ResearcherJson(JsonMixin, Researcher):
     "Researcher JSON data."
 
     def get(self, identifier):
@@ -148,19 +170,10 @@ class ResearcherJson(Researcher):
         publications = self.get_docs("publication/researcher",
                                      key=researcher["_id"])
         publications.sort(key=lambda i: i["published"], reverse=True)
-        URL = self.absolute_reverse_url
         result = dict()
         result["entity"] = "researcher"
         result["timestamp"] = utils.timestamp()
-        result["family"] = researcher["family"]
-        result["given"] = researcher["given"]
-        result["initials"] = researcher["initials"]
-        result["orcid"] = researcher.get("orcid")
-        result["affiliations"] = researcher["affiliations"]
-        result["links"] = links = dict()
-        links["self"] = {"href": URL("researcher_json", researcher["_id"])}
-        links["display"] = {"href": URL("researcher", researcher["_id"])}
-        result["publications_count"] = len(publications)
+        result.update(self.get_json(researcher))
         result["publications"] = [self.get_publication_json(publ)
                                   for publ in publications]
         self.write(result)
@@ -304,3 +317,19 @@ class Researchers(RequestHandler):
             researcher["n_publications"] = \
                 self.get_count("publication/researcher", key=researcher["_id"])
         self.render("researchers.html", researchers=researchers)
+
+
+class ResearchersJson(JsonMixin, Researchers):
+    "Researchers JSON list."
+
+    def render(self, template, researchers):
+        "Override; ignores template, and outpus JSON instead of HTML."
+        URL = self.absolute_reverse_url
+        result = dict()
+        result["entity"] = "researchers"
+        result["timestamp"] = utils.timestamp()
+        result["links"] = links = dict()
+        links["self"] = {"href": URL("researchers_json")}
+        links["display"] = {"href": URL("researchers")}
+        result["researchers"] = [self.get_json(r) for r in researchers]
+        self.write(result)

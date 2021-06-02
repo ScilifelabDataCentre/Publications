@@ -504,7 +504,7 @@ class PublicationJson(PublicationMixin, RequestHandler):
 
 
 class Publications(RequestHandler):
-    "Publications list page."
+    "Publications list display page."
 
     TEMPLATE = "publications.html"
 
@@ -526,7 +526,7 @@ class Publications(RequestHandler):
 
 
 class PublicationsTable(Publications):
-    "Publications table page."
+    "Publications table display page."
 
     TEMPLATE = "publications_table.html"
 
@@ -561,11 +561,11 @@ class PublicationsJson(Publications):
         self.write(result)
 
 
-class FilterMixin:
-    "Procedures for getting publications filtered by form arguments."
+class FilteredMixin:
+    "Method for getting publications filtered by form arguments."
 
     def get_filtered_publications(self):
-        "Get the publications according to form arguments."
+        "Get the publications filtered according to form arguments."
         result = []
         # By years.
         years = self.get_arguments("years")
@@ -615,6 +615,10 @@ class FilterMixin:
         result.sort(key=lambda p: p.get("published"), reverse=True)
         return result
 
+
+class ParametersMixin:
+    "Method for setting output parameters by form arguments."
+
     def set_parameters(self):
         "Set additional output parameters."
         self.single_label = utils.to_bool(
@@ -638,12 +642,11 @@ class FilterMixin:
             self.maxline = None
 
 
-class TabularWriteMixin(FilterMixin):
-    "Write publications in abstract tabular form, such as CSV or XLSX."
+class TabularWriteMixin(ParametersMixin):
+    "Abstract writer of publications in tabular form. For CSV and XLSX output."
 
-    def write_publications(self):
+    def write_publications(self, publications):
         "Collect output parameters and produce output."
-        publications = self.get_filtered_publications()
         self.set_parameters()
         row = ["Title",
                "Authors",
@@ -734,7 +737,7 @@ class TabularWriteMixin(FilterMixin):
         raise NotImplementedError
 
 
-class PublicationsXlsx(TabularWriteMixin, Publications):
+class PublicationsXlsx(FilteredMixin, TabularWriteMixin, Publications):
     "Publications XLSX output."
 
     def get(self):
@@ -752,7 +755,7 @@ class PublicationsXlsx(TabularWriteMixin, Publications):
         self.workbook = xlsxwriter.Workbook(self.xlsxbuffer,
                                             {"in_memory": True})
         self.ws = self.workbook.add_worksheet("Publications")
-        self.write_publications()
+        self.write_publications(self.get_filtered_publications())
         self.workbook.close()
         self.xlsxbuffer.seek(0)
         self.write(self.xlsxbuffer.getvalue())
@@ -790,7 +793,7 @@ class PublicationsXlsx(TabularWriteMixin, Publications):
         self.x += 1
 
 
-class PublicationsCsv(TabularWriteMixin, Publications):
+class PublicationsCsv(FilteredMixin, TabularWriteMixin, Publications):
     "Publications CSV output."
 
     def get(self):
@@ -815,7 +818,7 @@ class PublicationsCsv(TabularWriteMixin, Publications):
         self.writer = csv.writer(self.csvbuffer,
                                  delimiter=delimiter,
                                  quoting=csv.QUOTE_NONNUMERIC)
-        self.write_publications()
+        self.write_publications(self.get_filtered_publications())
         value = self.csvbuffer.getvalue()
         if self.get_argument("encoding", "").lower() == "iso-8859-1":
             value = value.encode("iso-8859-1", "ignore")
@@ -842,7 +845,7 @@ class PublicationsCsv(TabularWriteMixin, Publications):
         self.writer.writerow(row)
 
 
-class PublicationsTxt(FilterMixin, Publications):
+class PublicationsTxt(FilteredMixin, ParametersMixin, Publications):
     "Publications text file output."
 
     def get(self):
