@@ -15,27 +15,27 @@ Edit publications researcher
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<form action="{{ reverse_url('researcher_publications', researcher['_id']) }}"
+<form action="{{ reverse_url('researcher_publications_edit', researcher['_id']) }}"
       role="form" class="form-horizontal"
       method="POST">
   {% module xsrf_form_html() %}
 
   {% for publication in publications %}
   <div class="form-group">
-    <div class="col-sm-2">
+    <div class="col-sm-2" style="vertical-align: top;">
       {% if researcher['_id'] in [a.get('researcher') for a in publication['authors']] %}
-      <div class="radio">
-        <label class="radio">
+      <div class="radio" style="padding-top: 0;">
+        <label class="radio" style="padding-top: 0;">
 	  <input type="radio" name="{{ publication['_id'] }}" checked value="true">
           Keep
         </label>
-        <label class="radio">
+        <label class="radio" style="padding-top: 0;">
 	  <input type="radio" name="{{ publication['_id'] }}" value="false">
           Remove
         </label>
       </div>
       {% else %}
-      <div class="checkbox">
+      <div class="checkbox" style="padding-top: 0;">
         <label>
 	  <input type="checkbox" name="add" value="{{ publication['_id'] }}">
           Add

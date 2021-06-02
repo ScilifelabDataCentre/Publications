@@ -241,7 +241,21 @@ class ResearcherEdit(ResearcherMixin, RequestHandler):
         self.see_other("researcher", researcher["_id"])
 
 
-class ResearcherPublications(ResearcherMixin, RequestHandler):
+class ResearcherPublicationsXlsx(publication.PublicationsXlsx):
+    "Researcher publication XLSX output."
+
+    def get(self, identifier):
+        "Show output selection page."
+        try:
+            researcher = self.get_researcher(identifier)
+        except KeyError as error:
+            self.see_other("home", error=str(error))
+            return
+        self.render("researcher_publications_xlsx.html",
+                    researcher=researcher)
+
+
+class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
     "Researcher publications edit page."
 
     @tornado.web.authenticated
@@ -254,7 +268,7 @@ class ResearcherPublications(ResearcherMixin, RequestHandler):
             return
         publications = self.get_publications(researcher)
         publications.sort(key=lambda p: p["published"], reverse=True)
-        self.render("researcher_publications.html",
+        self.render("researcher_publications_edit.html",
                     researcher=researcher,
                     publications=publications)
 

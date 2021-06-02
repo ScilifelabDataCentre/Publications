@@ -54,7 +54,7 @@
   </a>
 </p>
 <p>
-  <a href="{{ reverse_url('researcher_publications', researcher['_id']) }}"
+  <a href="{{ reverse_url('researcher_publications_edit', researcher['_id']) }}"
      role="button" class="btn btn-primary btn-block">
     <span class="glyphicon glyphicon-edit"></span>
     Edit publications
@@ -79,10 +79,12 @@
 {% end %} {# block meta_content #}
 
 {% block alt_format %}
-<p>
-  <a href="{{ reverse_url('researcher_json', researcher['_id']) }}">
-    <img src="{{ static_url('json.png') }}">
-    JSON
-  </a>
-</p>
+<a href="{{ reverse_url('researcher_json', researcher['_id']) }}">
+  <img src="{{ static_url('json.png') }}">
+  JSON
+</a>
+<br>
+<a href="{{ reverse_url('researcher_publications_xlsx', researcher['_id']) }}">
+  <img src="{{ static_url('xlsx.png') }}"> XLSX
+</a>
 {% end %} {# block alt_format #}

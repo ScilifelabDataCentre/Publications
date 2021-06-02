@@ -522,7 +522,9 @@ class Publications(RequestHandler):
                 kwargs["limit"] = limit
             publications = self.get_docs("publication/published", **kwargs)
         self.render(self.TEMPLATE,
-                    publications=publications, year=year, limit=limit)
+                    publications=publications,
+                    year=year,
+                    limit=limit)
 
 
 class PublicationsTable(Publications):

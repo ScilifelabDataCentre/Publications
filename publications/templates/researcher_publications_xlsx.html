@@ -1,0 +1,37 @@
+{# Researcher publications XLSX setup page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Download Publications XLSX{% end %}
+{% block body_title %}
+<span class="glyphicon glyphicon-download-alt"></span>
+Download Publications XLSX
+{% end %}
+
+{% block main_content %}
+<form action="{{ reverse_url('researcher_publications_xlsx', researcher['_id']) }}"
+      role="form" class="form-horizontal"
+      method="POST">
+  {% module xsrf_form_html() %}
+
+  {% include 'publications_parameters.html' %}
+
+  <div class="form-group">
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-success btn-block">
+	<span class="glyphicon glyphicon-download-alt"></span>
+	Download
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ reverse_url('researcher', researcher['_id']) }}"
+   role="button" class="btn btn-default btn-block">
+  <span class="glyphicon glyphicon-remove-circle"></span>
+  Cancel
+</a>
+{% end %} {# block meta_content #}
