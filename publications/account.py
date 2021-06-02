@@ -1,7 +1,6 @@
 "Publications: Account and login pages."
 
 import logging
-from collections import OrderedDict as OD
 
 import tornado.web
 
@@ -140,7 +139,7 @@ class AccountsJson(Accounts):
     def render(self, template, **kwargs):
         URL = self.absolute_reverse_url
         accounts = kwargs["accounts"]
-        result = OD()
+        result = dict()
         result["entity"] = "accounts"
         result["timestamp"] = utils.timestamp()
         result["accounts_count"] = len(accounts)

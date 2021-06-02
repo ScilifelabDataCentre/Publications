@@ -4,7 +4,6 @@ import base64
 import json
 import logging
 import urllib.request, urllib.parse, urllib.error
-from collections import OrderedDict as OD
 
 import couchdb
 import tornado.web
@@ -309,20 +308,20 @@ class RequestHandler(tornado.web.RequestHandler):
     def get_publication_json(self, publication, full=True, single=False):
         "JSON representation of publication."
         URL = self.absolute_reverse_url
-        result = OD()
+        result = dict()
         if full:
             result["entity"] = "publication"
             result["iuid"] = publication["_id"]
             if single:
                 result["timestamp"] = utils.timestamp()
-            result["links"] = OD([
+            result["links"] = dict([
                 ("self", { "href": URL("publication_json",publication["_id"])}),
                 ("display", {"href": URL("publication", publication["_id"])})])
         result["title"] = publication["title"]
         if full:
             result["authors"] = []
             for author in publication["authors"]:
-                au = OD()
+                au = dict()
                 au["family"] = author.get("family")
                 au["given"] = author.get("given")
                 au["initials"] = author.get("initials")
@@ -360,11 +359,11 @@ class RequestHandler(tornado.web.RequestHandler):
     def get_account_json(self, account, full=False):
         "JSON representation of account."
         URL = self.absolute_reverse_url
-        result = OD()
+        result = dict()
         result["entity"] = "account"
         result["iuid"] = account["_id"]
         result["timestamp"] = utils.timestamp()
-        result["links"] = OD([
+        result["links"] = dict([
             ("self", { "href": URL("account_json", account["email"])}),
             ("display", {"href": URL("account", account["email"])})])
         result["email"] = account["email"]
@@ -376,11 +375,11 @@ class RequestHandler(tornado.web.RequestHandler):
             result["api_key"] = account.get("api_key")
             result["labels"] = labels = []
             for label in account["labels"]:
-                links = OD()
+                links = dict()
                 links["self"] = {"href": URL("label_json", label)}
                 links["display"] = {"href": URL("label", label)}
-                labels.append(OD([("value", label),
-                                  ("links", links)]))
+                labels.append(dict([("value", label),
+                                    ("links", links)]))
         result["created"] = account["created"]
         result["modified"] = account["modified"]
         return result
@@ -388,11 +387,11 @@ class RequestHandler(tornado.web.RequestHandler):
     def get_label_json(self, label, publications=None,accounts=None,limit=None):
         "JSON representation of label."
         URL = self.absolute_reverse_url
-        result = OD()
+        result = dict()
         result["entity"] = "label"
         result["iuid"] = label["_id"]
         result["timestamp"] = utils.timestamp()
-        result["links"] = links = OD()
+        result["links"] = links = dict()
         links["self"] = {"href": URL("label_json", label["value"])}
         links["display"] = {"href": URL("label", label["value"])}
         result["value"] = label["value"]

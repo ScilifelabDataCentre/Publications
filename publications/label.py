@@ -1,7 +1,6 @@
 "Label pages."
 
 import logging
-from collections import OrderedDict as OD
 
 import tornado.web
 
@@ -153,10 +152,10 @@ class LabelsJson(LabelsTable):
     def render(self, template, **kwargs):
         URL = self.absolute_reverse_url
         labels = kwargs["labels"]
-        result = OD()
+        result = dict()
         result["entity"] = "labels"
         result["timestamp"] = utils.timestamp()
-        result["links"] = links = OD()
+        result["links"] = links = dict()
         links["self"] = {"href": URL("labels_json")}
         links["display"] = {"href": URL("labels")}
         result["labels_count"] = len(labels)

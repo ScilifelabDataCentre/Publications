@@ -1,6 +1,5 @@
 "Publication pages."
 
-from collections import OrderedDict as OD
 import csv
 import io
 import logging
@@ -539,13 +538,13 @@ class PublicationsJson(Publications):
         "Override; ignores template, and outputs JSON instead of HTML."
         URL = self.absolute_reverse_url
         publications = kwargs["publications"]
-        result = OD()
+        result = dict()
         result["entity"] = "publications"
         result["timestamp"] = utils.timestamp()
         year = kwargs["year"]
         if year:
             result["year"] = year
-        result["links"] = links = OD()
+        result["links"] = links = dict()
         if year:
             links["self"] = {"href": URL("publications_year_json", year)}
             links["display"] = {"href": URL("publications_year", year)}
@@ -956,10 +955,10 @@ class PublicationsNoPmidJson(PublicationsNoPmid):
         "Override; ignores template, and outputs JSON instead of HTML."
         URL = self.absolute_reverse_url
         publications = kwargs["publications"]
-        result = OD()
+        result = dict()
         result["entity"] = "publications_no_pmid"
         result["timestamp"] = utils.timestamp()
-        result["links"] = links = OD()
+        result["links"] = links = dict()
         links["self"] = {"href": URL("publications_no_pmid_json")}
         links["display"] = {"href": URL("publications_no_pmid")}
         result["publications_count"] = len(publications)
@@ -983,10 +982,10 @@ class PublicationsNoDoiJson(PublicationsNoDoi):
         "Override; ignores template, and outputs JSON instead of HTML."
         URL = self.absolute_reverse_url
         publications = kwargs["publications"]
-        result = OD()
+        result = dict()
         result["entity"] = "publications_no_doi"
         result["timestamp"] = utils.timestamp()
-        result["links"] = links = OD()
+        result["links"] = links = dict()
         links["self"] = {"href": URL("publications_no_doi_json")}
         links["display"] = {"href": URL("publications_no_doi")}
         result["publications_count"] = len(publications)
@@ -1013,10 +1012,10 @@ class PublicationsNoLabelJson(PublicationsNoLabel):
         "Override; ignores template, and outputs JSON instead of HTML."
         URL = self.absolute_reverse_url
         publications = kwargs["publications"]
-        result = OD()
+        result = dict()
         result["entity"] = "publications_no_label"
         result["timestamp"] = utils.timestamp()
-        result["links"] = links = OD()
+        result["links"] = links = dict()
         links["self"] = {"href": URL("publications_no_label_json")}
         links["display"] = {"href": URL("publications_no_label")}
         result["publications_count"] = len(publications)

@@ -1,7 +1,6 @@
 "Search for terms in publications."
 
 import logging
-from collections import OrderedDict as OD
 
 from publications import constants
 from publications import settings
@@ -99,11 +98,11 @@ class SearchJson(Search):
         URL = self.absolute_reverse_url
         publications = kwargs["publications"]
         terms = kwargs["terms"]
-        result = OD()
+        result = dict()
         result["entity"] = "publications search"
         result["timestamp"] = utils.timestamp()
         result["terms"] = terms
-        result["links"] = links = OD()
+        result["links"] = links = dict()
         links["self"] = {"href": URL("search_json", terms=terms)}
         links["display"] = {"href": URL("search", terms=terms)}
         result["publications_count"] = len(publications)

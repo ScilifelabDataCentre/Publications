@@ -1,7 +1,6 @@
 "Journal pages."
 
 import logging
-from collections import OrderedDict as OD
 
 import tornado.web
 
@@ -122,11 +121,11 @@ class JournalJson(Journal):
         URL = self.absolute_reverse_url
         journal = kwargs["journal"]
         publications = kwargs["publications"]
-        result = OD()
+        result = dict()
         result["entity"] = "journal"
         result["iuid"] = journal["_id"]
         result["timestamp"] = utils.timestamp()
-        result["links"] = links = OD()
+        result["links"] = links = dict()
         links["self"] = {"href": URL("journal_json", journal["title"])}
         links["display"] = {"href": URL("journal", journal["title"])}
         result["title"] = journal["title"]
@@ -208,20 +207,20 @@ class JournalsJson(Journals):
     def render(self, template, **kwargs):
         URL = self.absolute_reverse_url
         journals = kwargs["journals"]
-        result = OD()
+        result = dict()
         result["entity"] = "journals"
         result["timestamp"] = utils.timestamp()
-        result["links"] = links = OD()
+        result["links"] = links = dict()
         links["self"] = {"href": URL("journals_json")}
         links["display"] = {"href": URL("journals")}
         result["journals_count"] = len(journals)
         result["journals"] = items = []
         for journal in journals:
-            item = OD()
+            item = dict()
             item["title"] = journal["title"]
             item["issn"] = journal.get("issn")
             item["publications_count"] = journal["count"]
-            item["links"] = links = OD()
+            item["links"] = links = dict()
             links["self"] = {"href": URL("journal_json", journal["title"])}
             links["display"] = {"href": URL("journal", journal["title"])}
             items.append(item)
