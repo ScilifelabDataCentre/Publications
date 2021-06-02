@@ -326,13 +326,18 @@ class RequestHandler(tornado.web.RequestHandler):
                 au["family"] = author.get("family")
                 au["given"] = author.get("given")
                 au["initials"] = author.get("initials")
+                if author.get("researcher"):
+                    researcher = self.get_researcher(author["researcher"])
+                    if researcher.get("orcid"):
+                        au["orcid"] = researcher["orcid"]
+                    au["researcher"] = {"href": URL("researcher_json",
+                                                    author["researcher"])}
                 result["authors"].append(au)
             result["type"] = publication.get("type")
         result["published"] = publication.get("published")
         result["journal"] = publication.get("journal")
-        # XXX Kludge: this is not stored in the publication,
-        # since it is not obtained (or at least not parsed) from
-        # PubMed or Crossref.
+        # XXX Kludge: this is not stored in the publication, since it is
+        # not obtained (or at least not parsed) from PubMed or Crossref.
         result["journal"]["issn-l"] = self.get_issn_l(result["journal"].get("issn"))
         if full:
             result["abstract"] = publication.get("abstract")

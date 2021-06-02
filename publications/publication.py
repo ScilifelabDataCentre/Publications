@@ -790,6 +790,7 @@ class PublicationsXlsx(TabularWriteMixin, Publications):
                 self.ws.write(self.x, y, item)
         self.x += 1
 
+
 class PublicationsCsv(TabularWriteMixin, Publications):
     "Publications CSV output."
 

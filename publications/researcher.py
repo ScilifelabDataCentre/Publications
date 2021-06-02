@@ -136,6 +136,36 @@ class Researcher(ResearcherMixin, RequestHandler):
         self.see_other("home")
 
 
+class ResearcherJson(Researcher):
+    "Researcher JSON data."
+
+    def get(self, identifier):
+        "Display the researcher."
+        try:
+            researcher = self.get_researcher(identifier)
+        except KeyError as error:
+            raise tornado.web.HTTPError(404, reason="no such researcher")
+        publications = self.get_docs("publication/researcher",
+                                     key=researcher["_id"])
+        publications.sort(key=lambda i: i["published"], reverse=True)
+        URL = self.absolute_reverse_url
+        result = dict()
+        result["entity"] = "researcher"
+        result["timestamp"] = utils.timestamp()
+        result["family"] = researcher["family"]
+        result["given"] = researcher["given"]
+        result["initials"] = researcher["initials"]
+        result["orcid"] = researcher.get("orcid")
+        result["affiliations"] = researcher["affiliations"]
+        result["links"] = links = dict()
+        links["self"] = {"href": URL("researcher_json", researcher["_id"])}
+        links["display"] = {"href": URL("researcher", researcher["_id"])}
+        result["publications_count"] = len(publications)
+        result["publications"] = [self.get_publication_json(publ)
+                                  for publ in publications]
+        self.write(result)
+
+
 class ResearcherAdd(ResearcherMixin, RequestHandler):
     "Researcher addition page."
 
