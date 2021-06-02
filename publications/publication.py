@@ -167,6 +167,15 @@ class PublicationSaver(Saver):
         self["abstract"] = other.get("abstract") or self.get("abstract")
         self["xrefs"] = other.get("xrefs") or self.get("xrefs")
 
+        # Special case for journal field: copy each component field.
+        try:
+            journal = self["journal"]
+        except KeyError:
+            self["journal"] = journal = {}
+        for key, value in other.get("journal", {}).items():
+            if value:
+                journal[key] = value
+
         # Authors: Remember previously associated researchers.
         researchers = {}
         for author in self["authors"]:
@@ -204,14 +213,6 @@ class PublicationSaver(Saver):
                             pass    # Just skip if any problem.
             # Don't save affiliations in publication itself.
             author.pop("affiliations", None)
-        # Special case for journal field: copy each component field.
-        try:
-            journal = self["journal"]
-        except KeyError:
-            self["journal"] = journal = {}
-        for key, value in other.get("journal", {}).items():
-            if value is not None:
-                journal[key] = value
 
     def fix_journal(self):
         """Set the appropriate journal title, ISSN and ISSN-L if not done.
@@ -936,7 +937,14 @@ class PublicationsNoPmid(PublicationMixin, RequestHandler):
         publications = self.get_docs("publication/no_pmid", descending=True)
         for publication in publications:
             publication["find_pmid"] = self.is_editable(publication) and \
-                not publication.get("pmnid")
+                not publication.get("pmid")
+        # Put the publications last for which find has been attempted,
+        # or cannot be done.
+        publs1 = [p for p in publications
+                  if p["find_pmid"] and not p.get("no_pmid_found")]
+        publs2 = [p for p in publications
+                  if not (p["find_pmid"] and not p.get("no_pmid_found"))]
+        publications = publs1 + publs2
         self.render("publications_no_pmid.html", publications=publications)
 
 
@@ -1458,16 +1466,15 @@ class PublicationFindPmid(PublicationMixin, RequestHandler):
             except (OSError, IOError):
                 raise ValueError(f"No response from PubMed for {identifier}.")
             except ValueError as error:
+                with PublicationSaver(doc=publication, rqh=self) as saver:
+                    saver["no_pmid_found"] = utils.timestamp()
                 raise ValueError(f"{identifier}, {error}")
             with PublicationSaver(doc=publication, rqh=self) as saver:
                 saver["pmid"] = found[0]
+
         except ValueError as error:
             self.set_error_flash(str(error))
-        if self.get_argument("source", None) == "no_pmid":
-            url = self.absolute_reverse_url("publications_no_pmid")
-        else:
-            url = self.absolute_reverse_url("publication", publication["_id"])
-        self.redirect(url, status=303)
+        self.see_other("publication", publication["_id"])
 
 
 class PublicationUpdateDoi(PublicationMixin, RequestHandler):
