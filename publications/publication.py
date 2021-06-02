@@ -1030,26 +1030,27 @@ class PublicationsDuplicates(RequestHandler):
     """Apparently duplicated publications.
     First find 4 longest words in the title, and make a lookup key of them.
     Use this to identify possible duplicates.
-    Also check whether the first 4 authors match.
+    Also check whether the first 4 author family names match.
+    Some false positives are expected.
     """
 
     def get(self):
         lookup = {}             # Key: 4 longest words in title
         duplicates = []
-        for publication in self.get_docs("publication/modified"):
-            title = utils.to_ascii(publication["title"]).lower()
+        for publ1 in self.get_docs("publication/modified"):
+            title = utils.to_ascii(publ1["title"]).lower()
             parts = sorted(title.split(), key=len, reverse=True)
             key = " ".join(parts[:4])
             try:
-                previous = lookup[key]
-                for auth1, auth2 in zip(previous["authors"][:4],
-                                        publication["authors"][:4]):
+                publ2 = lookup[key]
+                for auth1, auth2 in zip(publ1["authors"][:4],
+                                        publ2["authors"][:4]):
                     if auth1["family_normalized"] != auth2["family_normalized"]:
                         break
                 else:
-                    duplicates.append((previous, publication))
+                    duplicates.append((publ1, publ2))
             except KeyError:
-                lookup[key] = publication
+                lookup[key] = publ1
         self.render("publications_duplicates.html", duplicates=duplicates)
 
 

@@ -11,7 +11,8 @@ Publication duplicates
 {% block main_content %}
 <p>
   Duplicates are detected by comparing the 4 longest words in the
-  titels. Some false positives are expected.
+  titels and checking that the first 4 authors have the same family names.
+  Some false positives are expected.
 </p>
 <table class="table">
   {% for publication, duplicate in duplicates %}
