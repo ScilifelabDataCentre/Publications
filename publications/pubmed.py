@@ -10,9 +10,9 @@ import xml.etree.ElementTree
 
 import requests
 
-PUBMED_FETCH_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract&id=%s'
+PUBMED_FETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract&id=%s"
 
-PUBMED_SEARCH_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=%s&term=%s'
+PUBMED_SEARCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=%s&term=%s"
 
 DEFAULT_TIMEOUT = 5.0
 DEFAULT_DELAY = 1.0
@@ -42,7 +42,7 @@ def search(author=None, published=None, journal=None, doi=None,
         parts.append("%s[AD]" % to_ascii(str(affiliation)))
     if title:
         parts.append("%s[TI]" % to_ascii(str(title)))
-    query = ' AND '.join(parts)
+    query = " AND ".join(parts)
     if exclude_title:
         query += " NOT %s[TI]" % to_ascii(str(exclude_title))
     url = PUBMED_SEARCH_URL % (retmax, query)
@@ -52,15 +52,15 @@ def search(author=None, published=None, journal=None, doi=None,
         time.sleep(delay)
     try:
         if debug:
-            print('url>', url)
+            print("url>", url)
         response = requests.get(url, timeout=timeout)
     except (requests.exceptions.ReadTimeout,
             requests.exceptions.ConnectionError):
-        raise IOError('timeout')
+        raise IOError("timeout")
     if response.status_code != 200:
         raise IOError(f"HTTP status {response.status_code} {url}")
     root = xml.etree.ElementTree.fromstring(response.content)
-    return [e.text for e in root.findall('IdList/Id')]
+    return [e.text for e in root.findall("IdList/Id")]
 
 def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
            api_key=None, debug=False):
@@ -70,7 +70,7 @@ def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
     Delay the HTTP request if positive value (seconds).
     The API key is the one set for your NCBI account, if any.
     """
-    filename = pmid + '.xml'
+    filename = pmid + ".xml"
     content = None
     # Get the locally stored XML file if it exists.
     if dirname:
@@ -86,12 +86,12 @@ def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
         if delay > 0.0:
             time.sleep(delay)
         if debug:
-            print('url>', url)
+            print("url>", url)
         try:
             response = requests.get(url, timeout=timeout)
         except (requests.exceptions.ReadTimeout,
                 requests.exceptions.ConnectionError):
-            raise IOError('timeout')
+            raise IOError("timeout")
         if response.status_code != 200:
             raise IOError(f"HTTP status {response.status_code} {url}")
         content = response.content
@@ -105,71 +105,71 @@ def parse(data):
     "Parse XML text data for a publication into a dictionary."
     tree = xml.etree.ElementTree.fromstring(data)
     try:
-        article = get_element(tree, 'PubmedArticle')
+        article = get_element(tree, "PubmedArticle")
     except ValueError:
-        raise ValueError('no article with the given PMID')
+        raise ValueError("no article with the given PMID")
     result = dict()
-    result['title']      = squish(get_title(article))
-    result['pmid']       = get_pmid(article)
-    result['doi']        = None
-    result['authors']    = get_authors(article)
-    result['journal']    = get_journal(article)
-    result['type']       = get_type(article)
-    result['published']  = get_published(article)
-    result['epublished'] = get_epublished(article)
-    result['abstract']   = get_abstract(article)
-    result['xrefs']      = []
+    result["title"]      = squish(get_title(article))
+    result["pmid"]       = get_pmid(article)
+    result["doi"]        = None
+    result["authors"]    = get_authors(article)
+    result["journal"]    = get_journal(article)
+    result["type"]       = get_type(article)
+    result["published"]  = get_published(article)
+    result["epublished"] = get_epublished(article)
+    result["abstract"]   = get_abstract(article)
+    result["xrefs"]      = []
     # Remove PMID from xrefs; get and remove DOI
     for xref in get_xrefs(article):
-        if xref['db'] == 'doi':
-            result['doi'] = xref['key']
-        elif xref['db'] == 'pubmed':
+        if xref["db"] == "doi":
+            result["doi"] = xref["key"]
+        elif xref["db"] == "pubmed":
             pass
         else:
-            result['xrefs'].append(xref)
+            result["xrefs"].append(xref)
     return result
 
 def get_title(article):
     "Get the title from the article XML tree."
-    element = get_element(article, 'MedlineCitation/Article/ArticleTitle')
+    element = get_element(article, "MedlineCitation/Article/ArticleTitle")
     return get_text(element)
 
 def get_pmid(article):
     "Get the PMID from the article XML tree."
-    return article.findtext('MedlineCitation/PMID')
+    return article.findtext("MedlineCitation/PMID")
 
 def get_authors(article):
     "Get the list of authors from the article XML tree."
-    element = get_element(article, 'MedlineCitation/Article')
-    authorlist = element.find('AuthorList')
+    element = get_element(article, "MedlineCitation/Article")
+    authorlist = element.find("AuthorList")
     if not authorlist: return []
     result = []
     existing = set()                # Handle pathological multi-mention.
-    for element in authorlist.findall('Author'):
+    for element in authorlist.findall("Author"):
         author = dict()
         # Name of author
-        for jkey, xkey in [('family', 'LastName'),
-                           ('given', 'ForeName'),
-                           ('initials', 'Initials')]:
+        for jkey, xkey in [("family", "LastName"),
+                           ("given", "ForeName"),
+                           ("initials", "Initials")]:
             value = element.findtext(xkey)
             if not value: continue
             value = str(value)
             author[jkey] = value
-            author[jkey + '_normalized'] = to_ascii(value).lower()
+            author[jkey + "_normalized"] = to_ascii(value).lower()
         # For consortia and such, names are a mess. Try to sort out.
-        if not author.get('family'):
+        if not author.get("family"):
             try:
-                author['family'] = author.pop('given')
+                author["family"] = author.pop("given")
             except KeyError:
-                value = element.findtext('CollectiveName')
+                value = element.findtext("CollectiveName")
                 if not value: continue # Give up.
                 value = str(value)
-                author['family'] = value
-            author['given'] = ''
-            author['initials'] = ''
-            author['family_normalized'] = to_ascii(author['family']).lower()
-            author['given_normalized'] = ''
-            author['initials_normalized'] = ''
+                author["family"] = value
+            author["given"] = ""
+            author["initials"] = ""
+            author["family_normalized"] = to_ascii(author["family"]).lower()
+            author["given_normalized"] = ""
+            author["initials_normalized"] = ""
         for elem in element.findall("Identifier"):
             if elem.attrib.get("Source") == "ORCID":
                 # ORCID may be given as an URL; split away all except id proper.
@@ -188,33 +188,33 @@ def get_authors(article):
 
 def get_journal(article):
     "Get the journal data from the article XML tree."
-    element = get_element(article, 'MedlineCitation/Article/Journal')
+    element = get_element(article, "MedlineCitation/Article/Journal")
     result = dict()
     if element is not None:
-        result['title'] = element.findtext('ISOAbbreviation')
-        if not result['title']:
-            result['title'] = element.findtext('Title')
-        result['issn'] = element.findtext('ISSN')
-        issue = element.find('JournalIssue')
+        result["title"] = element.findtext("ISOAbbreviation")
+        if not result["title"]:
+            result["title"] = element.findtext("Title")
+        result["issn"] = element.findtext("ISSN")
+        issue = element.find("JournalIssue")
         if issue is not None:
-            result['volume'] = issue.findtext('Volume')
-            result['issue'] = issue.findtext('Issue')
-    element = article.find('MedlineCitation/Article/Pagination/MedlinePgn')
+            result["volume"] = issue.findtext("Volume")
+            result["issue"] = issue.findtext("Issue")
+    element = article.find("MedlineCitation/Article/Pagination/MedlinePgn")
     if element is not None:
         pages = element.text
         if pages:
-            pages = pages.split('-')
+            pages = pages.split("-")
             if len(pages) == 2:         # Complete page numbers!
                 diff = len(pages[0]) - len(pages[1])
                 if diff > 0:
                     pages[1] = pages[0][0:diff] + pages[1]
-            pages = '-'.join(pages)
-        result['pages'] = pages
+            pages = "-".join(pages)
+        result["pages"] = pages
     return result
 
 def get_type(article):
     "Get the type from the article XML tree."
-    element = get_element(article, 'MedlineCitation/Article/PublicationTypeList/PublicationType')
+    element = get_element(article, "MedlineCitation/Article/PublicationTypeList/PublicationType")
     if element is not None:
         return element.text.lower()
     else:
@@ -222,19 +222,19 @@ def get_type(article):
 
 def get_published(article):
     "Get the publication date from the article XML tree."
-    elem = article.find('MedlineCitation/Article/Journal/JournalIssue/PubDate')
+    elem = article.find("MedlineCitation/Article/Journal/JournalIssue/PubDate")
     date = []
     if elem is not None:
         date = get_date(elem)
     if len(date) < 2:               # Fallback 1: ArticleDate
-        elem = article.find('MedlineCitation/Article/ArticleDate')
+        elem = article.find("MedlineCitation/Article/ArticleDate")
         if elem is not None:
             date = get_date(elem)
     if len(date) < 2:               # Fallback 2: PubMedPubDate
-        dates = article.findall('PubmedData/History/PubMedPubDate')
-        for status in ['epublish', 'aheadofprint', 'pubmed']:
+        dates = article.findall("PubmedData/History/PubMedPubDate")
+        for status in ["epublish", "aheadofprint", "pubmed"]:
             for elem in dates:
-                if elem.get('PubStatus') == status:
+                if elem.get("PubStatus") == status:
                     date = get_date(elem)
                     break
             if len(date) >= 2: break
@@ -249,14 +249,14 @@ def get_published(article):
 def get_epublished(article):
     "Get the online publication date from the article XML tree, or None."
     date = []
-    elem = article.find('MedlineCitation/Article/ArticleDate')
-    if elem is not None and elem.get('DateType') == 'Electronic':
+    elem = article.find("MedlineCitation/Article/ArticleDate")
+    if elem is not None and elem.get("DateType") == "Electronic":
         date = get_date(elem)
     if len(date) < 2:
-        dates = article.findall('PubmedData/History/PubMedPubDate')
-        for status in ['epublish', 'aheadofprint', 'pubmed']:
+        dates = article.findall("PubmedData/History/PubMedPubDate")
+        for status in ["epublish", "aheadofprint", "pubmed"]:
             for elem in dates:
-                if elem.get('PubStatus') == status:
+                if elem.get("PubStatus") == status:
                     date = get_date(elem)
                     break
             if len(date) >= 2: break
@@ -270,24 +270,24 @@ def get_epublished(article):
 def get_abstract(article):
     "Get the abstract from the article XML tree."
     try:
-        element = get_element(article, 'MedlineCitation/Article/Abstract')
+        element = get_element(article, "MedlineCitation/Article/Abstract")
     except ValueError:
         return None
     else:
         text = []
-        for elem in element.findall('AbstractText'):
+        for elem in element.findall("AbstractText"):
             text.append(get_text(elem))
-        return '\n\n'.join([t for t in text if t]).strip()
+        return "\n\n".join([t for t in text if t]).strip()
 
 def get_xrefs(article):
     "Get the list of cross-references from the article XML tree."
     result = []
-    for elem in article.findall('PubmedData/ArticleIdList/ArticleId'):
-        result.append(dict(db=elem.get('IdType'), key=elem.text))
-    for elem in article.findall('MedlineCitation/Article/DataBankList/DataBank'):
-        db = elem.findtext('DataBankName')
+    for elem in article.findall("PubmedData/ArticleIdList/ArticleId"):
+        result.append(dict(db=elem.get("IdType"), key=elem.text))
+    for elem in article.findall("MedlineCitation/Article/DataBankList/DataBank"):
+        db = elem.findtext("DataBankName")
         if not db: continue
-        for elem2 in elem.findall('AccessionNumberList/AccessionNumber'):
+        for elem2 in elem.findall("AccessionNumberList/AccessionNumber"):
             result.append(dict(db=db, key=elem2.text))
     return result
 
@@ -298,11 +298,11 @@ def get_element(tree, key):
 
 def get_date(element):
     "Get the [year, month, day] from the element."
-    year = element.findtext('Year')
+    year = element.findtext("Year")
     if not year:
         return []
     result = [int(year)]
-    month = element.findtext('Month')
+    month = element.findtext("Month")
     if not month:
         return result
     try:
@@ -311,7 +311,7 @@ def get_date(element):
         return result
     else:
         result.append(month)
-    day = element.findtext('Day')
+    day = element.findtext("Day")
     try:
         day = int(day)
     except (TypeError, ValueError):
@@ -325,23 +325,23 @@ def get_text(element):
     for elem in element.iter():
         text.append(elem.text)
         text.append(elem.tail)
-    text = ''.join([t for t in text if t])
-    text = ''.join([t for t in text.split('\n')])
-    text = ' '.join([t for t in text.split()])
+    text = "".join([t for t in text if t])
+    text = "".join([t for t in text.split("\n")])
+    text = " ".join([t for t in text.split()])
     return text
 
 def to_ascii(value):
     "Convert any non-ASCII character to its closest ASCII equivalent."
-    if value is None: return ''
-    value = unicodedata.normalize('NFKD', str(value))
-    return u''.join([c for c in value if not unicodedata.combining(c)])
+    if value is None: return ""
+    value = unicodedata.normalize("NFKD", str(value))
+    return u"".join([c for c in value if not unicodedata.combining(c)])
 
 def squish(value):
     "Remove all unnecessary white spaces."
-    return ' '.join([p for p in value.split() if p])
+    return " ".join([p for p in value.split() if p])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dirname = os.getcwd()
     pmids = sys.argv[1:]
     if not pmids:

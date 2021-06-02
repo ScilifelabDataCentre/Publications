@@ -16,34 +16,34 @@ class Login(RequestHandler):
 
     def get(self):
         "Display login page."
-        self.render('login.html',
-                    next=self.get_argument('next', self.reverse_url('home')))
+        self.render("login.html",
+                    next=self.get_argument("next", self.reverse_url("home")))
 
     def post(self):
         """Login to a account account. Set a secure cookie.
         Log failed login attempt and disable account if too many recent.
         """
         try:
-            email = self.get_argument('email')
-            password = self.get_argument('password')
+            email = self.get_argument("email")
+            password = self.get_argument("password")
         except tornado.web.MissingArgumentError:
-            self.set_error_flash('Missing email or password argument.')
-            self.see_other('login')
+            self.set_error_flash("Missing email or password argument.")
+            self.see_other("login")
             return
         try:
             account = self.get_account(email)
-            if utils.hashed_password(password) != account.get('password'):
+            if utils.hashed_password(password) != account.get("password"):
                 raise KeyError
         except KeyError:
-            self.set_error_flash('No such account or invalid password.')
-            self.see_other('login')
+            self.set_error_flash("No such account or invalid password.")
+            self.see_other("login")
         else:
             self.set_secure_cookie(constants.USER_COOKIE,
-                                   account['email'],
-                                   expires_days=settings['LOGIN_MAX_AGE_DAYS'])
+                                   account["email"],
+                                   expires_days=settings["LOGIN_MAX_AGE_DAYS"])
             with AccountSaver(doc=account, rqh=self) as saver:
-                saver['login'] = utils.timestamp() # Set last login timestamp.
-            self.redirect(self.get_argument('next', self.reverse_url('home')))
+                saver["login"] = utils.timestamp() # Set last login timestamp.
+            self.redirect(self.get_argument("next", self.reverse_url("home")))
 
 
 class Logout(RequestHandler):
@@ -51,5 +51,5 @@ class Logout(RequestHandler):
 
     @tornado.web.authenticated
     def post(self):
-        self.set_secure_cookie(constants.USER_COOKIE, '')
-        self.see_other('home')
+        self.set_secure_cookie(constants.USER_COOKIE, "")
+        self.see_other("home")

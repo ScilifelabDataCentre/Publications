@@ -8,7 +8,7 @@ import unicodedata
 
 import requests
 
-CROSSREF_FETCH_URL = 'https://api.crossref.org/works/%s'
+CROSSREF_FETCH_URL = "https://api.crossref.org/works/%s"
 
 DEFAULT_TIMEOUT = 5.0
 DEFAULT_DELAY = 0.5
@@ -34,12 +34,12 @@ def fetch(doi, dirname=None, timeout=DEFAULT_TIMEOUT,
         if delay > 0.0:
             time.sleep(delay)
         if debug:
-            print('url>', url)
+            print("url>", url)
         try:
             response = requests.get(url, timeout=timeout)
         except (requests.exceptions.ReadTimeout,
                 requests.exceptions.ConnectionError):
-            raise IOError('timeout')
+            raise IOError("timeout")
         if response.status_code != 200:
             raise IOError(f"HTTP status {response.status_code} {url}")
         data = response.json()
@@ -54,30 +54,30 @@ def fetch(doi, dirname=None, timeout=DEFAULT_TIMEOUT,
 def parse(data):
     "Parse JSON data for a publication into a dictionary."
     result = dict()
-    result['title']      = squish(get_title(data))
-    result['doi']        = get_doi(data)
-    result['pmid']       = get_pmid(data)
-    result['authors']    = get_authors(data)
-    result['journal']    = get_journal(data)
-    result['type']       = get_type(data)
-    result['published']  = get_published(data)
-    result['epublished'] = get_epublished(data)
-    result['abstract']   = get_abstract(data)
-    result['xrefs']      = get_xrefs(data)
+    result["title"]      = squish(get_title(data))
+    result["doi"]        = get_doi(data)
+    result["pmid"]       = get_pmid(data)
+    result["authors"]    = get_authors(data)
+    result["journal"]    = get_journal(data)
+    result["type"]       = get_type(data)
+    result["published"]  = get_published(data)
+    result["epublished"] = get_epublished(data)
+    result["abstract"]   = get_abstract(data)
+    result["xrefs"]      = get_xrefs(data)
     return result
 
 def get_title(data):
     "Get the title from the article JSON."
     try:
-        return ' '.join(data['message']['title'])
+        return " ".join(data["message"]["title"])
     except KeyError:
-        for item in data['message']['assertion']:
-            if item['name'] == 'articletitle':
-                return item['value']
+        for item in data["message"]["assertion"]:
+            if item["name"] == "articletitle":
+                return item["value"]
 
 def get_doi(data):
     "Get the DOI from the article JSON."
-    return data['message']['DOI']
+    return data["message"]["DOI"]
 
 def get_pmid(data):
     "Get the PMID from the article JSON; not present."
@@ -86,17 +86,17 @@ def get_pmid(data):
 def get_authors(data):
     "Get the list of authors from the article JSON."
     result = []
-    for item in data['message'].get('author', []):
+    for item in data["message"].get("author", []):
         author = dict()
-        author['family'] = item.get('family')
-        author['family_normalized'] = to_ascii(author['family']).lower()
+        author["family"] = item.get("family")
+        author["family_normalized"] = to_ascii(author["family"]).lower()
         # Remove dots and dashes
-        given = item.get('given', '').replace('.', ' ').replace('-', ' ')
+        given = item.get("given", "").replace(".", " ").replace("-", " ")
         # Replace weird blank characters
-        author['given'] = ' '.join(given.split())
-        author['given_normalized'] = to_ascii(author['given']).lower()
-        author['initials'] = ''.join([n[0] for n in given.split()])
-        author['initials_normalized'] = to_ascii(author['initials']).lower()
+        author["given"] = " ".join(given.split())
+        author["given_normalized"] = to_ascii(author["given"]).lower()
+        author["initials"] = "".join([n[0] for n in given.split()])
+        author["initials_normalized"] = to_ascii(author["initials"]).lower()
         try:
             # ORCID given as URL; split away all except id proper.
             author["orcid"] = item["ORCID"].split("/")[-1]
@@ -119,33 +119,33 @@ def get_journal(data):
     "Get the journal data from the article JSON."
     result = dict()
     try:
-        result['title'] = ' '.join(data['message']['short-container-title'])
+        result["title"] = " ".join(data["message"]["short-container-title"])
     except KeyError:
-        result['title'] = ' '.join(data['message']['container-title'])
+        result["title"] = " ".join(data["message"]["container-title"])
     try:
-        result['issn'] = data['message']['ISSN'][0]
+        result["issn"] = data["message"]["ISSN"][0]
     except (KeyError, IndexError):
-        result['issn'] = None
-    result['volume'] = data['message'].get('volume')
-    result['issue'] = data['message'].get('issue')
-    result['pages'] = data['message'].get('page')
+        result["issn"] = None
+    result["volume"] = data["message"].get("volume")
+    result["issue"] = data["message"].get("issue")
+    result["pages"] = data["message"].get("page")
     return result
 
 def get_type(data):
     "Get the type from the article JSON."
     try:
-        return data['message'].get('type')
+        return data["message"].get("type")
     except KeyError:
         return None
 
 def get_published(data):
     "Get the print publication date from the article JSON."
     # Try in order: print, issued, created, deposited
-    for key in ['published-print', 'issued', 'created', 'deposited']:
+    for key in ["published-print", "issued", "created", "deposited"]:
         try:
-            item = data['message'][key]
+            item = data["message"][key]
             if item == [None]: raise KeyError # Apparent dummy value
-            parts = [int(i) for i in item['date-parts'][0]]
+            parts = [int(i) for i in item["date-parts"][0]]
             if not parts: raise KeyError
         except (KeyError, TypeError, ValueError):
             pass
@@ -155,15 +155,15 @@ def get_published(data):
             if len(parts) == 2: parts.append(0)
             return "%s-%02i-%02i" % tuple(parts)
     # No such entry found; use a 'random' year.
-    return '1900-0-0'
+    return "1900-0-0"
 
 def get_epublished(data):
     "Get the online publication date from the article JSON, or None."
     # Try in order: online, issued
-    for key in ['published-online', 'issued']:
+    for key in ["published-online", "issued"]:
         try:
-            item = data['message'][key]
-            parts = [int(i) for i in item['date-parts'][0]]
+            item = data["message"][key]
+            parts = [int(i) for i in item["date-parts"][0]]
             if not parts: raise KeyError
         except (KeyError, TypeError, ValueError):
             pass
@@ -184,22 +184,22 @@ def get_xrefs(data):
 
 def to_ascii(value):
     "Convert any non-ASCII character to its closest ASCII equivalent."
-    if value is None: return ''
-    value = unicodedata.normalize('NFKD', str(value))
-    return u''.join([c for c in value if not unicodedata.combining(c)])
+    if value is None: return ""
+    value = unicodedata.normalize("NFKD", str(value))
+    return u"".join([c for c in value if not unicodedata.combining(c)])
 
 def squish(value):
     "Remove all unnecessary white spaces."
-    return ' '.join([p for p in value.split() if p])
+    return " ".join([p for p in value.split() if p])
 
 def test_fetch():
     "Fetch a specific article."
-    key = '10.1016/j.cell.2015.12.018'
+    key = "10.1016/j.cell.2015.12.018"
     result = fetch(key)
-    assert result['doi'] == key
+    assert result["doi"] == key
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dirname = os.getcwd()
     dois = sys.argv[1:]
     if not dois:

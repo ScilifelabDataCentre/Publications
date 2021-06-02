@@ -11,7 +11,7 @@ class Authors(tornado.web.UIModule):
     "HTML for authors list, including links to researcher page when available."
 
     def render(self, authors, complete=False):
-        if not complete and len(authors) > settings['NUMBER_FIRST_AUTHORS'] + settings['NUMBER_LAST_AUTHORS']:
+        if not complete and len(authors) > settings["NUMBER_FIRST_AUTHORS"] + settings["NUMBER_LAST_AUTHORS"]:
             authors = authors[:settings["NUMBER_FIRST_AUTHORS"]] + \
                 [None] + \
                 authors[-settings["NUMBER_LAST_AUTHORS"]:]
@@ -38,27 +38,27 @@ class Journal(tornado.web.UIModule):
     "HTML for journal reference."
 
     def render(self, publication):
-        journal = publication['journal']
-        title = journal.get('title')
+        journal = publication["journal"]
+        title = journal.get("title")
         if title:
-            url = self.handler.reverse_url('journal', title)
+            url = self.handler.reverse_url("journal", title)
             result = ['<a href="%s">%s</a>' % (url, title)]
         else:
-            result = ['-']
-        result.append("<strong>%s</strong>" % (journal.get('volume') or '-'))
-        result.append("(%s)" % (journal.get('issue') or '-'))
-        result.append(journal.get('pages') or '-')
-        return ' '.join(result)
+            result = ["-"]
+        result.append("<strong>%s</strong>" % (journal.get("volume") or "-"))
+        result.append("(%s)" % (journal.get("issue") or "-"))
+        result.append(journal.get("pages") or "-")
+        return " ".join(result)
 
 
 class Published(tornado.web.UIModule):
     "Published date, and online, if present."
 
     def render(self, publication):
-        result = publication['published']
-        epub = publication.get('epublished')
+        result = publication["published"]
+        epub = publication.get("epublished")
         if epub:
-            result += '; online ' + epub
+            result += "; online " + epub
         return "[%s]" % result
 
 
@@ -77,7 +77,7 @@ class Xref(tornado.web.UIModule):
             title = description
         else:
             try:
-                url = settings['XREF_TEMPLATE_URLS'][db.lower()]
+                url = settings["XREF_TEMPLATE_URLS"][db.lower()]
             except KeyError:
                 url = None
                 title = f"{xref['db']}: {key}"
@@ -114,24 +114,24 @@ class ExternalButton(tornado.web.UIModule):
             url = self.URL % key
             result = '<a %s href="%s">%s %s</a>' % \
                      (self.ATTRS, url, self.ICON, self.NAME)
-            if full: result = '<p>' + result + ' ' + key + '</p>'
+            if full: result = "<p>" + result + " " + key + "</p>"
             return result
         else:
-            return ''
+            return ""
 
 class PubmedButton(ExternalButton):
-    NAME = 'PubMed'
+    NAME = "PubMed"
     URL = constants.PUBMED_URL
     
 
 class DoiButton(ExternalButton):
-    NAME = 'DOI'
+    NAME = "DOI"
     URL = constants.DOI_URL
 
 
 class CrossrefButton(ExternalButton):
-    NAME = 'Crossref'
-    URL = 'https://search.crossref.org/?q=%s'
+    NAME = "Crossref"
+    URL = constants.CROSSREF_URL
 
 
 class OrcidButton(ExternalButton):
@@ -144,32 +144,32 @@ class QcFlags(tornado.web.UIModule):
 
     def render(self, publication):
         result = []
-        qc = publication.get('qc', {})
-        for aspect in settings['PUBLICATION_QC_ASPECTS']:
+        qc = publication.get("qc", {})
+        for aspect in settings["PUBLICATION_QC_ASPECTS"]:
             entry = qc.get(aspect)
             if entry is None:
                 result.append('<span class="label label-default">'
-                              'QC %s'
-                              '</span>' % aspect)
-            elif entry['flag']:
+                              "QC %s"
+                              "</span>" % aspect)
+            elif entry["flag"]:
                 result.append('<span class="label label-success"'
                               ' data-toggle="tooltip" data-placement="top"'
                               ' title="%s %s">'
                               '<span class="glyphicon glyphicon-ok"></span>'
-                              ' QC %s'
-                              '</span>' % (entry['date'],
-                                           entry['account'], 
+                              " QC %s"
+                              "</span>" % (entry["date"],
+                                           entry["account"], 
                                            aspect))
             else:
                 result.append('<span class="label label-danger"'
                               ' data-toggle="tooltip" data-placement="top"'
                               ' title="%s %s">'
                               '<span class="glyphicon glyphicon-remove"></span>'
-                              ' QC %s'
-                              '</span>' % (entry['date'],
-                                           entry['account'], 
+                              " QC %s"
+                              "</span>" % (entry["date"],
+                                           entry["account"], 
                                            aspect))
-        return ' '.join(result)
+        return " ".join(result)
 
 
 class Translate(tornado.web.UIModule):
@@ -178,7 +178,7 @@ class Translate(tornado.web.UIModule):
     def render(self, term):
         istitle = term.istitle()
         try:
-            term = settings['DISPLAY_TRANSLATIONS'][term.lower()]
+            term = settings["DISPLAY_TRANSLATIONS"][term.lower()]
             if istitle:
                 term = term.title()
         except KeyError:

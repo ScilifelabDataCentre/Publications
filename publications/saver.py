@@ -30,13 +30,13 @@ class Saver(object):
             self.db = db
             self.account = account
         else:
-            raise AttributeError('neither db nor rqh given')
+            raise AttributeError("neither db nor rqh given")
         self.doc = doc or dict()
         self.changed = dict()
-        if '_id' in self.doc:
+        if "_id" in self.doc:
             assert self.doctype == self.doc[constants.DOCTYPE]
         else:
-            self.doc['_id'] = utils.get_iuid()
+            self.doc["_id"] = utils.get_iuid()
             self.doc[constants.DOCTYPE] = self.doctype
             self.initialize()
         self.setup()
@@ -84,7 +84,7 @@ class Saver(object):
         except KeyError:
             pass
         else:
-            self.changed[key] = '__del__'
+            self.changed[key] = "__del__"
 
     def get(self, key, default=None):
         try:
@@ -95,10 +95,10 @@ class Saver(object):
     def initialize(self):
         "Set the initial values for the new document."
         try:
-            self.doc['account'] = self.account['email']
+            self.doc["account"] = self.account["email"]
         except (TypeError, AttributeError, KeyError):
-            self.doc['account'] = None
-        self.doc['created'] = utils.timestamp()
+            self.doc["account"] = None
+        self.doc["created"] = utils.timestamp()
 
     def setup(self):
         "Any additional setup on entering the context. To be redefined."
@@ -106,20 +106,20 @@ class Saver(object):
 
     def check_revision(self):
         """If the document is not new, check that the form field
-        argument '_rev', if it exists, matches the document.
+        argument "_rev", if it exists, matches the document.
         Raise Saverrror if incorrect.
         """
-        old_rev = self.doc.get('_rev')
+        old_rev = self.doc.get("_rev")
         if not old_rev: return
         if self.rqh is None: return
-        new_rev = self.rqh.get_argument('_rev', None)
+        new_rev = self.rqh.get_argument("_rev", None)
         if not new_rev: return
         if old_rev != new_rev:
             raise SaverError
 
     def finalize(self):
         "Perform any final modifications before saving the document."
-        self.doc['modified'] = utils.timestamp()
+        self.doc["modified"] = utils.timestamp()
 
     def post_process(self):
         "Perform any actions after having saved the document."
@@ -129,7 +129,7 @@ class Saver(object):
         "Write a log entry for the change."
         # utils.write_log(self.db, self.rqh, self.doc, changed=self.changed)
         log = dict(_id=utils.get_iuid(),
-                   doc=self.doc['_id'],
+                   doc=self.doc["_id"],
                    doctype=self.doc[constants.DOCTYPE],
                    changed=self.changed,
                    modified=utils.timestamp())
@@ -137,14 +137,14 @@ class Saver(object):
         if self.rqh:
             # xheaders argument to HTTPServer takes care of X-Real-Ip
             # and X-Forwarded-For
-            log['remote_ip'] = self.rqh.request.remote_ip
+            log["remote_ip"] = self.rqh.request.remote_ip
             try:
-                log['user_agent'] = self.rqh.request.headers['User-Agent']
+                log["user_agent"] = self.rqh.request.headers["User-Agent"]
             except KeyError:
                 pass
         if self.account:
             try:
-                log['account'] = self.account['email']
+                log["account"] = self.account["email"]
             except (TypeError, AttributeError, KeyError):
                 pass
         self.db.save(log)

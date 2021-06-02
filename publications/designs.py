@@ -6,8 +6,8 @@ import couchdb
 
 from . import constants
 
-REMOVE = ''.join(constants.SEARCH_REMOVE)
-IGNORE = ','.join(["'%s':1" % i for i in constants.SEARCH_IGNORE])
+REMOVE = "".join(constants.SEARCH_REMOVE)
+IGNORE = ",".join(["'%s':1" % i for i in constants.SEARCH_IGNORE])
 
 DESIGNS = dict(
 
@@ -318,8 +318,8 @@ def update_design_document(db, design, views):
         db.save(dict(_id=docid, views=views))
         return True
     else:
-        if doc['views'] != views:
-            doc['views'] = views
+        if doc["views"] != views:
+            doc["views"] = views
             logging.info("updating design document %s", docid)
             db.save(doc)
             return True
