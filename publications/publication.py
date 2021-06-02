@@ -1027,7 +1027,11 @@ class PublicationsNoLabelJson(PublicationsNoLabel):
 
 
 class PublicationsDuplicates(RequestHandler):
-    "Apparently duplicated publications."
+    """Apparently duplicated publications.
+    First find 4 longest words in the title, and make a lookup key of them.
+    Use this to identify possible duplicates.
+    Also check whether the first 4 authors match.
+    """
 
     def get(self):
         lookup = {}             # Key: 4 longest words in title
@@ -1038,7 +1042,12 @@ class PublicationsDuplicates(RequestHandler):
             key = " ".join(parts[:4])
             try:
                 previous = lookup[key]
-                duplicates.append((previous, publication))
+                for auth1, auth2 in zip(previous["authors"][:4],
+                                        publication["authors"][:4]):
+                    if auth1["family_normalized"] != auth2["family_normalized"]:
+                        break
+                else:
+                    duplicates.append((previous, publication))
             except KeyError:
                 lookup[key] = publication
         self.render("publications_duplicates.html", duplicates=duplicates)
