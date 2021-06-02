@@ -1,4 +1,4 @@
-"Publications: Simple publications reference database with web interface."
+"Publications: A publications reference database with web interface."
 
 import os
 
@@ -39,7 +39,7 @@ settings = dict(
     DISPLAY_TRANSLATIONS={},
     SITE_NAME="Publications",
     SITE_TITLE="Publications",
-    SITE_TEXT="A simple publications reference database system.",
+    SITE_TEXT="A publications reference database system.",
     SITE_INSTRUCTIONS_URL="https://github.com/pekrau/Publications/wiki/Standard-operating-procedure",
     SITE_PARENT_NAME="Site host",
     SITE_PARENT_URL=None,

@@ -1,7 +1,7 @@
 Publications
 ============
 
-A simple web-based publications reference database system.
+A web-based publications reference database system.
 
 See the [GitHub Publications wiki](https://github.com/pekrau/Publications/wiki)
 for the documentation, including How-to and Installation.

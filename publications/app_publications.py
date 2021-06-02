@@ -1,4 +1,4 @@
-"Web application server for a simple publications database."
+"Web application server for a publications database."
 
 import logging
 import os
