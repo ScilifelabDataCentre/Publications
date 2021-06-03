@@ -32,14 +32,10 @@
   <div>
     {% module Authors(publication['authors']) %}
   </div>
-  <div class="pull-right">
-    {% for xref in publication.get('xrefs', []) %}
-    {% module Xref(xref) %}
-    {% end %}
-  </div>
   <div>
     {% module Journal(publication) %}
     {% module Published(publication) %}
+    {% module OpenAccess(publication) %}
   </div>
   <div>
     {% for l in sorted(publication['labels']) %}

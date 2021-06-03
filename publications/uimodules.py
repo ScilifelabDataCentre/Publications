@@ -62,6 +62,17 @@ class Published(tornado.web.UIModule):
         return "[%s]" % result
 
 
+class OpenAccess(tornado.web.UIModule):
+    "Open Access marker."
+
+    def render(self, publication):
+        if publication.get("open_access"):
+            url = self.handler.static_url("open_access.png")
+            return f'<img src="{url}" title="Open Access">'
+        else:
+            return ''
+
+
 class Xref(tornado.web.UIModule):
     "HTML for a general external database entry."
 

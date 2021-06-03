@@ -73,6 +73,20 @@ Edit
   </div>
 
   <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="open_access">Open Access</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+	<label>
+	  <input type="checkbox" name="open_access" value="true"
+                 {{ publication.get('open_access') and 'checked' or '' }}>
+          The article is <img src="{{ static_url('open_access.png') }}"
+                              title="Open Access">.          
+	</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="journal">Journal</label>
     <div class="col-sm-5">
       <input type="text" class="form-control"

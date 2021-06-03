@@ -19,6 +19,7 @@
   ({{ publication['journal'].get('issue') or '-' }})
   {{ publication['journal'].get('pages') or '-' }}
   {% module Published(publication) %}
+  {% module OpenAccess(publication) %}
 </p>
 <p>
   {{ publication['abstract'] or ''}}

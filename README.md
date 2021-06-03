@@ -51,8 +51,9 @@ Features
   This is done automatically if the PubMed or Crossref data specifies
   ORCID for a publication author. New in version 4.0.
 
-- The publications data can be extracted in JSON and CSV formats. The
-  CSV format allows some basic filtering options.
+- Allow setting a flag 'Open Access' for a publication. New in version 4.0.
+
+- The publications data can be extracted in JSON, CSV, XLSX and TXT formats.
 
 - API to ask the server to fetch publications from PubMed or Crossref.
   See [its README](https://github.com/pekrau/Publications/tree/master/publications/api).
@@ -62,7 +63,7 @@ Implementation
 
 ### Front-end (via CDN's)
 
-- [Bootstrap 3](https://getbootstrap.com/docs/3.3/)
+- [Bootstrap 3](https://getbootstrap.com/docs/3.4/)
 - [jQuery](https://jquery.com/)
 - [jQuery UI](https://jqueryui.com/)
 - [DataTables](https://datatables.net/)

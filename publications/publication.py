@@ -121,6 +121,11 @@ class PublicationSaver(Saver):
         self["published"] = self.rqh.get_argument("published", "") or None
         self["epublished"] = self.rqh.get_argument("epublished", "") or None
 
+    def set_open_access(self):
+        "Set Open Access flag."
+        assert self.rqh, "requires http request context"
+        self["open_access"] = utils.to_bool(self.rqh.get_argument("open_access", False))
+
     def set_journal(self):
         "Set journal from form data."
         assert self.rqh, "requires http request context"
@@ -1209,6 +1214,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.set_authors()
                 saver.set_pmid_doi()
                 saver.set_published()
+                saver.set_open_access()
                 saver.set_journal()
                 saver.set_abstract()
                 saver.update_labels()
