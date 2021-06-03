@@ -1,4 +1,4 @@
-{# Publications CSV setup page. #}
+{# Researcher publications CSV setup page. #}
 
 {% extends "base.html" %}
 
@@ -9,12 +9,16 @@ Download Publications CSV
 {% end %}
 
 {% block main_content %}
-<form action="{{ reverse_url('publications_csv') }}"
+<p class="lead">
+  Publications for researcher
+  {{ researcher['given'] }} {{ researcher['family'] }}.
+</p>
+
+<form action="{{ reverse_url('researcher_publications_csv', researcher['_id']) }}"
       role="form" class="form-horizontal"
       method="POST">
   {% module xsrf_form_html() %}
 
-  {% include 'publications_filter.html' %}
   {% include 'publications_parameters.html' %}
   {% include 'publications_csv_parameters.html' %}
 
@@ -29,3 +33,11 @@ Download Publications CSV
 
 </form>
 {% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ reverse_url('researcher', researcher['_id']) }}"
+   role="button" class="btn btn-default btn-block">
+  <span class="glyphicon glyphicon-remove-circle"></span>
+  Cancel
+</a>
+{% end %} {# block meta_content #}

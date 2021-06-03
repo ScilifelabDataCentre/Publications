@@ -84,6 +84,10 @@
   JSON
 </a>
 <br>
+<a href="{{ reverse_url('researcher_publications_csv', researcher['_id']) }}">
+  <img src="{{ static_url('csv.png') }}"> CSV
+</a>
+<br>
 <a href="{{ reverse_url('researcher_publications_xlsx', researcher['_id']) }}">
   <img src="{{ static_url('xlsx.png') }}"> XLSX
 </a>
