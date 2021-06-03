@@ -91,4 +91,8 @@
 <a href="{{ reverse_url('researcher_publications_xlsx', researcher['_id']) }}">
   <img src="{{ static_url('xlsx.png') }}"> XLSX
 </a>
+<br>
+<a href="{{ reverse_url('researcher_publications_txt', researcher['_id']) }}">
+  <img src="{{ static_url('txt.png') }}"> TXT
+</a>
 {% end %} {# block alt_format #}

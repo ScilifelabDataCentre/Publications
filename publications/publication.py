@@ -567,7 +567,7 @@ class PublicationsJson(Publications):
         self.write(result)
 
 
-class FilteredMixin:
+class FilterMixin:
     "Method for getting publications filtered by form arguments."
 
     def get_filtered_publications(self):
@@ -626,7 +626,7 @@ class ParametersMixin:
     "Method for setting output parameters by form arguments."
 
     def set_parameters(self):
-        "Set additional output parameters."
+        "Set output parameters. Some may not apply to the output format."
         self.single_label = utils.to_bool(
             self.get_argument("single_label", "false"))
         self.all_authors = utils.to_bool(
@@ -743,7 +743,7 @@ class TabularWriteMixin(ParametersMixin):
         raise NotImplementedError
 
 
-class PublicationsXlsx(FilteredMixin, TabularWriteMixin, Publications):
+class PublicationsXlsx(FilterMixin, TabularWriteMixin, Publications):
     "Publications XLSX output."
 
     def get(self):
@@ -799,7 +799,7 @@ class PublicationsXlsx(FilteredMixin, TabularWriteMixin, Publications):
         self.x += 1
 
 
-class PublicationsCsv(FilteredMixin, TabularWriteMixin, Publications):
+class PublicationsCsv(FilterMixin, TabularWriteMixin, Publications):
     "Publications CSV output."
 
     def get(self):
@@ -851,7 +851,7 @@ class PublicationsCsv(FilteredMixin, TabularWriteMixin, Publications):
         self.writer.writerow(row)
 
 
-class PublicationsTxt(FilteredMixin, ParametersMixin, Publications):
+class PublicationsTxt(FilterMixin, ParametersMixin, Publications):
     "Publications text file output."
 
     def get(self):

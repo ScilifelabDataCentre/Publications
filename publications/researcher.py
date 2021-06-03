@@ -241,7 +241,19 @@ class ResearcherEdit(ResearcherMixin, RequestHandler):
         self.see_other("researcher", researcher["_id"])
 
 
-class ResearcherPublicationsCsv(publication.PublicationsCsv):
+class ResearcherFilterMixin:
+    "Mixin for getting researcher's publications."
+
+    def get_filtered_publications(self):
+        "Overrides the method from PublicationsCsv; not really filtered."
+        result = self.get_docs("publication/researcher",
+                               key=self.researcher["_id"])
+        result.sort(key=lambda i: i["published"], reverse=True)
+        return result
+
+
+class ResearcherPublicationsCsv(ResearcherFilterMixin,
+                                publication.PublicationsCsv):
     "Researcher publication CSV output."
 
     def get(self, identifier):
@@ -262,15 +274,9 @@ class ResearcherPublicationsCsv(publication.PublicationsCsv):
             return
         super().post()
 
-    def get_filtered_publications(self):
-        "Overrides the method from PublicationsCsv; not really filtered."
-        result = self.get_docs("publication/researcher",
-                               key=self.researcher["_id"])
-        result.sort(key=lambda i: i["published"], reverse=True)
-        return result
 
-
-class ResearcherPublicationsXlsx(publication.PublicationsXlsx):
+class ResearcherPublicationsXlsx(ResearcherFilterMixin,
+                                 publication.PublicationsXlsx):
     "Researcher publication XLSX output."
 
     def get(self, identifier):
@@ -291,12 +297,28 @@ class ResearcherPublicationsXlsx(publication.PublicationsXlsx):
             return
         super().post()
 
-    def get_filtered_publications(self):
-        "Overrides the method from PublicationsXlsx; not really filtered."
-        result = self.get_docs("publication/researcher",
-                               key=self.researcher["_id"])
-        result.sort(key=lambda i: i["published"], reverse=True)
-        return result
+
+class ResearcherPublicationsTxt(ResearcherFilterMixin,
+                                publication.PublicationsTxt):
+    "Researcher publication text file output."
+
+    def get(self, identifier):
+        "Show output parameters page."
+        try:
+            researcher = self.get_researcher(identifier)
+        except KeyError as error:
+            self.see_other("home", error=str(error))
+            return
+        self.render("researcher_publications_txt.html",
+                    researcher=researcher)
+
+    def post(self, identifier):
+        try:
+            self.researcher = self.get_researcher(identifier)
+        except KeyError as error:
+            self.see_other("home", error=str(error))
+            return
+        super().post()
 
 
 class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
