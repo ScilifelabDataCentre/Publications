@@ -1,0 +1,21 @@
+{# Fragment for label parameters for output of publications. #}
+
+{# Label output: single per record, or all in one record. #}
+<div class="form-group">
+  <label class="control-label col-sm-1" for="single_label">Label output</label>
+  <div class="checkbox col-sm-5">
+    <label>
+      <input type="checkbox" name="single_label" value="true">
+      Single label per record
+    </label>
+  </div>
+  <div class="col-sm-6 help-block">
+    Check the box to output one single label per record.
+    If a publication has more than one label, it will then be
+    represented by multiple records.
+    <br>
+    If unchecked, all labels will be concatenated, and 
+    one single record will be output per publication.
+  </div>
+</div>
+

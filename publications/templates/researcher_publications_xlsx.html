@@ -18,18 +18,10 @@ Download Publications XLSX
       role="form" class="form-horizontal"
       method="POST">
   {% module xsrf_form_html() %}
-
-  {% include 'publications_parameters.html' %}
-
-  <div class="form-group">
-    <div class="col-md-3">
-      <button type="submit" class="btn btn-success btn-block">
-	<span class="glyphicon glyphicon-download-alt"></span>
-	Download
-      </button>
-    </div>
-  </div>
-
+  {% include 'publications_authors_parameters.html' %}
+  {% include 'publications_label_parameters.html' %}
+  {% include 'publications_issn_parameters.html' %}
+  {% include 'publications_download.html' %}
 </form>
 {% end %} {# block main_content #}
 
