@@ -100,6 +100,20 @@ class AccountMixin:
         if self.is_editable(account): return
         raise ValueError("You may not edit the account.")
 
+    def is_deletable(self, account):
+        "Is the account deletable by the current user?"
+        if not self.is_admin(): return False
+        if not self.get_docs("log/account",
+                             key=[account["email"]],
+                             last=[account["email"], constants.CEILING],
+                             limit=1): return True
+        return False
+
+    def check_deletable(self, account):
+        "Check that the account is deletable by the current user."
+        if self.is_deletable(account): return
+        raise ValueError("You may not delete the account.")
+
 
 class Account(AccountMixin, RequestHandler):
     "Account page."
@@ -113,7 +127,32 @@ class Account(AccountMixin, RequestHandler):
             self.set_error_flash(str(error))
             self.see_other("home")
             return
-        self.render("account.html", account=account)
+        self.render("account.html",
+                    account=account,
+                    is_editable=self.is_editable(account),
+                    is_deletable=self.is_deletable(account))
+
+    @tornado.web.authenticated
+    def post(self, email):
+        if self.get_argument("_http_method", None) == "delete":
+            self.delete(email)
+            return
+        raise tornado.web.HTTPError(405, reason="POST only allowed for DELETE")
+
+    @tornado.web.authenticated
+    def delete(self, email):
+        try:
+            account = self.get_account(email)
+            self.check_deletable(account)
+        except (KeyError, ValueError) as error:
+            self.set_error_flash(str(error))
+            self.see_other("accounts")
+            return
+        # Delete log entries
+        for log in self.get_logs(account["_id"]):
+            self.db.delete(log)
+        self.db.delete(account)
+        self.see_other("accounts")
 
 
 class AccountJson(Account):

@@ -81,5 +81,5 @@ SciLifeLab
 ----------
 
 The system was designed for keeping track of the publications
-to which the facilities of SciLifeLab contributed.
+to which the infrastructure units of SciLifeLab contributed.
 See [SciLifeLab Publications](https://publications.scilifelab.se/).

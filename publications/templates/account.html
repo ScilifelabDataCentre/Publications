@@ -78,6 +78,7 @@
 {% end %} {# block main_content #}
 
 {% block meta_content %}
+{% if is_editable %}
 <p>
   <a href="{{ reverse_url('account_edit', account['email']) }}"
      class="btn btn-primary btn-block"
@@ -86,6 +87,7 @@
     Edit
   </a>
 </p>
+{% end %} {# if is_editable #}
 {% if settings['EMAIL']['HOST'] and not account.get('disabled') %}
 <p>
   <a href="{{ reverse_url('account_reset', account=account['email']) }}"
@@ -136,7 +138,22 @@
   </form>
   {% end %}
 </p>
-{% end %}
+{% end %} {# if is_admin #}
+{% if is_deletable %}
+<p>
+  <form action="{{ reverse_url('account', account['email']) }}"
+	role="form"
+	method="POST">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_http_method" value="delete">
+    <button type="submit" class="btn btn-danger btn-block"
+	    onclick="return confirm('Really delete this account?');">
+      <span class="glyphicon glyphicon-trash"></span>
+      Delete
+    </button>
+  </form>
+</p>
+{% end %} {# if is_deletable #}
 <p>
   <a href="{{ reverse_url('logs', account['_id']) }}">
     <span class="badge">
