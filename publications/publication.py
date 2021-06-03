@@ -743,6 +743,59 @@ class TabularWriteMixin(ParametersMixin):
         raise NotImplementedError
 
 
+class PublicationsCsv(FilterMixin, TabularWriteMixin, Publications):
+    "Publications CSV output."
+
+    def get(self):
+        "Show output selection page."
+        self.render("publications_csv.html",
+                    year=self.get_argument("year", None),
+                    labels=set(self.get_arguments("label")),
+                    all_labels=sorted([l["value"]
+                                       for l in self.get_docs("label/value")]),
+                    cancel_url=self.get_argument("cancel_url", None))
+
+    # Authentication is *not* required!
+    def post(self):
+        "Produce CSV output."
+        delimiter = self.get_argument("delimiter", "").lower()
+        if delimiter == "comma":
+            delimiter = ","
+        elif delimiter == "semi-colon":
+            delimiter = ";"
+        else:
+            delimiter = ","
+        self.csvbuffer = io.StringIO()
+        self.writer = csv.writer(self.csvbuffer,
+                                 delimiter=delimiter,
+                                 quoting=csv.QUOTE_NONNUMERIC)
+        self.write_publications(self.get_filtered_publications())
+        value = self.csvbuffer.getvalue()
+        if self.get_argument("encoding", "").lower() == "iso-8859-1":
+            value = value.encode("iso-8859-1", "ignore")
+        self.write(value)
+        self.set_header("Content-Type", constants.CSV_MIME)
+        self.set_header("Content-Disposition", 
+                        'attachment; filename="publications.csv"')
+
+    def write_header(self, row):
+        "Write the XLSX header row."
+        self.write_row(row)
+
+    def write_row(self, row):
+        "Write a CSV data row."
+        for pos, value in enumerate(row):
+            if isinstance(value, str):
+                # Remove CR characters; keep newline.
+                value = value.replace("\r", "")
+                # Remove any beginning potentially dangerous character '=-+@'.
+                # See http://georgemauer.net/2017/10/07/csv-injection.html
+                while len(value) and value[0] in "=-+@":
+                    value = value[1:]
+                row[pos] = value
+        self.writer.writerow(row)
+
+
 class PublicationsXlsx(FilterMixin, TabularWriteMixin, Publications):
     "Publications XLSX output."
 
@@ -752,7 +805,8 @@ class PublicationsXlsx(FilterMixin, TabularWriteMixin, Publications):
                     year=self.get_argument("year", None),
                     labels=set(self.get_arguments("label")),
                     all_labels=sorted([l["value"]
-                                       for l in self.get_docs("label/value")]))
+                                       for l in self.get_docs("label/value")]),
+                    cancel_url=self.get_argument("cancel_url", None))
 
     # Authentication is *not* required!
     def post(self):
@@ -799,58 +853,6 @@ class PublicationsXlsx(FilterMixin, TabularWriteMixin, Publications):
         self.x += 1
 
 
-class PublicationsCsv(FilterMixin, TabularWriteMixin, Publications):
-    "Publications CSV output."
-
-    def get(self):
-        "Show output selection page."
-        self.render("publications_csv.html",
-                    year=self.get_argument("year", None),
-                    labels=set(self.get_arguments("label")),
-                    all_labels=sorted([l["value"]
-                                       for l in self.get_docs("label/value")]))
-
-    # Authentication is *not* required!
-    def post(self):
-        "Produce CSV output."
-        delimiter = self.get_argument("delimiter", "").lower()
-        if delimiter == "comma":
-            delimiter = ","
-        elif delimiter == "semi-colon":
-            delimiter = ";"
-        else:
-            delimiter = ","
-        self.csvbuffer = io.StringIO()
-        self.writer = csv.writer(self.csvbuffer,
-                                 delimiter=delimiter,
-                                 quoting=csv.QUOTE_NONNUMERIC)
-        self.write_publications(self.get_filtered_publications())
-        value = self.csvbuffer.getvalue()
-        if self.get_argument("encoding", "").lower() == "iso-8859-1":
-            value = value.encode("iso-8859-1", "ignore")
-        self.write(value)
-        self.set_header("Content-Type", constants.CSV_MIME)
-        self.set_header("Content-Disposition", 
-                        'attachment; filename="publications.csv"')
-
-    def write_header(self, row):
-        "Write the XLSX header row."
-        self.write_row(row)
-
-    def write_row(self, row):
-        "Write a CSV data row."
-        for pos, value in enumerate(row):
-            if isinstance(value, str):
-                # Remove CR characters; keep newline.
-                value = value.replace("\r", "")
-                # Remove any beginning potentially dangerous character '=-+@'.
-                # See http://georgemauer.net/2017/10/07/csv-injection.html
-                while len(value) and value[0] in "=-+@":
-                    value = value[1:]
-                row[pos] = value
-        self.writer.writerow(row)
-
-
 class PublicationsTxt(FilterMixin, ParametersMixin, Publications):
     "Publications text file output."
 
@@ -860,7 +862,8 @@ class PublicationsTxt(FilterMixin, ParametersMixin, Publications):
                     year=self.get_argument("year", None),
                     labels=set(self.get_arguments("label")),
                     all_labels=sorted([l["value"]
-                                       for l in self.get_docs("label/value")]))
+                                       for l in self.get_docs("label/value")]),
+                    cancel_url=self.get_argument("cancel_url", None))
 
     # Authentication is *not* required!
     def post(self):

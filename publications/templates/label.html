@@ -88,15 +88,15 @@
   <img src="{{ static_url('json.png') }}"> JSON
 </a>
 <br>
-<a href="{{ reverse_url('publications_csv', label=label['value']) }}">
+<a href="{{ reverse_url('publications_csv', label=label['value'], cancel_url=request.uri) }}">
   <img src="{{ static_url('csv.png') }}"> CSV
 </a>
 <br>
-<a href="{{ reverse_url('publications_xlsx', label=label['value']) }}">
+<a href="{{ reverse_url('publications_xlsx', label=label['value'], cancel_url=request.uri) }}">
   <img src="{{ static_url('xlsx.png') }}"> XLSX
 </a>
 <br>
-<a href="{{ reverse_url('publications_txt', label=label['value']) }}">
+<a href="{{ reverse_url('publications_txt', label=label['value'], cancel_url=request.uri) }}">
   <img src="{{ static_url('txt.png') }}"> TXT
 </a>
 {% end %} {# block alt_format #}

@@ -30,15 +30,15 @@ Publications {{ year or '' }}
 {% end %}
 <a href="{{ url }}"><img src="{{ static_url('json.png') }}"> JSON</a>
 <br>
-<a href="{{ reverse_url('publications_csv', year=year) }}">
+<a href="{{ reverse_url('publications_csv', year=year, cancel_url=request.uri) }}">
   <img src="{{ static_url('csv.png') }}"> CSV
 </a>
 <br>
-<a href="{{ reverse_url('publications_xlsx', year=year) }}">
+<a href="{{ reverse_url('publications_xlsx', year=year, cancel_url=request.uri) }}">
   <img src="{{ static_url('xlsx.png') }}"> XLSX
 </a>
 <br>
-<a href="{{ reverse_url('publications_txt', year=year) }}">
+<a href="{{ reverse_url('publications_txt', year=year, cancel_url=request.uri) }}">
   <img src="{{ static_url('txt.png') }}"> TXT
 </a>
 {% end %} {# block alt_format #}

@@ -19,3 +19,11 @@ Download Publications TXT
   {% include 'publications_download.html' %}
 </form>
 {% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ cancel_url }}"
+   role="button" class="btn btn-default btn-block">
+  <span class="glyphicon glyphicon-remove-circle"></span>
+  Cancel
+</a>
+{% end %} {# block meta_content #}
