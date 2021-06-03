@@ -13,14 +13,15 @@
 {% if all is not None %}
 <p>
   {% if all %}
-  All labels are shown, regardless of when they were active. Click
+  All {% module Translate('Labels') %} are shown,
+  regardless of when they were active. Click
   <a href="{{ reverse_url('labels', all=False) }}">
-    here to see only current labels.
+    here to see only current {% module Translate('Labels') %}.
   </a>
   {% else %}
-  Only current labels are shown. Click
+  Only current {% module Translate('Labels') %} are shown. Click
   <a href="{{ reverse_url('labels', all=True) }}">
-    here to see all labels.
+    here to see all {% module Translate('Labels') %}.
   </a>
   {% end %}
 </p>

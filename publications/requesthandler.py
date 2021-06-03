@@ -428,7 +428,7 @@ class RequestHandler(tornado.web.RequestHandler):
             return self._issn_l_map.get(issn)
 
 
-class ApiMixin(object):
+class ApiMixin:
     "Mixin for API and JSON handling."
 
     def get_json_body(self):

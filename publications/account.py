@@ -75,7 +75,7 @@ class AccountSaver(Saver):
         self["api_key"] = utils.get_iuid()
 
 
-class AccountMixin(object):
+class AccountMixin:
     "Mixin with access check methods and some others."
 
     def is_readable(self, account):

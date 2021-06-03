@@ -16,7 +16,7 @@ class JournalSaver(Saver):
     doctype = constants.JOURNAL
 
 
-class JournalMixin(object):
+class JournalMixin:
     "Mixin for access check methods."
 
     def get_journal(self, title):

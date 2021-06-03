@@ -25,7 +25,7 @@ from . import settings
 
 REV_ERROR = "Has been edited by someone else. Cannot overwrite."
 
-class NocaseDict(object):
+class NocaseDict:
     "Keys are compared ignoring case."
     def __init__(self, orig):
         self.orig = orig.copy()
@@ -417,7 +417,7 @@ def get_formatted_authors(authors, complete=False):
     return ", ".join(result)
 
 
-class EmailServer(object):
+class EmailServer:
     "A connection to an email server for sending emails."
 
     def __init__(self):

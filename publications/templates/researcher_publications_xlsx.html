@@ -9,6 +9,11 @@ Download Publications XLSX
 {% end %}
 
 {% block main_content %}
+<p class="lead">
+  Publications for researcher
+  {{ researcher['given'] }} {{ researcher['family'] }}.
+</p>
+
 <form action="{{ reverse_url('researcher_publications_xlsx', researcher['_id']) }}"
       role="form" class="form-horizontal"
       method="POST">

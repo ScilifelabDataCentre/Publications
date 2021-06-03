@@ -71,7 +71,7 @@ class ResearcherSaver(Saver):
             self["initials_normalized"] = utils.to_ascii(value).lower()
 
     
-class ResearcherMixin(object):
+class ResearcherMixin:
     "Mixin for access check methods."
 
     def is_editable(self, researcher):
@@ -253,6 +253,20 @@ class ResearcherPublicationsXlsx(publication.PublicationsXlsx):
             return
         self.render("researcher_publications_xlsx.html",
                     researcher=researcher)
+
+    def post(self, identifier):
+        try:
+            self.researcher = self.get_researcher(identifier)
+        except KeyError as error:
+            self.see_other("home", error=str(error))
+            return
+        super().post()
+
+    def get_filtered_publications(self):
+        result = self.get_docs("publication/researcher",
+                               key=self.researcher["_id"])
+        result.sort(key=lambda i: i["published"], reverse=True)
+        return result
 
 
 class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):

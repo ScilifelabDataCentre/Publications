@@ -47,6 +47,10 @@ Features
   adding publications that have already been determined to be
   irrelevant.
 
+- Researcher entity, which can be associated with a publication.
+  This is done automatically if the PubMed or Crossref data specifies
+  ORCID for a publication author. New in version 4.0.
+
 - The publications data can be extracted in JSON and CSV formats. The
   CSV format allows some basic filtering options.
 

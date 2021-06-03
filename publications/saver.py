@@ -14,7 +14,7 @@ class SaverError(Exception):
     pass
 
 
-class Saver(object):
+class Saver:
     "Context manager saving the data for the document."
 
     doctype = None

@@ -284,7 +284,7 @@ class PublicationSaver(Saver):
         self["labels"] = updated
 
 
-class PublicationMixin(object):
+class PublicationMixin:
     "Mixin for access check methods."
 
     def is_editable(self, publication):
@@ -359,6 +359,10 @@ class PublicationMixin(object):
             return set([l["value"] for l in self.get_docs("label/value")])
         else:
             return set(self.current_user["labels"])
+
+
+class PublicationFetchMixin:
+    "Mixin for method to fetch a number of publications from externa sources."
 
     def fetch(self, identifier, override=False, labels={}, clean=True):
         """Fetch the publication given by identifier (PMID or DOI).
@@ -1093,7 +1097,7 @@ class PublicationAdd(PublicationMixin, RequestHandler):
         self.see_other("publication", publication["_id"])
 
 
-class PublicationFetch(PublicationMixin, RequestHandler):
+class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
     "Fetch publication(s) given list of DOIs or PMIDs."
 
     @tornado.web.authenticated
@@ -1103,7 +1107,6 @@ class PublicationFetch(PublicationMixin, RequestHandler):
         self.clear_cookie("fetched")
         docs = []
         if fetched:
-            logging.debug(f"fetched {fetched}")
             for iuid in fetched.split("_"):
                 try:
                     docs.append(self.get_doc(iuid))
@@ -1119,7 +1122,7 @@ class PublicationFetch(PublicationMixin, RequestHandler):
                 elif len(parts) > 1:
                     checked_labels[parts[0]] = "/".join(parts[1:])
         labels = self.get_allowed_labels()
-        # If curator for only a small number of labels (in settings),
+        # If curator for only a small number of labels (see settings),
         # then check them to start with. Otherwise let be unchecked.
         if not checked_labels and \
            self.current_user["role"] == constants.CURATOR and \
@@ -1145,6 +1148,7 @@ class PublicationFetch(PublicationMixin, RequestHandler):
         errors = []
         blacklisted = []
         fetched = set()
+        existing = set()
         for identifier in identifiers:
             # Skip if number of loaded publications reached the limit
             if len(fetched) >= settings["PUBLICATIONS_FETCHED_LIMIT"]: break
@@ -1159,11 +1163,11 @@ class PublicationFetch(PublicationMixin, RequestHandler):
             else:
                 fetched.add(publ["_id"])
 
+        self.set_cookie("fetched", "_".join(fetched))
         kwargs = {"message": f"{len(fetched)} publication(s) fetched."}
         kwargs["labels"] = "|".join([f"{label}/{qualifier}" if qualifier 
                                      else label
                                      for label, qualifier in labels.items()])
-        self.set_cookie("fetched", "_".join(fetched))
         if errors:
             kwargs["error"] = constants.FETCH_ERROR + ", ".join(errors)
         if blacklisted:
@@ -1365,7 +1369,8 @@ class PublicationRelease(PublicationMixin, RequestHandler):
             self.see_other("publication", publication["_id"])
 
 
-class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
+class ApiPublicationFetch(PublicationFetchMixin, PublicationMixin,
+                          ApiMixin, RequestHandler):
     "Fetch a publication given its PMID or DOI."
 
     @tornado.web.authenticated
