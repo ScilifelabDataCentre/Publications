@@ -86,6 +86,9 @@ class Xref(tornado.web.UIModule):
         if db.lower() == "url":
             url = key
             title = description
+        elif key.lower().startswith("http"):
+            url = key
+            title = description
         else:
             try:
                 url = settings["XREF_TEMPLATE_URLS"][db.lower()]
