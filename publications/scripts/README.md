@@ -7,7 +7,8 @@ init_database.py
 
 Initialize the CouchDB database instance.
 
-**Note**: The CouchDB database must exist.
+**Note**: The CouchDB database must exist. Create it using the CouchDB
+interface.
 
 1) Wipes out the old database, using the slow method of deleting
    each document in turn. Consider instead doing database delete

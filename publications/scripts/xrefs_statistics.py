@@ -12,7 +12,7 @@ def xrefs_statistics(db, filename, since=None):
     "CSV file of statistics for xrefs editing."
     if since is None:
         since = utils.today()
-    with open(filename, 'wb') as outfile:
+    with open(filename, 'w') as outfile:
         writer = csv.writer(outfile)
         write = writer.writerow
         write(('Site', settings['BASE_URL']))
@@ -34,7 +34,6 @@ def xrefs_statistics(db, filename, since=None):
         curators = {}
 
         for publication in utils.get_docs(db, 'publication/published'):
-            print(publication['_id'])
             total += 1
             for label, qualifier in list(publication.get('labels', {}).items()):
                 try:
