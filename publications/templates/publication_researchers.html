@@ -29,7 +29,7 @@ Edit researchers for
   {% set name_normalized = author['family_normalized'] + ' ' + author['initials_normalized'] %}
   <div class="form-group">
     {% if author.get('researcher') %}
-    <label class="control-label col-sm-4">
+    <label class="control-label col-sm-3">
       <a href="{{ reverse_url('researcher', author['researcher']) }}">{{ name }}</a>
     </label>
     <div class="col-sm-8">
@@ -67,7 +67,7 @@ Edit researchers for
   {% end %} {# for author in publication['authors'] #}
 
   <div class="form-group">
-    <div class="col-sm-3 col-sm-offset-1">
+    <div class="col-sm-3 col-sm-offset-3">
       <button type="submit" class="btn btn-success btn-block">
 	<span class="glyphicon glyphicon-save"></span>
 	Save
