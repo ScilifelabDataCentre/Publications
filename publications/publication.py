@@ -954,7 +954,7 @@ class PublicationsNoPmid(PublicationMixin, RequestHandler):
         publications = self.get_docs("publication/no_pmid", descending=True)
         for publication in publications:
             publication["find_pmid"] = self.is_editable(publication) and \
-                not publication.get("pmid")
+                                       publication.get("doi")
         # Put the publications last for which find has been attempted,
         # or cannot be done.
         publs1 = [p for p in publications
