@@ -169,7 +169,7 @@ class PublicationSaver(Saver):
         self["published"] = other.get("published") or self.get("published")
         self["epublished"] = other.get("epublished") or self.get("epublished")
         self["abstract"] = other.get("abstract") or self.get("abstract")
-        self["xrefs"] = other.get("xrefs") or self.get("xrefs")
+        self["xrefs"] = other.get("xrefs") or self.get("xrefs") or []
 
         # Special case for journal field: copy each component field.
         try:
