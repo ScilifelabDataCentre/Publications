@@ -44,7 +44,7 @@
 {% module DoiButton(publication.get('doi'), full=True) %}
 {% module CrossrefButton(publication.get('doi'), full=True) %}
 <p>
-{% for xref in publication.get('xrefs') %}
+{% for xref in publication.get('xrefs', []) %}
 {% module Xref(xref, full=True) %}
 <br>
 {% end %}
