@@ -962,7 +962,7 @@ class PublicationsNoPmid(PublicationMixin, RequestHandler):
         publs2 = [p for p in publications
                   if not (p["find_pmid"] and not p.get("no_pmid_found"))]
         publications = publs1 + publs2
-        publications.sort(key=lambda p: p["modified"], reverse=True)
+        publications.sort(key=lambda p: p["modified"])
         self.render("publications_no_pmid.html", publications=publications)
 
 
@@ -990,7 +990,7 @@ class PublicationsNoDoi(RequestHandler):
 
     def get(self):
         publications = self.get_docs("publication/no_doi")
-        publications.sort(key=lambda p: p["modified"], reverse=True)
+        publications.sort(key=lambda p: p["modified"])
         self.render("publications_no_doi.html", publications=publications)
 
 
