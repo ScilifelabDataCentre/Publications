@@ -2,7 +2,7 @@
 
 <div class="well well-sm">
   <div class="pull-right">
-    {% if publication.get('find_pmid') %}
+    {% if publication.get('pmid_findable') %}
     <form action="{{ reverse_url('publication_find_pmid', publication['_id']) }}"
           role="form"
           method="POST">

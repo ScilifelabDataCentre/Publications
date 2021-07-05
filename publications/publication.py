@@ -953,16 +953,25 @@ class PublicationsNoPmid(PublicationMixin, RequestHandler):
     def get(self):
         publications = self.get_docs("publication/no_pmid")
         for publication in publications:
-            publication["find_pmid"] = self.is_editable(publication) and \
-                                       publication.get("doi")
-        # Put the publications last for which find has been attempted,
-        # or cannot be done.
-        publs1 = [p for p in publications
-                  if p["find_pmid"] and not p.get("no_pmid_found")]
-        publs2 = [p for p in publications
-                  if not (p["find_pmid"] and not p.get("no_pmid_found"))]
-        publications = publs1 + publs2
-        publications.sort(key=lambda p: p["modified"])
+            publication["pmid_findable"] = self.is_editable(publication) and \
+                                           publication.get("doi")
+        # Put the publications first for which there is a DOI, making PMID
+        # findable, and for which find has not been attempted
+        publs1 = []
+        publs2 = []
+        publs3 = []
+        for publ in publications:
+            if publ["pmid_findable"]:
+                if publ.get("no_pmid_found"):
+                    publs2.append(publ)
+                else:
+                    publs1.append(publ)
+            else:
+                publs3.append(publ)
+        publs1.sort(key=lambda p: p["modified"])
+        publs2.sort(key=lambda p: p["modified"])
+        publs3.sort(key=lambda p: p["modified"])
+        publications = publs1 + publs2 + publs3
         self.render("publications_no_pmid.html", publications=publications)
 
 

@@ -393,9 +393,10 @@ class Researchers(RequestHandler):
 
     def get(self):
         researchers = self.get_docs("researcher/name")
+        view = self.db.view("publication/researcher", group=True, reduce=True)
+        counts = dict((r.key, r.value) for r in view)
         for researcher in researchers:
-            researcher["n_publications"] = \
-                self.get_count("publication/researcher", key=researcher["_id"])
+            researcher["n_publications"] = counts.get(researcher["_id"], 0)
         self.render("researchers.html", researchers=researchers)
 
 
