@@ -1066,7 +1066,7 @@ class PublicationsDuplicates(RequestHandler):
         lookup = {}             # Key: 4 longest words in title
         duplicates = []
         for publ1 in self.get_docs("publication/modified"):
-            title = utils.to_ascii(publ1["title"]).lower()
+            title = utils.to_ascii(publ1["title"], alphanum=True).lower()
             parts = sorted(title.split(), key=len, reverse=True)
             key = " ".join(parts[:4])
             try:

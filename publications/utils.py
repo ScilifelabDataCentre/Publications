@@ -10,6 +10,7 @@ import os
 import os.path
 import socket
 import smtplib
+import string
 import urllib.parse
 import uuid
 import unicodedata
@@ -373,11 +374,17 @@ def years():
     "Return a list of years from the first year to the current."
     return list(range(settings["FIRST_YEAR"], int(today().split("-")[0]) + 1))
 
-def to_ascii(value):
-    "Convert any non-ASCII character to its closest ASCII equivalent."
+def to_ascii(value, alphanum=False):
+    """Convert any non-ASCII character to its closest ASCII equivalent.
+    'alphanum': retain only alphanumerical characters and whitespace.
+    """
     if value is None: return ""
     value = unicodedata.normalize("NFKD", str(value))
-    return u"".join([c for c in value if not unicodedata.combining(c)])
+    value = u"".join([c for c in value if not unicodedata.combining(c)])
+    if alphanum:
+        alphanum = set(string.ascii_letters + string.digits + string.whitespace)
+        value = u"".join([c for c in value if c in alphanum])
+    return value
 
 def squish(value):
     "Remove all unnecessary white spaces."
