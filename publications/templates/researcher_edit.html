@@ -56,8 +56,11 @@ Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
   <div class="form-group has-feedback">
     <label class="control-label col-sm-1" for="orcid">ORCID</label>
     <div class="col-sm-6">
-      <input type="text" name="orcid" id="orcid" class="form-control"
-             value="{{ researcher.get('orcid') or '' }}">
+      {% if researcher.get('orcid') %}
+      <p class="form-control-static">{{ researcher.get('orcid') }}</p>
+      {% else %}
+      <input type="text" name="orcid" id="orcid" class="form-control">
+      {% end %}
     </div>
   </div>
 

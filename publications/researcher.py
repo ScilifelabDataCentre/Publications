@@ -14,7 +14,7 @@ class ResearcherSaver(Saver):
     doctype = constants.RESEARCHER
 
     def set_family(self, value=None):
-        "Set then family name from form data."
+        "Set the family name from form data."
         assert self.rqh, "requires http request context"
         if value is None:
             value = utils.squish(self.rqh.get_argument("family", ""))
@@ -40,8 +40,9 @@ class ResearcherSaver(Saver):
         self["initials_normalized"] = utils.to_ascii(value).lower()
 
     def set_orcid(self, value=None):
-        "Set ORCID from form data."
+        "Set ORCID from form data if not already set."
         assert self.rqh, "requires http request context"
+        if self.get("orcid"): return
         if value is None:
             value = self.rqh.get_argument("orcid", "").strip()
         if value:
