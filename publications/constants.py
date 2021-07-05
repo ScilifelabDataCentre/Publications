@@ -54,7 +54,7 @@ BLACKLISTED_MESSAGE = "Publication(s) not fetched since in the blacklist." \
                       " Check 'override' and try again, if needed: "
 
 # External URL templates.
-PUBMED_URL = "https://www.ncbi.nlm.nih.gov/pubmed/%s"
+PUBMED_URL = "https://pubmed.ncbi.nlm.nih.gov/%s/"
 DOI_URL    = "https://doi.org/%s"
 ORCID_URL  = "https://orcid.org/%s"
 CROSSREF_URL = "https://search.crossref.org/?q=%s"
