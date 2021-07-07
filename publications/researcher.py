@@ -386,11 +386,11 @@ class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
         # Only use first initial; inclusion of more initials is not certain.
         name = f"{researcher['family_normalized']} {researcher['initials_normalized'][:1]}".strip()
         orcid = researcher.get("orcid")
-        candidates = self.get_docs("publication/author",
-                                   key=name,
-                                   last=name+constants.CEILING)
+        publications = self.get_docs("publication/author",
+                                     key=name,
+                                     last=name+constants.CEILING)
         if orcid:
-            for publ in candidates:
+            for publ in publications:
                 for author in publ["authors"]:
                     name2 = f"{author['family_normalized']} {author['initials_normalized'][:1]}".strip()
                     if name != name2: continue
@@ -401,7 +401,7 @@ class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
                 else:
                     result[publ["_id"]] = publ
         else:
-            result.update(dict([(p["_id"], p) for p in candidates]))
+            result.update(dict([(p["_id"], p) for p in publications]))
         return list(result.values())
 
 

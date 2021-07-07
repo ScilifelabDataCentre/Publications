@@ -52,7 +52,9 @@ Edit researchers for
 	  <input type="checkbox" name="{{ name_normalized }}" value="{{ researcher['_id'] }}">
           Set to:
           <a href="{{ reverse_url('researcher', researcher['_id']) }}">
-            {{ researcher['family'] }} {{ researcher['initials'] }}</a>
+            {{ researcher['family'] }} {{ researcher['initials'] }}
+            {{ researcher.get("orcid") or '' }}
+          </a>
         </label>
       </div>
       {% end %} {# for researcher in author['researchers'] #}
