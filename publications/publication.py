@@ -22,7 +22,7 @@ class PublicationSaver(Saver):
     def initialize(self):
         """Set the initial values for the new document.
         Create the slots with empty starting values;
-        allows using 'update' for new entities.
+        allows using 'update' for new instance.
         """
         super().initialize()
         self["title"] = ""

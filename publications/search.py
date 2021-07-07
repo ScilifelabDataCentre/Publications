@@ -52,7 +52,6 @@ class Search(RequestHandler):
                          "publication/journal",
                          "publication/xref"]:
             iuids.update(self.search(viewname, terms))
-        print(iuids)
 
         # Remove set of insignificant characters for these seaches.
         terms = ["".join([c for c in t if c not in SEARCH_REMOVE])
@@ -63,7 +62,6 @@ class Search(RequestHandler):
                          "publication/pmid",
                          "publication/label_parts"]:
             iuids.update(self.search(viewname, terms))
-        print(iuids)
 
         # Finally get the publication documents for IUIDs
         publications = [self.get_publication(iuid) for iuid in iuids]

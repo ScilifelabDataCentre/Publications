@@ -377,15 +377,31 @@ class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
         self.see_other("researcher", researcher["_id"])
 
     def get_publications(self, researcher):
-        "Get the publications for the researcher, including candidates."
+        """Get the publications for the researcher based on name comparison,
+        but excluding those already identified with another researcher.
+        """
         result = dict([(d["_id"], d)
                        for d in self.get_docs("publication/researcher",
                                               key=researcher["_id"])])
+        # Only use first initial; inclusion of more initials is not certain.
         name = f"{researcher['family_normalized']} {researcher['initials_normalized'][:1]}".strip()
-        result.update(dict([(d["_id"], d)
-                            for d in self.get_docs("publication/author",
-                                                   key=name,
-                                                   last=name+constants.CEILING)]))
+        orcid = researcher.get("orcid")
+        candidates = self.get_docs("publication/author",
+                                   key=name,
+                                   last=name+constants.CEILING)
+        if orcid:
+            for publ in candidates:
+                for author in publ["authors"]:
+                    name2 = f"{author['family_normalized']} {author['initials_normalized'][:1]}".strip()
+                    if name != name2: continue
+                    try:
+                        if author["orcid"] != orcid: break
+                    except KeyError:
+                        pass
+                else:
+                    result[publ["_id"]] = publ
+        else:
+            result.update(dict([(p["_id"], p) for p in candidates]))
         return list(result.values())
 
 
