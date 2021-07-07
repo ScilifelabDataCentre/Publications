@@ -385,23 +385,19 @@ class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
                                               key=researcher["_id"])])
         # Only use first initial; inclusion of more initials is not certain.
         name = f"{researcher['family_normalized']} {researcher['initials_normalized'][:1]}".strip()
-        orcid = researcher.get("orcid")
         publications = self.get_docs("publication/author",
                                      key=name,
                                      last=name+constants.CEILING)
-        if orcid:
-            for publ in publications:
-                for author in publ["authors"]:
-                    name2 = f"{author['family_normalized']} {author['initials_normalized'][:1]}".strip()
-                    if name != name2: continue
-                    try:
-                        if author["orcid"] != orcid: break
-                    except KeyError:
-                        pass
-                else:
-                    result[publ["_id"]] = publ
-        else:
-            result.update(dict([(p["_id"], p) for p in publications]))
+        for publ in publications:
+            for author in publ["authors"]:
+                name2 = f"{author['family_normalized']} {author['initials_normalized'][:1]}".strip()
+                if name != name2: continue
+                try:
+                    if author["researcher"] != researcher["_id"]: break
+                except KeyError:
+                    pass
+            else:
+                result[publ["_id"]] = publ
         return list(result.values())
 
 
