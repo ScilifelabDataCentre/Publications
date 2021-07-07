@@ -27,7 +27,7 @@ Researchers
 	  {{ researcher['family'] }} {{ researcher['initials'] }}
 	</a>
       </td>
-      <td>{{ researcher.get('orcid' or '-' }}</td>
+      <td>{{ researcher.get('orcid') or '-' }}</td>
       <td>{{ researcher["n_publications"] }}</td>
     </tr>
     {% end %}
