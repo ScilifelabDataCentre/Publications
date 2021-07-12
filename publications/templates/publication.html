@@ -57,20 +57,6 @@
 {% block meta_content %}
 {% if current_user %}
 
-{% if publication.get('acquired') %}
-<div class="panel panel-warning">
-  <div class="panel-heading">
-    <span class="glyphicon glyphicon-lock"></span>
-    Acquired by 
-  </div>
-  <div class="panel-body">
-    {{ publication['acquired']['account'] }}
-    <br>
-    <span class="localtime">{{ publication['acquired']['deadline'] }}</span>
-  </div>
-</div>
-{% end %} {# if publication.get('acquired') #}
-
 {% if is_editable %}
 <p>
   <a href="{{ reverse_url('publication_edit', publication['_id']) }}"
@@ -149,58 +135,6 @@
 </p>
 {% end %} {# if is_xrefs_editable #}
 
-{% if not is_locked %}
-<p>
-  <table width="100%">
-    <tr>
-      <td>
-        <form action="{{ reverse_url('publication_acquire', publication['_id']) }}"
-              method="POST"
-              role="form">
-          {% module xsrf_form_html() %}
-          <button type="submit" class="btn btn-warning btn-block">
-            <span class="glyphicon glyphicon-lock"></span>
-            Acquire
-          </button>
-        </form>
-      </td>
-      <td style="padding-left: 4px">
-        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#acquire"
-           title="Explain 'acquire'" target="_">
-          <span class="glyphicon glyphicon-question-sign"></span>
-        </a>
-      </td>
-    </tr>
-  </table>
-</p>
-{% end %} {# if not is_locked #}
-
-{% if is_releasable %}
-<p>
-  <table width="100%">
-    <tr>
-      <td>
-        <form action="{{ reverse_url('publication_release', publication['_id']) }}"
-              method="POST"
-              role="form">
-          {% module xsrf_form_html() %}
-          <button type="submit" class="btn btn-success btn-block">
-            <span class="glyphicon glyphicon-share"></span>
-            Release
-          </button>
-        </form>
-      </td>
-      <td style="padding-left: 4px">
-        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#release"
-           title="Explain 'release'" target="_">
-          <span class="glyphicon glyphicon-question-sign"></span>
-        </a>
-      </td>
-    </tr>
-  </table>
-</p>
-{% end %} {# if is_releasable #}
-
 {% if is_deletable %}
 <p>
   <table width="100%">
@@ -253,7 +187,6 @@
 </p>
 {% end %} {# if is_deletable #}
 
-{% if not is_locked %}
 <p>
   <br>
   <h4>QC flags
@@ -296,7 +229,6 @@
   </table>
 </p>
 {% end %} {# for aspect ... #}
-{% end %} {# if not is_locked #}
 
 <p>
   <span title="Last modified" class="localtime">{{ publication['modified'] }}</span>

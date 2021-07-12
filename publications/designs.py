@@ -96,12 +96,6 @@ DESIGNS = dict(
 }""")),
 
     publication=dict(
-        acquired=dict(map=      # publication/acquired
-"""function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (!doc.acquired) return;
-  emit(doc.acquired.account, null);
-}"""),
         author=dict(map=        # publication/author
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
@@ -132,16 +126,31 @@ DESIGNS = dict(
     if (au.researcher) emit(au.researcher, au.family + ' ' + au.initials);
   }
 }"""),
+        pmid=dict(map=          # publication/pmid
+"""function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (doc.pmid) emit(doc.pmid, null);
+}"""),
         doi=dict(map=           # publication/doi
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
-  if (doc.doi) emit(doc.doi.toLowerCase(), doc.title);
+  if (doc.doi) emit(doc.doi.toLowerCase(), null);
+}"""),
+        no_pmid=dict(map=       # publication/no_pmid
+"""function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.pmid) emit(doc.published, null);
+}"""),
+        no_doi=dict(map=        # publication/no_doi
+"""function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.doi) emit(doc.published, null);
 }"""),
         epublished=dict(map=    # publication/epublished
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   if (!doc.epublished) return;
-  emit(doc.epublished, doc.title);
+  emit(doc.epublished, null);
 }"""),
         first_published=dict(map= # publication/first_published
 """function (doc) {
@@ -149,12 +158,12 @@ DESIGNS = dict(
   if (!doc.published) return;
   if (doc.epublished) {
     if (doc.published < doc.epublished) {
-      emit(doc.published, doc.title);
+      emit(doc.published, null);
     } else {
-      emit(doc.epublished, doc.title);
+      emit(doc.epublished, null);
     };
   } else {
-    emit(doc.published, doc.title);
+    emit(doc.published, null);
   };
 }"""),
         label_parts=dict(map=   # publication/label_parts
@@ -208,17 +217,7 @@ function (doc) {
         modified=dict(map=      # publication/modified
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
-  emit(doc.modified, doc.title);
-}"""),
-        no_doi=dict(map=        # publication/no_doi
-"""function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (!doc.doi) emit(doc.published, doc.title);
-}"""),
-        no_pmid=dict(map=       # publication/no_pmid
-"""function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (!doc.pmid) emit(doc.published, doc.title);
+  emit(doc.modified, null);
 }"""),
         notes=dict(map=         # publication/notes
 """var REMOVE = /[%s]/g;
@@ -236,16 +235,11 @@ function (doc) {
     emit(note, null);
   }
 }""" % (REMOVE, IGNORE)),
-        pmid=dict(map=          # publication/pmid
-"""function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (doc.pmid) emit(doc.pmid, doc.title);
-}"""),
         published=dict(map=     # publication/published
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   if (!doc.published) return;
-  emit(doc.published, doc.title);
+  emit(doc.published, null);
 }"""),
         title=dict(map=         # publication/title
 """var REMOVE = /[%s]/g;

@@ -20,10 +20,6 @@
     {% module CrossrefButton(publication.get('doi')) %}
   </div>
   <div>
-    {% if current_user and publication.get('acquired') %}
-    <span class="glyphicon glyphicon-lock"
-          title="{{ publication['acquired']['account'] }}"></span>
-    {% end %}
     <a href="{{ reverse_url('publication', publication['_id']) }}">
       <span class="glyphicon glyphicon-file"></span>
       {{ publication['title'] }}

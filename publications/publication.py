@@ -157,8 +157,11 @@ class PublicationSaver(Saver):
         except KeyError:
             self["qc"] = {aspect: entry}
 
-    def update(self, other):
-        """Update a field in the publication if there is a value in the other.
+    def update(self, other, updated_by_pmid=False):
+        """Update a field in the current publication if there is a value 
+        in the other publication. It is assumed that they are representations
+        of the same source publication.
+        Set the 'uppated_by_pmid' flag if True.
         Check if author can be associated with a researcher.
         Create a researcher, if ORCID is available.
         """
@@ -170,6 +173,8 @@ class PublicationSaver(Saver):
         self["epublished"] = other.get("epublished") or self.get("epublished")
         self["abstract"] = other.get("abstract") or self.get("abstract")
         self["xrefs"] = other.get("xrefs") or self.get("xrefs") or []
+        if updated_by_pmid:
+            self["updated_by_pmid"] = utils.timestamp()
 
         # Special case for journal field: copy each component field.
         try:
@@ -295,7 +300,6 @@ class PublicationMixin:
     def is_editable(self, publication):
         "Is the publication editable by the current user?"
         if not self.is_curator(): return False
-        if self.is_locked(publication): return False
         return True
 
     def check_editable(self, publication):
@@ -306,7 +310,6 @@ class PublicationMixin:
     def is_xrefs_editable(self, publication):
         "Are the xrefs of the publication editable by the current user?"
         if not self.is_xrefcur(): return False
-        if self.is_locked(publication): return False
         return True
 
     def check_xrefs_editable(self, publication):
@@ -315,42 +318,9 @@ class PublicationMixin:
         if self.is_xrefs_editable(publication): return
         raise ValueError("You many not edit the xrefs of the publication.")
 
-    def is_locked(self, publication):
-        "Is the publication acquired by **someone else**?"
-        if not self.current_user: True
-        try:
-            acquired = publication["acquired"]
-        except KeyError:
-            return False
-        else:
-            return acquired["account"] != self.current_user["email"]
-
-    def check_not_locked(self, publication):
-        "Check that the publication has not been acquired by someone else."
-        if self.is_locked(publication):
-            raise ValueError("The publication has been acquired by someone else.")
-
-    def is_releasable(self, publication):
-        "Is the publication releasable by the current user?"
-        if not self.is_xrefcur(): return False
-        try:
-            acquired = publication["acquired"]
-        except KeyError:
-            return False
-        if self.is_admin(): return True
-        if acquired["account"] == self.current_user["email"]: return True
-        if acquired["deadline"] < utils.timestamp(): return True
-        return False
-
-    def check_releasable(self, publication):
-        "Check that the publication can be released by the current user."
-        if self.is_releasable(publication): return
-        raise ValueError("You cannot release the publication.")
-
     def is_deletable(self, publication):
         "Is the publication deletable by the current user?"
         if not self.is_curator(): return False
-        if self.is_locked(publication): return False
         return True
 
     def check_deletable(self, publication):
@@ -436,14 +406,14 @@ class PublicationFetchMixin:
         # Update the current entry, if it exists.
         if current:
             with PublicationSaver(current, rqh=self) as saver:
-                saver.update(new)
+                saver.update(new, updated_by_pmid=identifier_is_pmid)
                 saver.fix_journal()
                 saver.update_labels(labels=labels, clean=clean)
             return current
         # Else create a new entry.
         else:
             with PublicationSaver(rqh=self) as saver:
-                saver.update(new)
+                saver.update(new, updated_by_pmid=identifier_is_pmid)
                 saver.fix_journal()
                 saver.update_labels(labels=labels)
             return saver.doc
@@ -474,8 +444,6 @@ class Publication(PublicationMixin, RequestHandler):
                     publication=publication,
                     is_editable=self.is_editable(publication),
                     is_xrefs_editable=self.is_xrefs_editable(publication),
-                    is_locked=self.is_locked(publication),
-                    is_releasable=self.is_releasable(publication),
                     is_deletable=self.is_deletable(publication))
 
     @tornado.web.authenticated
@@ -933,20 +901,6 @@ class PublicationsTxt(FilterMixin, ParametersMixin, Publications):
                 self.line += part
 
 
-class PublicationsAcquired(RequestHandler):
-    "Acquired publications page."
-
-    @tornado.web.authenticated
-    def get(self):
-        if self.is_admin():
-            publications = self.get_docs("publication/acquired")
-        else:
-            publications = self.get_docs("publication/acquired",
-                                         key=self.current_user["email"])
-        publications.sort(key=lambda i: i["acquired"]["deadline"],reverse=True)
-        self.render("publications_acquired.html", publications=publications)
-
-
 class PublicationsNoPmid(PublicationMixin, RequestHandler):
     "Publications lacking PMID."
 
@@ -1352,43 +1306,6 @@ class PublicationBlacklist(PublicationMixin, RequestHandler):
             self.see_other("home")
 
 
-class PublicationAcquire(PublicationMixin, RequestHandler):
-    "The current user acquires the publication for exclusive editing."
-
-    @tornado.web.authenticated
-    def post(self, identifier):
-        try:
-            publication = self.get_publication(identifier)
-            self.check_not_locked(publication)
-        except (KeyError, ValueError) as error:
-            self.see_other("home", error=str(error))
-            return
-        with PublicationSaver(publication, rqh=self) as saver:
-            deadline = utils.timestamp(days=settings["PUBLICATION_ACQUIRE_PERIOD"])
-            saver["acquired"] = {"account": self.current_user["email"],
-                                 "deadline": deadline}
-        self.see_other("publication", publication["_id"])
-
-
-class PublicationRelease(PublicationMixin, RequestHandler):
-    "The publication is released from exclusive editing."
-
-    @tornado.web.authenticated
-    def post(self, identifier):
-        try:
-            publication = self.get_publication(identifier)
-            self.check_releasable(publication)
-        except (KeyError, ValueError) as error:
-            self.see_other("home", error=str(error))
-            return
-        with PublicationSaver(publication, rqh=self) as saver:
-            del saver["acquired"]
-        try:
-            self.redirect(self.get_argument("next"))
-        except tornado.web.MissingArgumentError:
-            self.see_other("publication", publication["_id"])
-
-
 class ApiPublicationFetch(PublicationFetchMixin, PublicationMixin,
                           ApiMixin, RequestHandler):
     "Fetch a publication given its PMID or DOI."
@@ -1421,7 +1338,6 @@ class PublicationQc(PublicationMixin, RequestHandler):
     def post(self, identifier):
         try:
             publication = self.get_publication(identifier)
-            self.check_not_locked(publication)
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
@@ -1469,7 +1385,7 @@ class PublicationUpdatePmid(PublicationMixin, RequestHandler):
                            error=f"{identifier}, {error}")
             return
         with PublicationSaver(doc=publication, rqh=self) as saver:
-            saver.update(new)
+            saver.update(new, updated_by_pmid=True)
             saver.fix_journal()
         self.see_other("publication", publication["_id"],
                        message="Updated from PubMed.")

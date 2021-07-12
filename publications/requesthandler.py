@@ -347,11 +347,6 @@ class RequestHandler(tornado.web.RequestHandler):
         if full:
             result["notes"] = publication.get("notes") or []
             result["qc"] = publication.get("qc")
-            if self.current_user:
-                try:
-                    result["acquired"] = publication["acquired"]
-                except KeyError:
-                    pass
             result["created"] = publication["created"]
             result["modified"] = publication["modified"]
         return result

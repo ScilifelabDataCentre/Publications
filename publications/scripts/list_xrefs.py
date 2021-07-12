@@ -4,7 +4,7 @@ from publications import utils
 
 
 def list_xrefs(db):
-    "List all xrefs currently in database in files."
+    "Write all xrefs currently in database into files."
     view = db.view('publication/modified', include_docs=True)
     dbs = dict()
     for item in view:
