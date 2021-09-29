@@ -557,7 +557,9 @@ class FilterMixin:
                                    key=constants.CEILING,
                                    last="",
                                    descending=True)
-        # Filter by labels if any given.
+        # Filter by labels inclusive, if any given.
+        # A publication must be labelled by any of the given labels
+        # to be kept in this step.
         labels = set(self.get_arguments("labels"))
         if labels:
             kept = []
@@ -566,6 +568,34 @@ class FilterMixin:
                     if label in labels:
                         kept.append(publication)
                         break
+            result = kept
+
+        # Filter by labels required, if any given.
+        # A publication must be labelled by all of the given
+        # labels to be kept in this step.
+        labels = set(self.get_arguments("labels_required"))
+        if labels:
+            kept = []
+            for publication in result:
+                for label in publication.get("labels", {}):
+                    if not label in labels:
+                        break
+                else:
+                    kept.append(publication)
+            result = kept
+
+        # Filter by labels exclude, if any given.
+        # A publication labelled by any of the given labels
+        # will be excluded in this step.
+        labels = set(self.get_arguments("labels_excluded"))
+        if labels:
+            kept = []
+            for publication in result:
+                for label in publication.get("labels", {}):
+                    if label in labels:
+                        break
+                else:
+                    kept.append(publication)
             result = kept
 
         # Filter by active labels during a year.

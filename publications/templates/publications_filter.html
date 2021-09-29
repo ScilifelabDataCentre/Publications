@@ -2,6 +2,13 @@
 
 {# By year. #}
 <div class="form-group">
+  <div class="col-sm-offset-1 col-sm-9">
+    <strong>Note:</strong> Each filter is applied in turn, so that it
+    works on the set of publications produced by the previous one.
+  </div>
+</div>
+
+<div class="form-group">
   <label class="control-label col-sm-1" for="years">Years</label>
   <div class="col-sm-3">
     <select class="form-control" id="years" name="years" multiple>
@@ -17,18 +24,18 @@
   <div class="col-sm-6 col-sm-offset-2 help-block">
     Filter publications based on publication year.
     <br>
-    This filter is not applied if none are selected.
+    This filter is not applied if no years are selected.
     <br>
     Multiple select allowed. Hold ctrl or shift (or drag with the mouse)
     to select more than one.
   </div>
 </div>
 
-{# By labels. #}
+{# By labels inclusive; publications with any of the selected labels. #}
 <div class="form-group">
   <label class="control-label col-sm-1" for="labels">Labels</label>
   <div class="col-sm-5">
-    <select class="form-control" size="{{ max(2, min(len(all_labels), 12)) }}"
+    <select class="form-control" size="{{ max(2, min(len(all_labels), 8)) }}"
 	    id="labels" name="labels" multiple>
       {% for label in all_labels %}
       {% if label in labels %}
@@ -40,9 +47,58 @@
     </select>
   </div>
   <div class="col-sm-6 help-block">
-    Filter publications based on the assigned labels.
+    <p>
+      Filter publications based on the assigned labels. A publication
+      must contain <strong>at least one</strong> of the selected
+      labels.
+    </p>
+    This filter is not applied if no labels are selected.
     <br>
-    This filter is not applied if none are selected.
+    Multiple select allowed. Hold ctrl or shift (or drag with the mouse)
+    to select more than one.
+  </div>
+</div>
+
+{# By labels required; publications must contain all selected labels. #}
+<div class="form-group">
+  <label class="control-label col-sm-1" for="labels">Labels required</label>
+  <div class="col-sm-5">
+    <select class="form-control" size="{{ max(2, min(len(all_labels), 8)) }}"
+	    id="labels_required" name="labels_required" multiple>
+      {% for label in all_labels %}
+      <option value="{{ label }}">{{ label }}</option>
+      {% end %}
+    </select>
+  </div>
+  <div class="col-sm-6 help-block">
+    <p>
+      Filter publications based on the assigned labels. A publication
+      must contain <strong>all</strong> selected labels.
+    </p>
+    This filter is not applied if no labels are selected.
+    <br>
+    Multiple select allowed. Hold ctrl or shift (or drag with the mouse)
+    to select more than one.
+  </div>
+</div>
+
+{# By labels exclude; publications must contain all selected labels. #}
+<div class="form-group">
+  <label class="control-label col-sm-1" for="labels">Labels excluded</label>
+  <div class="col-sm-5">
+    <select class="form-control" size="{{ max(2, min(len(all_labels), 8)) }}"
+	    id="labels_excluded" name="labels_excluded" multiple>
+      {% for label in all_labels %}
+      <option value="{{ label }}">{{ label }}</option>
+      {% end %}
+    </select>
+  </div>
+  <div class="col-sm-6 help-block">
+    <p>
+      Filter publications based on the assigned labels. A publication
+      must <strong>not</strong> contain the selected labels.
+    </p>
+    This filter is not applied if no labels are selected.
     <br>
     Multiple select allowed. Hold ctrl or shift (or drag with the mouse)
     to select more than one.
@@ -67,7 +123,7 @@
     year. If a publication has no label active during the given
     year, it will not be output.
     <br>
-    <strong>NOTE:</strong> If this filter set to a specific year,
+    <strong>NOTE:</strong> If this filter is set to a specific year,
     then most likely the filter "Year" above should be set to the
     same year to yield meaningful results.
   </div>
