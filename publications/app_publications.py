@@ -78,6 +78,10 @@ from publications.label import (Label,
                                 LabelMerge)
 from publications.search import (Search,
                                  SearchJson)
+from publications.pubset import (Pubsets,
+                                 Pubset,
+                                 PubsetCreate,
+                                 PubsetEdit)
 from publications.logs import Logs
 
 
@@ -119,6 +123,10 @@ def main():
                     PublicationsTable, name="publications_table_year"),
                 url(r"/publications/table",
                     PublicationsTable, name="publications_table"),
+                url(r"/pubsets", Pubsets, name="pubsets"),
+                url(r"/pubset", PubsetCreate, name="pubset_create"),
+                url(r"/pubset/(.+)", Pubset, name="pubset"),
+                url(r"/pubset/(.+)/edit", PubsetEdit, name="pubset_edit"),
                 url(r"/publications/no_pmid",
                     PublicationsNoPmid, name="publications_no_pmid"),
                 url(r"/publications/no_pmid.json",

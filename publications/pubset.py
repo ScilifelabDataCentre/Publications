@@ -1,5 +1,7 @@
 "Pubset (publication sets) pages."
 
+import tornado
+
 from . import constants
 from . import settings
 from . import utils
@@ -19,6 +21,7 @@ class PubsetSaver(Saver):
         self["title"] = ""
         self["public"] = False
         self["operations"] = []
+        self["count"] = 0
 
     def set_title(self):
         "Set title from form data."
@@ -81,30 +84,12 @@ class Pubset(PubsetMixin, RequestHandler):
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
+        # XXX Get publications documents.
+        publications = []
         self.render("pubset.html",
                     pubset=pubset,
-                    publications=self.get_publications(pubset),
-                    is_editable=self.is_editable(pubset))
-
-
-class PubsetCreate(RequestHandler):
-    "Create a new pubset."
-
-
-class PubsetEdit(PubsetMixin, RequestHandler):
-    "View the pubset operations and edit them."
-
-    @tornado.web.authenticated
-    def get(self, identifier):
-        try:
-            pubset = self.get_pubset(identifier)
-            self.check_editable(pubset)
-        except (KeyError, ValueError) as error:
-            self.see_other("home", error=str(error))
-            return
-        self.render("pubset_edit.html",
-                    pubset=pubset,
-                    publications=self.get_publications(pubset),
+                    publications=publications,
+                    is_editable=self.is_editable(pubset),
                     is_deletable=self.is_deletable(pubset))
 
     @tornado.web.authenticated
@@ -127,3 +112,48 @@ class PubsetEdit(PubsetMixin, RequestHandler):
             self.db.delete(log)
         self.db.delete(pubset)
         self.see_other("home")
+
+
+class PubsetCreate(RequestHandler):
+    "Create a new pubset."
+
+    @tornado.web.authenticated
+    def get(self):
+        self.check_admin()
+        self.render("pubset_create.html")
+
+    @tornado.web.authenticated
+    def post(self):
+        self.check_admin()
+        with PubsetSaver(rqh=self) as saver:
+            saver["title"] = self.get_argument("title", "[no title]")
+        self.see_other("pubset", saver["_id"])
+
+
+class PubsetEdit(PubsetMixin, RequestHandler):
+    "View the pubset operations and edit them."
+
+    @tornado.web.authenticated
+    def get(self, identifier):
+        try:
+            pubset = self.get_pubset(identifier)
+            self.check_editable(pubset)
+        except (KeyError, ValueError) as error:
+            self.see_other("home", error=str(error))
+            return
+        self.render("pubset_edit.html", pubset=pubset)
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        pass
+
+
+class Pubsets(RequestHandler):
+    "List the pubsets."
+
+    def get(self):
+        if self.is_admin():
+            pubsets = self.get_docs("pubset/count")
+        else:
+            pubsets = self.get_docs("pubset/public", key=True)
+        self.render("pubsets.html", pubsets=pubsets)

@@ -214,7 +214,7 @@ function (doc) {
   var year = doc.published.split('-')[0];
   emit(year, null);
 }"""),
-        modified=dict(map=      # publication/modified
+        modified=dict(map=
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   emit(doc.modified, null);
@@ -287,6 +287,21 @@ function (doc) {
 """function (doc) {
   if (doc.publications_doctype !== 'researcher') return;
   emit(doc.family_normalized + ' ' + doc.initials_normalized, null);
+}"""),
+
+    ),
+    pubset=dict(
+        public=dict(reduce="_count", # pubset/public
+                    map=         
+"""function (doc) {
+  if (doc.publications_doctype !== 'pubset') return;
+  emit(doc.public, doc.title);
+}"""),
+        count=dict(reduce="_count", # pubset/count
+                    map=         
+"""function (doc) {
+  if (doc.publications_doctype !== 'pubset') return;
+  emit(doc.count, doc.title);
 }"""),
     ),
 )

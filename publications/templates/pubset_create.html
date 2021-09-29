@@ -1,0 +1,55 @@
+{# Pubset creation page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Create pubset{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-inbox"></span>
+<span class="glyphicon glyphicon-plus"></span>
+Create pubset
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<form action="{{ reverse_url('pubset_create') }}"
+      role="form"
+      class="form-horizontal"
+      method="POST">
+  {% module xsrf_form_html() %}
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-1" for="title">Title</label>
+    <div class="col-sm-10">
+      <input type="text" name="title" id="title" class="form-control">
+      <span class="help-block">
+        The pubset title. Should be unique and descriptive.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-11 col-md-offset-1">
+      <button type="submit" class="btn btn-success">
+	<span class="glyphicon glyphicon-plus"></span>
+	Create
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ reverse_url('pubsets') }}"
+   class="btn btn-default"
+   role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span>
+  Cancel
+</a>
+{% end %} {# block meta_content #}
+
+{% block autofocus %}
+<script>
+  $(function(){ $("#title").focus(); });
+</script>
+{% end %}

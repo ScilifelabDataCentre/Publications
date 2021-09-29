@@ -1,0 +1,52 @@
+{# Pubset page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Pubset {{ pubset['title'] }}{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-inbox"></span>
+{{ pubset['title'] }}
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<div class="row">
+  <div class="col-md-6">
+    {% if pubset['operations'] %}
+    {% for publication in publications %}
+    {% include 'publication_item.html' %}
+    {% end %} {# for #}
+    {% else %}
+    <i>Not defined</i>
+    {% end %}
+  </div>
+</div>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+{% if is_editable %}
+<p>
+  <a href="{{ reverse_url('pubset_edit', pubset['_id']) }}"
+     class="btn btn-primary btn-block"
+     role="button">
+    <span class="glyphicon glyphicon-edit"></span>
+    Edit
+  </a>
+</p>
+{% end %} {# if is_editable #}
+{% if is_deletable %}
+<p>
+  <form action="{{ reverse_url('pubset', pubset['_id']) }}"
+	role="form"
+	method="POST">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_http_method" value="delete">
+    <button type="submit" class="btn btn-danger btn-block"
+	    onclick="return confirm('Really delete this pubset?');">
+      <span class="glyphicon glyphicon-trash"></span>
+      Delete
+    </button>
+  </form>
+</p>
+{% end %} {# if is_deletable #}
+{% end %} {# block meta_content #}

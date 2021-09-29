@@ -105,7 +105,7 @@ class RequestHandler(tornado.web.RequestHandler):
 
     def get_publication(self, identifier):
         """Get the publication given its IUID, DOI or PMID.
-        Raise KeyError if no such publication.
+        Raise KeyError if not found.
         """
         return utils.get_publication(self.db, identifier)
 
@@ -134,9 +134,15 @@ class RequestHandler(tornado.web.RequestHandler):
 
     def get_label(self, identifier):
         """Get the label document by its IUID or value.
-        Raise KeyError if no such publication.
+        Raise KeyError if not found.
         """
         return utils.get_label(self.db, identifier)
+
+    def get_pubset(self, identifier):
+        """Get the pubset document by its IUID.
+        Raise KeyError if not found.
+        """
+        return utils.get_pubset(self.db, identifier)
 
     def get_blacklisted(self, identifier):
         """Get the blacklist document id if the publication with

@@ -164,6 +164,7 @@
 	    </li>
 
             <li class="dropdown">
+              {% if is_admin %}
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">
 		<span class="glyphicon glyphicon-education"></span>
 		Researchers
@@ -183,6 +184,41 @@
 		  </a>
 		</li>
 	      </ul>
+              {% else %}
+	      <a href="{{ reverse_url('researchers') }}">
+		<span class="glyphicon glyphicon-education"></span>
+		Researchers
+	      </a>
+              {% end %} {# if is_admin #}
+	    </li>
+
+            <li class="dropdown">
+	      {% if is_admin %}
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+		<span class="glyphicon glyphicon-inbox"></span>
+		Pubsets
+		<span class="caret"></span>
+	      </a>
+              <ul class="dropdown-menu">
+		<li>
+		  <a href="{{ reverse_url('pubsets') }}">
+		    <span class="glyphicon glyphicon-list"></span>
+                    Pubsets
+		  </a>
+		</li>
+		<li>
+		  <a href="{{ reverse_url('pubset_create') }}">
+		    <span class="glyphicon glyphicon-plus"></span>
+		    Create pubset
+		  </a>
+		</li>
+	      </ul>
+              {% else %}
+	      <a href="{{ reverse_url('pubsets') }}">
+		<span class="glyphicon glyphicon-list"></span>
+                Pubsets
+	      </a>
+              {% end %} {# if is_admin #}
 	    </li>
 
 	    {% if is_admin %}

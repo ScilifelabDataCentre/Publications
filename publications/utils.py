@@ -222,7 +222,7 @@ def get_count(db, viewname, key=None):
 
 def get_account(db, email):
     """Get the account identified by the email address.
-    Raise KeyError if no such account.
+    Raise KeyError if not found.
     """
     try:
         doc = get_doc(db, email.strip().lower(), "account/email")
@@ -234,7 +234,7 @@ def get_account(db, email):
 
 def get_publication(db, identifier):
     """Get the publication given its IUID, DOI or PMID.
-    Raise KeyError if no such publication.
+    Raise KeyError if not found.
     """
     if not identifier: raise KeyError
     identifier = identifier.lower()
@@ -256,7 +256,7 @@ def get_publication(db, identifier):
 
 def get_researcher(db, identifier):
     """Get the researcher entity given its IUID or ORCID.
-    Raise KeyError if no such researcher.
+    Raise KeyError if not found.
     """
     if not identifier: raise KeyError
     try:
@@ -272,7 +272,7 @@ def get_researcher(db, identifier):
 
 def get_label(db, identifier):
     """Get the label document by its IUID or value.
-    Raise KeyError if no such label.
+    Raise KeyError if not found.
     """
     if not identifier: raise KeyError("no identifier provided")
     try:
@@ -284,6 +284,19 @@ def get_label(db, identifier):
         except KeyError:
             raise KeyError(f"no such label '{identifier}'")
     if doc[constants.DOCTYPE] != constants.LABEL:
+        raise KeyError(f"wrong document type '{doc[constants.DOCTYPE]}'")
+    return doc
+
+def get_pubset(db, identifier):
+    """Get the pubset document by its IUID.
+    Raise KeyError if not found.
+    """
+    if not identifier: raise KeyError("no identifier provided")
+    try:
+        doc = get_doc(db, identifier)
+    except KeyError:
+        raise KeyError(f"no such pubset '{identifier}'")
+    if doc[constants.DOCTYPE] != constants.PUBSET:
         raise KeyError(f"wrong document type '{doc[constants.DOCTYPE]}'")
     return doc
 
