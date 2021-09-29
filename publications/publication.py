@@ -577,10 +577,7 @@ class FilterMixin:
         if labels:
             kept = []
             for publication in result:
-                for label in publication.get("labels", {}):
-                    if not label in labels:
-                        break
-                else:
+                if not labels.difference(publication.get("labels", {})):
                     kept.append(publication)
             result = kept
 
