@@ -24,8 +24,9 @@ ACCOUNT     = "account"
 RESEARCHER  = "researcher"
 LABEL       = "label"
 BLACKLIST   = "blacklist"
+PUBSET      = "pubset"
 LOG         = "log"
-ENTITIES    = (PUBLICATION, JOURNAL, ACCOUNT, LABEL, RESEARCHER)
+ENTITIES    = (PUBLICATION, JOURNAL, ACCOUNT, LABEL, RESEARCHER, PUBSET)
 
 # Account roles
 ADMIN   = "admin"
