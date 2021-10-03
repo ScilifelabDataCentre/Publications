@@ -1,4 +1,4 @@
-"Pubset (publication sets) pages."
+"Subset (publication sets) pages."
 
 import tornado
 
@@ -9,8 +9,8 @@ from .saver import Saver, SaverError
 from .requesthandler import RequestHandler, ApiMixin
 
 
-class PubsetSaver(Saver):
-    doctype = constants.PUBSET
+class SubsetSaver(Saver):
+    doctype = constants.SUBSET
 
     def initialize(self):
         """Set the initial values for the new document.
@@ -29,68 +29,68 @@ class PubsetSaver(Saver):
         self["title"] = utils.squish(self.rqh.get_argument("title", "") or "[no title]")
 
     def set_public(self):
-        "Set the pubset to be viewable by all."
+        "Set the subset to be viewable by all."
         self["public"] = True
 
     def set_private(self):
-        "Set the pubset to be viewable by an admin only."
+        "Set the subset to be viewable by an admin only."
         self["public"] = False
 
 
-class PubsetMixin:
+class SubsetMixin:
     "Mixin for access check methods."
 
-    def is_viewable(self, pubset):
-        "Is the pubset viewable by the current user?"
-        if pubset["public"]: return True
+    def is_viewable(self, subset):
+        "Is the subset viewable by the current user?"
+        if subset["public"]: return True
         if self.is_admin(): return True
         return False
 
-    def check_viewable(self, pubset):
-        "Check that the pubset is viewable by the current user."
-        if self.is_viewable(pubset): return
-        raise ValueError("You many not view the pubset.")
+    def check_viewable(self, subset):
+        "Check that the subset is viewable by the current user."
+        if self.is_viewable(subset): return
+        raise ValueError("You many not view the subset.")
 
-    def is_editable(self, pubset):
-        "Is the pubset editable by the current user?"
+    def is_editable(self, subset):
+        "Is the subset editable by the current user?"
         if self.is_admin(): return True
         return False
 
-    def check_editable(self, pubset):
-        "Check that the pubset is editable by the current user."
-        if self.is_editable(pubset): return
-        raise ValueError("You many not edit the pubset.")
+    def check_editable(self, subset):
+        "Check that the subset is editable by the current user."
+        if self.is_editable(subset): return
+        raise ValueError("You many not edit the subset.")
 
-    def is_deletable(self, pubset):
-        "Is the pubset deletable by the current user?"
-        if pubset["public"]: return False
+    def is_deletable(self, subset):
+        "Is the subset deletable by the current user?"
+        if subset["public"]: return False
         if self.is_admin(): return True
         return False
 
-    def check_deletable(self, pubset):
-        "Check that the pubset is deletable by the current user."
-        if self.is_deletable(pubset): return
-        raise ValueError("You may not delete the pubset.")
+    def check_deletable(self, subset):
+        "Check that the subset is deletable by the current user."
+        if self.is_deletable(subset): return
+        raise ValueError("You may not delete the subset.")
 
 
-class Pubset(PubsetMixin, RequestHandler):
-    "Display the pubset."
+class Subset(SubsetMixin, RequestHandler):
+    "Display the subset."
 
     def get(self, identifier):
-        "Display the publications in the pubset."
+        "Display the publications in the subset."
         try:
-            pubset = self.get_pubset(identifier)
-            self.check_viewable(pubset)
+            subset = self.get_subset(identifier)
+            self.check_viewable(subset)
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
         # XXX Get publications documents.
         publications = []
-        self.render("pubset.html",
-                    pubset=pubset,
+        self.render("subset.html",
+                    subset=subset,
                     publications=publications,
-                    is_editable=self.is_editable(pubset),
-                    is_deletable=self.is_deletable(pubset))
+                    is_editable=self.is_editable(subset),
+                    is_deletable=self.is_deletable(subset))
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -102,58 +102,58 @@ class Pubset(PubsetMixin, RequestHandler):
     @tornado.web.authenticated
     def delete(self, identifier):
         try:
-            pubset = self.get_pubset(identifier)
-            self.check_deletable(pubset)
+            subset = self.get_subset(identifier)
+            self.check_deletable(subset)
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
         # Delete log entries
-        for log in self.get_logs(pubset["_id"]):
+        for log in self.get_logs(subset["_id"]):
             self.db.delete(log)
-        self.db.delete(pubset)
+        self.db.delete(subset)
         self.see_other("home")
 
 
-class PubsetCreate(RequestHandler):
-    "Create a new pubset."
+class SubsetCreate(RequestHandler):
+    "Create a new subset."
 
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        self.render("pubset_create.html")
+        self.render("subset_create.html")
 
     @tornado.web.authenticated
     def post(self):
         self.check_admin()
-        with PubsetSaver(rqh=self) as saver:
+        with SubsetSaver(rqh=self) as saver:
             saver["title"] = self.get_argument("title", "[no title]")
-        self.see_other("pubset", saver["_id"])
+        self.see_other("subset", saver["_id"])
 
 
-class PubsetEdit(PubsetMixin, RequestHandler):
-    "View the pubset operations and edit them."
+class SubsetEdit(SubsetMixin, RequestHandler):
+    "View the subset operations and edit them."
 
     @tornado.web.authenticated
     def get(self, identifier):
         try:
-            pubset = self.get_pubset(identifier)
-            self.check_editable(pubset)
+            subset = self.get_subset(identifier)
+            self.check_editable(subset)
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
-        self.render("pubset_edit.html", pubset=pubset)
+        self.render("subset_edit.html", subset=subset)
 
     @tornado.web.authenticated
     def post(self, identifier):
         pass
 
 
-class Pubsets(RequestHandler):
-    "List the pubsets."
+class Subsets(RequestHandler):
+    "Table of subsets."
 
     def get(self):
         if self.is_admin():
-            pubsets = self.get_docs("pubset/count")
+            subsets = self.get_docs("subset/public")
         else:
-            pubsets = self.get_docs("pubset/public", key=True)
-        self.render("pubsets.html", pubsets=pubsets)
+            subsets = self.get_docs("subset/public", key=True)
+        self.render("subsets.html", subsets=subsets)

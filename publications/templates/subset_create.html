@@ -1,17 +1,17 @@
-{# Pubset creation page. #}
+{# Subset creation page. #}
 
 {% extends "base.html" %}
 
-{% block head_title %}Create pubset{% end %}
+{% block head_title %}Create subset{% end %}
 
 {% block body_title %}
-<span class="glyphicon glyphicon-inbox"></span>
+<span class="glyphicon glyphicon-adjust"></span>
 <span class="glyphicon glyphicon-plus"></span>
-Create pubset
+Create subset
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<form action="{{ reverse_url('pubset_create') }}"
+<form action="{{ reverse_url('subset_create') }}"
       role="form"
       class="form-horizontal"
       method="POST">
@@ -22,7 +22,7 @@ Create pubset
     <div class="col-sm-10">
       <input type="text" name="title" id="title" class="form-control">
       <span class="help-block">
-        The pubset title. Should be unique and descriptive.
+        The subset title. Should be unique and descriptive.
       </span>
     </div>
   </div>
@@ -40,7 +40,7 @@ Create pubset
 {% end %} {# block main_content #}
 
 {% block meta_content %}
-<a href="{{ reverse_url('pubsets') }}"
+<a href="{{ reverse_url('subsets') }}"
    class="btn btn-default"
    role="button">
   <span class="glyphicon glyphicon-remove-circle"></span>

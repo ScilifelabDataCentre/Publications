@@ -138,11 +138,11 @@ class RequestHandler(tornado.web.RequestHandler):
         """
         return utils.get_label(self.db, identifier)
 
-    def get_pubset(self, identifier):
-        """Get the pubset document by its IUID.
+    def get_subset(self, identifier):
+        """Get the subset document by its IUID.
         Raise KeyError if not found.
         """
-        return utils.get_pubset(self.db, identifier)
+        return utils.get_subset(self.db, identifier)
 
     def get_blacklisted(self, identifier):
         """Get the blacklist document id if the publication with
