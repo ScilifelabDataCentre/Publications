@@ -61,7 +61,6 @@ class PublicationSaver(Saver):
     def set_authors(self):
         "Set authors list from form data."
         assert self.rqh, "requires http request context"
-        # XXX How to keep associations with researchers!
         authors = []
         for author in self.rqh.get_argument("authors", "").split("\n"):
             author = author.strip()
@@ -86,7 +85,27 @@ class PublicationSaver(Saver):
                      given_normalized=utils.to_ascii(given).lower(),
                      initials=initials,
                      initials_normalized=utils.to_ascii(initials).lower()))
+        # Authors: Transfer previously associated researchers.
+        researchers = self._get_researchers()
+        for author in authors:
+            key = "%s %s" % (author["family_normalized"],
+                             author["initials_normalized"])
+            try:
+                author["researcher"] = researchers[key]
+            except KeyError:
+                pass
         self["authors"] = authors
+
+    def _get_researchers(self):
+        "Get the current assocations of author to researcher."
+        result = {}
+        for author in self.doc["authors"]:
+            researcher = author.get("researcher")
+            if not researcher: continue
+            key = "%s %s" % (author["family_normalized"],
+                             author["initials_normalized"])
+            result[key] = researcher
+        return result
 
     def set_researchers(self):
         "Set associations of researcher to author from form data."
@@ -185,15 +204,10 @@ class PublicationSaver(Saver):
             if value:
                 journal[key] = value
 
-        # Authors: Remember previously associated researchers.
-        researchers = {}
-        for author in self["authors"]:
-            researcher = author.get("researcher")
-            if not researcher: continue
-            key = "%s %s" % (author["family_normalized"],
-                             author["initials_normalized"])
-            researchers[key] = researcher
+        # Authors: Transfer previously associated researchers.
+        researchers = self._get_researchers()
         self["authors"] = other["authors"]
+        # Transfer the researcher association, if any.
         for author in self["authors"]:
             key = "%s %s" % (author["family_normalized"],
                              author["initials_normalized"])
