@@ -49,6 +49,7 @@ XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 TXT_MIME  = "text/plain"
 
 # Various texts.
+REV_ERROR = "Entity has been edited by someone else. Cannot overwrite."
 FETCH_ERROR = "Could not fetch data. "
 BLACKLISTED_MESSAGE = "Publication(s) not fetched since in the blacklist." \
                       " Check 'override' and try again, if needed: "

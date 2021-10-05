@@ -24,10 +24,10 @@ class JournalMixin:
         Raise KeyError if no such journal.
         """
         try:
-            return self.get_doc(title, "journal/title")
+            return self.get_doc("journal", "title", title)
         except KeyError:
             try:
-                return self.get_doc(title, "journal/issn")
+                return self.get_doc("journal", "issn", title)
             except KeyError:
                 raise KeyError(f"No such journal '{title}'.")
 
@@ -43,7 +43,7 @@ class JournalMixin:
     def is_deletable(self, journal):
         "Is the journal deletable by the current user?"
         if not self.is_admin(): return False
-        if self.get_docs("publication/journal", key=journal["title"]):
+        if self.get_docs("publication", "journal", key=journal["title"]):
             return False
         return True
 
@@ -58,29 +58,31 @@ class Journal(JournalMixin, RequestHandler):
 
     def get(self, title):
         try:
-            journal = self.get_doc(title, "journal/title")
+            journal = self.get_doc("journal", "title", title)
         except KeyError:
             try:
-                journal = self.get_doc(title, "journal/issn")
+                journal = self.get_doc("journal", "issn", title)
             except KeyError:
                 self.see_other("home", error="no such journal")
                 return
             else:
-                duplicates = self.get_docs("journal/title", key=title)
+                duplicates = self.get_docs("journal", "title", key=title)
         else:
-            duplicates = self.get_docs("journal/issn", key=journal["issn"])
+            duplicates = self.get_docs("journal", "issn", key=journal["issn"])
         duplicates = [d for d in duplicates if d["_id"] != journal["_id"]]
         publications = {}
         if journal["title"]:
-            view = self.db.view("publication/journal", reduce=False)
-            for row in view[journal["title"]]:
+            view = self.db.view("publication", "journal",
+                                key=journal["title"], reduce=False)
+            for row in view:
                 try:
                     publications[row.id] += 1
                 except KeyError:
                     publications[row.id] = 1
         if journal["issn"]:
-            view = self.db.view("publication/issn", reduce=False)
-            for row in view[journal["issn"]]:
+            view = self.db.view("publication", "issn",
+                                key=journal["issn"], reduce=False)
+            for row in view:
                 try:
                     publications[row.id] += 1
                 except KeyError:
@@ -105,7 +107,7 @@ class Journal(JournalMixin, RequestHandler):
     @tornado.web.authenticated
     def delete(self, title):
         try:
-            journal = self.get_doc(title, "journal/title")
+            journal = self.get_doc("journal", "title", title)
             self.check_deletable(journal)
         except (KeyError, ValueError) as error:
             self.see_other("journals", error=str(error))
@@ -176,7 +178,8 @@ class JournalEdit(JournalMixin, RequestHandler):
             saver["title"] = title
             saver["issn"] = issn = self.get_argument("issn", None) or None
         if old_title != title or old_issn != issn:
-            view = self.db.view("publication/journal",
+            view = self.db.view("publication",
+                                "journal",
                                 key=old_title,
                                 include_docs=True,
                                 reduce=False)
@@ -193,8 +196,8 @@ class Journals(RequestHandler):
     "Journals table page."
 
     def get(self):
-        journals = self.get_docs("journal/title")
-        view = self.db.view("publication/journal", group=True)
+        journals = self.get_docs("journal", "title")
+        view = self.db.view("publication", "journal", group=True)
         counts = dict([(r.key, r.value) for r in view])
         for journal in journals:
             journal["count"] = counts.get(journal["title"], 0)

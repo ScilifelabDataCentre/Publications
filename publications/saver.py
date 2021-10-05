@@ -2,7 +2,7 @@
 
 import logging
 
-import couchdb
+import couchdb2
 import tornado.web
 
 from publications import constants
@@ -48,8 +48,8 @@ class Saver:
         if type is not None: return False # No exceptions handled here.
         self.finalize()
         try:
-            self.db.save(self.doc)
-        except couchdb.http.ResourceConflict:
+            self.db.put(self.doc)
+        except couchdb2.RevisionError:
             raise SaverError
         self.post_process()
         self.write_log()
@@ -127,7 +127,6 @@ class Saver:
 
     def write_log(self):
         "Write a log entry for the change."
-        # utils.write_log(self.db, self.rqh, self.doc, changed=self.changed)
         log = dict(_id=utils.get_iuid(),
                    doc=self.doc["_id"],
                    doctype=self.doc[constants.DOCTYPE],
@@ -147,4 +146,4 @@ class Saver:
                 log["account"] = self.account["email"]
             except (TypeError, AttributeError, KeyError):
                 pass
-        self.db.save(log)
+        self.db.put(log)

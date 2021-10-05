@@ -37,7 +37,7 @@ def undump(db, filepath):
         else:
             doc = json.loads(itemdata)
             atts = doc.pop("_attachments", dict())
-            db.save(doc)
+            db.put(doc)
             count_items += 1
             for attname, attinfo in list(atts.items()):
                 key = "{0}_att/{1}".format(doc["_id"], attname)

@@ -2,7 +2,7 @@
 
 import logging
 
-import couchdb
+import couchdb2
 
 from . import constants
 
@@ -295,35 +295,20 @@ function (doc) {
 
 def load_design_documents(db):
     "Load the design documents (view index definitions)."
-    for entity, designs in list(DESIGNS.items()):
-        updated = update_design_document(db, entity, designs)
-        if updated:
-            for view in designs:
-                name = "%s/%s" % (entity, view)
-                logging.info("regenerating index for view %s" % name)
-                list(db.view(name, limit=10))
+    for design, views in list(DESIGNS.items()):
+        update_design_document(db, design, views)
 
 def update_design_document(db, design, views):
     "Update the design document (view index definition)."
-    docid = "_design/%s" % design
     try:
-        doc = db[docid]
-    except couchdb.http.ResourceNotFound:
-        logging.info("loading design document %s", docid)
-        db.save(dict(_id=docid, views=views))
-        return True
-    else:
-        if doc["views"] != views:
-            doc["views"] = views
-            logging.info("updating design document %s", docid)
-            db.save(doc)
-            return True
-        return False
+        db.get_design(design)
+    except couchdb2.NotFoundError:
+        logging.info("loading design %s", design)
+        db.put_design(design, views, rebuild=True)
 
 def regenerate_indexes(db):
     "Regenerate all indexes."
-    for entity, designs in DESIGNS.items():
-        for view in designs:
-            name = "%s/%s" % (entity, view)
-            logging.info("regenerating index for view %s" % name)
-            list(db.view(name, limit=10))
+    for design, views in DESIGNS.items():
+        for view in views:
+            logging.info(f"regenerating index for view {design}/{view}")
+            list(db.view(design, view, limit=10))

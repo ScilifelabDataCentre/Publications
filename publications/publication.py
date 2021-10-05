@@ -4,6 +4,7 @@ import csv
 import io
 import logging
 
+import couchdb2
 import tornado.web
 import xlsxwriter
 
@@ -252,16 +253,16 @@ class PublicationSaver(Saver):
         issn_l = journal.get("issn-l")
         if issn:
             try:
-                doc = self.rqh.get_doc(issn, "journal/issn")
+                doc = self.rqh.get_doc("journal", "issn", issn)
                 issn_l = doc.get("issn-l") or issn_l
             except KeyError:
                 try:
-                    doc = self.rqh.get_doc(issn, "journal/issn_l")
+                    doc = self.rqh.get_doc("journal", "issn_l", issn)
                     issn_l = issn
                 except KeyError:
                     if title:
                         try:
-                            doc = self.rqh.get_doc(title, "journal/title")
+                            doc = self.rqh.get_doc("journal", "title", title)
                         except KeyError:
                             doc = None
                         else:
@@ -345,7 +346,7 @@ class PublicationMixin:
     def get_allowed_labels(self):
         "Get the set of allowed labels for the account."
         if self.is_admin():
-            return set([l["value"] for l in self.get_docs("label/value")])
+            return set([l["value"] for l in self.get_docs("label", "value")])
         else:
             return set(self.current_user["labels"])
 
@@ -436,7 +437,7 @@ class PublicationFetchMixin:
         """Raise KeyError if identifier blacklisted.
         If override, remove from blacklist.
         """
-        blacklisted = self.get_blacklisted(identifier)
+        blacklisted = utils.get_blacklisted(self.db, identifier)
         if blacklisted:
             if override:
                 self.db.delete(blacklisted)
@@ -505,13 +506,13 @@ class Publications(RequestHandler):
             kwargs = dict(key=year)
             if limit:
                 kwargs["limit"] = limit
-            publications = self.get_docs("publication/year", **kwargs)
+            publications = self.get_docs("publication", "year", **kwargs)
             publications.sort(key=lambda i: i["published"], reverse=True)
         else:
             kwargs = dict(key=constants.CEILING, last="", descending=True)
             if limit:
                 kwargs["limit"] = limit
-            publications = self.get_docs("publication/published", **kwargs)
+            publications = self.get_docs("publication", "published", **kwargs)
         self.render(self.TEMPLATE,
                     publications=publications,
                     year=year,
@@ -564,10 +565,10 @@ class FilterMixin:
         years = self.get_arguments("years")
         if years:
             for year in years:
-                result.extend(self.get_docs("publication/year", key=year))
+                result.extend(self.get_docs("publication", "year", key=year))
         # All publications.
         else:
-            result = self.get_docs("publication/published",
+            result = self.get_docs("publication", "published",
                                    key=constants.CEILING,
                                    last="",
                                    descending=True)
@@ -614,10 +615,10 @@ class FilterMixin:
         if settings["TEMPORAL_LABELS"] and active:
             if active.lower() == "current":
                 labels = set([d["value"] 
-                              for d in self.get_docs("label/current")])
+                              for d in self.get_docs("label", "current")])
             else:
                 labels = set()
-                for label in self.get_docs("label/value"):
+                for label in self.get_docs("label", "value"):
                     started = label.get("started")
                     if started and started <= active: # Year as str
                         ended = label.get("ended")
@@ -762,11 +763,12 @@ class PublicationsCsv(FilterMixin, TabularWriteMixin, Publications):
 
     def get(self):
         "Show output selection page."
+        all_labels = sorted([l["value"]
+                             for l in self.get_docs("label", "value")])
         self.render("publications_csv.html",
                     year=self.get_argument("year", None),
                     labels=set(self.get_arguments("label")),
-                    all_labels=sorted([l["value"]
-                                       for l in self.get_docs("label/value")]),
+                    all_labels=all_labels,
                     cancel_url=self.get_argument("cancel_url", None))
 
     # Authentication is *not* required!
@@ -815,11 +817,12 @@ class PublicationsXlsx(FilterMixin, TabularWriteMixin, Publications):
 
     def get(self):
         "Show output selection page."
+        all_labels = sorted([l["value"]
+                             for l in self.get_docs("label", "value")])
         self.render("publications_xlsx.html",
                     year=self.get_argument("year", None),
                     labels=set(self.get_arguments("label")),
-                    all_labels=sorted([l["value"]
-                                       for l in self.get_docs("label/value")]),
+                    all_labels=all_labels,
                     cancel_url=self.get_argument("cancel_url", None))
 
     # Authentication is *not* required!
@@ -872,11 +875,12 @@ class PublicationsTxt(FilterMixin, ParametersMixin, Publications):
 
     def get(self):
         "Show output selection page."
+        all_labels = sorted([l["value"]
+                             for l in self.get_docs("label", "value")])
         self.render("publications_txt.html",
                     year=self.get_argument("year", None),
                     labels=set(self.get_arguments("label")),
-                    all_labels=sorted([l["value"]
-                                       for l in self.get_docs("label/value")]),
+                    all_labels=all_labels,
                     cancel_url=self.get_argument("cancel_url", None))
 
     # Authentication is *not* required!
@@ -946,7 +950,7 @@ class PublicationsNoPmid(PublicationMixin, RequestHandler):
     "Publications lacking PMID."
 
     def get(self):
-        publications = self.get_docs("publication/no_pmid")
+        publications = self.get_docs("publication", "no_pmid")
         for publication in publications:
             publication["pmid_findable"] = self.is_editable(publication) and \
                                            publication.get("doi")
@@ -993,7 +997,7 @@ class PublicationsNoDoi(RequestHandler):
     "Publications lacking DOI."
 
     def get(self):
-        publications = self.get_docs("publication/no_doi")
+        publications = self.get_docs("publication", "no_doi")
         publications.sort(key=lambda p: p["modified"])
         self.render("publications_no_doi.html", publications=publications)
 
@@ -1022,7 +1026,7 @@ class PublicationsNoLabel(RequestHandler):
 
     def get(self):
         publications = []
-        for publication in self.get_docs("publication/modified", descending=True):
+        for publication in self.get_docs("publication", "modified", descending=True):
             if not publication.get("labels"):
                 publications.append(publication)
         self.render("publications_no_label.html", publications=publications)
@@ -1060,7 +1064,7 @@ class PublicationsDuplicates(RequestHandler):
     def get(self):
         lookup = {}             # Key: 4 longest words in title
         duplicates = []
-        for publ1 in self.get_docs("publication/modified"):
+        for publ1 in self.get_docs("publication", "modified"):
             title = utils.to_ascii(publ1["title"], alphanum=True).lower()
             parts = sorted(title.split(), key=len, reverse=True)
             key = " ".join(parts[:4])
@@ -1084,7 +1088,7 @@ class PublicationsModified(PublicationMixin, RequestHandler):
         self.check_curator()
         kwargs = dict(descending=True,
                       limit=self.get_limit(settings["LONG_PUBLICATIONS_LIST_LIMIT"]))
-        docs = self.get_docs("publication/modified", **kwargs)
+        docs = self.get_docs("publication", "modified", **kwargs)
         self.render("publications_modified.html", publications=docs)
 
 
@@ -1123,8 +1127,8 @@ class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
         if fetched:
             for iuid in fetched.split("_"):
                 try:
-                    docs.append(self.get_doc(iuid))
-                except KeyError:
+                    docs.append(self.db[iuid])
+                except couchdb2.NotFoundError:
                     pass
         checked_labels = dict()
         labels_arg = self.get_argument("labels", "")
@@ -1226,7 +1230,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.update_labels()
                 saver.set_notes()
         except SaverError:
-            self.set_error_flash(utils.REV_ERROR)
+            self.set_error_flash(constants.REV_ERROR)
         self.see_other("publication", publication["_id"])
 
 
@@ -1261,7 +1265,7 @@ class PublicationResearchers(PublicationMixin, RequestHandler):
                 saver.check_revision()
                 saver.set_researchers()
         except SaverError:
-            self.set_error_flash(utils.REV_ERROR)
+            self.set_error_flash(constants.REV_ERROR)
         self.see_other("publication", publication["_id"])
 
 
@@ -1313,7 +1317,7 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
                                           description=description))
                     saver["xrefs"] = xrefs
         except SaverError:
-            self.set_error_flash(utils.REV_ERROR)
+            self.set_error_flash(constants.REV_ERROR)
         except (tornado.web.MissingArgumentError, ValueError) as error:
             self.set_error_flash(str(error))
         if self.get_argument("__save__", "") == "continue":
@@ -1334,12 +1338,13 @@ class PublicationBlacklist(PublicationMixin, RequestHandler):
             self.see_other("home", error=str(error))
             return
         blacklist = {constants.DOCTYPE: constants.BLACKLIST,
+                     "_id": utils.get_iuid(),
                      "title": publication["title"],
                      "pmid": publication.get("pmid"),
                      "doi": publication.get("doi"),
                      "created": utils.timestamp(),
                      "owner": self.current_user["email"]}
-        self.db[utils.get_iuid()] = blacklist
+        self.db.put(blacklist)
         self.delete_entity(publication)
         try:
             self.redirect(self.get_argument("next"))

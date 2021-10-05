@@ -69,7 +69,9 @@ Implementation
 - [Python 3.6](https://www.python.org/)
 - [tornado](http://www.tornadoweb.org/en/stable/)
 - [CouchDB server](http://couchdb.apache.org/)
-- [CouchDB-python 1.2](https://pypi.python.org/pypi/CouchDB/1.2)
+- [CouchDB2](https://pypi.python.org/pypi/CouchDB2/)
+  Changed from [CouchDB-python 1.2](https://pypi.org/project/CouchDB/)
+  in version 5.1 of Publications.
 - [pyyaml](https://pypi.python.org/pypi/PyYAML)
 - [requests](http://docs.python-requests.org/en/master/)
 

@@ -35,7 +35,7 @@ class Search(RequestHandler):
         # This must be done before the terms are lower-cased.
         researchers = set()
         for term in terms:
-            view = self.db.view("researcher/orcid", key=term)
+            view = self.db.view("researcher", "orcid", key=term)
             researchers.update([r.id for r in view])
         iuids.update(self.search("publication/researcher", researchers))
 
@@ -70,10 +70,10 @@ class Search(RequestHandler):
                     publications=publications,
                     terms=self.get_argument("terms", ""))
 
-    def search(self, viewname, terms):
+    def search(self, designview, terms):
         "Search the given view using the terms. Return set of IUIDs."
         result = set()
-        if viewname is None:
+        if designview is None:
             # IUID of publication entry; check that it really is a publication.
             for term in terms:
                 try:
@@ -81,10 +81,15 @@ class Search(RequestHandler):
                 except KeyError:
                     pass
         else:
-            view = self.db.view(viewname, reduce=False)
+            designname, viewname = designview.split("/")
             for term in terms:
                 if term in SEARCH_IGNORE: continue
-                for item in view[term : term + constants.CEILING]:
+                view = self.db.view(designname,
+                                    viewname,
+                                    startkey=term,
+                                    endkey=term+constants.CEILING,
+                                    reduce=False)
+                for item in view:
                     result.add(item.id)
         return result
 

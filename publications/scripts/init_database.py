@@ -14,7 +14,7 @@ from publications import utils
 def init_database(db):
     "Initialize the database; load design documents."
     print('wiping out database (slow method)...')
-    for doc in db: del db[doc]
+    for doc in db: db.delete(doc)
     print('wiped out database')
     utils.initialize(db)
 

@@ -51,7 +51,7 @@ class AccountSaver(Saver):
         if not email: raise ValueError("No email given.")
         if not constants.EMAIL_RX.match(email):
             raise ValueError("Malformed email value.")
-        if len(list(self.db.view("account/email", key=email))) > 0:
+        if len(list(self.db.view("account", "email", key=email))) > 0:
             raise ValueError("Email is already in use.")
         self["email"] = email
 
@@ -103,7 +103,7 @@ class AccountMixin:
     def is_deletable(self, account):
         "Is the account deletable by the current user?"
         if not self.is_admin(): return False
-        if not self.get_docs("log/account",
+        if not self.get_docs("log", "account",
                              key=[account["email"]],
                              last=[account["email"], constants.CEILING],
                              limit=1): return True
@@ -168,7 +168,7 @@ class Accounts(RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        accounts = self.get_docs("account/email")
+        accounts = self.get_docs("account", "email")
         self.render("accounts.html", accounts=accounts)
 
 
@@ -195,7 +195,7 @@ class AccountAdd(RequestHandler):
         self.check_admin()
         self.render("account_add.html",
                     all_labels=[l["value"] for l in
-                                self.get_docs("label/value")])
+                                self.get_docs("label", "value")])
 
     @tornado.web.authenticated
     def post(self):
@@ -223,7 +223,8 @@ class AccountAdd(RequestHandler):
                 saver["owner"] = email
                 saver["name"] = self.get_argument("name", None)
                 saver["role"] = role
-                labels = set([l["value"] for l in self.get_docs("label/value")])
+                labels = set([l["value"] for l in 
+                              self.get_docs("label", "value")])
                 saver["labels"] = sorted(l for l in self.get_arguments("labels")
                                          if l in labels)
                 saver.reset_password()
@@ -273,7 +274,7 @@ class AccountEdit(AccountMixin, RequestHandler):
             self.render("account_edit.html",
                         account=account,
                         labels=[l["value"] for l in
-                                self.get_docs("label/value")])
+                                self.get_docs("label", "value")])
         else:
             self.render("account_edit.html", account=account)
 
@@ -296,7 +297,7 @@ class AccountEdit(AccountMixin, RequestHandler):
                 if self.is_admin():
                     saver["role"] = self.get_argument("role", account["role"])
                     labels = set([l["value"] for l in
-                                  self.get_docs("label/value")])
+                                  self.get_docs("label", "value")])
                     saver["labels"] = sorted(l for l
                                              in self.get_arguments("labels")
                                              if l in labels)
@@ -304,7 +305,7 @@ class AccountEdit(AccountMixin, RequestHandler):
                 if self.get_argument("api_key", None):
                     saver.renew_api_key()
         except SaverError:
-            self.set_error_flash(utils.REV_ERROR)
+            self.set_error_flash(constants.REV_ERROR)
         self.see_other("account", account["email"])
 
 

@@ -2,6 +2,7 @@
 
 import logging
 
+import couchdb2
 import tornado.web
 
 from . import constants
@@ -14,8 +15,8 @@ class Logs(RequestHandler):
     @tornado.web.authenticated
     def get(self, iuid):
         try:
-            doc = self.get_doc(iuid)
-        except KeyError:
+            doc = self.db[iuid]
+        except couchdb2.NotFoundError:
             raise tornado.web.HTTPError(404, reason="No such entity.")
         if doc[constants.DOCTYPE] == constants.PUBLICATION:
             title = doc["title"]
