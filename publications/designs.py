@@ -290,14 +290,6 @@ function (doc) {
 }"""),
 
     ),
-    subset=dict(
-        public=dict(reduce="_count", # subset/public
-                    map=         
-"""function (doc) {
-  if (doc.publications_doctype !== 'subset') return;
-  emit(doc.public, doc.title);
-}"""),
-    ),
 )
 
 
