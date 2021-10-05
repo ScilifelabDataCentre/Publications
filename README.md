@@ -70,8 +70,8 @@ Implementation
 - [tornado](http://www.tornadoweb.org/en/stable/)
 - [CouchDB server](http://couchdb.apache.org/)
 - [CouchDB2](https://pypi.python.org/pypi/CouchDB2/)
-  Changed from [CouchDB-python 1.2](https://pypi.org/project/CouchDB/)
-  in version 5.1 of Publications.
+  (changed from [CouchDB-python 1.2](https://pypi.org/project/CouchDB/)
+   in version 5.1)
 - [pyyaml](https://pypi.python.org/pypi/PyYAML)
 - [requests](http://docs.python-requests.org/en/master/)
 
