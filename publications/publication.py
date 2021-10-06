@@ -185,6 +185,8 @@ class PublicationSaver(Saver):
         Check if author can be associated with a researcher.
         Create a researcher, if ORCID is available.
         """
+        # Import done here to avoid circularity.
+        from publications.researcher import ResearcherSaver
         self["title"] = other["title"] or self["title"]
         self["pmid"] = other["pmid"] or self["pmid"]
         self["doi"] = other["doi"] or self["doi"]
@@ -219,7 +221,6 @@ class PublicationSaver(Saver):
                 orcid = author.pop("orcid", None)
                 # If ORCID, then associate with researcher.
                 if orcid:
-                    from publications.researcher import ResearcherSaver
                     # Existing reseacher based on ORCID.
                     try:
                         author["researcher"] = self.rqh.get_researcher(orcid)["_id"]
@@ -242,6 +243,8 @@ class PublicationSaver(Saver):
         """Set the appropriate journal title, ISSN and ISSN-L if not done.
         Create the journal entity if it does not exist.
         """
+        # Import done here to avoid circularity.
+        from publications.journal import JournalSaver
         assert self.rqh, "requires http request context"
         doc = None
         try:
@@ -274,8 +277,6 @@ class PublicationSaver(Saver):
         self["journal"] = journal
         # Create journal entity if it does not exist, and if sufficient data.
         if doc is None and issn and title:
-            # Import done here to avoid circularity.
-            from publications.journal import JournalSaver
             with JournalSaver(db=self.db) as saver:
                 saver["issn"] = issn
                 saver["issn-l"] = issn_l
