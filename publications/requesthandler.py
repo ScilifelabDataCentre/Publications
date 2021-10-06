@@ -100,9 +100,9 @@ class RequestHandler(tornado.web.RequestHandler):
         return utils.get_docs(self.db, designname, viewname,
                               key=key, last=last, **kwargs)
 
-    def get_count(self, designview, key=None):
+    def get_count(self, designname, viewname, key=None):
         "Get the reduce value for the name view and the given key."
-        return utils.get_count(self.db, designview, key=key)
+        return utils.get_count(self.db, designname, viewname, key=key)
 
     def get_publication(self, identifier):
         """Get the publication given its IUID, DOI or PMID.

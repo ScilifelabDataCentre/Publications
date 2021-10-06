@@ -174,12 +174,6 @@ def get_db():
     except couchdb2.NotFoundError:
         raise KeyError(f"CouchDB database '{name}' does not exist.")
 
-def initialize(db=None):
-    "Load the design documents, or update."
-    if db is None:
-        db = get_db()
-    designs.load_design_documents(db)
-
 def get_doc(db, designname, viewname, key):
     """Get the document with the given key from the given design view.
     Raise KeyError if not found.
@@ -212,9 +206,8 @@ def get_docs(db, designname, viewname, key=None, last=None, **kwargs):
                    **kwargs)
     return [i.doc for i in view]
 
-def get_count(db, designview, key=None):
+def get_count(db, designname, viewname, key=None):
     "Get the reduce value for the name view and the given key."
-    designname, viewname = designview.split("/")
     if key is None:
         view = db.view(designname, viewname, reduce=True)
     else:
@@ -232,8 +225,6 @@ def get_account(db, email):
         doc = get_doc(db, "account", "email", email.strip().lower())
     except KeyError:
         raise KeyError(f"no such account '{email}'")
-    if doc[constants.DOCTYPE] != constants.ACCOUNT:
-        raise KeyError(f"document '{email}' is not an account")
     return doc
 
 def get_publication(db, identifier):
@@ -254,8 +245,6 @@ def get_publication(db, identifier):
                 pass
         else:
             raise KeyError(f"no such publication '{identifier}'.")
-    if doc[constants.DOCTYPE] != constants.PUBLICATION:
-        raise KeyError(f"Document {identifier} is not a publication.")
     return doc
 
 def get_researcher(db, identifier):
@@ -270,8 +259,6 @@ def get_researcher(db, identifier):
             doc = get_doc(db, "researcher", "orcid", identifier)
         except KeyError:
             raise KeyError(f"no such researcher '{identifier}'.")
-    if doc[constants.DOCTYPE] != constants.RESEARCHER:
-        raise KeyError(f"Document {identifier} is not a researcher.")
     return doc
 
 def get_label(db, identifier):
@@ -287,8 +274,6 @@ def get_label(db, identifier):
             doc = get_doc(db, "label", "normalized_value", identifier)
         except KeyError:
             raise KeyError(f"no such label '{identifier}'")
-    if doc[constants.DOCTYPE] != constants.LABEL:
-        raise KeyError(f"wrong document type '{doc[constants.DOCTYPE]}'")
     return doc
 
 def get_blacklisted(db, identifier):

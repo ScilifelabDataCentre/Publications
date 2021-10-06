@@ -87,7 +87,7 @@ class ResearcherMixin:
     def is_deletable(self, researcher):
         "Is the researcher deletable by the current user?"
         if not self.is_admin(): return False
-        if self.get_count("publication/researcher", key=researcher["_id"]):
+        if self.get_count("publication", "researcher", key=researcher["_id"]):
             return False
         return True
 

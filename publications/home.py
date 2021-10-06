@@ -49,6 +49,6 @@ class Status(RequestHandler):
 
     def get(self):
         self.write(dict(status="OK",
-                        n_publications=self.get_count("publication/year"),
-                        n_labels=self.get_count("label/value"),
-                        n_researchers=self.get_count("researcher/name")))
+                        n_publications=self.get_count("publication", "year"),
+                        n_labels=self.get_count("label", "value"),
+                        n_researchers=self.get_count("researcher", "name")))

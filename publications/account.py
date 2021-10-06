@@ -52,7 +52,7 @@ class AccountSaver(Saver):
         if not constants.EMAIL_RX.match(email):
             raise ValueError("Malformed email value.")
         if len(list(self.db.view("account", "email", key=email))) > 0:
-            raise ValueError("Email is already in use.")
+            raise ValueError(f"The account {email} already exists.")
         self["email"] = email
 
     def erase_password(self):

@@ -6,6 +6,7 @@ import os
 import tornado.web
 import tornado.ioloop
 
+from publications import designs
 from publications import settings
 from publications import uimodules
 from publications import utils
@@ -92,7 +93,7 @@ def get_args():
 def main():
     args = get_args()
     utils.load_settings(filepath=args.settings)
-    utils.initialize()
+    designs.load_design_documents(utils.get_db())
 
     url = tornado.web.url
     handlers = [url(r"/", Home, name="home"),

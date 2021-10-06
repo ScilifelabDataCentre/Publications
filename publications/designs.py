@@ -2,8 +2,6 @@
 
 import logging
 
-import couchdb2
-
 from . import constants
 
 REMOVE = "".join(constants.SEARCH_REMOVE)
@@ -18,7 +16,8 @@ DESIGNS = dict(
   if (!doc.api_key) return;
   emit(doc.api_key, doc.email);
 }"""),
-        email=dict(map=         # account/email
+        email=dict(reduce="_count", # account/email
+                   map=         
 """function (doc) {
   if (doc.publications_doctype !== 'account') return;
   emit(doc.email, null);
@@ -295,20 +294,6 @@ function (doc) {
 
 def load_design_documents(db):
     "Load the design documents (view index definitions)."
-    for design, views in list(DESIGNS.items()):
-        update_design_document(db, design, views)
-
-def update_design_document(db, design, views):
-    "Update the design document (view index definition)."
-    try:
-        db.get_design(design)
-    except couchdb2.NotFoundError:
-        logging.info("loading design %s", design)
-        db.put_design(design, views, rebuild=True)
-
-def regenerate_indexes(db):
-    "Regenerate all indexes."
-    for design, views in DESIGNS.items():
-        for view in views:
-            logging.info(f"regenerating index for view {design}/{view}")
-            list(db.view(design, view, limit=10))
+    for designname, views in DESIGNS.items():
+        if db.put_design(designname, {"views": views}, rebuild=True):
+            logging.info("loaded design %s", designname)
