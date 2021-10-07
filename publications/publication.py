@@ -8,13 +8,13 @@ import couchdb2
 import tornado.web
 import xlsxwriter
 
-from . import constants
-from . import crossref
-from . import pubmed
-from . import settings
-from . import utils
-from .saver import Saver, SaverError
-from .requesthandler import RequestHandler, ApiMixin
+from publications import constants
+from publications import crossref
+from publications import pubmed
+from publications import settings
+from publications import utils
+from publications.saver import Saver, SaverError
+from publications.requesthandler import RequestHandler, ApiMixin
 
 
 class PublicationSaver(Saver):
@@ -639,41 +639,45 @@ class FilterMixin:
 
 
 class ParametersMixin:
-    "Method for setting output parameters by form arguments."
+    "Mixin for method for getting output parameters from the form arguments."
 
-    def set_parameters(self):
-        "Set output parameters. Some may not apply to the output format."
-        self.single_label = utils.to_bool(
-            self.get_argument("single_label", "false"))
-        self.all_authors = utils.to_bool(
-            self.get_argument("all_authors", "false"))
-        self.output_issn = utils.to_bool(self.get_argument("issn", "false"))
-        if settings["TEMPORAL_LABELS"]:
-            self.temporal_label = self.get_argument("temporal_label", "") or None
-        else:
-            self.temporal_label = None
-        self.numbered = utils.to_bool(self.get_argument("numbered", "false"))
-        self.doi_url= utils.to_bool(self.get_argument("doi_url", "false"))
-        self.pmid_url= utils.to_bool(self.get_argument("pmid_url", "false"))
+    def get_parameters(self):
+        "Return the set of output parameters from the form arguments."
+        result = dict(
+            single_label = utils.to_bool(self.get_argument("single_label", False)),
+            all_authors = utils.to_bool(self.get_argument("all_authors", False)),
+            issn = utils.to_bool(self.get_argument("issn", False)),
+            numbered = utils.to_bool(self.get_argument("numbered", False)),
+            doi_url= utils.to_bool(self.get_argument("doi_url", False)),
+            pmid_url= utils.to_bool(self.get_argument("pmid_url", False))
+        )
         try:
-            self.maxline = self.get_argument("maxline", None)
-            if self.maxline:
-                self.maxline = int(self.maxline)
-                if self.maxline <= 20: raise ValueError
+            result['maxline'] = self.get_argument("maxline", None)
+            if result['maxline']:
+                result['maxline'] = int(result['maxline'])
+                if result['maxline'] <= 20: raise ValueError
         except (ValueError, TypeError):
-            self.maxline = None
+            result['maxline'] = None
+        result['delimiter'] = self.get_argument("delimiter", "").lower()
+        if result['delimiter'] == "comma":
+            result['delimiter'] = ","
+        elif result['delimiter'] == "semi-colon":
+            result['delimiter'] = ";"
+        else:
+            result['delimiter'] = ","
+        result['encoding'] = self.get_argument("encoding", "").lower()
+        return result
 
 
 class TabularWriteMixin(ParametersMixin):
     "Abstract writer of publications in tabular form. For CSV and XLSX output."
 
-    def write_publications(self, publications):
-        "Collect output parameters and produce output."
-        self.set_parameters()
+    def write_publications(self, publications, parameters):
+        "Produce the output given the parameters."
         row = ["Title",
                "Authors",
                "Journal"]
-        if self.output_issn:
+        if parameters['issn']:
             row.append("ISSN")
             row.append("ISSN-L")
             label_pos = 13
@@ -713,9 +717,9 @@ class TabularWriteMixin(ParametersMixin):
             row = [
                 publication.get("title"),
                 utils.get_formatted_authors(publication["authors"],
-                                            complete=self.all_authors),
+                                            complete=parameters['all_authors']),
                 journal.get("title")]
-            if self.output_issn:
+            if parameters['issn']:
                 row.append(journal.get("issn"))
                 row.append(self.get_issn_l(journal.get("issn")))
             qc = "|".join(["%s:%s" % (k, v["flag"]) for 
@@ -740,7 +744,7 @@ class TabularWriteMixin(ParametersMixin):
             )
             # Labels to output: single per row, or concatenated.
             labels = sorted(list(publication.get("labels", {}).items()))
-            if self.single_label:
+            if parameters['single_label']:
                 for label, qualifier in labels:
                     row[label_pos] = label
                     row[label_pos+1] = qualifier
@@ -775,20 +779,14 @@ class PublicationsCsv(FilterMixin, TabularWriteMixin, Publications):
     # Authentication is *not* required!
     def post(self):
         "Produce CSV output."
-        delimiter = self.get_argument("delimiter", "").lower()
-        if delimiter == "comma":
-            delimiter = ","
-        elif delimiter == "semi-colon":
-            delimiter = ";"
-        else:
-            delimiter = ","
-        self.csvbuffer = io.StringIO()
-        self.writer = csv.writer(self.csvbuffer,
-                                 delimiter=delimiter,
+        parameters = self.get_parameters()
+        csvbuffer = io.StringIO()
+        self.writer = csv.writer(csvbuffer,
+                                 delimiter=parameters['delimiter'],
                                  quoting=csv.QUOTE_NONNUMERIC)
-        self.write_publications(self.get_filtered_publications())
-        value = self.csvbuffer.getvalue()
-        if self.get_argument("encoding", "").lower() == "iso-8859-1":
+        self.write_publications(self.get_filtered_publications(), parameters)
+        value = csvbuffer.getvalue()
+        if parameters["encoding"] == "iso-8859-1":
             value = value.encode("iso-8859-1", "ignore")
         self.write(value)
         self.set_header("Content-Type", constants.CSV_MIME)
@@ -825,7 +823,7 @@ class PublicationsXlsx(FilterMixin, TabularWriteMixin, Publications):
                     labels=set(self.get_arguments("label")),
                     all_labels=all_labels,
                     cancel_url=self.get_argument("cancel_url", None))
-
+        
     # Authentication is *not* required!
     def post(self):
         "Produce XLSX output."
@@ -833,7 +831,8 @@ class PublicationsXlsx(FilterMixin, TabularWriteMixin, Publications):
         self.workbook = xlsxwriter.Workbook(self.xlsxbuffer,
                                             {"in_memory": True})
         self.ws = self.workbook.add_worksheet("Publications")
-        self.write_publications(self.get_filtered_publications())
+        self.write_publications(self.get_filtered_publications(),
+                                self.get_parameters())
         self.workbook.close()
         self.xlsxbuffer.seek(0)
         self.write(self.xlsxbuffer.getvalue())
@@ -848,7 +847,7 @@ class PublicationsXlsx(FilterMixin, TabularWriteMixin, Publications):
         self.ws.set_column(0, 1, 40) # Title
         self.ws.set_column(2, 2, 20) # Authors
         self.ws.set_column(3, 3, 10) # Journal
-        if self.output_issn:
+        if "ISSN" in row:
             self.ws.set_column(11, 11, 30) # DOI
             self.ws.set_column(12, 12, 10) # PMID
             self.ws.set_column(13, 13, 30) # Labels
@@ -887,40 +886,43 @@ class PublicationsTxt(FilterMixin, ParametersMixin, Publications):
     # Authentication is *not* required!
     def post(self):
         "Produce TXT output."
+        parameters = self.get_parameters()
         publications = self.get_filtered_publications()
-        self.set_parameters()
         self.text = io.StringIO()
         for number, publication in enumerate(publications, 1):
-            if self.numbered:
+            if parameters['numbered']:
                 self.line = f"{number}."
-                self.indent = " " * (len(self.line) + 1)
+                parameters['indent'] = " " * (len(self.line) + 1)
             else:
                 self.line = ""
-                self.indent = ""
+                parameters['indent'] = ""
             authors = utils.get_formatted_authors(publication["authors"],
-                                                  complete=self.all_authors)
-            self.write_fragment(authors, comma=False)
-            self.write_fragment(f'"{publication.get("title")}"')
+                                                  complete=parameters['all_authors'])
+            self.write_fragment(authors, comma=False, **parameters)
+            self.write_fragment(f'"{publication.get("title")}"', **parameters)
             journal = publication.get("journal") or {}
-            self.write_fragment(journal.get("title") or "")
+            self.write_fragment(journal.get("title") or "", **parameters)
             year = publication.get("published")
             if year:
                 year = year.split("-")[0]
-            self.write_fragment(year)
+            self.write_fragment(year, **parameters)
             if journal.get("volume"):
-                self.write_fragment(journal["volume"])
+                self.write_fragment(journal["volume"], **parameters)
             if journal.get("issue"):
-                self.write_fragment(f"({journal['issue']})", comma=False)
+                self.write_fragment(f"({journal['issue']})",
+                                    comma=False, **parameters)
             if journal.get("pages"):
-                self.write_fragment(journal["pages"])
-            if self.doi_url:
+                self.write_fragment(journal["pages"], **parameters)
+            if parameters['doi_url']:
                 doi_url = publication.get("doi")
                 if doi_url:
-                    self.write_fragment(constants.DOI_URL % doi_url)
-            if self.pmid_url:
+                    self.write_fragment(constants.DOI_URL % doi_url,
+                                        **parameters)
+            if parameters['pmid_url']:
                 pmid_url = publication.get("pmid")
                 if pmid_url:
-                    self.write_fragment(constants.PUBMED_URL % pmid_url)
+                    self.write_fragment(constants.PUBMED_URL % pmid_url,
+                                        **parameters)
             if self.line:
                 self.text.write(self.line)
                 self.text.write("\n")
@@ -931,16 +933,17 @@ class PublicationsTxt(FilterMixin, ParametersMixin, Publications):
         self.set_header("Content-Disposition", 
                         'attachment; filename="publications.txt"')
 
-    def write_fragment(self, fragment, comma=True):
+    def write_fragment(self, fragment,
+                       comma=True, maxline=None, indent=None, **kwargs):
         "Write the given fragment to the line."
         if comma:
             self.line += ","
         parts = fragment.split()
         for part in parts:
             length = len(self.line) + len(part) + 1
-            if self.maxline is not None and length > self.maxline:
+            if maxline is not None and length > maxline:
                 self.text.write(self.line + "\n")
-                self.line = self.indent + part
+                self.line = indent + part
             else:
                 if self.line:
                     self.line += " "

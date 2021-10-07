@@ -420,10 +420,13 @@ class EmailServer:
         """Open the connection to the email server.
         Raise ValueError if no email server host has been defined.
         """
-        host = settings["EMAIL"]["HOST"]
-        if not host:
-            raise ValueError("no email server host defined")
-        port = settings["EMAIL"].get("PORT", 0)
+        try:
+            host = settings["EMAIL"]["HOST"]
+            if not host: raise ValueError
+            self.email = settings.get("SITE_EMAIL") or settings["EMAIL"]["SENDER"]
+        except (KeyError, TypeError):
+            raise ValueError("email server host is not properly defined")
+        port = settings["EMAIL"].get("PORT") or 0
         if settings["EMAIL"].get("SSL"):
             self.server = smtplib.SMTP_SSL(host, port=port)
         else:
@@ -438,7 +441,6 @@ class EmailServer:
             pass
         else:
             self.server.login(user, password)
-        self.email = settings.get("SITE_EMAIL") or settings["EMAIL"]["SENDER"]
 
     def __del__(self):
         "Close the connection to the email server."

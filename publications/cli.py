@@ -13,6 +13,7 @@ from publications import constants
 from publications import utils
 from publications import designs
 from publications import settings
+from publications.subset import Subset
 from publications.account import AccountSaver
 
 
@@ -218,10 +219,42 @@ def show(identifier):
             raise click.ClickException("No such item in the database.")
     click.echo(json_dumps(doc))
 
+@cli.command()
+@click.option("-y", "--year", "years",
+              help="The year of publication.", multiple=True)
+@click.option("-l", "--label", "labels",
+              help="Label for the publication.", multiple=True)
+@click.option("--format", help="Format of the output file.")
+@click.option("--filepath", help="Path of the output file.")
+def subset(years, labels, format, filepath):
+    """Select subset of publications and output to a file.
+    Multiple years may be provided giving the union of such publications.
+    Multiple labels may be provided giving the union of such publications.
+    If both year(s) and label(s) are given, the intersection of those two
+    sets will be the result
+    """
+    db = utils.get_db()
+    if years:
+        sy = Subset(db, year=years[0])
+        for year in years[1:]:
+            sy = sy + Subset(db, year=year)
+    if labels:
+        sl = Subset(db, label=labels[0])
+        for label in labels[1:]:
+            sl = sl + Subset(db, label=label)
+        if years:
+            result = sy / sl
+        else:
+            result = sl
+    else:
+        result = sy
+    click.echo(result)
+    for p in result:
+        print(p['_id'], p['published'])
+
 def json_dumps(doc): return json.dumps(doc, ensure_ascii=False, indent=2)
 def asis(value): return value
 def normalized(value): return utils.to_ascii(value).lower()
-
 
 if __name__ == "__main__":
     cli()
