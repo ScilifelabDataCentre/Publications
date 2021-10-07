@@ -15,26 +15,33 @@ from publications import designs
 from publications import settings
 from publications.subset import Subset
 from publications.account import AccountSaver
+import publications.app_publications
+import publications.writer
 
 
 @click.group()
 @click.option("-s", "--settings", help="Settings YAML file.")
 @click.option("--log", flag_value=True, default=False, help="Enable logging.")
-def cli(settings, log):
+@click.pass_context
+def cli(ctx, settings, log):
+    ctx.ensure_object(dict)
     if not log:
         logging.getLogger().disabled = True
     utils.load_settings(settings)
+    ctx.obj["db"] = utils.get_db()
+    ctx.obj["app"] = publications.app_publications.get_application()
 
 @cli.command()
+@click.pass_context
 @click.option("--force", is_flag=True, help="Initialize without confirmation.")
-def initialize(force):
+def initialize(ctx, force):
     """Empty and initialize the database, which must exist.
     Deletion is done the the slow way. Design documents are loaded.
     """
     if not force:
         click.confirm(f"Delete everything in database {settings['DATABASE_NAME']}",
                       abort=True)
-    db = utils.get_db()
+    db = ctx.obj["db"]
     click.echo(f"Deleting all documents in the database {settings['DATABASE_NAME']}...")
     with click.progressbar(db, label="Deleting...") as bar:
         for doc in bar:
@@ -43,9 +50,10 @@ def initialize(force):
     click.echo("Deleted all documents.")
 
 @cli.command()
-def counts():
+@click.pass_context
+def counts(ctx):
     "Output counts of database entities."
-    db = utils.get_db()
+    db = ctx.obj["db"]
     designs.load_design_documents(db)
     click.echo(f"{utils.get_count(db, 'publication', 'year'):>5} publications")
     click.echo(f"{utils.get_count(db, 'label', 'value'):>5} labels")
@@ -57,13 +65,14 @@ def counts():
                 help="The path of the Publications database dump file.")
 @click.option("-D", "--dumpdir", type=str,
                 help="The directory to write the dump file in, using the standard name.")
-def dump(dumpfile, dumpdir):
+@click.pass_context
+def dump(ctx, dumpfile, dumpdir):
     "Dump all data in the database to a .tar.gz dump file."
+    db = ctx.obj["db"]
     if not dumpfile:
         dumpfile = "dump_{0}.tar.gz".format(time.strftime("%Y-%m-%d"))
         if dumpdir:
             filepath = os.path.join(dumpdir, dumpfile)
-    db = utils.get_db()
     count_items = 0
     count_files = 0
     if dumpfile.endswith(".gz"):
@@ -94,9 +103,10 @@ def dump(dumpfile, dumpdir):
 
 @cli.command()
 @click.argument("dumpfile", type=click.Path(exists=True))
-def undump(dumpfile):
+@click.pass_context
+def undump(ctx, dumpfile):
     "Load a Publications database .tar.gz dump file. The database must be empty."
-    db = utils.get_db()
+    db = ctx.obj["db"]
     designs.load_design_documents(db)
     if utils.get_count(db, 'publication', 'year') != 0:
         raise click.ClickException(f"The {settings['DATABASE_NAME']} database is not empty.")
@@ -129,9 +139,10 @@ def undump(dumpfile):
 @cli.command()
 @click.option("--email", prompt=True)
 @click.option("--password")
-def admin(email, password):
+@click.pass_context
+def admin(ctx, email, password):
     "Create a user account having the admin role."
-    db = utils.get_db()
+    db = ctx.obj["db"]
     try:
         with AccountSaver(db=db) as saver:
             saver.set_email(email)
@@ -150,9 +161,10 @@ def admin(email, password):
 @cli.command()
 @click.option("--email", prompt=True)
 @click.option("--password")
-def curator(email, password):
+@click.pass_context
+def curator(ctx, email, password):
     "Create a user account having the curator role."
-    db = utils.get_db()
+    db = ctx.obj["db"]
     try:
         with AccountSaver(db=db) as saver:
             saver.set_email(email)
@@ -171,9 +183,10 @@ def curator(email, password):
 @cli.command()
 @click.option("--email", prompt=True)
 @click.option("--password")
-def password(email, password):
+@click.pass_context
+def password(ctx, email, password):
     "Set the password for the given account."
-    db = utils.get_db()
+    db = ctx.obj["db"]
     try:
         user = utils.get_account(db, email)
     except KeyError as error:
@@ -191,12 +204,13 @@ def password(email, password):
 
 @cli.command()
 @click.argument("identifier")
-def show(identifier):
+@click.pass_context
+def show(ctx, identifier):
     """Display the JSON for the single item in the database.
     The identifier may be a PMID, DOI, email, API key, label, ISSN, ISSN-L,
     ORCID, or IUID of the document.
     """
-    db = utils.get_db()
+    db = ctx.obj["db"]
     for designname, viewname, operation in [("publication", "pmid", asis),
                                             ("publication", "doi", asis),
                                             ("account", "email", asis),
@@ -224,33 +238,55 @@ def show(identifier):
               help="The year of publication.", multiple=True)
 @click.option("-l", "--label", "labels",
               help="Label for the publication.", multiple=True)
-@click.option("--format", help="Format of the output file.")
+@click.option("--format", help="Format of the output file.",
+              default="CSV",
+              type=click.Choice(["CSV", "XLSX", "TEXT"], case_sensitive=False))
+@click.option("--quoting", help="Quoting scheme to use for CSV output file.",
+              default="nonnumeric",
+              type=click.Choice(["all", "minimal", "nonnumeric", "none"],
+                                case_sensitive=False))
 @click.option("--filepath", help="Path of the output file.")
-def subset(years, labels, format, filepath):
-    """Select subset of publications and output to a file.
-    Multiple years may be provided giving the union of such publications.
-    Multiple labels may be provided giving the union of such publications.
+@click.pass_context
+def select(ctx, years, labels, format, quoting, filepath):
+    """Select a subset of publications and output to a file.
+    Multiple years may be provided, giving the union of such publications.
+    Multiple labels may be provided, giving the union of such publications.
     If both year(s) and label(s) are given, the intersection of those two
-    sets will be the result
+    sets will be produced.
     """
-    db = utils.get_db()
+    db = ctx.obj["db"]
     if years:
-        sy = Subset(db, year=years[0])
+        subset_year = Subset(db, year=years[0])
         for year in years[1:]:
-            sy = sy + Subset(db, year=year)
+            subset_year = subset_year + Subset(db, year=year)
     if labels:
-        sl = Subset(db, label=labels[0])
+        subset_label = Subset(db, label=labels[0])
         for label in labels[1:]:
-            sl = sl + Subset(db, label=label)
+            subset_label = subset_label + Subset(db, label=label)
         if years:
-            result = sy / sl
+            result = subset_year / subset_label
         else:
-            result = sl
+            result = subset_label
     else:
-        result = sy
+        result = subset_year
+    if format == "CSV":
+        writer = publications.writer.CsvWriter(db, ctx.obj["app"],
+                                               quoting=quoting)
+        writer.write(result)
+        with open("publications.csv", "wb") as outfile:
+            outfile.write(writer.get_content())
+    elif format == "XLSX":
+        writer = publications.writer.XlsxWriter(db, ctx.obj["app"])
+        writer.write(result)
+        with open("publications.xlsx", "wb") as outfile:
+            outfile.write(writer.get_content())
+    elif format == "TEXT":
+        writer = publications.writer.TextWriter(db, ctx.obj["app"])
+        writer.write(result)
+        with open("publications.txt", "wb") as outfile:
+            outfile.write(writer.get_content())
     click.echo(result)
-    for p in result:
-        print(p['_id'], p['published'])
+
 
 def json_dumps(doc): return json.dumps(doc, ensure_ascii=False, indent=2)
 def asis(value): return value

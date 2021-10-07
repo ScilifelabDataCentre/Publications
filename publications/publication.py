@@ -794,7 +794,7 @@ class PublicationsCsv(FilterMixin, TabularWriteMixin, Publications):
                         'attachment; filename="publications.csv"')
 
     def write_header(self, row):
-        "Write the XLSX header row."
+        "Write the CSV header row."
         self.write_row(row)
 
     def write_row(self, row):
