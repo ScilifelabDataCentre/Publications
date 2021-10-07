@@ -192,31 +192,6 @@
               {% end %} {# if is_admin #}
 	    </li>
 
-            {# XXX Subsets are an experimental feature. #}
-	    {% if is_admin %}
-            <li class="dropdown">
-              <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-		<span class="glyphicon glyphicon-adjust"></span>
-		Subsets
-		<span class="caret"></span>
-	      </a>
-              <ul class="dropdown-menu">
-		<li>
-		  <a href="{{ reverse_url('subsets') }}">
-		    <span class="glyphicon glyphicon-list"></span>
-                    Subsets
-		  </a>
-		</li>
-		<li>
-		  <a href="{{ reverse_url('subset_create') }}">
-		    <span class="glyphicon glyphicon-plus"></span>
-		    Create subset
-		  </a>
-		</li>
-	      </ul>
-	    </li>
-            {% end %} {# if is_admin #}
-
 	    {% if is_admin %}
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">
