@@ -1,4 +1,4 @@
-"Write set of publications to a file."
+"Write a set of publications to a file."
 
 import csv
 import io
@@ -35,6 +35,18 @@ class Writer:
         else:
             path = self.app.reverse_url(name, *args, **query)
         return settings["BASE_URL"].rstrip("/") + path
+
+    def write(self, publications):
+        "Write the set of publications given the parameters."
+        raise NotImplementedError
+
+    def get_content(self):
+        "Get the file contents as bytes."
+        raise NotImplementedError
+
+
+class TabularWriter(Writer):
+    "Abstract writer of publications to a tabular file."
 
     def write(self, publications):
         "Write the set of publications given the parameters."
@@ -125,12 +137,8 @@ class Writer:
         "Write a row of values."
         raise NotImplementedError
 
-    def get_content(self):
-        "Get the file contents as bytes."
-        raise NotImplementedError
 
-
-class CsvWriter(Writer):
+class CsvWriter(TabularWriter):
     "Write publications to a CSV file."
 
     def __init__(self, db, app,
@@ -163,7 +171,7 @@ class CsvWriter(Writer):
         return content.encode(self.parameters["encoding"], "ignore")
 
 
-class XlsxWriter(Writer):
+class XlsxWriter(TabularWriter):
     "Write publications to an XLSX (Excel) file."
 
     def __init__(self, db, app):
@@ -184,12 +192,12 @@ class XlsxWriter(Writer):
             self.ws.set_column(11, 11, 30) # DOI
             self.ws.set_column(12, 12, 10) # PMID
             self.ws.set_column(13, 13, 30) # Labels
-            self.ws.set_column(14, 15, 20) # Qualifiers, IUID
+            self.ws.set_column(14, 15, 20) # Qualifiers and IUID
         else:
             self.ws.set_column(9, 9, 30) # DOI
             self.ws.set_column(10, 10, 10) # PMID
             self.ws.set_column(11, 11, 30) # Labels
-            self.ws.set_column(12, 13, 20) # Qualifiers, IUID
+            self.ws.set_column(12, 13, 20) # Qualifiers and IUID
         self.x = 0
         self.write_row(row)
 
@@ -209,6 +217,6 @@ class XlsxWriter(Writer):
         return self.xlsxbuffer.getvalue()
 
 
-class TextWriter(Writer):
+class TextWriter(Writer):       # XXX TabularWriter?
     "Write publications to a text file."
     pass
