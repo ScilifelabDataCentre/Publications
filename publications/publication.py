@@ -1,12 +1,9 @@
 "Publication pages."
 
-import csv
-import io
 import logging
 
 import couchdb2
 import tornado.web
-import xlsxwriter
 
 from publications import constants
 from publications import crossref
@@ -14,6 +11,8 @@ from publications import pubmed
 from publications import settings
 from publications import utils
 from publications.saver import Saver, SaverError
+from publications.subset import Subset
+from publications.writer import CsvWriter, XlsxWriter, TextWriter
 from publications.requesthandler import RequestHandler, ApiMixin
 
 
@@ -497,27 +496,18 @@ class PublicationJson(PublicationMixin, RequestHandler):
 
 
 class Publications(RequestHandler):
-    "Publications list display page."
+    "Publications list display page; by year or all."
 
     TEMPLATE = "publications.html"
 
     def get(self, year=None):
+        subset = Subset(self.db)
         limit = self.get_limit()
         if year:
-            kwargs = dict(key=year)
-            if limit:
-                kwargs["limit"] = limit
-            publications = self.get_docs("publication", "year", **kwargs)
-            publications.sort(key=lambda i: i["published"], reverse=True)
+            subset.select_year(year, limit=limit)
         else:
-            kwargs = dict(key=constants.CEILING, last="", descending=True)
-            if limit:
-                kwargs["limit"] = limit
-            publications = self.get_docs("publication", "published", **kwargs)
-        self.render(self.TEMPLATE,
-                    publications=publications,
-                    year=year,
-                    limit=limit)
+            subset.select_all(imit=limit)
+        self.render(self.TEMPLATE, publications=subset, year=year, limit=limit)
 
 
 class PublicationsTable(Publications):
@@ -556,8 +546,8 @@ class PublicationsJson(Publications):
         self.write(result)
 
 
-class FilterMixin:
-    "Method for getting publications filtered by form arguments."
+class PublicationsFile(Publications):
+    "Methods for output of publications to a file."
 
     def get_filtered_publications(self):
         "Get the publications filtered according to form arguments."
@@ -637,12 +627,8 @@ class FilterMixin:
         result.sort(key=lambda p: p.get("published"), reverse=True)
         return result
 
-
-class ParametersMixin:
-    "Mixin for method for getting output parameters from the form arguments."
-
     def get_parameters(self):
-        "Return the set of output parameters from the form arguments."
+        "Return the output parameters from the form arguments."
         result = dict(
             single_label = utils.to_bool(self.get_argument("single_label", False)),
             all_authors = utils.to_bool(self.get_argument("all_authors", False)),
@@ -658,112 +644,18 @@ class ParametersMixin:
                 if result['maxline'] <= 20: raise ValueError
         except (ValueError, TypeError):
             result['maxline'] = None
-        result['delimiter'] = self.get_argument("delimiter", "").lower()
-        if result['delimiter'] == "comma":
+        delimiter = self.get_argument("delimiter", "").lower()
+        if delimiter == "comma":
             result['delimiter'] = ","
-        elif result['delimiter'] == "semi-colon":
+        elif delimiter == "semi-colon":
             result['delimiter'] = ";"
-        else:
-            result['delimiter'] = ","
-        result['encoding'] = self.get_argument("encoding", "").lower()
+        encoding = self.get_argument("encoding", "").lower()
+        if encoding:
+            result['encoding'] = encoding
         return result
 
 
-class TabularWriteMixin(ParametersMixin):
-    "Abstract writer of publications in tabular form. For CSV and XLSX output."
-
-    def write_publications(self, publications, parameters):
-        "Produce the output given the parameters."
-        row = ["Title",
-               "Authors",
-               "Journal"]
-        if parameters['issn']:
-            row.append("ISSN")
-            row.append("ISSN-L")
-            label_pos = 13
-        else:
-            label_pos = 11
-        row.extend(
-            ["Year", 
-             "Published",
-             "E-published",
-             "Volume",
-             "Issue",
-             "Pages",
-             "DOI",
-             "PMID",
-             "Labels",
-             "Qualifiers",
-             "IUID",
-             "URL",
-             "DOI URL",
-             "PubMed URL",
-             "QC",
-            ])
-        self.write_header(row)
-        for publication in publications:
-            year = publication.get("published")
-            if year:
-                year = year.split("-")[0]
-            journal = publication.get("journal") or {}
-            pmid = publication.get("pmid")
-            if pmid:
-                pubmed_url = constants.PUBMED_URL % pmid
-            else:
-                pubmed_url = ""
-            doi_url = publication.get("doi")
-            if doi_url:
-                doi_url = constants.DOI_URL % doi_url
-            row = [
-                publication.get("title"),
-                utils.get_formatted_authors(publication["authors"],
-                                            complete=parameters['all_authors']),
-                journal.get("title")]
-            if parameters['issn']:
-                row.append(journal.get("issn"))
-                row.append(self.get_issn_l(journal.get("issn")))
-            qc = "|".join(["%s:%s" % (k, v["flag"]) for 
-                           k, v in publication.get("qc", {}).items()])
-            row.extend(
-                [year,
-                 publication.get("published"),
-                 publication.get("epublished"),
-                 journal.get("volume"),
-                 journal.get("issue"),
-                 journal.get("pages"),
-                 publication.get("doi"),
-                 publication.get("pmid"),
-                 "",            # label_pos, see above; fixed below
-                 "",            # label_pos+1, see above; fixed below
-                 publication["_id"],
-                 self.absolute_reverse_url("publication", publication["_id"]),
-                 doi_url,
-                 pubmed_url,
-                 qc,
-                ]
-            )
-            # Labels to output: single per row, or concatenated.
-            labels = sorted(list(publication.get("labels", {}).items()))
-            if parameters['single_label']:
-                for label, qualifier in labels:
-                    row[label_pos] = label
-                    row[label_pos+1] = qualifier
-                    self.write_row(row)
-            else:
-                row[label_pos] = "|".join([l[0] for l in labels])
-                row[label_pos+1] = "|".join([l[1] or "" for l in labels])
-                self.write_row(row)
-
-    def write_header(self, row):
-        "To be implemented by the inheriting subclass."
-        raise NotImplementedError
-
-    def write_row(self, row):
-        "To be implemented by the inheriting subclass."
-        raise NotImplementedError
-
-
-class PublicationsCsv(FilterMixin, TabularWriteMixin, Publications):
+class PublicationsCsv(PublicationsFile):
     "Publications CSV output."
 
     def get(self):
@@ -776,42 +668,16 @@ class PublicationsCsv(FilterMixin, TabularWriteMixin, Publications):
                     all_labels=all_labels,
                     cancel_url=self.get_argument("cancel_url", None))
 
-    # Authentication is *not* required!
     def post(self):
-        "Produce CSV output."
-        parameters = self.get_parameters()
-        csvbuffer = io.StringIO()
-        self.writer = csv.writer(csvbuffer,
-                                 delimiter=parameters['delimiter'],
-                                 quoting=csv.QUOTE_NONNUMERIC)
-        self.write_publications(self.get_filtered_publications(), parameters)
-        value = csvbuffer.getvalue()
-        if parameters["encoding"] == "iso-8859-1":
-            value = value.encode("iso-8859-1", "ignore")
-        self.write(value)
+        writer = CsvWriter(self.db, self.application, **self.get_parameters())
+        writer.write(self.get_filtered_publications())
+        self.write(writer.get_content())
         self.set_header("Content-Type", constants.CSV_MIME)
         self.set_header("Content-Disposition", 
                         'attachment; filename="publications.csv"')
 
-    def write_header(self, row):
-        "Write the CSV header row."
-        self.write_row(row)
 
-    def write_row(self, row):
-        "Write a CSV data row."
-        for pos, value in enumerate(row):
-            if isinstance(value, str):
-                # Remove CR characters; keep newline.
-                value = value.replace("\r", "")
-                # Remove any beginning potentially dangerous character '=-+@'.
-                # See http://georgemauer.net/2017/10/07/csv-injection.html
-                while len(value) and value[0] in "=-+@":
-                    value = value[1:]
-                row[pos] = value
-        self.writer.writerow(row)
-
-
-class PublicationsXlsx(FilterMixin, TabularWriteMixin, Publications):
+class PublicationsXlsx(PublicationsFile):
     "Publications XLSX output."
 
     def get(self):
@@ -827,50 +693,15 @@ class PublicationsXlsx(FilterMixin, TabularWriteMixin, Publications):
     # Authentication is *not* required!
     def post(self):
         "Produce XLSX output."
-        self.xlsxbuffer = io.BytesIO()
-        self.workbook = xlsxwriter.Workbook(self.xlsxbuffer,
-                                            {"in_memory": True})
-        self.ws = self.workbook.add_worksheet("Publications")
-        self.write_publications(self.get_filtered_publications(),
-                                self.get_parameters())
-        self.workbook.close()
-        self.xlsxbuffer.seek(0)
-        self.write(self.xlsxbuffer.getvalue())
+        writer = XlsxWriter(self.db, self.application, **self.get_parameters())
+        writer.write(self.get_filtered_publications())
+        self.write(writer.get_content())
         self.set_header("Content-Type", constants.XLSX_MIME)
         self.set_header("Content-Disposition", 
                         'attachment; filename="publications.xlsx"')
 
-    def write_header(self, row):
-        "Write the XLSX header row."
-        self.ws.freeze_panes(1, 0)
-        self.ws.set_row(0, None, self.workbook.add_format({"bold": True}))
-        self.ws.set_column(0, 1, 40) # Title
-        self.ws.set_column(2, 2, 20) # Authors
-        self.ws.set_column(3, 3, 10) # Journal
-        if "ISSN" in row:
-            self.ws.set_column(11, 11, 30) # DOI
-            self.ws.set_column(12, 12, 10) # PMID
-            self.ws.set_column(13, 13, 30) # Labels
-            self.ws.set_column(14, 15, 20) # Qualifiers, IUID
-        else:
-            self.ws.set_column(9, 9, 30) # DOI
-            self.ws.set_column(10, 10, 10) # PMID
-            self.ws.set_column(11, 11, 30) # Labels
-            self.ws.set_column(12, 13, 20) # Qualifiers, IUID
-        self.x = 0
-        self.write_row(row)
 
-    def write_row(self, row):
-        "Write an XLSX data row."
-        for y, item in enumerate(row):
-            if isinstance(item, str): # Remove CR characters; keep newline.
-                self.ws.write(self.x, y, item.replace("\r", ""))
-            else:
-                self.ws.write(self.x, y, item)
-        self.x += 1
-
-
-class PublicationsTxt(FilterMixin, ParametersMixin, Publications):
+class PublicationsTxt(PublicationsFile):
     "Publications text file output."
 
     def get(self):
@@ -885,76 +716,22 @@ class PublicationsTxt(FilterMixin, ParametersMixin, Publications):
 
     # Authentication is *not* required!
     def post(self):
-        "Produce TXT output."
-        parameters = self.get_parameters()
-        publications = self.get_filtered_publications()
-        self.text = io.StringIO()
-        for number, publication in enumerate(publications, 1):
-            if parameters['numbered']:
-                self.line = f"{number}."
-                parameters['indent'] = " " * (len(self.line) + 1)
-            else:
-                self.line = ""
-                parameters['indent'] = ""
-            authors = utils.get_formatted_authors(publication["authors"],
-                                                  complete=parameters['all_authors'])
-            self.write_fragment(authors, comma=False, **parameters)
-            self.write_fragment(f'"{publication.get("title")}"', **parameters)
-            journal = publication.get("journal") or {}
-            self.write_fragment(journal.get("title") or "", **parameters)
-            year = publication.get("published")
-            if year:
-                year = year.split("-")[0]
-            self.write_fragment(year, **parameters)
-            if journal.get("volume"):
-                self.write_fragment(journal["volume"], **parameters)
-            if journal.get("issue"):
-                self.write_fragment(f"({journal['issue']})",
-                                    comma=False, **parameters)
-            if journal.get("pages"):
-                self.write_fragment(journal["pages"], **parameters)
-            if parameters['doi_url']:
-                doi_url = publication.get("doi")
-                if doi_url:
-                    self.write_fragment(constants.DOI_URL % doi_url,
-                                        **parameters)
-            if parameters['pmid_url']:
-                pmid_url = publication.get("pmid")
-                if pmid_url:
-                    self.write_fragment(constants.PUBMED_URL % pmid_url,
-                                        **parameters)
-            if self.line:
-                self.text.write(self.line)
-                self.text.write("\n")
-            self.text.write("\n")
-        value = self.text.getvalue()
-        self.write(value)
+        "Produce text output."
+        writer = TextWriter(self.db, self.application, **self.get_parameters())
+        writer.write(self.get_filtered_publications())
+        self.write(writer.get_content())
         self.set_header("Content-Type", constants.TXT_MIME)
         self.set_header("Content-Disposition", 
                         'attachment; filename="publications.txt"')
-
-    def write_fragment(self, fragment,
-                       comma=True, maxline=None, indent=None, **kwargs):
-        "Write the given fragment to the line."
-        if comma:
-            self.line += ","
-        parts = fragment.split()
-        for part in parts:
-            length = len(self.line) + len(part) + 1
-            if maxline is not None and length > maxline:
-                self.text.write(self.line + "\n")
-                self.line = indent + part
-            else:
-                if self.line:
-                    self.line += " "
-                self.line += part
 
 
 class PublicationsNoPmid(PublicationMixin, RequestHandler):
     "Publications lacking PMID."
 
     def get(self):
-        publications = self.get_docs("publication", "no_pmid")
+        subset = Subset(self.db)
+        subset.select_no_pmid()
+        publications = subset.get_publications()
         for publication in publications:
             publication["pmid_findable"] = self.is_editable(publication) and \
                                            publication.get("doi")
@@ -1001,7 +778,9 @@ class PublicationsNoDoi(RequestHandler):
     "Publications lacking DOI."
 
     def get(self):
-        publications = self.get_docs("publication", "no_doi")
+        subset = Subset(self.db)
+        subset.select_no_doi()
+        publications = subset.get_publications()
         publications.sort(key=lambda p: p["modified"])
         self.render("publications_no_doi.html", publications=publications)
 
@@ -1029,11 +808,9 @@ class PublicationsNoLabel(RequestHandler):
     "Publications lacking label."
 
     def get(self):
-        publications = []
-        for publication in self.get_docs("publication", "modified", descending=True):
-            if not publication.get("labels"):
-                publications.append(publication)
-        self.render("publications_no_label.html", publications=publications)
+        subset = Subset(self.db)
+        subset.select_no_label()
+        self.render("publications_no_label.html", publications=subset)
 
 
 class PublicationsNoLabelJson(PublicationsNoLabel):
@@ -1090,10 +867,11 @@ class PublicationsModified(PublicationMixin, RequestHandler):
 
     def get(self):
         self.check_curator()
-        kwargs = dict(descending=True,
-                      limit=self.get_limit(settings["LONG_PUBLICATIONS_LIST_LIMIT"]))
-        docs = self.get_docs("publication", "modified", **kwargs)
-        self.render("publications_modified.html", publications=docs)
+        limit = self.get_limit(settings["LONG_PUBLICATIONS_LIST_LIMIT"])
+        subset = Subset(self.db)
+        subset.select_recently_modified(limit=limit)
+        publications = subset.get_publications("modified")
+        self.render("publications_modified.html", publications=publications)
 
 
 class PublicationAdd(PublicationMixin, RequestHandler):

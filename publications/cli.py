@@ -269,22 +269,26 @@ def select(ctx, years, labels, format, quoting, filepath):
             result = subset_label
     else:
         result = subset_year
+
     if format == "CSV":
         writer = publications.writer.CsvWriter(db, ctx.obj["app"],
                                                quoting=quoting)
         writer.write(result)
         with open("publications.csv", "wb") as outfile:
             outfile.write(writer.get_content())
+
     elif format == "XLSX":
         writer = publications.writer.XlsxWriter(db, ctx.obj["app"])
         writer.write(result)
         with open("publications.xlsx", "wb") as outfile:
             outfile.write(writer.get_content())
+
     elif format == "TEXT":
         writer = publications.writer.TextWriter(db, ctx.obj["app"])
         writer.write(result)
         with open("publications.txt", "wb") as outfile:
             outfile.write(writer.get_content())
+
     click.echo(result)
 
 

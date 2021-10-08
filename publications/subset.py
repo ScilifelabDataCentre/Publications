@@ -1,5 +1,6 @@
 "Select a subset of publications."
 
+from publications import constants
 from publications import settings
 from publications import utils
 
@@ -9,7 +10,7 @@ class Subset:
 
     def __init__(self, db, all=False, year=None, label=None):
         self.db = db
-        self.selected = {}
+        self.iuids = set()
         if all:
             self.select_all()
         elif year:
@@ -18,30 +19,38 @@ class Subset:
             self.select_label(label)
 
     def __len__(self):
-        return len(self.selected)
+        return len(self.iuids)
 
     def __str__(self):
         return f"{len(self)} publications"
 
     def __contains__(self, iuid):
-        return iuid in self.selected
+        return iuid in self.iuids
 
     def __iter__(self):
         """Return an iterator over all selected publication documents,
         sorted by reverse 'published' order.
         """
-        return iter(sorted(self.selected.values(), 
-                           key=lambda p: p['published'],
-                           reverse=True))
+        return iter(self.get_publications())
 
-    def __add__(self, other):
+    def __or__(self, other):
         "Union of this subset and the other."
         if not isinstance(other, Subset):
             raise ValueError("'other' is not a Subset")
         if self.db is not other.db:
             raise ValueError("'other' is connected to a different database.")
         result = self.copy()
-        result.selected.update(other.selected)
+        result.iuids.update(other.iuids)
+        return result
+
+    def __and__(self, other):
+        "Intersection of this subset and the other."
+        if not isinstance(other, Subset):
+            raise ValueError("'other' is not a Subset")
+        if self.db is not other.db:
+            raise ValueError("'other' is connected to a different database.")
+        result = self.copy()
+        result.iuids.intersection_update(other.iuids)
         return result
 
     def __sub__(self, other):
@@ -51,43 +60,67 @@ class Subset:
         if self.db is not other.db:
             raise ValueError("'other' is connected to a different database.")
         result = self.copy()
-        for iuid in other.selected:
-            result.selected.pop(iuid, None)
+        result.iuids.difference_update(other.iuids)
         return result
 
-    def __truediv__(self, other):
-        "Intersection of this subset and the other."
-        if not isinstance(other, Subset):
-            raise ValueError("'other' is not a Subset")
-        if self.db is not other.db:
-            raise ValueError("'other' is connected to a different database.")
-        result = self.copy()
-        for iuid in set(result.selected.keys()).difference(other.selected.keys()):
-            result.selected.pop(iuid)
-        return result
+    def get_publications(self, order="published"):
+        """Return the list of all selected publication documents.
+        Sort by reverse order of the given field, if given.
+        """
+        publications = self.db.get_bulk(list(self.iuids))
+        publications = [p for p in publications if p]
+        if order:
+            publications.sort(key=lambda p: p[order], reverse=True)
+        return publications
 
     def copy(self):
         "Return a copy if this subset."
         result = Subset(self.db)
-        result.selected.update(self.selected)
+        result.iuids.update(self.iuids)
         return result
 
-    def select_all(self):
-        "Select all publications."
+    def select_all(self, limit=None):
+        "Select all publications. Sort by reverse order of the published date."
         self._select("publication", "published",
-                         key="", last=constants.CEILING)
+                     key=constants.CEILING, last="",
+                     descending=True, limit=limit)
 
-    def select_year(self, year):
+    def select_year(self, year, limit=None):
         "Select the publications by the 'published' year."
-        self._select("publication", "year", key=year)
+        self._select("publication", "year", key=year, limit=limit)
 
-    def select_label(self, label, union=True):
+    def select_label(self, label, limit=None):
         "Select the publication by the given label."
-        self._select("publication", "label", key=label.lower())
+        self._select("publication", "label", key=label.lower(), limit=limit)
 
-    def _select(self, designname, viewname, key=None, last=None):
+    def select_no_pmid(self, limit=None):
+        "Select all publications lacking PubMed identifier."
+        self._select("publication", "no_pmid", limit=limit)
+
+    def select_no_doi(self, limit=None):
+        "Select all publications lacking PubMed identifier."
+        self._select("publication", "no_doi", limit=limit)
+
+    def select_no_label(self, limit=None):
+        "Select all publications having no label"
+        self._select("publication", "no_label", limit=limit)
+
+    def select_recently_published(self, date, limit=None):
+        "Select all publications published after the given date, inclusive."
+        self._select("publication", "published",
+                     key=date, last=constants.CEILING, limit=limit)
+
+    def select_recently_modified(self, date=None, limit=10):
+        "Select all publications modified after the given date, inclusive."
+        kwargs = {"descending": True}
+        if date is not None:
+            kwargs["key"] = constants.CEILING
+            kwargs["last"] = date
+        self._select("publication", "modified", limit=limit, **kwargs)
+
+    def _select(self, designname, viewname, key=None, last=None, **kwargs):
         "Select the documents by design, view and key."
-        kwargs = {}
+        kwargs["reduce"] = False
         if key is None:
             pass
         elif last is None:
@@ -95,24 +128,31 @@ class Subset:
         else:
             kwargs["startkey"] = key
             kwargs["endkey"] = last
-        view = self.db.view(designname,
-                            viewname,
-                            include_docs=True,
-                            reduce=False,
-                            **kwargs)
-        self.selected = dict([(i.id, i.doc) for i in view])
+        view = self.db.view(designname, viewname, **kwargs)
+        self.iuids = set([i.id for i in view])
 
 
 if __name__ == "__main__":
     utils.load_settings()
     db = utils.get_db()
-    s = Subset(db)
-    print("0d3c758a29a144ae98a4c7540982c2fc" in s)
-    s1 = Subset(db, year="2021")
-    print(s1)
-    print("0d3c758a29a144ae98a4c7540982c2fc" in s1)
+    s1 = Subset(db, year="2020")
+    print(s1, "in year 2020")
     s2 = Subset(db, label="Affinity Proteomics Uppsala")
-    print(s2)
-    print(s1+s2)
-    print(s1-s2)
-    print(s1/s2)
+    print(s2, "Affinity Proteomics Uppsala")
+    print(s1 | s2, "union")
+    print(s1 - s2, "difference")
+    print(s1 & s2, "intersection")
+    s1 = Subset(db)
+    s1.select_no_doi()
+    print(s1, "no DOI")
+    s2 = Subset(db)
+    s2.select_no_pmid()
+    print(s2, "no PMID")
+    print(s1 & s2, "lacking both DOI and PMID")
+    s = Subset(db)
+    s.select_no_label()
+    print(s, "have no label")
+    s.select_recently_modified("2021-10-01")
+    print(s, "modified since 2021-10-01")
+    s.select_recently_published("2021-10-01")
+    print(s, "published since 2021-10-01")

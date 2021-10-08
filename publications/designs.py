@@ -205,6 +205,11 @@ function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   for (var key in doc.labels) emit(key.toLowerCase(), null);
 }"""),
+        no_label=dict(map=      # publication/no_label
+"""function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (Object.keys(doc.labels).length === 0) emit(doc.title, null);
+}"""),
         year=dict(reduce="_count", # publication/year
                   map=
 """function (doc) {

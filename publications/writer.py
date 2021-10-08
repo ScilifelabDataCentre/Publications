@@ -10,24 +10,27 @@ from publications import settings
 from publications import utils
 
 
-_QUOTING = dict(all=csv.QUOTE_ALL,
-                minimal=csv.QUOTE_MINIMAL,
-                nonnumeric=csv.QUOTE_NONNUMERIC,
-                none=csv.QUOTE_NONE)
-
 class Writer:
     "Abstract writer of publications to a file."
 
-    def __init__(self, db, app):
+    _QUOTING = dict(all=csv.QUOTE_ALL,
+                    minimal=csv.QUOTE_MINIMAL,
+                    nonnumeric=csv.QUOTE_NONNUMERIC,
+                    none=csv.QUOTE_NONE)
+
+    def __init__(self, db, app, **kwargs):
         self.db = db
         self.app = app
         self.parameters = {"all_authors": False,
                            "issn": False,
-                           "single_label": False}
-
-    def set_parameter(self, key, value=None):
-        if value:
-            self.parameters[key] = value
+                           "single_label": False,
+                           "delimiter": ",",
+                           "quoting": "nonnumeric",
+                           "encoding": "utf-8"}
+        self.parameters.update(kwargs)
+        self.parameters["quoting"] = \
+            self._QUOTING.get(self.parameters["quoting"].lower(),
+                              csv.QUOTE_NONNUMERIC)
 
     def absolute_reverse_url(self, name, *args, **query):
         if name is None:
@@ -141,15 +144,12 @@ class TabularWriter(Writer):
 class CsvWriter(TabularWriter):
     "Write publications to a CSV file."
 
-    def __init__(self, db, app,
-                 delimiter=",", quoting="nonnumeric", encoding="utf-8"):
-        super().__init__(db, app)
+    def __init__(self, db, app, **kwargs):
+        super().__init__(db, app, **kwargs)
         self.csvbuffer = io.StringIO()
-        quoting = _QUOTING.get(quoting.lower(), csv.QUOTE_MINIMAL)
-        self.parameters["encoding"] = encoding
         self.writer = csv.writer(self.csvbuffer,
-                                 delimiter=delimiter,
-                                 quoting=quoting)
+                                 delimiter=self.parameters["delimiter"],
+                                 quoting=self.parameters["quoting"])
 
     def write_header(self, row):
         self.write_row(row)
@@ -174,8 +174,8 @@ class CsvWriter(TabularWriter):
 class XlsxWriter(TabularWriter):
     "Write publications to an XLSX (Excel) file."
 
-    def __init__(self, db, app):
-        super().__init__(db, app)
+    def __init__(self, db, app, **kwargs):
+        super().__init__(db, app, **kwargs)
         self.xlsxbuffer = io.BytesIO()
         self.workbook = xlsxwriter.Workbook(self.xlsxbuffer,
                                             {"in_memory": True})
@@ -217,6 +217,64 @@ class XlsxWriter(TabularWriter):
         return self.xlsxbuffer.getvalue()
 
 
-class TextWriter(Writer):       # XXX TabularWriter?
+class TextWriter(Writer):
     "Write publications to a text file."
-    pass
+
+    def write(self, publications):
+        "Write the set of publications given the parameters."
+        self.text = io.StringIO()
+        for number, publication in enumerate(publications, 1):
+            if self.parameters['numbered']:
+                self.line = f"{number}."
+                self.parameters['indent'] = " " * (len(self.line) + 1)
+            else:
+                self.line = ""
+                self.parameters['indent'] = ""
+            authors = utils.get_formatted_authors(publication["authors"],
+                                                  complete=self.parameters['all_authors'])
+            self.write_fragment(authors, comma=False)
+            self.write_fragment(f'"{publication.get("title")}"')
+            journal = publication.get("journal") or {}
+            self.write_fragment(journal.get("title") or "")
+            year = publication.get("published")
+            if year:
+                year = year.split("-")[0]
+            self.write_fragment(year)
+            if journal.get("volume"):
+                self.write_fragment(journal["volume"])
+            if journal.get("issue"):
+                self.write_fragment(f"({journal['issue']})", comma=False)
+            if journal.get("pages"):
+                self.write_fragment(journal["pages"])
+            if self.parameters["doi_url"]:
+                doi_url = publication.get("doi")
+                if doi_url:
+                    self.write_fragment(constants.DOI_URL % doi_url)
+            if self.parameters["pmid_url"]:
+                pmid_url = publication.get("pmid")
+                if pmid_url:
+                    self.write_fragment(constants.PUBMED_URL % pmid_url)
+            if self.line:
+                self.text.write(self.line)
+                self.text.write("\n")
+            self.text.write("\n")
+
+    def write_fragment(self, fragment, comma=True):
+        "Write the given fragment to the line."
+        if comma:
+            self.line += ","
+        parts = fragment.split()
+        for part in parts:
+            length = len(self.line) + len(part) + 1
+            if self.parameters["maxline"] is not None and \
+               length > self.parameters["maxline"]:
+                self.text.write(self.line + "\n")
+                self.line = self.parameters["indent"] + part
+            else:
+                if self.line:
+                    self.line += " "
+                self.line += part
+
+    def get_content(self):
+        "Get the file contents as bytes."
+        return self.text.getvalue()
