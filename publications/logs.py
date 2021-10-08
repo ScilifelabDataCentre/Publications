@@ -5,8 +5,8 @@ import logging
 import couchdb2
 import tornado.web
 
-from . import constants
-from .requesthandler import RequestHandler
+from publications import constants
+from publications.requesthandler import RequestHandler
 
 
 class Logs(RequestHandler):

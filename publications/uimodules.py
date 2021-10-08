@@ -2,9 +2,9 @@
 
 import tornado.web
 
-from . import constants
-from . import settings
-from . import utils
+from publications import constants
+from publications import settings
+from publications import utils
 
 
 class Authors(tornado.web.UIModule):

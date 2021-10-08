@@ -2,12 +2,12 @@
 
 import tornado.web
 
-from . import constants
-from . import publication
-from . import settings
-from . import utils
-from .saver import Saver, SaverError
-from .requesthandler import RequestHandler, ApiMixin
+from publications import constants
+from publications import publication
+from publications import settings
+from publications import utils
+from publications.saver import Saver, SaverError
+from publications.requesthandler import RequestHandler, ApiMixin
 
 
 class ResearcherSaver(Saver):

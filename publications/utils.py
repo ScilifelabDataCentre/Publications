@@ -19,9 +19,9 @@ import couchdb2
 import yaml
 
 import publications
-from . import constants
-from . import designs
-from . import settings
+from publications import constants
+from publications import designs
+from publications import settings
 
 
 class NocaseDict:

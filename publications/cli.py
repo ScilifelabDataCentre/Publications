@@ -1,10 +1,12 @@
 "Command line interface to the Publications database."
 
+import functools
 import io
 import json
+import logging
 import tarfile
 import time
-import logging
+import sys
 
 import couchdb2
 import click
@@ -238,6 +240,12 @@ def show(ctx, identifier):
               help="The year of publication.", multiple=True)
 @click.option("-l", "--label", "labels",
               help="Label for the publication.", multiple=True)
+@click.option("-a", "--author", "authors",
+              help="Publication by an author.",
+              multiple=True)
+@click.option("-o", "--orcid", "orcids",
+              help="Publication associated with a researcher ORCID.",
+              multiple=True)
 @click.option("--format", help="Format of the output file.",
               default="CSV",
               type=click.Choice(["CSV", "XLSX", "TEXT"], case_sensitive=False))
@@ -245,51 +253,69 @@ def show(ctx, identifier):
               default="nonnumeric",
               type=click.Choice(["all", "minimal", "nonnumeric", "none"],
                                 case_sensitive=False))
+# XXX: numbered, maxline, issn, single_label, encoding, doi_url, pmid_url
 @click.option("--filepath", help="Path of the output file.")
 @click.pass_context
-def select(ctx, years, labels, format, quoting, filepath):
+def select(ctx, years, labels, authors, orcids, format, quoting, filepath):
     """Select a subset of publications and output to a file.
     Multiple years may be provided, giving the union of such publications.
     Multiple labels may be provided, giving the union of such publications.
-    If both year(s) and label(s) are given, the intersection of those two
-    sets will be produced.
+    Multiple orcids may be provided, giving the union of such publications.
+    If years, labels or orcids are given, the intersection of those sets
+    will be produced.
     """
     db = ctx.obj["db"]
+    subsets = []
     if years:
-        subset_year = Subset(db, year=years[0])
-        for year in years[1:]:
-            subset_year = subset_year | Subset(db, year=year)
+        subset = functools.reduce(lambda s, t: s | t,
+                                  [Subset(db, year=y) for y in years])
+        subsets.append(subset)
     if labels:
-        subset_label = Subset(db, label=labels[0])
-        for label in labels[1:]:
-            subset_label = subset_label | Subset(db, label=label)
-        if years:
-            result = subset_year & subset_label
-        else:
-            result = subset_label
-    else:
-        result = subset_year
+        subset = functools.reduce(lambda s, t: s | t,
+                                  [Subset(db, label=l) for l in labels])
+        subsets.append(subset)
+    if orcids:
+        subset = Subset(db)
+        subset.select_researcher(orcids[0])
+        for orcid in orcids[1:]:
+            s = Subset(db)
+            s.select_researcher(orcid)
+            subset = subset | s
+        subsets.append(subset)
+    if authors:
+        subset = Subset(db)
+        subset.select_author(authors[0])
+        for author in authors[1:]:
+            s = Subset(db)
+            s.select_researcher(author)
+            subset = subset | s
+        subsets.append(subset)
+    result = functools.reduce(lambda s, t: s & t, subsets)
 
     if format == "CSV":
         writer = publications.writer.CsvWriter(db, ctx.obj["app"],
                                                quoting=quoting)
         writer.write(result)
-        with open("publications.csv", "wb") as outfile:
-            outfile.write(writer.get_content())
+        filepath = filepath or "publications.csv"
 
     elif format == "XLSX":
+        if filepath == "-":
+            raise click.ClickException("Cannot output XLSX to stdout.")
         writer = publications.writer.XlsxWriter(db, ctx.obj["app"])
         writer.write(result)
-        with open("publications.xlsx", "wb") as outfile:
-            outfile.write(writer.get_content())
+        filepath = filepath or "publications.xlsx"
 
     elif format == "TEXT":
         writer = publications.writer.TextWriter(db, ctx.obj["app"])
         writer.write(result)
-        with open("publications.txt", "wb") as outfile:
-            outfile.write(writer.get_content())
+        filepath = filepath or "publications.txt"
 
-    click.echo(result)
+    if filepath == "-":
+        sys.stdout.write(writer.get_content().decode("utf-8"))
+    elif filepath:
+        with open(filepath, "wb") as outfile:
+            outfile.write(writer.get_content())
+        click.echo(result)
 
 
 def json_dumps(doc): return json.dumps(doc, ensure_ascii=False, indent=2)

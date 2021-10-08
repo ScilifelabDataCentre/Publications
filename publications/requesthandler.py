@@ -7,9 +7,9 @@ import urllib.request, urllib.parse, urllib.error
 
 import tornado.web
 
-from . import constants
-from . import settings
-from . import utils
+from publications import constants
+from publications import settings
+from publications import utils
 
 
 class RequestHandler(tornado.web.RequestHandler):
@@ -373,7 +373,7 @@ class RequestHandler(tornado.web.RequestHandler):
         result["modified"] = account["modified"]
         return result
 
-    def get_label_json(self, label, publications=None,accounts=None,limit=None):
+    def get_label_json(self, label, publications=None, accounts=None, limit=None):
         "JSON representation of label."
         URL = self.absolute_reverse_url
         result = dict()

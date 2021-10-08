@@ -4,11 +4,11 @@ import logging
 
 import tornado.web
 
-from . import constants
-from . import settings
-from . import utils
-from .saver import Saver, SaverError
-from .requesthandler import RequestHandler
+from publications import constants
+from publications import settings
+from publications import utils
+from publications.saver import Saver, SaverError
+from publications.requesthandler import RequestHandler
 
 ADD_TITLE = "A new account in the website %s"
 

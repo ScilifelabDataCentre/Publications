@@ -4,9 +4,9 @@ import logging
 
 import tornado.web
 
-from . import constants
-from . import settings
-from .requesthandler import RequestHandler
+from publications import constants
+from publications import settings
+from publications.requesthandler import RequestHandler
 
 
 class Home(RequestHandler):

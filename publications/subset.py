@@ -6,7 +6,7 @@ from publications import utils
 
 
 class Subset:
-    "Select a subset of publications."
+    "Publication subset selection and operations."
 
     def __init__(self, db, all=False, year=None, label=None):
         self.db = db
@@ -90,8 +90,32 @@ class Subset:
         self._select("publication", "year", key=year, limit=limit)
 
     def select_label(self, label, limit=None):
-        "Select the publication by the given label."
+        "Select publications by the given label."
         self._select("publication", "label", key=label.lower(), limit=limit)
+
+    def select_author(self, name, limit=None):
+        """Select publication by author name.
+        The name must be of the form "Familyname Initials". It is normalized, i.e.
+        non-ASCII characters are converted to most similar ASCII, and lower-cased.
+        The match is exact, which is problematic; e.g. the initials used differs
+        substantially between publications.
+        If a wildcard '*' is added at the end, all suffixes are allow from that point.
+        """
+        name = utils.to_ascii(name).lower()
+        if "*" in name:
+            name = name[:-1]
+            self._select("publication", "author", key=name, last=name+constants.CEILING)
+        else:
+            self._select("publication", "author", key=name)
+
+    def select_researcher(self, orcid, limit=None):
+        "Select publications by researcher ORCID."
+        try:
+            researcher = utils.get_doc(self.db, "researcher", "orcid", orcid)
+            iuid = researcher["_id"]
+        except KeyError:
+            iuid = "-"
+        self._select("publication", "researcher", key=iuid)
 
     def select_no_pmid(self, limit=None):
         "Select all publications lacking PubMed identifier."
@@ -130,29 +154,3 @@ class Subset:
             kwargs["endkey"] = last
         view = self.db.view(designname, viewname, **kwargs)
         self.iuids = set([i.id for i in view])
-
-
-if __name__ == "__main__":
-    utils.load_settings()
-    db = utils.get_db()
-    s1 = Subset(db, year="2020")
-    print(s1, "in year 2020")
-    s2 = Subset(db, label="Affinity Proteomics Uppsala")
-    print(s2, "Affinity Proteomics Uppsala")
-    print(s1 | s2, "union")
-    print(s1 - s2, "difference")
-    print(s1 & s2, "intersection")
-    s1 = Subset(db)
-    s1.select_no_doi()
-    print(s1, "no DOI")
-    s2 = Subset(db)
-    s2.select_no_pmid()
-    print(s2, "no PMID")
-    print(s1 & s2, "lacking both DOI and PMID")
-    s = Subset(db)
-    s.select_no_label()
-    print(s, "have no label")
-    s.select_recently_modified("2021-10-01")
-    print(s, "modified since 2021-10-01")
-    s.select_recently_published("2021-10-01")
-    print(s, "published since 2021-10-01")

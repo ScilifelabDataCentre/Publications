@@ -4,13 +4,14 @@ import logging
 
 import tornado.web
 
-from . import constants
-from . import settings
-from . import utils
-from .requesthandler import RequestHandler
-from .saver import Saver, SaverError
-from .account import AccountSaver
-from .publication import PublicationSaver
+from publications import constants
+from publications import settings
+from publications import utils
+from publications.requesthandler import RequestHandler
+from publications.saver import Saver, SaverError
+from publications.account import AccountSaver
+from publications.publication import PublicationSaver
+from publications.subset import Subset
 
 
 class LabelSaver(Saver):
@@ -46,9 +47,7 @@ class Label(RequestHandler):
             return
         accounts = self.get_docs("account", "label",
                                  key=label["value"].lower())
-        publications = self.get_docs("publication", "label",
-                                     key=label["value"].lower())
-        publications.sort(key=lambda i: i["published"], reverse=True)
+        publications = list(Subset(self.db, label=label["value"]))
         # This is inefficient; really shouldn't fetch those 
         # beyond the limit in the first place, but we want
         # the latest publications, and the index is such that
@@ -80,8 +79,8 @@ class Label(RequestHandler):
             return
         value = label["value"]
         # Do it in this order; safer if interrupted.
-        for publication in self.get_docs("publication", "label",
-                                         key=value.lower()):
+        publications = list(Subset(self.db, label=label["value"]))
+        for publication in publications:
             with PublicationSaver(publication, rqh=self) as saver:
                 labels = publication["labels"].copy()
                 labels.pop(value, None)
@@ -239,8 +238,7 @@ class LabelEdit(RequestHandler):
                     labels.discard(old_value.lower())
                     labels.add(new_value)
                     saver["labels"] = sorted(labels)
-            for publication in self.get_docs("publication", "label",
-                                             key=old_value.lower()):
+            for publication in Subset(self.db, label=old_value):
                 if old_value in publication["labels"]:
                     with PublicationSaver(publication, rqh=self) as saver:
                         labels = publication["labels"].copy()
@@ -292,8 +290,7 @@ class LabelMerge(RequestHandler):
                 labels.discard(old_label.lower())
                 labels.add(new_label)
                 saver["labels"] = sorted(labels)
-        for publication in self.get_docs("publication", "label",
-                                         key=old_label.lower()):
+        for publication in Subset(self.db, label=old_label):
             with PublicationSaver(publication, rqh=self) as saver:
                 labels = publication["labels"].copy()
                 qual = labels.pop(old_label, None) or \

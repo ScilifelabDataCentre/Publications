@@ -26,7 +26,11 @@ class Writer:
                            "single_label": False,
                            "delimiter": ",",
                            "quoting": "nonnumeric",
-                           "encoding": "utf-8"}
+                           "encoding": "utf-8",
+                           "numbered": False,
+                           "maxline": None,
+                           "doi_url": False,
+                           "pmid_url": False}
         self.parameters.update(kwargs)
         self.parameters["quoting"] = \
             self._QUOTING.get(self.parameters["quoting"].lower(),
@@ -277,4 +281,5 @@ class TextWriter(Writer):
 
     def get_content(self):
         "Get the file contents as bytes."
-        return self.text.getvalue()
+        content = self.text.getvalue()
+        return content.encode(self.parameters["encoding"], "ignore")

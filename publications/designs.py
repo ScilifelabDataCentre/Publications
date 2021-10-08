@@ -2,7 +2,7 @@
 
 import logging
 
-from . import constants
+from publications import constants
 
 REMOVE = "".join(constants.SEARCH_REMOVE)
 IGNORE = ",".join(["'%s':1" % i for i in constants.SEARCH_IGNORE])

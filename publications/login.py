@@ -4,11 +4,11 @@ import logging
 
 import tornado.web
 
-from . import constants
-from . import settings
-from . import utils
-from .requesthandler import RequestHandler
-from .account import AccountSaver
+from publications import constants
+from publications import settings
+from publications import utils
+from publications.requesthandler import RequestHandler
+from publications.account import AccountSaver
 
 
 class Login(RequestHandler):
