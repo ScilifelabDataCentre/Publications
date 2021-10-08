@@ -51,7 +51,6 @@ from publications.publication import (Publication,
                                       PublicationXrefs,
                                       PublicationBlacklist,
                                       ApiPublicationFetch,
-                                      PublicationQc,
                                       PublicationUpdatePmid,
                                       PublicationFindPmid,
                                       PublicationUpdateDoi)

@@ -534,66 +534,41 @@ class PublicationsJson(Publications):
 
 
 class PublicationsFile(Publications):
-    "Methods for output of publications to a file."
+    "Class adding methods for output of publications to a file."
 
     def get_filtered_publications(self):
         "Get the publications filtered according to form arguments."
-        result = []
-        # By years.
+        # Start with subset of publications based on given published years.
         years = self.get_arguments("years")
         if years:
-            for year in years:
-                result.extend(self.get_docs("publication", "year", key=year))
-        # All publications.
+            subset = Subset(self.db, year=years[0])
+            for year in years[1:]:
+                subset = subset | Subset(self.db, year=year)
+        # No given years: Start with all publications.
         else:
-            result = self.get_docs("publication", "published",
-                                   key=constants.CEILING,
-                                   last="",
-                                   descending=True)
-        # Filter by labels inclusive, if any given.
-        # A publication must be labelled by any of the given labels
-        # to be kept in this step.
-        labels = set(self.get_arguments("labels"))
-        if labels:
-            kept = []
-            for publication in result:
-                for label in publication.get("labels", {}):
-                    if label in labels:
-                        kept.append(publication)
-                        break
-            result = kept
+            subset = Subset(self.db, all=True)
 
-        # Filter by labels required, if any given.
-        # A publication must be labelled by all of the given
-        # labels to be kept in this step.
-        labels = set(self.get_arguments("labels_required"))
+        # If any labels, intersect with the union of those publications.
+        labels = list(set(self.get_arguments("labels")))
         if labels:
-            kept = []
-            for publication in result:
-                if not labels.difference(publication.get("labels", {})):
-                    kept.append(publication)
-            result = kept
+            subset_labels = Subset(self.db, label=labels[0])
+            for label in labels[1:]:
+                subset_labels = subset_labels | Subset(self.db, label=label)
+            subset = subset & subset_labels
 
-        # Filter by labels exclude, if any given.
-        # A publication labelled by any of the given labels
-        # will be excluded in this step.
-        labels = set(self.get_arguments("labels_excluded"))
-        if labels:
-            kept = []
-            for publication in result:
-                for label in publication.get("labels", {}):
-                    if label in labels:
-                        break
-                else:
-                    kept.append(publication)
-            result = kept
+        # If any required labels, intersect with publications for each label.
+        for label in set(self.get_arguments("labels_required")):
+            subset = subset & Subset(self.db, label=label)
 
-        # Filter by active labels during a year.
+        # If any labels to exclude, remove those publications.
+        for label in set(self.get_arguments("labels_excluded")):
+            subset = subset - Subset(self.db, label=label)
+
+        # Filter by active labels during a year (current, or explicit).
         active = self.get_argument("active", "")
         if settings["TEMPORAL_LABELS"] and active:
             if active.lower() == "current":
-                labels = set([d["value"] 
-                              for d in self.get_docs("label", "current")])
+                labels = set([d["value"] for d in self.get_docs("label", "current")])
             else:
                 labels = set()
                 for label in self.get_docs("label", "value"):
@@ -605,14 +580,13 @@ class PublicationsFile(Publications):
                                 labels.add(label["value"])
                         else:
                             labels.add(label["value"])
-            for publication in result:
-                publication["labels"] = dict([(k, publication["labels"][k]) 
-                                              for k in publication["labels"]
-                                              if k in labels])
-            result = [p for p in result if p["labels"]]
-
-        result.sort(key=lambda p: p.get("published"), reverse=True)
-        return result
+            if labels:
+                labels = list(labels)
+                subset_labels = Subset(self.db, label=labels[0])
+                for label in labels[1:]:
+                    subset_labels = subset_labels | Subset(self.db, label=label)
+                subset = subset & subset_labels
+        return subset
 
     def get_parameters(self):
         "Return the output parameters from the form arguments."

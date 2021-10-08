@@ -258,13 +258,13 @@ def select(ctx, years, labels, format, quoting, filepath):
     if years:
         subset_year = Subset(db, year=years[0])
         for year in years[1:]:
-            subset_year = subset_year + Subset(db, year=year)
+            subset_year = subset_year | Subset(db, year=year)
     if labels:
         subset_label = Subset(db, label=labels[0])
         for label in labels[1:]:
-            subset_label = subset_label + Subset(db, label=label)
+            subset_label = subset_label | Subset(db, label=label)
         if years:
-            result = subset_year / subset_label
+            result = subset_year & subset_label
         else:
             result = subset_label
     else:
