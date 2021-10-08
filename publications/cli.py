@@ -241,15 +241,16 @@ def show(ctx, identifier):
 @click.option("-l", "--label", "labels",
               help="Label for the publication.", multiple=True)
 @click.option("-a", "--author", "authors",
-              help="Publication by an author.",
+              help="Publication author name.",
               multiple=True)
 @click.option("-o", "--orcid", "orcids",
               help="Publication associated with a researcher ORCID.",
               multiple=True)
-@click.option("--format", help="Format of the output file.",
+@click.option("--format", help="Format of the output. Use '-' for stdout",
               default="CSV",
-              type=click.Choice(["CSV", "XLSX", "TEXT"], case_sensitive=False))
-@click.option("--quoting", help="Quoting scheme to use for CSV output file.",
+              type=click.Choice(["CSV", "XLSX", "TEXT", "TXT"],
+                                case_sensitive=False))
+@click.option("--quoting", help="Quoting scheme to use for CSV output.",
               default="nonnumeric",
               type=click.Choice(["all", "minimal", "nonnumeric", "none"],
                                 case_sensitive=False))
@@ -258,11 +259,15 @@ def show(ctx, identifier):
 @click.pass_context
 def select(ctx, years, labels, authors, orcids, format, quoting, filepath):
     """Select a subset of publications and output to a file.
+
     Multiple years may be provided, giving the union of such publications.
+
     Multiple labels may be provided, giving the union of such publications.
+
     Multiple orcids may be provided, giving the union of such publications.
-    If years, labels or orcids are given, the intersection of those sets
-    will be produced.
+
+    If years, labels or orcids are given, the result is the
+    intersection of those sets.
     """
     db = ctx.obj["db"]
     subsets = []
@@ -305,7 +310,7 @@ def select(ctx, years, labels, authors, orcids, format, quoting, filepath):
         writer.write(result)
         filepath = filepath or "publications.xlsx"
 
-    elif format == "TEXT":
+    elif format in ("TEXT", "TXT"):
         writer = publications.writer.TextWriter(db, ctx.obj["app"])
         writer.write(result)
         filepath = filepath or "publications.txt"
