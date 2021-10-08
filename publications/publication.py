@@ -163,19 +163,6 @@ class PublicationSaver(Saver):
         assert self.rqh, "requires http request context"
         self["notes"] = self.rqh.get_argument("notes", "") or None
 
-    def set_qc(self, aspect, flag):
-        "Set the QC flag for a given aspect."
-        assert self.rqh, "requires http request context"
-        if aspect not in settings["PUBLICATION_QC_ASPECTS"]:
-            raise ValueError(f"invalid QC aspect '{aspect}'")
-        entry = dict(account=self.rqh.current_user["email"],
-                     date=utils.today(),
-                     flag=bool(flag))
-        try:
-            self["qc"][aspect] = entry
-        except KeyError:
-            self["qc"] = {aspect: entry}
-
     def update(self, other, updated_by_pmid=False):
         """Update a field in the current publication if there is a value 
         in the other publication. It is assumed that they are representations
@@ -1157,26 +1144,6 @@ class ApiPublicationFetch(PublicationFetchMixin, PublicationMixin,
         self.write(
             dict(iuid=publ["_id"],
                  href=self.absolute_reverse_url("publication", publ["_id"])))
-
-
-class PublicationQc(PublicationMixin, RequestHandler):
-    "Set the QC aspect flag for the publication."
-
-    @tornado.web.authenticated
-    def post(self, identifier):
-        try:
-            publication = self.get_publication(identifier)
-        except (KeyError, ValueError) as error:
-            self.see_other("home", error=str(error))
-            return
-        try:
-            aspect = self.get_argument("aspect")
-            flag = utils.to_bool(self.get_argument("flag", False))
-            with PublicationSaver(publication, rqh=self) as saver:
-                saver.set_qc(aspect, flag)
-        except (tornado.web.MissingArgumentError, ValueError) as error:
-            self.set_error_flash(str(error))
-        self.see_other("publication", identifier)
 
 
 class PublicationUpdatePmid(PublicationMixin, RequestHandler):

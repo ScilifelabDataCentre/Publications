@@ -145,8 +145,6 @@ def get_application():
                     PublicationFetch, name="publication_fetch"),
                 url(r"/blacklist/([^/]+)",
                     PublicationBlacklist, name="publication_blacklist"),
-                url(r"/qc/([^/]+)",
-                    PublicationQc, name="publication_qc"),
                 url(r"/update/([^/]+)/find_pmid",
                     PublicationFindPmid, name="publication_find_pmid"),
                 url(r"/update/([^/]+)/pmid",

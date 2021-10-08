@@ -341,7 +341,6 @@ class RequestHandler(tornado.web.RequestHandler):
         result["xrefs"] = publication.get("xrefs") or []
         if full:
             result["notes"] = publication.get("notes") or []
-            result["qc"] = publication.get("qc")
             result["created"] = publication["created"]
             result["modified"] = publication["modified"]
         return result
