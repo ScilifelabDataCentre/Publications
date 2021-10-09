@@ -184,12 +184,12 @@ function (doc) {
     }
   }
 }""" % (REMOVE, IGNORE)),
-        issn=dict(map=          # publication/issn
+        issn=dict(map=          # publication/issn (and issn-l)
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   if (!doc.journal) return;
-  if (!doc.journal.issn) return;
-  emit(doc.journal.issn, null);
+  if (doc.journal.issn) emit(doc.journal.issn, null);
+  if (doc.journal['issn-l']) emit(doc.journal['issn-l'], null);
 }"""),
         journal=dict(reduce="_count", # publication/journal
                      map=

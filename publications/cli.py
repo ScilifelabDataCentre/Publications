@@ -237,14 +237,17 @@ def show(ctx, identifier):
 
 @cli.command()
 @click.option("-y", "--year", "years",
-              help="The year of publication.", multiple=True)
+              help="The 'published' year of publications.", multiple=True)
 @click.option("-l", "--label", "labels",
-              help="Label for the publication.", multiple=True)
+              help="Label for the publications.", multiple=True)
 @click.option("-a", "--author", "authors",
-              help="Publication author name.",
+              help="Publications author name.",
               multiple=True)
 @click.option("-o", "--orcid", "orcids",
-              help="Publication associated with a researcher ORCID.",
+              help="Publications associated with a researcher ORCID.",
+              multiple=True)
+@click.option("-i", "--issn", "issns",
+              help="Publications in a journal given by its ISSN.",
               multiple=True)
 @click.option("--format", help="Format of the output. Use '-' for stdout",
               default="CSV",
@@ -257,44 +260,31 @@ def show(ctx, identifier):
 # XXX: numbered, maxline, issn, single_label, encoding, doi_url, pmid_url
 @click.option("--filepath", help="Path of the output file.")
 @click.pass_context
-def select(ctx, years, labels, authors, orcids, format, quoting, filepath):
+def select(ctx, years, labels, authors, orcids, issns,
+           format, quoting, filepath):
     """Select a subset of publications and output to a file.
 
-    Multiple years may be provided, giving the union of such publications.
-
-    Multiple labels may be provided, giving the union of such publications.
-
-    Multiple orcids may be provided, giving the union of such publications.
-
-    If years, labels or orcids are given, the result is the
-    intersection of those sets.
+    The options '--year', '--label', '--orcid' and '--issn' may be given
+    multiple times, giving the union of publications within option type.
+    These separate sets are the intersected to give the final subset.
     """
     db = ctx.obj["db"]
     subsets = []
     if years:
-        subset = functools.reduce(lambda s, t: s | t,
-                                  [Subset(db, year=y) for y in years])
-        subsets.append(subset)
+        subsets.append(
+            functools.reduce(union, [Subset(db, year=y) for y in years]))
     if labels:
-        subset = functools.reduce(lambda s, t: s | t,
-                                  [Subset(db, label=l) for l in labels])
-        subsets.append(subset)
+        subsets.append(
+            functools.reduce(union, [Subset(db, label=l) for l in labels]))
     if orcids:
-        subset = Subset(db)
-        subset.select_researcher(orcids[0])
-        for orcid in orcids[1:]:
-            s = Subset(db)
-            s.select_researcher(orcid)
-            subset = subset | s
-        subsets.append(subset)
+        subsets.append(
+            functools.reduce(union, [Subset(db, orcid=o) for o in orcids]))
     if authors:
-        subset = Subset(db)
-        subset.select_author(authors[0])
-        for author in authors[1:]:
-            s = Subset(db)
-            s.select_researcher(author)
-            subset = subset | s
-        subsets.append(subset)
+        subsets.append(
+            functools.reduce(union, [Subset(db,author=a) for a in authors]))
+    if issns:
+        subsets.append(
+            functools.reduce(union, [Subset(db, issn=i) for i in issns]))
     result = functools.reduce(lambda s, t: s & t, subsets)
 
     if format == "CSV":
@@ -323,6 +313,7 @@ def select(ctx, years, labels, authors, orcids, format, quoting, filepath):
         click.echo(result)
 
 
+def union(s, t): return s | t
 def json_dumps(doc): return json.dumps(doc, ensure_ascii=False, indent=2)
 def asis(value): return value
 def normalized(value): return utils.to_ascii(value).lower()

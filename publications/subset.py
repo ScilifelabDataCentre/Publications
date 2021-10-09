@@ -8,7 +8,8 @@ from publications import utils
 class Subset:
     "Publication subset selection and operations."
 
-    def __init__(self, db, all=False, year=None, label=None):
+    def __init__(self, db, all=False, year=None, label=None,
+                 orcid=None, author=None, issn=None):
         self.db = db
         self.iuids = set()
         if all:
@@ -17,6 +18,12 @@ class Subset:
             self.select_year(year)
         elif label:
             self.select_label(label)
+        elif orcid:
+            self.select_orcid(orcid)
+        elif author:
+            self.select_author(author)
+        elif issn:
+            self.select_issn(issn)
 
     def __len__(self):
         return len(self.iuids)
@@ -93,6 +100,10 @@ class Subset:
         "Select publications by the given label."
         self._select("publication", "label", key=label.lower(), limit=limit)
 
+    def select_issn(self, issn, limit=None):
+        "Select publications by the journal ISSN."
+        self._select("publication", "issn", key=issn, limit=limit)
+
     def select_author(self, name, limit=None):
         """Select publication by author name.
         The name must be of the form "Familyname Initials". It is normalized, i.e.
@@ -154,3 +165,17 @@ class Subset:
             kwargs["endkey"] = last
         view = self.db.view(designname, viewname, **kwargs)
         self.iuids = set([i.id for i in view])
+
+
+if __name__ == "__main__":
+    utils.load_settings()
+    db = utils.get_db()
+    s1 = Subset(db)
+    s1.select_issn("1469-8137")
+    print(s1)
+    s2 = Subset(db)
+    s2.select_issn("0028-646X")
+    print(s2)
+    print(s1 & s2)
+
+    

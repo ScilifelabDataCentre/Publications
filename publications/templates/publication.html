@@ -14,10 +14,7 @@
   {% module Authors(publication['authors'], complete=True) %}
 </p>
 <p>
-  {{ publication['journal'].get('title') or '-' }}
-  <strong>{{ publication['journal'].get('volume') or '-' }}</strong>
-  ({{ publication['journal'].get('issue') or '-' }})
-  {{ publication['journal'].get('pages') or '-' }}
+  {% module Journal(publication) %}
   {% module Published(publication) %}
   {% module OpenAccess(publication) %}
 </p>
