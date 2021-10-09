@@ -249,7 +249,7 @@ def show(ctx, identifier):
 @click.option("-i", "--issn", "issns",
               help="Publications in a journal given by its ISSN.",
               multiple=True)
-@click.option("--format", help="Format of the output. Use '-' for stdout",
+@click.option("--format", help="Format of the output.",
               default="CSV",
               type=click.Choice(["CSV", "XLSX", "TEXT", "TXT"],
                                 case_sensitive=False))
@@ -258,12 +258,11 @@ def show(ctx, identifier):
               type=click.Choice(["all", "minimal", "nonnumeric", "none"],
                                 case_sensitive=False))
 # XXX: numbered, maxline, issn, single_label, encoding, doi_url, pmid_url
-@click.option("--filepath", help="Path of the output file.")
+@click.option("--filepath", help="Path of the output file. Use '-' for stdout.")
 @click.pass_context
 def select(ctx, years, labels, authors, orcids, issns,
            format, quoting, filepath):
     """Select a subset of publications and output to a file.
-
     The options '--year', '--label', '--orcid' and '--issn' may be given
     multiple times, giving the union of publications within option type.
     These separate sets are the intersected to give the final subset.
