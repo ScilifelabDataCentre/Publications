@@ -15,7 +15,7 @@ from publications import constants
 from publications import utils
 from publications import designs
 from publications import settings
-from publications.subset import Subset
+from publications.subset import Subset, get_parser
 from publications.account import AccountSaver
 import publications.app_publications
 import publications.writer
@@ -241,30 +241,31 @@ def show(ctx, identifier):
 @click.option("-l", "--label", "labels",
               help="Label for the publications.", multiple=True)
 @click.option("-a", "--author", "authors",
-              help="Publications author name.",
+              help="Publications author name, optionally with a wildcard '*' at the end.",
               multiple=True)
 @click.option("-o", "--orcid", "orcids",
               help="Publications associated with a researcher ORCID.",
               multiple=True)
-@click.option("-i", "--issn", "issns",
-              help="Publications in a journal given by its ISSN.",
-              multiple=True)
+@click.option("-x", "--expression",
+              help="Evaluate the selection expression in the named file."
+              " If any other selection options are given, the expression"
+              " is evaluated for that subset.")
 @click.option("--format", help="Format of the output.",
               default="CSV",
               type=click.Choice(["CSV", "XLSX", "TEXT", "TXT"],
                                 case_sensitive=False))
-@click.option("--quoting", help="Quoting scheme to use for CSV output.",
+@click.option("--filepath", help="Path of the output file. Use '-' for stdout.")
+@click.option("--quoting", help="CSV only: Quoting scheme to use.",
               default="nonnumeric",
               type=click.Choice(["all", "minimal", "nonnumeric", "none"],
                                 case_sensitive=False))
-# XXX: numbered, maxline, issn, single_label, encoding, doi_url, pmid_url
-@click.option("--filepath", help="Path of the output file. Use '-' for stdout.")
+# XXX format: numbered, maxline, issn, single_label, encoding, doi_url, pmid_url
 @click.pass_context
-def select(ctx, years, labels, authors, orcids, issns,
-           format, quoting, filepath):
+def select(ctx, years, labels, authors, orcids, expression,
+           format, filepath, quoting):
     """Select a subset of publications and output to a file.
-    The options '--year', '--label', '--orcid' and '--issn' may be given
-    multiple times, giving the union of publications within option type.
+    The options '--year', '--label' and '--orcid' may be given multiple 
+    times, giving the union of publications within the option type.
     These separate sets are the intersected to give the final subset.
     """
     db = ctx.obj["db"]
@@ -281,10 +282,28 @@ def select(ctx, years, labels, authors, orcids, issns,
     if authors:
         subsets.append(
             functools.reduce(union, [Subset(db,author=a) for a in authors]))
-    if issns:
-        subsets.append(
-            functools.reduce(union, [Subset(db, issn=i) for i in issns]))
-    result = functools.reduce(lambda s, t: s & t, subsets)
+    if subsets:
+        result = functools.reduce(lambda s, t: s & t, subsets)
+    else:
+        result = Subset(db)
+
+    if expression:
+        parser = get_parser()
+        try:
+            with open(expression) as infile:
+                parsed = parser.parseString(infile.read(), parseAll=True)
+        except IOError as error:
+            raise click.ClickException(str(error))
+        except pp.ParseException as error:
+            raise click.ClickException(f"Expression invalid: {error}")
+        try:
+            subset = parsed[0].evaluate(db)
+        except Exception as error:
+            raise click.ClickException(f"Evaluating selection expression: {error}")
+        if subsets:
+            result = result & subset
+        else:
+            result = subset
 
     if format == "CSV":
         writer = publications.writer.CsvWriter(db, ctx.obj["app"],
@@ -316,6 +335,7 @@ def union(s, t): return s | t
 def json_dumps(doc): return json.dumps(doc, ensure_ascii=False, indent=2)
 def asis(value): return value
 def normalized(value): return utils.to_ascii(value).lower()
+
 
 if __name__ == "__main__":
     cli()

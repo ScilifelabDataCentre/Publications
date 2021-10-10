@@ -1,15 +1,37 @@
 "Select a subset of publications."
 
+import logging
+
+import pyparsing as pp
+
 from publications import constants
 from publications import settings
 from publications import utils
+from publications.requesthandler import RequestHandler
+
+
+class SubsetDisplay(RequestHandler):
+    "Display, edit and evaluate selection expressions."
+
+    def get(self):
+        "Display the initial subset definition page."
+        self.render("subset.html", expression=None, publications=None)
+
+    # Authentication is *not* required!
+    def post(self):
+        expression = self.get_argument("expression")
+        try:
+            subset = get_subset(self.db, expression)
+        except ValueError as error:
+            self.set_error_flash(error)
+        self.render("subset.html", expression=expression, publications=subset)
 
 
 class Subset:
     "Publication subset selection and operations."
 
     def __init__(self, db, all=False, year=None, label=None,
-                 orcid=None, author=None, issn=None):
+                 author=None, orcid=None, issn=None):
         self.db = db
         self.iuids = set()
         if all:
@@ -18,10 +40,10 @@ class Subset:
             self.select_year(year)
         elif label:
             self.select_label(label)
-        elif orcid:
-            self.select_orcid(orcid)
         elif author:
             self.select_author(author)
+        elif orcid:
+            self.select_orcid(orcid)
         elif issn:
             self.select_issn(issn)
 
@@ -29,6 +51,9 @@ class Subset:
         return len(self.iuids)
 
     def __str__(self):
+        return f"{len(self)} publications"
+
+    def __repr__(self):
         return f"{len(self)} publications"
 
     def __contains__(self, iuid):
@@ -70,6 +95,16 @@ class Subset:
         result.iuids.difference_update(other.iuids)
         return result
 
+    def __xor__(self, other):
+        "Symmetric difference of this subset and the other."
+        if not isinstance(other, Subset):
+            raise ValueError("'other' is not a Subset")
+        if self.db is not other.db:
+            raise ValueError("'other' is connected to a different database.")
+        result = self.copy()
+        result.iuids.symmetric_difference_update(other.iuids)
+        return result
+
     def get_publications(self, order="published"):
         """Return the list of all selected publication documents.
         Sort by reverse order of the given field, if given.
@@ -100,10 +135,6 @@ class Subset:
         "Select publications by the given label."
         self._select("publication", "label", key=label.lower(), limit=limit)
 
-    def select_issn(self, issn, limit=None):
-        "Select publications by the journal ISSN."
-        self._select("publication", "issn", key=issn, limit=limit)
-
     def select_author(self, name, limit=None):
         """Select publication by author name.
         The name must be of the form "Familyname Initials". It is normalized, i.e.
@@ -119,7 +150,7 @@ class Subset:
         else:
             self._select("publication", "author", key=name)
 
-    def select_researcher(self, orcid, limit=None):
+    def select_orcid(self, orcid, limit=None):
         "Select publications by researcher ORCID."
         try:
             researcher = utils.get_doc(self.db, "researcher", "orcid", orcid)
@@ -127,6 +158,10 @@ class Subset:
         except KeyError:
             iuid = "-"
         self._select("publication", "researcher", key=iuid)
+
+    def select_issn(self, issn, limit=None):
+        "Select publications by the journal ISSN."
+        self._select("publication", "issn", key=issn, limit=limit)
 
     def select_no_pmid(self, limit=None):
         "Select all publications lacking PubMed identifier."
@@ -140,12 +175,12 @@ class Subset:
         "Select all publications having no label"
         self._select("publication", "no_label", limit=limit)
 
-    def select_recently_published(self, date, limit=None):
+    def select_published(self, date, limit=None):
         "Select all publications published after the given date, inclusive."
         self._select("publication", "published",
                      key=date, last=constants.CEILING, limit=limit)
 
-    def select_recently_modified(self, date=None, limit=10):
+    def select_modified(self, date=None, limit=10):
         "Select all publications modified after the given date, inclusive."
         kwargs = {"descending": True}
         if date is not None:
@@ -167,15 +202,263 @@ class Subset:
         self.iuids = set([i.id for i in view])
 
 
+# Parser for the selection expression mini-language.
+
+class _Identifier:
+    "Identifier for variable."
+
+    def __init__(self, tokens):
+        self.identifier = tokens[0]
+
+    def evaluate(self, db, variables, stack):
+        stack.append(variables[self.identifier])
+
+
+class _Function:
+    "Function; name and value for argument."
+
+    def __init__(self, tokens):
+        try:
+            self.value = tokens[1]
+        except IndexError:      # For argument-less functions.
+            pass
+
+class _Label(_Function):
+    "Publications selected by label."
+
+    def evaluate(self, db, variables, stack):
+        stack.append(Subset(db, label=self.value))
+
+
+class _Year(_Function):
+    "Publications selected by 'published' year."
+
+    def evaluate(self, db, variables, stack):
+        stack.append(Subset(db, year=self.value))
+
+class _Author(_Function):
+    "Publications selected by author name, optionally with wildcard at end."
+
+    def evaluate(self, db, variables, stack):
+        stack.append(Subset(db, author=self.value))
+
+
+class _Issn(_Function):
+    "Publications selected by journal ISSN."
+
+    def evaluate(self, db, variables, stack):
+        stack.append(Subset(db, issn=self.value))
+
+
+class _Published(_Function):
+    "Publications selected by published after the given date, inclusive."
+
+    def evaluate(self, db, variables, stack):
+        s = Subset(db)
+        s.select_published(self.value)
+        stack.append(s)
+
+
+class _Modified(_Function):
+    "Publications selected by modified after the given date, inclusive."
+
+    def evaluate(self, db, variables, stack):
+        s = Subset(db)
+        s.select_modified(self.value)
+        stack.append(s)
+
+
+class _NoPmid(_Function):
+    "Publications lacking PMID."
+
+    def evaluate(self, db, variables, stack):
+        s = Subset(db)
+        s.select_no_pmid()
+        stack.append(s)
+
+
+class _NoDoi(_Function):
+    "Publications lacking DOI."
+
+    def evaluate(self, db, variables, stack):
+        s = Subset(db)
+        s.select_no_doi()
+        stack.append(s)
+
+
+class _NoLabel(_Function):
+    "Publications lacking Label."
+
+    def evaluate(self, db, variables, stack):
+        s = Subset(db)
+        s.select_no_label()
+        stack.append(s)
+
+
+class _Operation:
+    "Subset operators."
+
+    def __init__(self, tokens):
+        self.operator = tokens[0]
+
+    def evaluate(self, db, variables, stack):
+        stack.append(self.operator)
+
+
+class _Expression:
+    "Expression; one subset, or two subsets with an operation."
+
+    def __init__(self, tokens):
+        self.tokens = tokens
+
+    def get_subset(self, db, variables=None):
+        stack = []
+        self.evaluate(db, variables=variables, stack=stack)
+        while len(stack) >= 3:
+            self.reduce(stack)
+        if len(stack) != 1:
+            raise ValueError(f"invalid stack {stack}")
+        return stack[0]
+
+    def evaluate(self, db, variables=None, stack=None):
+        "Evaluate the expression."
+        if variables is None:
+            variables = {}
+        if stack is None:
+            self.stack = []
+        for token in self.tokens:
+            if isinstance(token, pp.ParseResults):
+                token[0].evaluate(db, variables, stack)
+            else:
+                token.evaluate(db, variables, stack)
+        self.reduce(stack)
+
+    def reduce(self, stack):
+        if len(stack) >= 3:
+            s2 = stack.pop()
+            op = stack.pop()
+            s1 = stack.pop()
+            if op == "+":
+                stack.append(s1 | s2)
+            elif op == "^":
+                stack.append(s1 ^ s2)
+            elif op == "-":
+                stack.append(s1 - s2)
+            elif op == "#":
+                stack.append(s1 & s2)
+
+
+def get_subset(db, expression, variables=None):
+    "Return the subset resulting from the selection expression evaluation."
+    if not expression:
+        return Subset(db)
+    parser = get_parser()
+    try:
+        result = parser.parseString(expression, parseAll=True)
+    except pp.ParseException as error:
+        raise ValueError(str(error))
+    return result[0].get_subset(db, variables=variables)
+
+def get_parser():
+    "Construct and return the parser."
+
+    left = pp.Suppress("(")
+    right = pp.Suppress(")")
+    value = pp.CharsNotIn(")")
+    identifier = pp.Word(pp.alphas, pp.alphanums).setParseAction(_Identifier)
+
+    label = (pp.Keyword("label") + left+value+right).setParseAction(_Label)
+    year = (pp.Keyword("year") + left+value+right).setParseAction(_Year)
+    author = (pp.Keyword("author") + left+value+right).setParseAction(_Author)
+    issn = (pp.Keyword("issn") + left+value+right).setParseAction(_Issn)
+    published = (pp.Keyword("published") + left+value+right).setParseAction(_Published)
+    modified = (pp.Keyword("modified") + left+value+right).setParseAction(_Modified)
+    no_pmid = (pp.Keyword("no_pmid") + left+right).setParseAction(_NoPmid)
+    no_doi = (pp.Keyword("no_doi") + left+right).setParseAction(_NoDoi)
+    no_label = (pp.Keyword("no_label") + left+right).setParseAction(_NoLabel)
+    functions = (label | year| author | issn | published | modified |
+                 no_pmid | no_doi | no_label)
+
+    union = pp.Literal("+").setParseAction(_Operation)
+    symdifference = pp.Literal("^").setParseAction(_Operation)
+    intersection = pp.Literal("#").setParseAction(_Operation)
+    difference = pp.Literal("-").setParseAction(_Operation)
+    ops = union | symdifference | difference | intersection
+
+    expr = pp.Forward()
+    atom = (ops[...] + (functions | identifier | pp.Group(left + expr + right)))
+    term = pp.Forward()
+    term = atom + (ops + term)[...]
+    expr <<= term + (ops + term)[...]
+    expr.setParseAction(_Expression)
+    expr.ignore("!" + pp.restOfLine)
+    return expr
+
+
 if __name__ == "__main__":
+    logging.getLogger().disabled = True
     utils.load_settings()
     db = utils.get_db()
-    s1 = Subset(db)
-    s1.select_issn("1469-8137")
-    print(s1)
-    s2 = Subset(db)
-    s2.select_issn("0028-646X")
-    print(s2)
-    print(s1 & s2)
 
-    
+    parser = get_parser()
+    y2020 = Subset(db, year="2020")
+    variables = dict(y2020=y2020)
+
+   #  # Basic
+   #  line = "year(2020)"
+   #  result = parser.parseString(line, parseAll=True)
+   #  print("===", result[0].get_subset(db, variables))
+   #  print("---", y2020)
+   #  print()
+
+   #  # More complicated
+   #  line = """year(2020) # ((
+   # (label(Affinity Proteomics Uppsala) +
+   #  label(National Genomics Infrastructure))
+   # # author(a*)))"""
+   #  print(line)
+   #  result = parser.parseString(line, parseAll=True)
+   #  print("===", result[0].get_subset(db, variables))
+   #  print("---", Subset(db, year="2020") &
+   #        ((Subset(db, label="Affinity Proteomics Uppsala") |
+   #          Subset(db, label="National Genomics Infrastructure")) &
+   #         Subset(db, author="a*")))
+   #  print()
+
+   #  # Variable
+   #  line = """y2020 # ((
+   # (label(Affinity Proteomics Uppsala) +
+   #  label(National Genomics Infrastructure))
+   # # author(a*)))"""
+   #  print(line)
+   #  result = parser.parseString(line, parseAll=True)
+   #  print("===", result[0].get_subset(db, variables))
+   #  print("---", Subset(db, year="2020") &
+   #        ((Subset(db, label="Affinity Proteomics Uppsala") |
+   #          Subset(db, label="National Genomics Infrastructure")) &
+   #         Subset(db, author="a*")))
+   #  print()
+
+   #  # Function with no argument
+   #  line = "no_pmid()"
+   #  print(line)
+   #  result = parser.parseString(line, parseAll=True)
+   #  print("===", result[0].get_subset(db, variables))
+   #  s = Subset(db)
+   #  s.select_no_pmid()
+   #  print("---", s)
+   #  print()
+
+    # Published during January 2020 with NGI
+    line = "(published(2020-01-01) - published(2020-02-01)) # label(National Genomics Infrastructure)"
+    print(line)
+    print("===", get_subset(db, line, variables=variables))
+    s1 = Subset(db)
+    s1.select_published("2020-01-01")
+    s2 = Subset(db)
+    s2.select_published("2020-02-01")
+    print("---", (s1-s2) & Subset(db, label="National Genomics Infrastructure"))
+    print()
+
+    line ="(year(2010) # label(National Genomics Infrastructure)) # author(a*)"
+    print("===", get_subset(db, line, variables=variables))

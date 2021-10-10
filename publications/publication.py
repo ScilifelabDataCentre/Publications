@@ -830,7 +830,7 @@ class PublicationsModified(PublicationMixin, RequestHandler):
         self.check_curator()
         limit = self.get_limit(settings["LONG_PUBLICATIONS_LIST_LIMIT"])
         subset = Subset(self.db)
-        subset.select_recently_modified(limit=limit)
+        subset.select_modified(limit=limit)
         publications = subset.get_publications("modified")
         self.render("publications_modified.html", publications=publications)
 

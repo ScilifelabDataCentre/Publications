@@ -79,6 +79,7 @@ from publications.label import (Label,
                                 LabelMerge)
 from publications.search import (Search,
                                  SearchJson)
+from publications.subset import SubsetDisplay
 from publications.logs import Logs
 
 
@@ -201,6 +202,7 @@ def get_application():
                 url(r"/account", AccountAdd, name="account_add"),
                 url(r"/search", Search, name="search"),
                 url(r"/search.json", SearchJson, name="search_json"),
+                url(r"/subset", SubsetDisplay, name="subset"),
                 url(r"/logs/([^/]+)", Logs, name="logs"),
                 url(r"/contact", Contact, name="contact"),
                 url(r"/settings", Settings, name="settings"),
