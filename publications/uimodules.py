@@ -2,9 +2,9 @@
 
 import tornado.web
 
-from . import constants
-from . import settings
-from . import utils
+from publications import constants
+from publications import settings
+from publications import utils
 
 
 class Authors(tornado.web.UIModule):
@@ -151,39 +151,6 @@ class CrossrefButton(ExternalButton):
 class OrcidButton(ExternalButton):
     NAME = "ORCID"
     URL  = constants.ORCID_URL
-
-
-class QcFlags(tornado.web.UIModule):
-    "Output QC information for the publication."
-
-    def render(self, publication):
-        result = []
-        qc = publication.get("qc", {})
-        for aspect in settings["PUBLICATION_QC_ASPECTS"]:
-            entry = qc.get(aspect)
-            if entry is None:
-                result.append('<span class="label label-default">'
-                              "QC %s"
-                              "</span>" % aspect)
-            elif entry["flag"]:
-                result.append('<span class="label label-success"'
-                              ' data-toggle="tooltip" data-placement="top"'
-                              ' title="%s %s">'
-                              '<span class="glyphicon glyphicon-ok"></span>'
-                              " QC %s"
-                              "</span>" % (entry["date"],
-                                           entry["account"], 
-                                           aspect))
-            else:
-                result.append('<span class="label label-danger"'
-                              ' data-toggle="tooltip" data-placement="top"'
-                              ' title="%s %s">'
-                              '<span class="glyphicon glyphicon-remove"></span>'
-                              " QC %s"
-                              "</span>" % (entry["date"],
-                                           entry["account"], 
-                                           aspect))
-        return " ".join(result)
 
 
 class Translate(tornado.web.UIModule):

@@ -5,12 +5,11 @@ import json
 import logging
 import urllib.request, urllib.parse, urllib.error
 
-import couchdb
 import tornado.web
 
-from . import constants
-from . import settings
-from . import utils
+from publications import constants
+from publications import settings
+from publications import utils
 
 
 class RequestHandler(tornado.web.RequestHandler):
@@ -33,7 +32,8 @@ class RequestHandler(tornado.web.RequestHandler):
         result["message"] = self.get_cookie("message", "").replace("_", " ")
         self.clear_cookie("message")
         result["year_counts"] = [(r.key, r.value) for r in 
-                                 self.db.view("publication/year",
+                                 self.db.view("publication", 
+                                              "year",
                                               descending=True,
                                               reduce=True,
                                               group_level=1)]
@@ -87,21 +87,22 @@ class RequestHandler(tornado.web.RequestHandler):
         message = message.replace(",", "_")
         self.set_cookie(name, message)
 
-    def get_doc(self, key, viewname=None):
+    def get_doc(self, designname, viewname, key):
         """Get the document with the given id, or from the given view.
         Raise KeyError if not found.
         """
-        return utils.get_doc(self.db, key, viewname=viewname)
+        return utils.get_doc(self.db, designname, viewname, key)
 
-    def get_docs(self, viewname, key=None, last=None, **kwargs):
+    def get_docs(self, designname, viewname, key=None, last=None, **kwargs):
         """Get the list of documents using the named view
         and the given key or interval.
         """
-        return utils.get_docs(self.db, viewname, key=key, last=last, **kwargs)
+        return utils.get_docs(self.db, designname, viewname,
+                              key=key, last=last, **kwargs)
 
-    def get_count(self, viewname, key=None):
+    def get_count(self, designname, viewname, key=None):
         "Get the reduce value for the name view and the given key."
-        return utils.get_count(self.db, viewname, key=key)
+        return utils.get_count(self.db, designname, viewname, key=key)
 
     def get_publication(self, identifier):
         """Get the publication given its IUID, DOI or PMID.
@@ -121,7 +122,7 @@ class RequestHandler(tornado.web.RequestHandler):
         Return a list of researcher documents.
         """
         family = utils.to_ascii(family).lower()
-        result = self.get_docs("researcher/family", key=family)
+        result = self.get_docs("researcher", "family", key=family)
         if given:
             given = utils.to_ascii(given).lower()
             result = [p for p in result 
@@ -137,12 +138,6 @@ class RequestHandler(tornado.web.RequestHandler):
         Raise KeyError if not found.
         """
         return utils.get_label(self.db, identifier)
-
-    def get_blacklisted(self, identifier):
-        """Get the blacklist document id if the publication with
-        the external identifier has been blacklisted.
-        """
-        return utils.get_blacklisted(self.db, identifier)
 
     def get_account(self, email):
         """Get the account identified by the email address.
@@ -177,7 +172,7 @@ class RequestHandler(tornado.web.RequestHandler):
             raise ValueError
         else:
             try:
-                account = self.get_doc(api_key, "account/api_key")
+                account = self.get_doc("account", "api_key", api_key)
             except KeyError:
                 raise ValueError
             if account.get("disabled"):
@@ -246,7 +241,7 @@ class RequestHandler(tornado.web.RequestHandler):
 
     def get_logs(self, iuid):
         "Get the log entries for the document with the given IUID."
-        return self.get_docs("log/doc",
+        return self.get_docs("log", "doc",
                              key=[iuid, constants.CEILING],
                              last=[iuid, ""],
                              descending=True)
@@ -346,7 +341,6 @@ class RequestHandler(tornado.web.RequestHandler):
         result["xrefs"] = publication.get("xrefs") or []
         if full:
             result["notes"] = publication.get("notes") or []
-            result["qc"] = publication.get("qc")
             result["created"] = publication["created"]
             result["modified"] = publication["modified"]
         return result
@@ -379,7 +373,7 @@ class RequestHandler(tornado.web.RequestHandler):
         result["modified"] = account["modified"]
         return result
 
-    def get_label_json(self, label, publications=None,accounts=None,limit=None):
+    def get_label_json(self, label, publications=None, accounts=None, limit=None):
         "JSON representation of label."
         URL = self.absolute_reverse_url
         result = dict()
@@ -419,7 +413,7 @@ class RequestHandler(tornado.web.RequestHandler):
             return self._issn_l_map.get(issn)
         except AttributeError:
             self._issn_l_map = dict([(r.value, r.key) for r in 
-                                     self.db.view("journal/issn_l")])
+                                     self.db.view("journal", "issn_l")])
             return self._issn_l_map.get(issn)
 
 

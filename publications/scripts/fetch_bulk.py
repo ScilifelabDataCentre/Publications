@@ -23,14 +23,14 @@ ACCOUNT = dict(email='per.kraulis@scilifelab.se')
 def get_pmid(db, pmid):
     "Get an existing publication for the PMID."
     try:
-        return utils.get_doc(db, pmid, viewname='publication/pmid')
+        return utils.get_doc(db, 'publication', 'pmid', pmid)
     except KeyError:
         return None
 
 def get_doi(db, doi):
     "Get an existing publication for the DOI."
     try:
-        return utils.get_doc(db, doi, viewname='publication/doi')
+        return utils.get_doc(db, 'publication', 'doi', doi)
     except KeyError:
         return None
 

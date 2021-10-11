@@ -4,13 +4,14 @@ import logging
 
 import tornado.web
 
-from . import constants
-from . import settings
-from . import utils
-from .requesthandler import RequestHandler
-from .saver import Saver, SaverError
-from .account import AccountSaver
-from .publication import PublicationSaver
+from publications import constants
+from publications import settings
+from publications import utils
+from publications.requesthandler import RequestHandler
+from publications.saver import Saver, SaverError
+from publications.account import AccountSaver
+from publications.publication import PublicationSaver
+from publications.subset import Subset
 
 
 class LabelSaver(Saver):
@@ -44,11 +45,9 @@ class Label(RequestHandler):
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        accounts = self.get_docs("account/label",
+        accounts = self.get_docs("account", "label",
                                  key=label["value"].lower())
-        publications = self.get_docs("publication/label",
-                                     key=label["value"].lower())
-        publications.sort(key=lambda i: i["published"], reverse=True)
+        publications = list(Subset(self.db, label=label["value"]))
         # This is inefficient; really shouldn't fetch those 
         # beyond the limit in the first place, but we want
         # the latest publications, and the index is such that
@@ -80,14 +79,14 @@ class Label(RequestHandler):
             return
         value = label["value"]
         # Do it in this order; safer if interrupted.
-        for publication in self.get_docs("publication/label",
-                                         key=value.lower()):
+        publications = list(Subset(self.db, label=label["value"]))
+        for publication in publications:
             with PublicationSaver(publication, rqh=self) as saver:
                 labels = publication["labels"].copy()
                 labels.pop(value, None)
                 labels.pop(value.lower(), None)
                 saver["labels"] = labels
-        for account in self.get_docs("account/label", key=value.lower()):
+        for account in self.get_docs("account", "label", key=value.lower()):
             with AccountSaver(account, rqh=self) as saver:
                 labels = set(account["labels"])
                 labels.discard(value)
@@ -116,11 +115,11 @@ class LabelsList(RequestHandler):
         if settings["TEMPORAL_LABELS"]:
             all = utils.to_bool(self.get_argument("all", False))
             if all:
-                labels = self.get_docs("label/value")
+                labels = self.get_docs("label", "value")
             else:
-                labels = self.get_docs("label/current")
+                labels = self.get_docs("label", "current")
         else:
-            labels = self.get_docs("label/value")
+            labels = self.get_docs("label", "value")
             all = None
         labels.sort(key=lambda d: d["value"].lower())
         self.render("labels.html", labels=labels, all=all)
@@ -130,16 +129,16 @@ class LabelsTable(RequestHandler):
     "Labels table page."
 
     def get(self):
-        labels = self.get_docs("label/value")
+        labels = self.get_docs("label", "value")
         labels.sort(key=lambda d: d["value"].lower())
         if self.is_curator():
             accounts = dict([(l["value"], []) for l in labels])
-            for account in self.get_docs("account/email"):
+            for account in self.get_docs("account", "email"):
                 for label in account["labels"]:
                     accounts.setdefault(label, []).append(account["email"])
             for label in labels:
                 label["accounts"] = sorted(accounts.get(label["value"], []))
-        view = self.db.view("publication/label", group=True)
+        view = self.db.view("publication", "label", group=True)
         counts = dict([(r.key, r.value) for r in view])
         for label in labels:
             label["count"] = counts.get(label["value"].lower(), 0)
@@ -223,7 +222,7 @@ class LabelEdit(RequestHandler):
                     saver["started"] = self.get_argument("started", "") or None
                     saver["ended"] = self.get_argument("ended", "") or None
         except SaverError:
-            self.set_error_flash(utils.REV_ERROR)
+            self.set_error_flash(constants.REV_ERROR)
             self.see_other("label", label["value"])
             return
         except ValueError as error:
@@ -231,7 +230,7 @@ class LabelEdit(RequestHandler):
             self.see_other("label_edit", old_value)
             return
         if new_value != old_value:
-            for account in self.get_docs("account/label",
+            for account in self.get_docs("account", "label",
                                          key=old_value.lower()):
                 with AccountSaver(account, rqh=self) as saver:
                     labels = set(account["labels"])
@@ -239,8 +238,7 @@ class LabelEdit(RequestHandler):
                     labels.discard(old_value.lower())
                     labels.add(new_value)
                     saver["labels"] = sorted(labels)
-            for publication in self.get_docs("publication/label",
-                                             key=old_value.lower()):
+            for publication in Subset(self.db, label=old_value):
                 if old_value in publication["labels"]:
                     with PublicationSaver(publication, rqh=self) as saver:
                         labels = publication["labels"].copy()
@@ -262,7 +260,7 @@ class LabelMerge(RequestHandler):
             return
         self.render("label_merge.html",
                     label=label,
-                    labels=self.get_docs("label/value"))
+                    labels=self.get_docs("label", "value"))
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -285,15 +283,14 @@ class LabelMerge(RequestHandler):
         old_label = label["value"]
         new_label = merge["value"]
         self.delete_entity(label)
-        for account in self.get_docs("account/label", key=old_label.lower()):
+        for account in self.get_docs("account", "label", key=old_label.lower()):
             with AccountSaver(account, rqh=self) as saver:
                 labels = set(account["labels"])
                 labels.discard(old_label)
                 labels.discard(old_label.lower())
                 labels.add(new_label)
                 saver["labels"] = sorted(labels)
-        for publication in self.get_docs("publication/label",
-                                         key=old_label.lower()):
+        for publication in Subset(self.db, label=old_label):
             with PublicationSaver(publication, rqh=self) as saver:
                 labels = publication["labels"].copy()
                 qual = labels.pop(old_label, None) or \

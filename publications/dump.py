@@ -30,8 +30,7 @@ def dump(db, filepath):
     else:
         mode = "w"
     outfile = tarfile.open(filepath, mode=mode)
-    for key in db:
-        doc = db[key]
+    for doc in db:
         # Only documents that explicitly belong to the application
         if doc.get(constants.DOCTYPE) is None: continue
         del doc["_rev"]

@@ -33,7 +33,7 @@ def xrefs_statistics(db, filename, since=None):
         # curators[email][iuid] = set(all xrefs except those in orig)
         curators = {}
 
-        for publication in utils.get_docs(db, 'publication/published'):
+        for publication in utils.get_docs(db, 'publication', 'published'):
             total += 1
             for label, qualifier in list(publication.get('labels', {}).items()):
                 try:

@@ -37,7 +37,7 @@ def undump(db, filepath):
         else:
             doc = json.loads(itemdata)
             atts = doc.pop("_attachments", dict())
-            db.save(doc)
+            db.put(doc)
             count_items += 1
             for attname, attinfo in list(atts.items()):
                 key = "{0}_att/{1}".format(doc["_id"], attname)
@@ -46,7 +46,6 @@ def undump(db, filepath):
         if count_items % 100 == 0:
             logging.info("%s items loaded...", count_items)
     infile.close()
-    designs.regenerate_indexes(db)
     logging.info("undumped %s items and %s files from %s",
                  count_items, count_files, filepath)
 

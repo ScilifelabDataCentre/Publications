@@ -2,9 +2,7 @@
 
 import logging
 
-import couchdb
-
-from . import constants
+from publications import constants
 
 REMOVE = "".join(constants.SEARCH_REMOVE)
 IGNORE = ",".join(["'%s':1" % i for i in constants.SEARCH_IGNORE])
@@ -18,7 +16,8 @@ DESIGNS = dict(
   if (!doc.api_key) return;
   emit(doc.api_key, doc.email);
 }"""),
-        email=dict(map=         # account/email
+        email=dict(reduce="_count", # account/email
+                   map=         
 """function (doc) {
   if (doc.publications_doctype !== 'account') return;
   emit(doc.email, null);
@@ -185,12 +184,12 @@ function (doc) {
     }
   }
 }""" % (REMOVE, IGNORE)),
-        issn=dict(map=          # publication/issn
+        issn=dict(map=          # publication/issn (and issn-l)
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   if (!doc.journal) return;
-  if (!doc.journal.issn) return;
-  emit(doc.journal.issn, null);
+  if (doc.journal.issn) emit(doc.journal.issn, null);
+  if (doc.journal['issn-l']) emit(doc.journal['issn-l'], null);
 }"""),
         journal=dict(reduce="_count", # publication/journal
                      map=
@@ -205,6 +204,11 @@ function (doc) {
 """function (doc) {
   if (doc.publications_doctype !== 'publication') return;
   for (var key in doc.labels) emit(key.toLowerCase(), null);
+}"""),
+        no_label=dict(map=      # publication/no_label
+"""function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (Object.keys(doc.labels).length === 0) emit(doc.title, null);
 }"""),
         year=dict(reduce="_count", # publication/year
                   map=
@@ -295,35 +299,6 @@ function (doc) {
 
 def load_design_documents(db):
     "Load the design documents (view index definitions)."
-    for entity, designs in list(DESIGNS.items()):
-        updated = update_design_document(db, entity, designs)
-        if updated:
-            for view in designs:
-                name = "%s/%s" % (entity, view)
-                logging.info("regenerating index for view %s" % name)
-                list(db.view(name, limit=10))
-
-def update_design_document(db, design, views):
-    "Update the design document (view index definition)."
-    docid = "_design/%s" % design
-    try:
-        doc = db[docid]
-    except couchdb.http.ResourceNotFound:
-        logging.info("loading design document %s", docid)
-        db.save(dict(_id=docid, views=views))
-        return True
-    else:
-        if doc["views"] != views:
-            doc["views"] = views
-            logging.info("updating design document %s", docid)
-            db.save(doc)
-            return True
-        return False
-
-def regenerate_indexes(db):
-    "Regenerate all indexes."
-    for entity, designs in DESIGNS.items():
-        for view in designs:
-            name = "%s/%s" % (entity, view)
-            logging.info("regenerating index for view %s" % name)
-            list(db.view(name, limit=10))
+    for designname, views in DESIGNS.items():
+        if db.put_design(designname, {"views": views}, rebuild=True):
+            logging.info("loaded design %s", designname)

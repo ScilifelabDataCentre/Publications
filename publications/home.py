@@ -4,9 +4,9 @@ import logging
 
 import tornado.web
 
-from . import constants
-from . import settings
-from .requesthandler import RequestHandler
+from publications import constants
+from publications import settings
+from publications.requesthandler import RequestHandler
 
 
 class Home(RequestHandler):
@@ -14,7 +14,7 @@ class Home(RequestHandler):
 
     def get(self):
         limit = self.get_limit(settings["SHORT_PUBLICATIONS_LIST_LIMIT"])
-        docs = self.get_docs("publication/first_published",
+        docs = self.get_docs("publication", "first_published",
                              key=constants.CEILING,
                              last="",
                              descending=True,
@@ -49,6 +49,6 @@ class Status(RequestHandler):
 
     def get(self):
         self.write(dict(status="OK",
-                        n_publications=self.get_count("publication/year"),
-                        n_labels=self.get_count("label/value"),
-                        n_researchers=self.get_count("researcher/name")))
+                        n_publications=self.get_count("publication", "year"),
+                        n_labels=self.get_count("label", "value"),
+                        n_researchers=self.get_count("researcher", "name")))

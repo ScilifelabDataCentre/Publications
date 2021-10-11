@@ -2,12 +2,12 @@
 
 import tornado.web
 
-from . import constants
-from . import publication
-from . import settings
-from . import utils
-from .saver import Saver, SaverError
-from .requesthandler import RequestHandler, ApiMixin
+from publications import constants
+from publications import publication
+from publications import settings
+from publications import utils
+from publications.saver import Saver, SaverError
+from publications.requesthandler import RequestHandler, ApiMixin
 
 
 class ResearcherSaver(Saver):
@@ -87,7 +87,7 @@ class ResearcherMixin:
     def is_deletable(self, researcher):
         "Is the researcher deletable by the current user?"
         if not self.is_admin(): return False
-        if self.get_count("publication/researcher", key=researcher["_id"]):
+        if self.get_count("publication", "researcher", key=researcher["_id"]):
             return False
         return True
 
@@ -107,7 +107,7 @@ class Researcher(ResearcherMixin, RequestHandler):
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        publications = self.get_docs("publication/researcher",
+        publications = self.get_docs("publication", "researcher",
                                      key=researcher["_id"])
         publications.sort(key=lambda i: i["published"], reverse=True)
         self.render("researcher.html",
@@ -168,7 +168,7 @@ class ResearcherJson(JsonMixin, Researcher):
             researcher = self.get_researcher(identifier)
         except KeyError as error:
             raise tornado.web.HTTPError(404, reason="no such researcher")
-        publications = self.get_docs("publication/researcher",
+        publications = self.get_docs("publication", "researcher",
                                      key=researcher["_id"])
         publications.sort(key=lambda i: i["published"], reverse=True)
         result = dict()
@@ -238,7 +238,7 @@ class ResearcherEdit(ResearcherMixin, RequestHandler):
         except ValueError as error:
             self.set_error_flash(str(error))
         except SaverError:
-            self.set_error_flash(utils.REV_ERROR)
+            self.set_error_flash(constants.REV_ERROR)
         self.see_other("researcher", researcher["_id"])
 
 
@@ -247,7 +247,7 @@ class ResearcherFilterMixin:
 
     def get_filtered_publications(self):
         "Overrides the method from PublicationsCsv; not really filtered."
-        result = self.get_docs("publication/researcher",
+        result = self.get_docs("publication", "researcher",
                                key=self.researcher["_id"])
         result.sort(key=lambda i: i["published"], reverse=True)
         return result
@@ -373,7 +373,7 @@ class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
         except ValueError as error:
             self.set_error_flash(str(error))
         except SaverError:
-            self.set_error_flash(utils.REV_ERROR)
+            self.set_error_flash(constants.REV_ERROR)
         self.see_other("researcher", researcher["_id"])
 
     def get_publications(self, researcher):
@@ -381,11 +381,11 @@ class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
         but excluding those already identified with another researcher.
         """
         result = dict([(d["_id"], d)
-                       for d in self.get_docs("publication/researcher",
+                       for d in self.get_docs("publication", "researcher",
                                               key=researcher["_id"])])
         # Only use first initial; inclusion of more initials is not certain.
         name = f"{researcher['family_normalized']} {researcher['initials_normalized'][:1]}".strip()
-        publications = self.get_docs("publication/author",
+        publications = self.get_docs("publication", "author",
                                      key=name,
                                      last=name+constants.CEILING)
         for publ in publications:
@@ -405,8 +405,11 @@ class Researchers(RequestHandler):
     "Researchers list page."
 
     def get(self):
-        researchers = self.get_docs("researcher/name")
-        view = self.db.view("publication/researcher", group=True, reduce=True)
+        researchers = self.get_docs("researcher", "name")
+        view = self.db.view("publication",
+                            "researcher",
+                            group=True,
+                            reduce=True)
         counts = dict((r.key, r.value) for r in view)
         for researcher in researchers:
             researcher["n_publications"] = counts.get(researcher["_id"], 0)

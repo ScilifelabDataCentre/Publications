@@ -2,7 +2,7 @@
 
 import os
 
-__version__ = "5.0.2"
+__version__ = "6.1.1"
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
@@ -16,9 +16,9 @@ settings = dict(
     DATABASE_NAME="publications",
     DATABASE_ACCOUNT=None,      # Should probably be set to connect to CouchDB.
     DATABASE_PASSWORD=None,     # Should probably be set to connect to CouchDB.
-    COOKIE_SECRET=None,    # Must be set!
-    PASSWORD_SALT=None,    # Must be set!
-    EMAIL=None,            # No emails can be sent unless this is set.
+    COOKIE_SECRET=None,         # Must be set!
+    PASSWORD_SALT=None,         # Must be set!
+    EMAIL=None,                 # No emails can be sent unless this is set.
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
     PUBMED_DELAY=0.5,           # Delay before PubMed fetch, to avoid block.
@@ -26,9 +26,7 @@ settings = dict(
     NCBI_API_KEY=None,          # NCBI account API key, if any.
     CROSSREF_DELAY=0.5,         # Delay before Crossref fetch, to avoid block.
     CROSSREF_TIMEOUT=10.0,      # Timeout limit for Crossref fetch.
-    PUBLICATION_ACQUIRE_PERIOD=1,   # In days.
     PUBLICATIONS_FETCHED_LIMIT=10,
-    PUBLICATION_QC_ASPECTS=["bibliography", "xrefs"],
     SHORT_PUBLICATIONS_LIST_LIMIT=10,
     LONG_PUBLICATIONS_LIST_LIMIT=200,
     TEMPORAL_LABELS=False,

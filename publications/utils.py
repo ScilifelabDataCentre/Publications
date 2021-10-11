@@ -15,16 +15,14 @@ import urllib.parse
 import uuid
 import unicodedata
 
-import couchdb
+import couchdb2
 import yaml
 
 import publications
-from . import constants
-from . import designs
-from . import settings
+from publications import constants
+from publications import designs
+from publications import settings
 
-
-REV_ERROR = "Has been edited by someone else. Cannot overwrite."
 
 class NocaseDict:
     "Keys are compared ignoring case."
@@ -127,7 +125,7 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
     if len(settings.get("PASSWORD_SALT") or "") < 10:
         raise ValueError("settings['PASSWORD_SALT'] not set, or too short.")
     # Settings computable from others
-    settings["DATABASE_SERVER_VERSION"] = get_dbserver().version()
+    settings["DATABASE_SERVER_VERSION"] = get_dbserver().version
     if "PORT" not in settings:
         parts = urllib.parse.urlparse(settings["BASE_URL"])
         items = parts.netloc.split(":")
@@ -158,63 +156,62 @@ def expand_filepath(filepath):
     return filepath
 
 def get_dbserver():
-    server = couchdb.Server(settings["DATABASE_SERVER"])
+    "Return the CouchDB2 handle for the CouchDB server."
+    kwargs = dict(href=settings["DATABASE_SERVER"])
     if settings.get("DATABASE_ACCOUNT") and settings.get("DATABASE_PASSWORD"):
-        server.resource.credentials = (settings.get("DATABASE_ACCOUNT"),
-                                       settings.get("DATABASE_PASSWORD"))
-    return server
+        kwargs["username"] = settings["DATABASE_ACCOUNT"]
+        kwargs["password"] = settings["DATABASE_PASSWORD"]
+    return couchdb2.Server(**kwargs)
 
 def get_db():
-    """Return the handle for the CouchDB database.
+    """Return the CouchDB2 handle for the CouchDB database.
     The named database must exist.
     """
     server = get_dbserver()
     name = settings["DATABASE_NAME"]
     try:
         return server[name]
-    except couchdb.http.ResourceNotFound:
+    except couchdb2.NotFoundError:
         raise KeyError(f"CouchDB database '{name}' does not exist.")
 
-def initialize(db=None):
-    "Load the design documents, or update."
-    if db is None:
-        db = get_db()
-    designs.load_design_documents(db)
-
-def get_doc(db, key, viewname=None):
-    """Get the document with the given identifier, or from the given view.
+def get_doc(db, designname, viewname, key):
+    """Get the document with the given key from the given design view.
     Raise KeyError if not found.
     """
-    if viewname is None:
-        try:
-            return db[key]
-        except couchdb.http.ResourceNotFound:
-            raise KeyError
-    else:
-        result = list(db.view(viewname, include_docs=True, reduce=False)[key])
-        if len(result) != 1:
-            raise KeyError(f"{len(result)} items found")
-        return result[0].doc
+    view = db.view(designname,
+                   viewname,
+                   key=key,
+                   include_docs=True,
+                   reduce=False)
+    result = list(view)
+    if len(result) != 1:
+        raise KeyError(f"{len(result)} items found")
+    return result[0].doc
 
-def get_docs(db, viewname, key=None, last=None, **kwargs):
-    """Get the list of documents using the named view and
+def get_docs(db, designname, viewname, key=None, last=None, **kwargs):
+    """Get the list of documents using the given design view and
     the given key or interval.
     """
-    view = db.view(viewname, include_docs=True, reduce=False, **kwargs)
     if key is None:
-        iterator = view
+        pass
     elif last is None:
-        iterator = view[key]
+        kwargs["key"] = key
     else:
-        iterator = view[key:last]
-    return [i.doc for i in iterator]
+        kwargs["startkey"] = key
+        kwargs["endkey"] = last
+    view = db.view(designname,
+                   viewname,
+                   include_docs=True,
+                   reduce=False,
+                   **kwargs)
+    return [i.doc for i in view]
 
-def get_count(db, viewname, key=None):
+def get_count(db, designname, viewname, key=None):
     "Get the reduce value for the name view and the given key."
     if key is None:
-        view = db.view(viewname, reduce=True)
+        view = db.view(designname, viewname, reduce=True)
     else:
-        view = db.view(viewname, key=key, reduce=True)
+        view = db.view(designname, viewname, key=key, reduce=True)
     try:
         return list(view)[0].value
     except IndexError:
@@ -225,11 +222,9 @@ def get_account(db, email):
     Raise KeyError if not found.
     """
     try:
-        doc = get_doc(db, email.strip().lower(), "account/email")
+        doc = get_doc(db, "account", "email", email.strip().lower())
     except KeyError:
         raise KeyError(f"no such account '{email}'")
-    if doc[constants.DOCTYPE] != constants.ACCOUNT:
-        raise KeyError(f"document '{email}' is not an account")
     return doc
 
 def get_publication(db, identifier):
@@ -239,19 +234,17 @@ def get_publication(db, identifier):
     if not identifier: raise KeyError
     identifier = identifier.lower()
     try:
-        doc = get_doc(db, identifier)
-    except KeyError:
+        doc = db[identifier]
+    except couchdb2.NotFoundError:
         doc = None
-        for viewname in ["publication/doi", "publication/pmid"]:
+        for viewname in ["doi", "pmid"]:
             try:
-                doc = get_doc(db, identifier, viewname=viewname)
+                doc = get_doc(db, "publication", viewname, identifier)
                 break
             except KeyError:
                 pass
         else:
             raise KeyError(f"no such publication '{identifier}'.")
-    if doc[constants.DOCTYPE] != constants.PUBLICATION:
-        raise KeyError(f"Document {identifier} is not a publication.")
     return doc
 
 def get_researcher(db, identifier):
@@ -260,14 +253,12 @@ def get_researcher(db, identifier):
     """
     if not identifier: raise KeyError
     try:
-        doc = get_doc(db, identifier.lower())
-    except KeyError:
+        doc = db[identifier.lower()]
+    except couchdb2.NotFoundError:
         try:
-            doc = get_doc(db, identifier, viewname="researcher/orcid")
+            doc = get_doc(db, "researcher", "orcid", identifier)
         except KeyError:
             raise KeyError(f"no such researcher '{identifier}'.")
-    if doc[constants.DOCTYPE] != constants.RESEARCHER:
-        raise KeyError(f"Document {identifier} is not a researcher.")
     return doc
 
 def get_label(db, identifier):
@@ -276,28 +267,13 @@ def get_label(db, identifier):
     """
     if not identifier: raise KeyError("no identifier provided")
     try:
-        doc = get_doc(db, identifier)
-    except KeyError:
+        doc = db[identifier]
+    except couchdb2.NotFoundError:
         identifier = to_ascii(identifier).lower()
         try:
-            doc = get_doc(db, identifier, "label/normalized_value")
+            doc = get_doc(db, "label", "normalized_value", identifier)
         except KeyError:
             raise KeyError(f"no such label '{identifier}'")
-    if doc[constants.DOCTYPE] != constants.LABEL:
-        raise KeyError(f"wrong document type '{doc[constants.DOCTYPE]}'")
-    return doc
-
-def get_pubset(db, identifier):
-    """Get the pubset document by its IUID.
-    Raise KeyError if not found.
-    """
-    if not identifier: raise KeyError("no identifier provided")
-    try:
-        doc = get_doc(db, identifier)
-    except KeyError:
-        raise KeyError(f"no such pubset '{identifier}'")
-    if doc[constants.DOCTYPE] != constants.PUBSET:
-        raise KeyError(f"wrong document type '{doc[constants.DOCTYPE]}'")
     return doc
 
 def get_blacklisted(db, identifier):
@@ -305,9 +281,9 @@ def get_blacklisted(db, identifier):
     the external identifier has been blacklisted.
     """
     if not identifier: return None
-    for viewname in ["blacklist/doi", "blacklist/pmid"]:
+    for viewname in ["doi", "pmid"]:
         try:
-            return get_doc(db, identifier, viewname)
+            return get_doc(db, "blacklist", viewname, identifier)
         except KeyError:
             pass
     return None
@@ -444,10 +420,13 @@ class EmailServer:
         """Open the connection to the email server.
         Raise ValueError if no email server host has been defined.
         """
-        host = settings["EMAIL"]["HOST"]
-        if not host:
-            raise ValueError("no email server host defined")
-        port = settings["EMAIL"].get("PORT", 0)
+        try:
+            host = settings["EMAIL"]["HOST"]
+            if not host: raise ValueError
+            self.email = settings.get("SITE_EMAIL") or settings["EMAIL"]["SENDER"]
+        except (KeyError, TypeError):
+            raise ValueError("email server host is not properly defined")
+        port = settings["EMAIL"].get("PORT") or 0
         if settings["EMAIL"].get("SSL"):
             self.server = smtplib.SMTP_SSL(host, port=port)
         else:
@@ -462,7 +441,6 @@ class EmailServer:
             pass
         else:
             self.server.login(user, password)
-        self.email = settings.get("SITE_EMAIL") or settings["EMAIL"]["SENDER"]
 
     def __del__(self):
         "Close the connection to the email server."

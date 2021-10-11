@@ -2,10 +2,12 @@
 
 import logging
 import os
+import os.path
 
 import tornado.web
 import tornado.ioloop
 
+from publications import designs
 from publications import settings
 from publications import uimodules
 from publications import utils
@@ -49,7 +51,6 @@ from publications.publication import (Publication,
                                       PublicationXrefs,
                                       PublicationBlacklist,
                                       ApiPublicationFetch,
-                                      PublicationQc,
                                       PublicationUpdatePmid,
                                       PublicationFindPmid,
                                       PublicationUpdateDoi)
@@ -78,6 +79,7 @@ from publications.label import (Label,
                                 LabelMerge)
 from publications.search import (Search,
                                  SearchJson)
+from publications.subset import SubsetDisplay
 from publications.logs import Logs
 
 
@@ -89,11 +91,7 @@ def get_args():
                         metavar="FILE", help="filename of file containing PID")
     return parser.parse_args()
 
-def main():
-    args = get_args()
-    utils.load_settings(filepath=args.settings)
-    utils.initialize()
-
+def get_application():
     url = tornado.web.url
     handlers = [url(r"/", Home, name="home"),
                 url(r"/status", Status, name="status"),
@@ -147,8 +145,6 @@ def main():
                     PublicationFetch, name="publication_fetch"),
                 url(r"/blacklist/([^/]+)",
                     PublicationBlacklist, name="publication_blacklist"),
-                url(r"/qc/([^/]+)",
-                    PublicationQc, name="publication_qc"),
                 url(r"/update/([^/]+)/find_pmid",
                     PublicationFindPmid, name="publication_find_pmid"),
                 url(r"/update/([^/]+)/pmid",
@@ -206,6 +202,7 @@ def main():
                 url(r"/account", AccountAdd, name="account_add"),
                 url(r"/search", Search, name="search"),
                 url(r"/search.json", SearchJson, name="search_json"),
+                url(r"/subset", SubsetDisplay, name="subset"),
                 url(r"/logs/([^/]+)", Logs, name="logs"),
                 url(r"/contact", Contact, name="contact"),
                 url(r"/settings", Settings, name="settings"),
@@ -215,16 +212,21 @@ def main():
                     ApiPublicationFetch, name="api_publication_fetch"),
                 ]
 
-    os.chdir(settings["ROOT"])
-    application = tornado.web.Application(
+    return tornado.web.Application(
         handlers=handlers,
         debug=settings.get("TORNADO_DEBUG", False),
         cookie_secret=settings["COOKIE_SECRET"],
         xsrf_cookies=True,
         ui_modules=uimodules,
-        template_path="templates",
-        static_path="static",
+        template_path=os.path.join(settings["ROOT"], "templates"),
+        static_path=os.path.join(settings["ROOT"], "static"),
         login_url=r"/login")
+
+def main():
+    args = get_args()
+    utils.load_settings(filepath=args.settings)
+    designs.load_design_documents(utils.get_db())
+    application = get_application()
     application.listen(settings["PORT"], xheaders=True)
     pid = os.getpid()
     logging.info("web server PID %s at %s", pid, settings["BASE_URL"])

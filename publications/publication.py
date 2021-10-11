@@ -1,19 +1,19 @@
 "Publication pages."
 
-import csv
-import io
 import logging
 
+import couchdb2
 import tornado.web
-import xlsxwriter
 
-from . import constants
-from . import crossref
-from . import pubmed
-from . import settings
-from . import utils
-from .saver import Saver, SaverError
-from .requesthandler import RequestHandler, ApiMixin
+from publications import constants
+from publications import crossref
+from publications import pubmed
+from publications import settings
+from publications import utils
+from publications.saver import Saver, SaverError
+from publications.subset import Subset
+from publications.writer import CsvWriter, XlsxWriter, TextWriter
+from publications.requesthandler import RequestHandler, ApiMixin
 
 
 class PublicationSaver(Saver):
@@ -163,19 +163,6 @@ class PublicationSaver(Saver):
         assert self.rqh, "requires http request context"
         self["notes"] = self.rqh.get_argument("notes", "") or None
 
-    def set_qc(self, aspect, flag):
-        "Set the QC flag for a given aspect."
-        assert self.rqh, "requires http request context"
-        if aspect not in settings["PUBLICATION_QC_ASPECTS"]:
-            raise ValueError(f"invalid QC aspect '{aspect}'")
-        entry = dict(account=self.rqh.current_user["email"],
-                     date=utils.today(),
-                     flag=bool(flag))
-        try:
-            self["qc"][aspect] = entry
-        except KeyError:
-            self["qc"] = {aspect: entry}
-
     def update(self, other, updated_by_pmid=False):
         """Update a field in the current publication if there is a value 
         in the other publication. It is assumed that they are representations
@@ -184,6 +171,8 @@ class PublicationSaver(Saver):
         Check if author can be associated with a researcher.
         Create a researcher, if ORCID is available.
         """
+        # Import done here to avoid circularity.
+        from publications.researcher import ResearcherSaver
         self["title"] = other["title"] or self["title"]
         self["pmid"] = other["pmid"] or self["pmid"]
         self["doi"] = other["doi"] or self["doi"]
@@ -218,7 +207,6 @@ class PublicationSaver(Saver):
                 orcid = author.pop("orcid", None)
                 # If ORCID, then associate with researcher.
                 if orcid:
-                    from publications.researcher import ResearcherSaver
                     # Existing reseacher based on ORCID.
                     try:
                         author["researcher"] = self.rqh.get_researcher(orcid)["_id"]
@@ -241,6 +229,8 @@ class PublicationSaver(Saver):
         """Set the appropriate journal title, ISSN and ISSN-L if not done.
         Create the journal entity if it does not exist.
         """
+        # Import done here to avoid circularity.
+        from publications.journal import JournalSaver
         assert self.rqh, "requires http request context"
         doc = None
         try:
@@ -252,16 +242,16 @@ class PublicationSaver(Saver):
         issn_l = journal.get("issn-l")
         if issn:
             try:
-                doc = self.rqh.get_doc(issn, "journal/issn")
+                doc = self.rqh.get_doc("journal", "issn", issn)
                 issn_l = doc.get("issn-l") or issn_l
             except KeyError:
                 try:
-                    doc = self.rqh.get_doc(issn, "journal/issn_l")
+                    doc = self.rqh.get_doc("journal", "issn_l", issn)
                     issn_l = issn
                 except KeyError:
                     if title:
                         try:
-                            doc = self.rqh.get_doc(title, "journal/title")
+                            doc = self.rqh.get_doc("journal", "title", title)
                         except KeyError:
                             doc = None
                         else:
@@ -273,8 +263,6 @@ class PublicationSaver(Saver):
         self["journal"] = journal
         # Create journal entity if it does not exist, and if sufficient data.
         if doc is None and issn and title:
-            # Import done here to avoid circularity.
-            from publications.journal import JournalSaver
             with JournalSaver(db=self.db) as saver:
                 saver["issn"] = issn
                 saver["issn-l"] = issn_l
@@ -345,7 +333,7 @@ class PublicationMixin:
     def get_allowed_labels(self):
         "Get the set of allowed labels for the account."
         if self.is_admin():
-            return set([l["value"] for l in self.get_docs("label/value")])
+            return set([l["value"] for l in self.get_docs("label", "value")])
         else:
             return set(self.current_user["labels"])
 
@@ -436,7 +424,7 @@ class PublicationFetchMixin:
         """Raise KeyError if identifier blacklisted.
         If override, remove from blacklist.
         """
-        blacklisted = self.get_blacklisted(identifier)
+        blacklisted = utils.get_blacklisted(self.db, identifier)
         if blacklisted:
             if override:
                 self.db.delete(blacklisted)
@@ -495,27 +483,18 @@ class PublicationJson(PublicationMixin, RequestHandler):
 
 
 class Publications(RequestHandler):
-    "Publications list display page."
+    "Publications list display page; by year or all."
 
     TEMPLATE = "publications.html"
 
     def get(self, year=None):
+        subset = Subset(self.db)
         limit = self.get_limit()
         if year:
-            kwargs = dict(key=year)
-            if limit:
-                kwargs["limit"] = limit
-            publications = self.get_docs("publication/year", **kwargs)
-            publications.sort(key=lambda i: i["published"], reverse=True)
+            subset.select_year(year, limit=limit)
         else:
-            kwargs = dict(key=constants.CEILING, last="", descending=True)
-            if limit:
-                kwargs["limit"] = limit
-            publications = self.get_docs("publication/published", **kwargs)
-        self.render(self.TEMPLATE,
-                    publications=publications,
-                    year=year,
-                    limit=limit)
+            subset.select_all(imit=limit)
+        self.render(self.TEMPLATE, publications=subset, year=year, limit=limit)
 
 
 class PublicationsTable(Publications):
@@ -554,70 +533,45 @@ class PublicationsJson(Publications):
         self.write(result)
 
 
-class FilterMixin:
-    "Method for getting publications filtered by form arguments."
+class PublicationsFile(Publications):
+    "Class adding methods for output of publications to a file."
 
     def get_filtered_publications(self):
         "Get the publications filtered according to form arguments."
-        result = []
-        # By years.
+        # Start with subset of publications based on given published years.
         years = self.get_arguments("years")
         if years:
-            for year in years:
-                result.extend(self.get_docs("publication/year", key=year))
-        # All publications.
+            subset = Subset(self.db, year=years[0])
+            for year in years[1:]:
+                subset = subset | Subset(self.db, year=year)
+        # No given years: Start with all publications.
         else:
-            result = self.get_docs("publication/published",
-                                   key=constants.CEILING,
-                                   last="",
-                                   descending=True)
-        # Filter by labels inclusive, if any given.
-        # A publication must be labelled by any of the given labels
-        # to be kept in this step.
-        labels = set(self.get_arguments("labels"))
-        if labels:
-            kept = []
-            for publication in result:
-                for label in publication.get("labels", {}):
-                    if label in labels:
-                        kept.append(publication)
-                        break
-            result = kept
+            subset = Subset(self.db, all=True)
 
-        # Filter by labels required, if any given.
-        # A publication must be labelled by all of the given
-        # labels to be kept in this step.
-        labels = set(self.get_arguments("labels_required"))
+        # If any labels, intersect with the union of those publications.
+        labels = list(set(self.get_arguments("labels")))
         if labels:
-            kept = []
-            for publication in result:
-                if not labels.difference(publication.get("labels", {})):
-                    kept.append(publication)
-            result = kept
+            subset_labels = Subset(self.db, label=labels[0])
+            for label in labels[1:]:
+                subset_labels = subset_labels | Subset(self.db, label=label)
+            subset = subset & subset_labels
 
-        # Filter by labels exclude, if any given.
-        # A publication labelled by any of the given labels
-        # will be excluded in this step.
-        labels = set(self.get_arguments("labels_excluded"))
-        if labels:
-            kept = []
-            for publication in result:
-                for label in publication.get("labels", {}):
-                    if label in labels:
-                        break
-                else:
-                    kept.append(publication)
-            result = kept
+        # If any required labels, intersect with publications for each label.
+        for label in set(self.get_arguments("labels_required")):
+            subset = subset & Subset(self.db, label=label)
 
-        # Filter by active labels during a year.
+        # If any labels to exclude, remove those publications.
+        for label in set(self.get_arguments("labels_excluded")):
+            subset = subset - Subset(self.db, label=label)
+
+        # Filter by active labels during a year (current, or explicit).
         active = self.get_argument("active", "")
         if settings["TEMPORAL_LABELS"] and active:
             if active.lower() == "current":
-                labels = set([d["value"] 
-                              for d in self.get_docs("label/current")])
+                labels = set([d["value"] for d in self.get_docs("label", "current")])
             else:
                 labels = set()
-                for label in self.get_docs("label/value"):
+                for label in self.get_docs("label", "value"):
                     started = label.get("started")
                     if started and started <= active: # Year as str
                         ended = label.get("ended")
@@ -626,327 +580,119 @@ class FilterMixin:
                                 labels.add(label["value"])
                         else:
                             labels.add(label["value"])
-            for publication in result:
-                publication["labels"] = dict([(k, publication["labels"][k]) 
-                                              for k in publication["labels"]
-                                              if k in labels])
-            result = [p for p in result if p["labels"]]
+            if labels:
+                labels = list(labels)
+                subset_labels = Subset(self.db, label=labels[0])
+                for label in labels[1:]:
+                    subset_labels = subset_labels | Subset(self.db, label=label)
+                subset = subset & subset_labels
+        return subset
 
-        result.sort(key=lambda p: p.get("published"), reverse=True)
+    def get_parameters(self):
+        "Return the output parameters from the form arguments."
+        result = dict(
+            single_label = utils.to_bool(self.get_argument("single_label", False)),
+            all_authors = utils.to_bool(self.get_argument("all_authors", False)),
+            issn = utils.to_bool(self.get_argument("issn", False)),
+            numbered = utils.to_bool(self.get_argument("numbered", False)),
+            doi_url= utils.to_bool(self.get_argument("doi_url", False)),
+            pmid_url= utils.to_bool(self.get_argument("pmid_url", False))
+        )
+        try:
+            result['maxline'] = self.get_argument("maxline", None)
+            if result['maxline']:
+                result['maxline'] = int(result['maxline'])
+                if result['maxline'] <= 20: raise ValueError
+        except (ValueError, TypeError):
+            result['maxline'] = None
+        delimiter = self.get_argument("delimiter", "").lower()
+        if delimiter == "comma":
+            result['delimiter'] = ","
+        elif delimiter == "semi-colon":
+            result['delimiter'] = ";"
+        encoding = self.get_argument("encoding", "").lower()
+        if encoding:
+            result['encoding'] = encoding
         return result
 
 
-class ParametersMixin:
-    "Method for setting output parameters by form arguments."
-
-    def set_parameters(self):
-        "Set output parameters. Some may not apply to the output format."
-        self.single_label = utils.to_bool(
-            self.get_argument("single_label", "false"))
-        self.all_authors = utils.to_bool(
-            self.get_argument("all_authors", "false"))
-        self.output_issn = utils.to_bool(self.get_argument("issn", "false"))
-        if settings["TEMPORAL_LABELS"]:
-            self.temporal_label = self.get_argument("temporal_label", "") or None
-        else:
-            self.temporal_label = None
-        self.numbered = utils.to_bool(self.get_argument("numbered", "false"))
-        self.doi_url= utils.to_bool(self.get_argument("doi_url", "false"))
-        self.pmid_url= utils.to_bool(self.get_argument("pmid_url", "false"))
-        try:
-            self.maxline = self.get_argument("maxline", None)
-            if self.maxline:
-                self.maxline = int(self.maxline)
-                if self.maxline <= 20: raise ValueError
-        except (ValueError, TypeError):
-            self.maxline = None
-
-
-class TabularWriteMixin(ParametersMixin):
-    "Abstract writer of publications in tabular form. For CSV and XLSX output."
-
-    def write_publications(self, publications):
-        "Collect output parameters and produce output."
-        self.set_parameters()
-        row = ["Title",
-               "Authors",
-               "Journal"]
-        if self.output_issn:
-            row.append("ISSN")
-            row.append("ISSN-L")
-            label_pos = 13
-        else:
-            label_pos = 11
-        row.extend(
-            ["Year", 
-             "Published",
-             "E-published",
-             "Volume",
-             "Issue",
-             "Pages",
-             "DOI",
-             "PMID",
-             "Labels",
-             "Qualifiers",
-             "IUID",
-             "URL",
-             "DOI URL",
-             "PubMed URL",
-             "QC",
-            ])
-        self.write_header(row)
-        for publication in publications:
-            year = publication.get("published")
-            if year:
-                year = year.split("-")[0]
-            journal = publication.get("journal") or {}
-            pmid = publication.get("pmid")
-            if pmid:
-                pubmed_url = constants.PUBMED_URL % pmid
-            else:
-                pubmed_url = ""
-            doi_url = publication.get("doi")
-            if doi_url:
-                doi_url = constants.DOI_URL % doi_url
-            row = [
-                publication.get("title"),
-                utils.get_formatted_authors(publication["authors"],
-                                            complete=self.all_authors),
-                journal.get("title")]
-            if self.output_issn:
-                row.append(journal.get("issn"))
-                row.append(self.get_issn_l(journal.get("issn")))
-            qc = "|".join(["%s:%s" % (k, v["flag"]) for 
-                           k, v in publication.get("qc", {}).items()])
-            row.extend(
-                [year,
-                 publication.get("published"),
-                 publication.get("epublished"),
-                 journal.get("volume"),
-                 journal.get("issue"),
-                 journal.get("pages"),
-                 publication.get("doi"),
-                 publication.get("pmid"),
-                 "",            # label_pos, see above; fixed below
-                 "",            # label_pos+1, see above; fixed below
-                 publication["_id"],
-                 self.absolute_reverse_url("publication", publication["_id"]),
-                 doi_url,
-                 pubmed_url,
-                 qc,
-                ]
-            )
-            # Labels to output: single per row, or concatenated.
-            labels = sorted(list(publication.get("labels", {}).items()))
-            if self.single_label:
-                for label, qualifier in labels:
-                    row[label_pos] = label
-                    row[label_pos+1] = qualifier
-                    self.write_row(row)
-            else:
-                row[label_pos] = "|".join([l[0] for l in labels])
-                row[label_pos+1] = "|".join([l[1] or "" for l in labels])
-                self.write_row(row)
-
-    def write_header(self, row):
-        "To be implemented by the inheriting subclass."
-        raise NotImplementedError
-
-    def write_row(self, row):
-        "To be implemented by the inheriting subclass."
-        raise NotImplementedError
-
-
-class PublicationsCsv(FilterMixin, TabularWriteMixin, Publications):
+class PublicationsCsv(PublicationsFile):
     "Publications CSV output."
 
     def get(self):
         "Show output selection page."
+        all_labels = sorted([l["value"]
+                             for l in self.get_docs("label", "value")])
         self.render("publications_csv.html",
                     year=self.get_argument("year", None),
                     labels=set(self.get_arguments("label")),
-                    all_labels=sorted([l["value"]
-                                       for l in self.get_docs("label/value")]),
+                    all_labels=all_labels,
                     cancel_url=self.get_argument("cancel_url", None))
 
-    # Authentication is *not* required!
     def post(self):
-        "Produce CSV output."
-        delimiter = self.get_argument("delimiter", "").lower()
-        if delimiter == "comma":
-            delimiter = ","
-        elif delimiter == "semi-colon":
-            delimiter = ";"
-        else:
-            delimiter = ","
-        self.csvbuffer = io.StringIO()
-        self.writer = csv.writer(self.csvbuffer,
-                                 delimiter=delimiter,
-                                 quoting=csv.QUOTE_NONNUMERIC)
-        self.write_publications(self.get_filtered_publications())
-        value = self.csvbuffer.getvalue()
-        if self.get_argument("encoding", "").lower() == "iso-8859-1":
-            value = value.encode("iso-8859-1", "ignore")
-        self.write(value)
+        writer = CsvWriter(self.db, self.application, **self.get_parameters())
+        writer.write(self.get_filtered_publications())
+        self.write(writer.get_content())
         self.set_header("Content-Type", constants.CSV_MIME)
         self.set_header("Content-Disposition", 
                         'attachment; filename="publications.csv"')
 
-    def write_header(self, row):
-        "Write the XLSX header row."
-        self.write_row(row)
 
-    def write_row(self, row):
-        "Write a CSV data row."
-        for pos, value in enumerate(row):
-            if isinstance(value, str):
-                # Remove CR characters; keep newline.
-                value = value.replace("\r", "")
-                # Remove any beginning potentially dangerous character '=-+@'.
-                # See http://georgemauer.net/2017/10/07/csv-injection.html
-                while len(value) and value[0] in "=-+@":
-                    value = value[1:]
-                row[pos] = value
-        self.writer.writerow(row)
-
-
-class PublicationsXlsx(FilterMixin, TabularWriteMixin, Publications):
+class PublicationsXlsx(PublicationsFile):
     "Publications XLSX output."
 
     def get(self):
         "Show output selection page."
+        all_labels = sorted([l["value"]
+                             for l in self.get_docs("label", "value")])
         self.render("publications_xlsx.html",
                     year=self.get_argument("year", None),
                     labels=set(self.get_arguments("label")),
-                    all_labels=sorted([l["value"]
-                                       for l in self.get_docs("label/value")]),
+                    all_labels=all_labels,
                     cancel_url=self.get_argument("cancel_url", None))
-
+        
     # Authentication is *not* required!
     def post(self):
         "Produce XLSX output."
-        self.xlsxbuffer = io.BytesIO()
-        self.workbook = xlsxwriter.Workbook(self.xlsxbuffer,
-                                            {"in_memory": True})
-        self.ws = self.workbook.add_worksheet("Publications")
-        self.write_publications(self.get_filtered_publications())
-        self.workbook.close()
-        self.xlsxbuffer.seek(0)
-        self.write(self.xlsxbuffer.getvalue())
+        writer = XlsxWriter(self.db, self.application, **self.get_parameters())
+        writer.write(self.get_filtered_publications())
+        self.write(writer.get_content())
         self.set_header("Content-Type", constants.XLSX_MIME)
         self.set_header("Content-Disposition", 
                         'attachment; filename="publications.xlsx"')
 
-    def write_header(self, row):
-        "Write the XLSX header row."
-        self.ws.freeze_panes(1, 0)
-        self.ws.set_row(0, None, self.workbook.add_format({"bold": True}))
-        self.ws.set_column(0, 1, 40) # Title
-        self.ws.set_column(2, 2, 20) # Authors
-        self.ws.set_column(3, 3, 10) # Journal
-        if self.output_issn:
-            self.ws.set_column(11, 11, 30) # DOI
-            self.ws.set_column(12, 12, 10) # PMID
-            self.ws.set_column(13, 13, 30) # Labels
-            self.ws.set_column(14, 15, 20) # Qualifiers, IUID
-        else:
-            self.ws.set_column(9, 9, 30) # DOI
-            self.ws.set_column(10, 10, 10) # PMID
-            self.ws.set_column(11, 11, 30) # Labels
-            self.ws.set_column(12, 13, 20) # Qualifiers, IUID
-        self.x = 0
-        self.write_row(row)
 
-    def write_row(self, row):
-        "Write an XLSX data row."
-        for y, item in enumerate(row):
-            if isinstance(item, str): # Remove CR characters; keep newline.
-                self.ws.write(self.x, y, item.replace("\r", ""))
-            else:
-                self.ws.write(self.x, y, item)
-        self.x += 1
-
-
-class PublicationsTxt(FilterMixin, ParametersMixin, Publications):
+class PublicationsTxt(PublicationsFile):
     "Publications text file output."
 
     def get(self):
         "Show output selection page."
+        all_labels = sorted([l["value"]
+                             for l in self.get_docs("label", "value")])
         self.render("publications_txt.html",
                     year=self.get_argument("year", None),
                     labels=set(self.get_arguments("label")),
-                    all_labels=sorted([l["value"]
-                                       for l in self.get_docs("label/value")]),
+                    all_labels=all_labels,
                     cancel_url=self.get_argument("cancel_url", None))
 
     # Authentication is *not* required!
     def post(self):
-        "Produce TXT output."
-        publications = self.get_filtered_publications()
-        self.set_parameters()
-        self.text = io.StringIO()
-        for number, publication in enumerate(publications, 1):
-            if self.numbered:
-                self.line = f"{number}."
-                self.indent = " " * (len(self.line) + 1)
-            else:
-                self.line = ""
-                self.indent = ""
-            authors = utils.get_formatted_authors(publication["authors"],
-                                                  complete=self.all_authors)
-            self.write_fragment(authors, comma=False)
-            self.write_fragment(f'"{publication.get("title")}"')
-            journal = publication.get("journal") or {}
-            self.write_fragment(journal.get("title") or "")
-            year = publication.get("published")
-            if year:
-                year = year.split("-")[0]
-            self.write_fragment(year)
-            if journal.get("volume"):
-                self.write_fragment(journal["volume"])
-            if journal.get("issue"):
-                self.write_fragment(f"({journal['issue']})", comma=False)
-            if journal.get("pages"):
-                self.write_fragment(journal["pages"])
-            if self.doi_url:
-                doi_url = publication.get("doi")
-                if doi_url:
-                    self.write_fragment(constants.DOI_URL % doi_url)
-            if self.pmid_url:
-                pmid_url = publication.get("pmid")
-                if pmid_url:
-                    self.write_fragment(constants.PUBMED_URL % pmid_url)
-            if self.line:
-                self.text.write(self.line)
-                self.text.write("\n")
-            self.text.write("\n")
-        value = self.text.getvalue()
-        self.write(value)
+        "Produce text output."
+        writer = TextWriter(self.db, self.application, **self.get_parameters())
+        writer.write(self.get_filtered_publications())
+        self.write(writer.get_content())
         self.set_header("Content-Type", constants.TXT_MIME)
         self.set_header("Content-Disposition", 
                         'attachment; filename="publications.txt"')
-
-    def write_fragment(self, fragment, comma=True):
-        "Write the given fragment to the line."
-        if comma:
-            self.line += ","
-        parts = fragment.split()
-        for part in parts:
-            length = len(self.line) + len(part) + 1
-            if self.maxline is not None and length > self.maxline:
-                self.text.write(self.line + "\n")
-                self.line = self.indent + part
-            else:
-                if self.line:
-                    self.line += " "
-                self.line += part
 
 
 class PublicationsNoPmid(PublicationMixin, RequestHandler):
     "Publications lacking PMID."
 
     def get(self):
-        publications = self.get_docs("publication/no_pmid")
+        subset = Subset(self.db)
+        subset.select_no_pmid()
+        publications = subset.get_publications()
         for publication in publications:
             publication["pmid_findable"] = self.is_editable(publication) and \
                                            publication.get("doi")
@@ -993,7 +739,9 @@ class PublicationsNoDoi(RequestHandler):
     "Publications lacking DOI."
 
     def get(self):
-        publications = self.get_docs("publication/no_doi")
+        subset = Subset(self.db)
+        subset.select_no_doi()
+        publications = subset.get_publications()
         publications.sort(key=lambda p: p["modified"])
         self.render("publications_no_doi.html", publications=publications)
 
@@ -1021,11 +769,9 @@ class PublicationsNoLabel(RequestHandler):
     "Publications lacking label."
 
     def get(self):
-        publications = []
-        for publication in self.get_docs("publication/modified", descending=True):
-            if not publication.get("labels"):
-                publications.append(publication)
-        self.render("publications_no_label.html", publications=publications)
+        subset = Subset(self.db)
+        subset.select_no_label()
+        self.render("publications_no_label.html", publications=subset)
 
 
 class PublicationsNoLabelJson(PublicationsNoLabel):
@@ -1060,7 +806,7 @@ class PublicationsDuplicates(RequestHandler):
     def get(self):
         lookup = {}             # Key: 4 longest words in title
         duplicates = []
-        for publ1 in self.get_docs("publication/modified"):
+        for publ1 in self.get_docs("publication", "modified"):
             title = utils.to_ascii(publ1["title"], alphanum=True).lower()
             parts = sorted(title.split(), key=len, reverse=True)
             key = " ".join(parts[:4])
@@ -1082,10 +828,11 @@ class PublicationsModified(PublicationMixin, RequestHandler):
 
     def get(self):
         self.check_curator()
-        kwargs = dict(descending=True,
-                      limit=self.get_limit(settings["LONG_PUBLICATIONS_LIST_LIMIT"]))
-        docs = self.get_docs("publication/modified", **kwargs)
-        self.render("publications_modified.html", publications=docs)
+        limit = self.get_limit(settings["LONG_PUBLICATIONS_LIST_LIMIT"])
+        subset = Subset(self.db)
+        subset.select_modified(limit=limit)
+        publications = subset.get_publications("modified")
+        self.render("publications_modified.html", publications=publications)
 
 
 class PublicationAdd(PublicationMixin, RequestHandler):
@@ -1123,8 +870,8 @@ class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
         if fetched:
             for iuid in fetched.split("_"):
                 try:
-                    docs.append(self.get_doc(iuid))
-                except KeyError:
+                    docs.append(self.db[iuid])
+                except couchdb2.NotFoundError:
                     pass
         checked_labels = dict()
         labels_arg = self.get_argument("labels", "")
@@ -1226,7 +973,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.update_labels()
                 saver.set_notes()
         except SaverError:
-            self.set_error_flash(utils.REV_ERROR)
+            self.set_error_flash(constants.REV_ERROR)
         self.see_other("publication", publication["_id"])
 
 
@@ -1261,7 +1008,7 @@ class PublicationResearchers(PublicationMixin, RequestHandler):
                 saver.check_revision()
                 saver.set_researchers()
         except SaverError:
-            self.set_error_flash(utils.REV_ERROR)
+            self.set_error_flash(constants.REV_ERROR)
         self.see_other("publication", publication["_id"])
 
 
@@ -1313,7 +1060,7 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
                                           description=description))
                     saver["xrefs"] = xrefs
         except SaverError:
-            self.set_error_flash(utils.REV_ERROR)
+            self.set_error_flash(constants.REV_ERROR)
         except (tornado.web.MissingArgumentError, ValueError) as error:
             self.set_error_flash(str(error))
         if self.get_argument("__save__", "") == "continue":
@@ -1334,12 +1081,13 @@ class PublicationBlacklist(PublicationMixin, RequestHandler):
             self.see_other("home", error=str(error))
             return
         blacklist = {constants.DOCTYPE: constants.BLACKLIST,
+                     "_id": utils.get_iuid(),
                      "title": publication["title"],
                      "pmid": publication.get("pmid"),
                      "doi": publication.get("doi"),
                      "created": utils.timestamp(),
                      "owner": self.current_user["email"]}
-        self.db[utils.get_iuid()] = blacklist
+        self.db.put(blacklist)
         self.delete_entity(publication)
         try:
             self.redirect(self.get_argument("next"))
@@ -1370,26 +1118,6 @@ class ApiPublicationFetch(PublicationFetchMixin, PublicationMixin,
         self.write(
             dict(iuid=publ["_id"],
                  href=self.absolute_reverse_url("publication", publ["_id"])))
-
-
-class PublicationQc(PublicationMixin, RequestHandler):
-    "Set the QC aspect flag for the publication."
-
-    @tornado.web.authenticated
-    def post(self, identifier):
-        try:
-            publication = self.get_publication(identifier)
-        except (KeyError, ValueError) as error:
-            self.see_other("home", error=str(error))
-            return
-        try:
-            aspect = self.get_argument("aspect")
-            flag = utils.to_bool(self.get_argument("flag", False))
-            with PublicationSaver(publication, rqh=self) as saver:
-                saver.set_qc(aspect, flag)
-        except (tornado.web.MissingArgumentError, ValueError) as error:
-            self.set_error_flash(str(error))
-        self.see_other("publication", identifier)
 
 
 class PublicationUpdatePmid(PublicationMixin, RequestHandler):

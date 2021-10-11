@@ -1,0 +1,54 @@
+{# Subset page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Subset{% end %}
+{% block body_title %}
+<span class="glyphicon glyphicon-adjust"></span>
+Subset
+{% end %}
+
+{% block main_content %}
+<form action="{{ reverse_url('subset') }}"
+      role="form" class="form-horizontal"
+      method="POST">
+  {% module xsrf_form_html() %}
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-sm-2" for="title">Selection expression</label>
+    <div class="col-sm-10">
+      <textarea class="form-control" rows="8"
+		name="expression" id="expression"
+		>{{ expression or '' }}</textarea>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-3 col-sm-offset-2">
+      <button type="submit" class="btn btn-success btn-block">
+	<span class="glyphicon glyphicon-adjust"></span>
+	Select
+      </button>
+    </div>
+  </div>
+
+</form>
+
+{% if publications is not None %}
+<p>
+  {{ len(publications) }} publications
+</p>
+{% for publication in publications %}
+{% include 'publication_item.html' %}
+{% end %} {# for #}
+{% end %}
+
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ reverse_url('home') }}"
+   role="button" class="btn btn-default btn-block">
+  <span class="glyphicon glyphicon-remove-circle"></span>
+  Cancel
+</a>
+{% end %} {# block meta_content #}

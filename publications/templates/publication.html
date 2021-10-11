@@ -14,10 +14,7 @@
   {% module Authors(publication['authors'], complete=True) %}
 </p>
 <p>
-  {{ publication['journal'].get('title') or '-' }}
-  <strong>{{ publication['journal'].get('volume') or '-' }}</strong>
-  ({{ publication['journal'].get('issue') or '-' }})
-  {{ publication['journal'].get('pages') or '-' }}
+  {% module Journal(publication) %}
   {% module Published(publication) %}
   {% module OpenAccess(publication) %}
 </p>
@@ -36,9 +33,6 @@
     </a>
   </p>
   {% end %}
-</p>
-<p>
-  {% module QcFlags(publication) %}
 </p>
 {% module PubmedButton(publication.get('pmid'), full=True) %}
 {% module DoiButton(publication.get('doi'), full=True) %}
@@ -186,49 +180,6 @@
   </table>
 </p>
 {% end %} {# if is_deletable #}
-
-<p>
-  <br>
-  <h4>QC flags
-    <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#qc"
-       title="Explain 'QC'" target="_">
-      <span class="glyphicon glyphicon-question-sign"></span>
-    </a>
-  </h4>
-</p>
-{% for aspect in settings['PUBLICATION_QC_ASPECTS'] %}
-<p>
-  <table>
-    <tr>
-      <td>
-        <form action="{{ reverse_url('publication_qc', publication['_id']) }}"
-              method="POST"
-              role="form">
-          {% module xsrf_form_html() %}
-          <input type="hidden" name="aspect" value="{{ aspect }}">
-          <input type="hidden" name="flag" value="true">
-          <button type="submit" class="btn btn-xs btn-success">
-            <span class="glyphicon glyphicon-ok"></span>
-          </button>
-        </form>
-      </td>
-      <td style="padding-left: 4px;">
-        <form action="{{ reverse_url('publication_qc', publication['_id']) }}"
-              method="POST"
-              role="form">
-          {% module xsrf_form_html() %}
-          <input type="hidden" name="aspect" value="{{ aspect }}">
-          <input type="hidden" name="flag" value="false">
-          <button type="submit" class="btn btn-xs btn-danger">
-            <span class="glyphicon glyphicon-remove"></span>
-          </button>
-        </form>
-      </td>
-      <td style="padding-left: 4px;">{{ aspect.capitalize() }}</td>
-    </tr>
-  </table>
-</p>
-{% end %} {# for aspect ... #}
 
 <p>
   <span title="Last modified" class="localtime">{{ publication['modified'] }}</span>

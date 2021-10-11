@@ -8,6 +8,11 @@ for the documentation, including How-to and Installation.
 
 Requires Python 3.6 or higher.
 
+**NOTE:** Since version 6.0, the Python module
+[CouchDB2](https://pypi.org/project/CouchDB2/) is used instead of
+[CouchDB](https://pypi.org/project/CouchDB/). Upgrade your packages
+according to the `requirements.txt`.
+
 Features
 --------
 
@@ -69,7 +74,9 @@ Implementation
 - [Python 3.6](https://www.python.org/)
 - [tornado](http://www.tornadoweb.org/en/stable/)
 - [CouchDB server](http://couchdb.apache.org/)
-- [CouchDB-python 1.2](https://pypi.python.org/pypi/CouchDB/1.2)
+- [CouchDB2](https://pypi.python.org/pypi/CouchDB2/)
+  (changed from [CouchDB 1.2](https://pypi.org/project/CouchDB/)
+   in version 6.0)
 - [pyyaml](https://pypi.python.org/pypi/PyYAML)
 - [requests](http://docs.python-requests.org/en/master/)
 
