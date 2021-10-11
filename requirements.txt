@@ -1,4 +1,4 @@
-certifi==2019.11.28
+certifi==2021.10.8
 chardet==3.0.4
 charset-normalizer==2.0.6
 click==8.0.1
@@ -9,6 +9,5 @@ PyYAML==5.4
 requests==2.26.0
 style==1.1.0
 tornado==6.0.4
-update==0.0.1
 urllib3==1.26.7
 XlsxWriter==3.0.1
