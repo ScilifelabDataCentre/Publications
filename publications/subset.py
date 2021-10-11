@@ -174,10 +174,6 @@ class Subset:
         "Select all publications lacking PubMed identifier."
         self._select("publication", "no_doi", limit=limit)
 
-    def select_no_published(self, limit=None):
-        "Select all publications lacking 'published' field."
-        self._select("publication", "no_published", limit=limit)
-
     def select_no_label(self, limit=None):
         "Select all publications having no label"
         self._select("publication", "no_label", limit=limit)
@@ -416,25 +412,20 @@ if __name__ == "__main__":
     utils.load_settings()
     db = utils.get_db()
 
-    subset = Subset(db)
-    subset.select_no_published()
-    print(subset)
-    print(subset.iuids)
+    parser = get_parser()
+    y2020 = Subset(db, year="2020")
+    variables = dict(y2020=y2020)
 
-    # parser = get_parser()
-    # y2020 = Subset(db, year="2020")
-    # variables = dict(y2020=y2020)
+    # Published during January 2020 with NGI.
+    line = "(published(2020-01-01) - published(2020-02-01)) # label(National Genomics Infrastructure)"
+    print(line)
+    print("===", get_subset(db, line, variables=variables))
+    s1 = Subset(db)
+    s1.select_published("2020-01-01")
+    s2 = Subset(db)
+    s2.select_published("2020-02-01")
+    print("---", (s1-s2) & Subset(db, label="National Genomics Infrastructure"))
+    print()
 
-    # # Published during January 2020 with NGI.
-    # line = "(published(2020-01-01) - published(2020-02-01)) # label(National Genomics Infrastructure)"
-    # print(line)
-    # print("===", get_subset(db, line, variables=variables))
-    # s1 = Subset(db)
-    # s1.select_published("2020-01-01")
-    # s2 = Subset(db)
-    # s2.select_published("2020-02-01")
-    # print("---", (s1-s2) & Subset(db, label="National Genomics Infrastructure"))
-    # print()
-
-    # line ="(year(2010) # label(National Genomics Infrastructure)) # author(a*)"
-    # print("===", get_subset(db, line, variables=variables))
+    line ="(year(2010) # label(National Genomics Infrastructure)) # author(a*)"
+    print("===", get_subset(db, line, variables=variables))

@@ -27,8 +27,8 @@ Edit xrefs for
       {% module xsrf_form_html() %}
       <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
       <div class="form-group">
-        <label class="control-label col-sm-2" for="db">Database</label>
-        <div class="col-sm-5">
+        <label class="control-label col-md-2" for="db">Database</label>
+        <div class="col-md-5">
           <select class="form-control" name="db" id="db"
                   aria-describedby="dbHelp">
             {% for dbname in sorted(settings['XREF_TEMPLATE_URLS'].keys()) %}
@@ -39,7 +39,7 @@ Edit xrefs for
             Select a pre-defined database.
           </span>
         </div>
-        <div class="col-sm-5">
+        <div class="col-md-5">
           <input type="text" class="form-control" name="db_other" id="db_other">
           <span id="dbHelp" class="help-block text-warning">
             Specify another database. If given, this value will be used.
@@ -47,8 +47,8 @@ Edit xrefs for
         </div>
       </div>
       <div class="form-group">
-        <label class="control-label col-sm-2" for="key">Accession</label>
-        <div class="col-sm-10">
+        <label class="control-label col-md-2" for="key">Accession</label>
+        <div class="col-md-10">
           <input type="text" class="form-control" name="key" id="key"
                  aria-describedby="keyHelpt">
           <span id="keyHelp" class="help-block">
@@ -58,8 +58,8 @@ Edit xrefs for
         </div>
       </div>
       <div class="form-group">
-        <label class="control-label col-sm-2" for="description">Description</label>
-        <div class="col-sm-10">
+        <label class="control-label col-md-2" for="description">Description</label>
+        <div class="col-md-10">
           <input type="text" class="form-control"
                  name="description" id="description"
                  aria-describedby="descriptionHelp">
@@ -69,7 +69,7 @@ Edit xrefs for
         </div>
       </div>
       <div class="form-group">
-        <div class="col-sm-10 col-sm-offset-2">
+        <div class="col-md-10 col-md-offset-2">
           <button type="submit" class="btn btn-success"
                   style="padding-left: 3em; padding-right: 3em;"
                   aria-describedby="addHelp">
@@ -106,25 +106,25 @@ Edit xrefs for
       <input type="hidden" name="db" value="{{ xref['db'] }}">
       <input type="hidden" name="key" value="{{ xref['key'] }}">
       <div class="form-group vcompress">
-        <label class="control-label col-sm-2">Database</label>
-        <div class="col-sm-10">
+        <label class="control-label col-md-2">Database</label>
+        <div class="col-md-10">
           <p class="form-control-static">{{ xref['db'] }}</p>
         </div>
       </div>
       <div class="form-group vcompress">
-        <label class="control-label col-sm-2">Accession</label>
-        <div class="col-sm-10">
+        <label class="control-label col-md-2">Accession</label>
+        <div class="col-md-10">
           <p class="form-control-static">{{ xref['key'] }}</p>
         </div>
       </div>
       <div class="form-group vcompress">
-        <label class="control-label col-sm-2">Description</label>
-        <div class="col-sm-10">
+        <label class="control-label col-md-2">Description</label>
+        <div class="col-md-10">
           <p class="form-control-static">{{ xref.get('description') or '-' }}</p>
         </div>
       </div>
       <div class="form-group">
-        <div class="col-sm-10 col-sm-offset-2">
+        <div class="col-md-10 col-md-offset-2">
           <button type="submit" class="btn btn-danger">
 	    <span class="glyphicon glyphicon-remove"></span>
 	    Delete

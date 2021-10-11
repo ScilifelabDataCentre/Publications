@@ -20,8 +20,8 @@ Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
   <input type="hidden" name="_rev" value="{{ researcher['_rev'] }}">
 
   <div class="form-group has-feedback">
-    <label class="control-label col-sm-1" for="family">Family name</label>
-    <div class="col-sm-6">
+    <label class="control-label col-md-1" for="family">Family name</label>
+    <div class="col-md-6">
       <input type="text" name="family" id="family" class="form-control"
              value="{{ researcher['family'] }}">
       <span class="help-block">
@@ -31,8 +31,8 @@ Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
   </div>
 
   <div class="form-group has-feedback">
-    <label class="control-label col-sm-1" for="given">Given name</label>
-    <div class="col-sm-6">
+    <label class="control-label col-md-1" for="given">Given name</label>
+    <div class="col-md-6">
       <input name="given" id="given" type="text" class="form-control"
              value="{{ researcher['given'] }}">
       <span class="help-block">
@@ -42,8 +42,8 @@ Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
   </div>
 
   <div class="form-group has-feedback">
-    <label class="control-label col-sm-1" for="initials">Initials</label>
-    <div class="col-sm-6">
+    <label class="control-label col-md-1" for="initials">Initials</label>
+    <div class="col-md-6">
       <input name="initials" id="initials" type="text" class="form-control"
              value="{{ researcher['initials'] }}">
       <span class="help-block">
@@ -54,8 +54,8 @@ Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
   </div>
 
   <div class="form-group has-feedback">
-    <label class="control-label col-sm-1" for="orcid">ORCID</label>
-    <div class="col-sm-6">
+    <label class="control-label col-md-1" for="orcid">ORCID</label>
+    <div class="col-md-6">
       {% if researcher.get('orcid') %}
       <p class="form-control-static">{{ researcher.get('orcid') }}</p>
       {% else %}
@@ -65,9 +65,9 @@ Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
   </div>
 
   <div class="form-group has-feedback">
-    <label class="control-label col-sm-1" for="affiliations">
+    <label class="control-label col-md-1" for="affiliations">
       Affiliations</label>
-    <div class="col-sm-8">
+    <div class="col-md-8">
       <textarea name="affiliations" id="affiliations"
                 class="form-control" rows="6"
                 >{{ '\n'.join(researcher['affiliations']) }}</textarea>

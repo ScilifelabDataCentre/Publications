@@ -19,8 +19,8 @@ Merge '{{ label['value'] }}'
   <input type="hidden" name="_rev" value="{{ label['_rev'] }}">
 
   <div class="form-group has-feedback">
-    <label class="control-label col-sm-1" for="merge">Into</label>
-    <div class="col-sm-8">
+    <label class="control-label col-md-1" for="merge">Into</label>
+    <div class="col-md-8">
       <select class="form-control" name="merge" id="merge">
 	{% for l in labels %}
 	{% if l['value'] != label['value'] %}

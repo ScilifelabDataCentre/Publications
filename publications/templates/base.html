@@ -321,17 +321,17 @@
     <div class="container-fluid">
       {% block body_header %}
       <div class="row">
-	<div class="col-sm-2">
+	<div class="col-md-2">
 	  <img src="{{ reverse_url('site', 'logo.png') }}"
 	       class="img-responsive"
 	       style="padding-bottom: 10px;"
 	       title="{{ settings['SITE_NAME'] }}">
 	</div>
-	<div class="col-sm-8">
+	<div class="col-md-8">
 	  <h1>{% block body_title %}{{ title }}{% end %}</h1>
 	  {% block body_subtitle %}{% end %}
 	</div>
-	<div class="col-sm-2">
+	<div class="col-md-2">
 	  {% block alt_format %}
 	  {% end %}
 	</div>
@@ -342,7 +342,7 @@
       {% try %}
       {% if error %}
       <div class="row">
-	<div class="col-sm-9 col-sm-offset-2 lead alert alert-danger">
+	<div class="col-md-9 col-md-offset-2 lead alert alert-danger">
 	  <strong>Error:</strong> {{ error }}
 	</div>
       </div>
@@ -355,7 +355,7 @@
       {% try %}
       {% if message %}
       <div class="row">
-	<div class="col-sm-9 col-sm-offset-2 lead alert alert-warning">
+	<div class="col-md-9 col-md-offset-2 lead alert alert-warning">
 	  {# Allow links in message #}
 	  {% raw message %}
 	</div>
@@ -367,7 +367,7 @@
 
       {% block content %}
       <div class="row">
-	<div class="col-sm-2">
+	<div class="col-md-2">
           <p class="text-center">
 	    <span class="glyphicon glyphicon-file"></span> Publications
           </p>
@@ -403,11 +403,11 @@
 	  </p>
 	  {% end %} {# block menu_content #}
 	</div>
-	<div class="col-sm-8">
+	<div class="col-md-8">
 	  {% block main_content %}
 	  {% end %} {# block main_content #}
 	</div>
-	<div class="col-sm-2">
+	<div class="col-md-2">
 	  {% block meta_content %}
 	  {% end %} {# block meta_content #}
 	</div>
@@ -417,7 +417,7 @@
       {% block footer %}
       <hr>
       <div class="row">
-	<div class="col-sm-8">
+	<div class="col-md-8">
 	  {% if settings['SITE_PARENT_URL'] %}
 	  <a href="{{ settings['SITE_PARENT_URL'] }}">
             {{ settings['SITE_PARENT_NAME'] }}
@@ -426,7 +426,7 @@
             {{ settings['SITE_PARENT_NAME'] }}
 	  {% end %}
         </div>
-	<div class="col-sm-2 col-sm-offset-2">
+	<div class="col-md-2 col-md-offset-2">
 	  <a href="{{ settings['SOURCE_URL'] }}"
              target="_blank" class="pull-right">
 	    <span class="glyphicon glyphicon-briefcase"></span>

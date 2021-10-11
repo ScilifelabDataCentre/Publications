@@ -245,12 +245,6 @@ function (doc) {
   if (!doc.published) return;
   emit(doc.published, null);
 }"""),
-        no_published=dict(map=     # publication/no_published
-"""function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (doc.published) return;
-  emit(doc.modified, null);
-}"""),
         title=dict(map=         # publication/title
 """var REMOVE = /[%s]/g;
 var IGNORE = {%s};

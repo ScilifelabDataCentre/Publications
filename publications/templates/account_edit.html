@@ -21,8 +21,8 @@ Edit '{{ account['email'] }}'
   <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
 
   <div class="form-group">
-    <label class="control-label col-sm-1" for="name">Name</label>
-    <div class="col-sm-11">
+    <label class="control-label col-md-1" for="name">Name</label>
+    <div class="col-md-11">
       <input type="text" name="name" id="name" size="40"
 	     value="{{ account.get('name') or '' }}">
       <span class="help-block">
@@ -33,8 +33,8 @@ Edit '{{ account['email'] }}'
 
   {% if is_admin %}
   <div class="form-group">
-    <label class="control-label col-sm-1" for="role">Role</label>
-    <div class="col-sm-11">
+    <label class="control-label col-md-1" for="role">Role</label>
+    <div class="col-md-11">
       {% for role in constants.ROLES %}
       {% set checked = role == account['role'] and 'checked' or '' %}
       <label class="radio-inline">
@@ -56,8 +56,8 @@ Edit '{{ account['email'] }}'
 
   {% if is_admin %}
   <div class="form-group">
-    <label class="control-label col-sm-1" for="labels">Labels</label>
-    <div class=" col-sm-6">
+    <label class="control-label col-md-1" for="labels">Labels</label>
+    <div class=" col-md-6">
       <select multiple size="8" class="form-control" name="labels" id="labels">
 	{% for label in labels %}
 	{% if label in account['labels'] %}
@@ -76,8 +76,8 @@ Edit '{{ account['email'] }}'
   {% end %} {# if is_admin #}
 
   <div class="form-group">
-    <label class="control-label col-sm-1" for="api_key">API&nbsp;key</label>
-    <div class="col-sm-11">
+    <label class="control-label col-md-1" for="api_key">API&nbsp;key</label>
+    <div class="col-md-11">
       <div class="checkbox">
         <label>
           <input type="checkbox" name="api_key" id="api_key" value="true">
@@ -88,7 +88,7 @@ Edit '{{ account['email'] }}'
   </div>
 
   <div class="form-group">
-    <div class="col-sm-3 col-sm-offset-1">
+    <div class="col-md-3 col-md-offset-1">
       <button type="submit" class="btn btn-success btn-block">
 	<span class="glyphicon glyphicon-save"></span>
 	Save
