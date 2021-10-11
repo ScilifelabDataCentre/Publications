@@ -160,7 +160,7 @@ class Subset:
             iuid = "-"
         self._select("publication", "researcher", key=iuid)
 
-    def select_issn(self, issn:
+    def select_issn(self, issn):
         "Select publications by the journal ISSN."
         self._select("publication", "issn", key=issn)
 
