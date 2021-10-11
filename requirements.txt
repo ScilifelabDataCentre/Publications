@@ -9,5 +9,5 @@ pyparsing==2.4.7
 PyYAML==5.4
 requests==2.26.0
 tornado==6.0.4
-urllib3==1.26.4
+urllib3==1.26.7
 XlsxWriter==3.0.1
