@@ -413,6 +413,39 @@ def get_formatted_authors(authors, complete=False):
     return ", ".join(result)
 
 
+class DownloadParametersMixin:
+    """Mixin for getting the parameters controlling the download output.
+    To be inherited by a RequestHandler subclass.
+    """
+
+    def get_parameters(self):
+        "Return the output parameters from the form arguments."
+        result = dict(
+            single_label = to_bool(self.get_argument("single_label", False)),
+            all_authors = to_bool(self.get_argument("all_authors", False)),
+            issn = to_bool(self.get_argument("issn", False)),
+            numbered = to_bool(self.get_argument("numbered", False)),
+            doi_url= to_bool(self.get_argument("doi_url", False)),
+            pmid_url= to_bool(self.get_argument("pmid_url", False))
+        )
+        try:
+            result['maxline'] = self.get_argument("maxline", None)
+            if result['maxline']:
+                result['maxline'] = int(result['maxline'])
+                if result['maxline'] <= 20: raise ValueError
+        except (ValueError, TypeError):
+            result['maxline'] = None
+        delimiter = self.get_argument("delimiter", "").lower()
+        if delimiter == "comma":
+            result['delimiter'] = ","
+        elif delimiter == "semi-colon":
+            result['delimiter'] = ";"
+        encoding = self.get_argument("encoding", "").lower()
+        if encoding:
+            result['encoding'] = encoding
+        return result
+
+
 class EmailServer:
     "A connection to an email server for sending emails."
 

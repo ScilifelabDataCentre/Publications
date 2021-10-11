@@ -1,13 +1,19 @@
-{# Fragment for filtering the selection of publications. #}
+{# Section for filtering the selection of publications. #}
 
-{# By year. #}
 <div class="form-group">
   <div class="col-md-offset-1 col-md-9">
-    <strong>Note:</strong> Each filter is applied in turn, so that it
-    works on the set of publications produced by the previous one.
+    <p>
+      <strong>Note:</strong> Each filter is applied in turn, so that it
+      works on the set of publications produced by the previous one.
+    </p>
+    <p>
+      A general selection expression evaluator for generating any subset is available
+      <a href="{{ reverse_url('subset') }}">here</a>.
+    </p>
   </div>
 </div>
 
+{# By year. #}
 <div class="form-group">
   <label class="control-label col-md-1" for="years">Years</label>
   <div class="col-md-3">

@@ -27,9 +27,9 @@ class RequestHandler(tornado.web.RequestHandler):
         result["utils"] = utils
         result["is_admin"] = self.is_admin()
         result["is_curator"] = self.is_curator()
-        result["error"] = self.get_cookie("error", "").replace("_", " ")
+        result["error"] = urllib.parse.unquote(self.get_cookie("error", ""))
         self.clear_cookie("error")
-        result["message"] = self.get_cookie("message", "").replace("_", " ")
+        result["message"] = urllib.parse.unquote(self.get_cookie("message", ""))
         self.clear_cookie("message")
         result["year_counts"] = [(r.key, r.value) for r in 
                                  self.db.view("publication", 
@@ -82,9 +82,7 @@ class RequestHandler(tornado.web.RequestHandler):
         self.set_flash("error", message)
 
     def set_flash(self, name, message):
-        message = message.replace(" ", "_")
-        message = message.replace(";", "_")
-        message = message.replace(",", "_")
+        message = urllib.parse.quote_plus(message)
         self.set_cookie(name, message)
 
     def get_doc(self, designname, viewname, key):

@@ -533,7 +533,7 @@ class PublicationsJson(Publications):
         self.write(result)
 
 
-class PublicationsFile(Publications):
+class PublicationsFile(utils.DownloadParametersMixin, Publications):
     "Class adding methods for output of publications to a file."
 
     def get_filtered_publications(self):
@@ -587,33 +587,6 @@ class PublicationsFile(Publications):
                     subset_labels = subset_labels | Subset(self.db, label=label)
                 subset = subset & subset_labels
         return subset
-
-    def get_parameters(self):
-        "Return the output parameters from the form arguments."
-        result = dict(
-            single_label = utils.to_bool(self.get_argument("single_label", False)),
-            all_authors = utils.to_bool(self.get_argument("all_authors", False)),
-            issn = utils.to_bool(self.get_argument("issn", False)),
-            numbered = utils.to_bool(self.get_argument("numbered", False)),
-            doi_url= utils.to_bool(self.get_argument("doi_url", False)),
-            pmid_url= utils.to_bool(self.get_argument("pmid_url", False))
-        )
-        try:
-            result['maxline'] = self.get_argument("maxline", None)
-            if result['maxline']:
-                result['maxline'] = int(result['maxline'])
-                if result['maxline'] <= 20: raise ValueError
-        except (ValueError, TypeError):
-            result['maxline'] = None
-        delimiter = self.get_argument("delimiter", "").lower()
-        if delimiter == "comma":
-            result['delimiter'] = ","
-        elif delimiter == "semi-colon":
-            result['delimiter'] = ";"
-        encoding = self.get_argument("encoding", "").lower()
-        if encoding:
-            result['encoding'] = encoding
-        return result
 
 
 class PublicationsCsv(PublicationsFile):
@@ -864,8 +837,9 @@ class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_curator()
-        fetched = self.get_cookie("fetched", None)
-        self.clear_cookie("fetched")
+        fetched = self.get_cookie("fetched", None,
+                                  domain=settings["COOKIEDOMAIN"])
+        self.clear_cookie("fetched", domain=settings["COOKIEDOMAIN"])
         docs = []
         if fetched:
             for iuid in fetched.split("_"):
@@ -924,7 +898,8 @@ class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
             else:
                 fetched.add(publ["_id"])
 
-        self.set_cookie("fetched", "_".join(fetched))
+        self.set_cookie("fetched", "_".join(fetched),
+                        domain=settings["COOKIEDOMAIN"])
         kwargs = {"message": f"{len(fetched)} publication(s) fetched."}
         kwargs["labels"] = "|".join([f"{label}/{qualifier}" if qualifier 
                                      else label

@@ -8,9 +8,10 @@ from publications import constants
 from publications import settings
 from publications import utils
 from publications.requesthandler import RequestHandler
+from publications.writer import CsvWriter, XlsxWriter, TextWriter
 
 
-class SubsetDisplay(RequestHandler):
+class SubsetDisplay(utils.DownloadParametersMixin, RequestHandler):
     "Display, edit and evaluate selection expressions."
 
     def get(self):
@@ -19,12 +20,48 @@ class SubsetDisplay(RequestHandler):
 
     # Authentication is *not* required!
     def post(self):
-        expression = self.get_argument("expression")
+        expression = self.get_argument("expression", "")
         try:
+            if not expression: raise ValueError("No expression given.")
             subset = get_subset(self.db, expression)
         except ValueError as error:
-            self.set_error_flash(error)
-        self.render("subset.html", expression=expression, publications=subset)
+            subset = Subset(self.db) # Empty subset.
+            message = str(error)
+        else:
+            message = None
+        format = self.get_argument("format", "")
+        if format and not message:
+            parameters = self.get_parameters()
+            if format == "CSV":
+                writer = CsvWriter(self.db, self.application, **parameters)
+                writer.write(subset)
+                self.write(writer.get_content())
+                self.set_header("Content-Type", constants.CSV_MIME)
+                self.set_header("Content-Disposition", 
+                                'attachment; filename="publications.csv"')
+                return
+            elif format == "XLSX":
+                writer = XlsxWriter(self.db, self.application, **parameters)
+                writer.write(subset)
+                self.write(writer.get_content())
+                self.set_header("Content-Type", constants.XLSX_MIME)
+                self.set_header("Content-Disposition", 
+                                'attachment; filename="publications.xlsx"')
+                return
+            elif format == "TXT":
+                writer = TextWriter(self.db, self.application, **parameters)
+                writer.write(subset)
+                self.write(writer.get_content())
+                self.set_header("Content-Type", constants.TXT_MIME)
+                self.set_header("Content-Disposition", 
+                                'attachment; filename="publications.txt"')
+                return
+            else:
+                error = f"Unknown format '{format}"
+        self.render("subset.html",
+                    expression=expression,
+                    publications=subset,
+                    error=message)
 
 
 class Subset:
@@ -212,16 +249,21 @@ class _Identifier:
     "Identifier for variable."
 
     def __init__(self, tokens):
+        print(self.__class__.__name__, tokens)
         self.identifier = tokens[0]
 
     def evaluate(self, db, variables, stack):
-        stack.append(variables[self.identifier])
+        try:
+            stack.append(variables[self.identifier])
+        except KeyError as error:
+            raise ValueError(f"No such variable '{self.identifier}'.")
 
 
 class _Function:
     "Function; name and value for argument."
 
     def __init__(self, tokens):
+        print(self.__class__.__name__, tokens)
         try:
             self.value = tokens[1]
         except IndexError:      # For argument-less functions.
@@ -310,6 +352,7 @@ class _Operation:
     "Subset operators."
 
     def __init__(self, tokens):
+        print(self.__class__.__name__, tokens)
         self.operator = tokens[0]
 
     def evaluate(self, db, variables, stack):
@@ -320,6 +363,7 @@ class _Expression:
     "Expression; one subset, or two subsets with an operation."
 
     def __init__(self, tokens):
+        print(self.__class__.__name__, tokens)
         self.tokens = tokens
 
     def get_subset(self, db, variables=None):
@@ -357,6 +401,8 @@ class _Expression:
                 stack.append(s1 - s2)
             elif op == "#":
                 stack.append(s1 & s2)
+            else:
+                raise ValueError(f"invalid operator '{op}'")
 
 
 def get_subset(db, expression, variables=None):
@@ -388,23 +434,23 @@ def get_parser():
     no_pmid = (pp.Keyword("no_pmid") + left+right).setParseAction(_NoPmid)
     no_doi = (pp.Keyword("no_doi") + left+right).setParseAction(_NoDoi)
     no_label = (pp.Keyword("no_label") + left+right).setParseAction(_NoLabel)
-    functions = (label | year| author | orcid | issn | published | modified |
-                 no_pmid | no_doi | no_label)
+    function = label | year| author | orcid | issn | published | modified | \
+        no_pmid | no_doi | no_label
 
     union = pp.Literal("+").setParseAction(_Operation)
     symdifference = pp.Literal("^").setParseAction(_Operation)
     intersection = pp.Literal("#").setParseAction(_Operation)
     difference = pp.Literal("-").setParseAction(_Operation)
-    ops = union | symdifference | difference | intersection
+    operator = union | symdifference | difference | intersection
 
-    expr = pp.Forward()
-    atom = (ops[...] + (functions | identifier | pp.Group(left + expr + right)))
+    expression = pp.Forward()
+    atom = (function | identifier | pp.Group(left + expression + right))
     term = pp.Forward()
-    term = atom + (ops + term)[...]
-    expr <<= term + (ops + term)[...]
-    expr.setParseAction(_Expression)
-    expr.ignore("!" + pp.restOfLine)
-    return expr
+    term = atom + (operator + term)[...]
+    expression <<= term + (operator + term)[...]
+    expression.setParseAction(_Expression)
+    expression.ignore("!" + pp.restOfLine)
+    return expression
 
 
 if __name__ == "__main__":

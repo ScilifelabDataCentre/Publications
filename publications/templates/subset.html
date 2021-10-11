@@ -19,22 +19,120 @@ Subset
       <label class="control-label" for="expression">Selection expression</label>
       <p>
         Select publications using the operators and functions
-        described in the right-hand panel.
+        in the right-hand panel.
       </p>
     </div>
     <div class="col-md-10">
-      <textarea class="form-control" rows="8"
+      <textarea class="form-control" rows="4"
 		name="expression" id="expression"
 		>{{ expression or '' }}</textarea>
     </div>
   </div>
 
-  <div class="form-group">
-    <div class="col-md-3 col-md-offset-2">
-      <button type="submit" class="btn btn-success btn-block">
-	<span class="glyphicon glyphicon-adjust"></span>
-	Select
-      </button>
+  <div class="row">
+    <div class="col-md-10 col-md-offset-2">
+      <div class="panel-group" id="accordion" 
+           role="tablist" aria-multiselectable="true">
+        <div class="panel panel-default">
+          <div class="panel-heading" role="tab" id="headingOne">
+            <h4 class="panel-title">
+              <a role="button" href="#collapseOne"
+                 data-toggle="collapse" data-parent="#accordion"
+                 aria-expanded="true" aria-controls="collapseOne">
+                Show selected publications.
+              </a>
+            </h4>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse in"
+               role="tabpanel" aria-labelledby="headingOne">
+            <div class="panel-body">
+              <button type="submit" class="btn btn-success"
+                      style="padding-left: 2em; padding-right: 2em;">
+	        <span class="glyphicon glyphicon-adjust"></span>
+                Select
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading" role="tab" id="headingTwo">
+            <h4 class="panel-title">
+              <a class="collapsed" role="button" href="#collapseTwo"
+                 data-toggle="collapse" data-parent="#accordion" 
+                 aria-expanded="false" aria-controls="collapseTwo">
+                Download selected publications in a CSV file.
+              </a>
+            </h4>
+          </div>
+          <div id="collapseTwo" class="panel-collapse collapse"
+               role="tabpanel" aria-labelledby="headingTwo">
+            <div class="panel-body">
+              {% include 'publications_authors_parameters.html' %}
+              {% include 'publications_label_parameters.html' %}
+              {% include 'publications_issn_parameters.html' %}
+              {% include 'publications_csv_parameters.html' %}
+              <button type="submit" class="btn btn-success"
+                      style="padding-left: 2em; padding-right: 2em;">
+	        <span class="glyphicon glyphicon-adjust"></span>
+	        <span class="glyphicon glyphicon-download-alt"></span>
+                Select and download
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading" role="tab" id="headingThree">
+            <h4 class="panel-title">
+              <a class="collapsed" role="button" href="#collapseThree"
+                 data-toggle="collapse" data-parent="#accordion"
+                 aria-expanded="false" aria-controls="collapseThree">
+                Download selected publications in an XLSX file.
+              </a>
+            </h4>
+          </div>
+          <div id="collapseThree" class="panel-collapse collapse"
+               role="tabpanel" aria-labelledby="headingThree">
+            <div class="panel-body">
+              {% include 'publications_authors_parameters.html' %}
+              {% include 'publications_label_parameters.html' %}
+              {% include 'publications_issn_parameters.html' %}
+              <button type="submit" class="btn btn-success"
+                      name="format" value="XLSX"
+                      style="padding-left: 2em; padding-right: 2em;">
+	        <span class="glyphicon glyphicon-adjust"></span>
+	        <span class="glyphicon glyphicon-download-alt"></span>
+                Select and download
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading" role="tab" id="headingFour">
+            <h4 class="panel-title">
+              <a class="collapsed" role="button" href="#collapseFour"
+                 data-toggle="collapse" data-parent="#accordion"
+                 aria-expanded="false" aria-controls="collapseFour">
+                Download selected publications in a TXT file.
+              </a>
+            </h4>
+          </div>
+          <div id="collapseFour" class="panel-collapse collapse"
+               role="tabpanel" aria-labelledby="headingFour">
+            <div class="panel-body">
+              {% include 'publications_authors_parameters.html' %}
+              {% include 'publications_txt_parameters.html' %}
+              <button type="submit" class="btn btn-success"
+                      name="format" value="TXT"
+                      style="padding-left: 2em; padding-right: 2em;">
+	        <span class="glyphicon glyphicon-adjust"></span>
+	        <span class="glyphicon glyphicon-download-alt"></span>
+                Select and download
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -84,8 +182,8 @@ Subset
 
 <h4>Evaluation</h4>
 <p>
-  Operators are all evaluated left-to-right. Use
-  parenthesis <strong>( )</strong> to control evaluation order.
+  Operators are always evaluated left-to-right.
+  Use parenthesis <strong>( )</strong> to control the evaluation order.
 </p>
 
 <h4>Functions</h4>
