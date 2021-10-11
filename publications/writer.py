@@ -99,15 +99,11 @@ class TabularWriter(Writer):
             doi_url = publication.get("doi")
             if doi_url:
                 doi_url = constants.DOI_URL % doi_url
-            try:
-                row = [
-                    publication.get("title"),
-                    utils.get_formatted_authors(publication["authors"],
-                                                complete=complete),
-                    journal.get("title")]
-            except KeyError:
-                print(publication)
-                raise
+            row = [
+                publication.get("title"),
+                utils.get_formatted_authors(publication["authors"],
+                                            complete=complete),
+                journal.get("title")]
             if self.parameters['issn']:
                 row.append(journal.get("issn"))
                 row.append(self.issn_l_map.get(journal.get("issn")))
