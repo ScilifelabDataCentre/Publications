@@ -112,7 +112,7 @@ class Subset:
         publications = self.db.get_bulk(list(self.iuids))
         publications = [p for p in publications if p]
         if order:
-            publications.sort(key=lambda p: p.get(order, 0), reverse=True)
+            publications.sort(key=lambda p: p.get(order, ''), reverse=True)
         return publications
 
     def copy(self):
