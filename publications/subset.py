@@ -121,21 +121,22 @@ class Subset:
         result.iuids.update(self.iuids)
         return result
 
-    def select_all(self, limit=None):
+    def select_all(self):
         "Select all publications. Sort by reverse order of the published date."
         self._select("publication", "published",
-                     key=constants.CEILING, last="",
-                     descending=True, limit=limit)
+                     key=constants.CEILING, 
+                     last="",
+                     descending=True)
 
-    def select_year(self, year, limit=None):
+    def select_year(self, year):
         "Select the publications by the 'published' year."
-        self._select("publication", "year", key=year, limit=limit)
+        self._select("publication", "year", key=year)
 
-    def select_label(self, label, limit=None):
+    def select_label(self, label):
         "Select publications by the given label."
-        self._select("publication", "label", key=label.lower(), limit=limit)
+        self._select("publication", "label", key=label.lower())
 
-    def select_author(self, name, limit=None):
+    def select_author(self, name):
         """Select publication by author name.
         The name must be of the form "Familyname Initials". It is normalized, i.e.
         non-ASCII characters are converted to most similar ASCII, and lower-cased.
@@ -150,7 +151,7 @@ class Subset:
         else:
             self._select("publication", "author", key=name)
 
-    def select_orcid(self, orcid, limit=None):
+    def select_orcid(self, orcid):
         "Select publications by researcher ORCID."
         try:
             researcher = utils.get_doc(self.db, "researcher", "orcid", orcid)
@@ -159,26 +160,30 @@ class Subset:
             iuid = "-"
         self._select("publication", "researcher", key=iuid)
 
-    def select_issn(self, issn, limit=None):
+    def select_issn(self, issn:
         "Select publications by the journal ISSN."
-        self._select("publication", "issn", key=issn, limit=limit)
+        self._select("publication", "issn", key=issn)
 
-    def select_no_pmid(self, limit=None):
+    def select_no_pmid(self):
         "Select all publications lacking PubMed identifier."
-        self._select("publication", "no_pmid", limit=limit)
+        self._select("publication", "no_pmid")
 
-    def select_no_doi(self, limit=None):
+    def select_no_doi(self):
         "Select all publications lacking PubMed identifier."
-        self._select("publication", "no_doi", limit=limit)
+        self._select("publication", "no_doi")
 
-    def select_no_label(self, limit=None):
+    def select_no_published(self):
+        "Select all publications lacking 'published' field."
+        self._select("publication", "no_published")
+
+    def select_no_label(self):
         "Select all publications having no label"
-        self._select("publication", "no_label", limit=limit)
+        self._select("publication", "no_label")
 
-    def select_published(self, date, limit=None):
+    def select_published(self, date):
         "Select all publications published after the given date, inclusive."
         self._select("publication", "published",
-                     key=date, last=constants.CEILING, limit=limit)
+                     key=date, last=constants.CEILING)
 
     def select_modified(self, date=None, limit=10):
         "Select all publications modified after the given date, inclusive."
@@ -408,20 +413,25 @@ if __name__ == "__main__":
     utils.load_settings()
     db = utils.get_db()
 
-    parser = get_parser()
-    y2020 = Subset(db, year="2020")
-    variables = dict(y2020=y2020)
+    subset = Subset(db)
+    subset.select_no_published()
+    print(subset)
+    print(subset.iuids)
 
-    # Published during January 2020 with NGI.
-    line = "(published(2020-01-01) - published(2020-02-01)) # label(National Genomics Infrastructure)"
-    print(line)
-    print("===", get_subset(db, line, variables=variables))
-    s1 = Subset(db)
-    s1.select_published("2020-01-01")
-    s2 = Subset(db)
-    s2.select_published("2020-02-01")
-    print("---", (s1-s2) & Subset(db, label="National Genomics Infrastructure"))
-    print()
+    # parser = get_parser()
+    # y2020 = Subset(db, year="2020")
+    # variables = dict(y2020=y2020)
 
-    line ="(year(2010) # label(National Genomics Infrastructure)) # author(a*)"
-    print("===", get_subset(db, line, variables=variables))
+    # # Published during January 2020 with NGI.
+    # line = "(published(2020-01-01) - published(2020-02-01)) # label(National Genomics Infrastructure)"
+    # print(line)
+    # print("===", get_subset(db, line, variables=variables))
+    # s1 = Subset(db)
+    # s1.select_published("2020-01-01")
+    # s2 = Subset(db)
+    # s2.select_published("2020-02-01")
+    # print("---", (s1-s2) & Subset(db, label="National Genomics Infrastructure"))
+    # print()
+
+    # line ="(year(2010) # label(National Genomics Infrastructure)) # author(a*)"
+    # print("===", get_subset(db, line, variables=variables))
