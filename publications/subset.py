@@ -112,7 +112,7 @@ class Subset:
         publications = self.db.get_bulk(list(self.iuids))
         publications = [p for p in publications if p]
         if order:
-            publications.sort(key=lambda p: p[order], reverse=True)
+            publications.sort(key=lambda p: p.get(order, 0), reverse=True)
         return publications
 
     def copy(self):
@@ -243,6 +243,13 @@ class _Author(_Function):
         stack.append(Subset(db, author=self.value))
 
 
+class _Orcid(_Function):
+    "Publications selected by researcher ORCID."
+
+    def evaluate(self, db, variables, stack):
+        stack.append(Subset(db, orcid=self.value))
+
+
 class _Issn(_Function):
     "Publications selected by journal ISSN."
 
@@ -370,13 +377,14 @@ def get_parser():
     label = (pp.Keyword("label") + left+value+right).setParseAction(_Label)
     year = (pp.Keyword("year") + left+value+right).setParseAction(_Year)
     author = (pp.Keyword("author") + left+value+right).setParseAction(_Author)
+    orcid = (pp.Keyword("orcid") + left+value+right).setParseAction(_Orcid)
     issn = (pp.Keyword("issn") + left+value+right).setParseAction(_Issn)
     published = (pp.Keyword("published") + left+value+right).setParseAction(_Published)
     modified = (pp.Keyword("modified") + left+value+right).setParseAction(_Modified)
     no_pmid = (pp.Keyword("no_pmid") + left+right).setParseAction(_NoPmid)
     no_doi = (pp.Keyword("no_doi") + left+right).setParseAction(_NoDoi)
     no_label = (pp.Keyword("no_label") + left+right).setParseAction(_NoLabel)
-    functions = (label | year| author | issn | published | modified |
+    functions = (label | year| author | orcid | issn | published | modified |
                  no_pmid | no_doi | no_label)
 
     union = pp.Literal("+").setParseAction(_Operation)
@@ -404,52 +412,7 @@ if __name__ == "__main__":
     y2020 = Subset(db, year="2020")
     variables = dict(y2020=y2020)
 
-   #  # Basic
-   #  line = "year(2020)"
-   #  result = parser.parseString(line, parseAll=True)
-   #  print("===", result[0].get_subset(db, variables))
-   #  print("---", y2020)
-   #  print()
-
-   #  # More complicated
-   #  line = """year(2020) # ((
-   # (label(Affinity Proteomics Uppsala) +
-   #  label(National Genomics Infrastructure))
-   # # author(a*)))"""
-   #  print(line)
-   #  result = parser.parseString(line, parseAll=True)
-   #  print("===", result[0].get_subset(db, variables))
-   #  print("---", Subset(db, year="2020") &
-   #        ((Subset(db, label="Affinity Proteomics Uppsala") |
-   #          Subset(db, label="National Genomics Infrastructure")) &
-   #         Subset(db, author="a*")))
-   #  print()
-
-   #  # Variable
-   #  line = """y2020 # ((
-   # (label(Affinity Proteomics Uppsala) +
-   #  label(National Genomics Infrastructure))
-   # # author(a*)))"""
-   #  print(line)
-   #  result = parser.parseString(line, parseAll=True)
-   #  print("===", result[0].get_subset(db, variables))
-   #  print("---", Subset(db, year="2020") &
-   #        ((Subset(db, label="Affinity Proteomics Uppsala") |
-   #          Subset(db, label="National Genomics Infrastructure")) &
-   #         Subset(db, author="a*")))
-   #  print()
-
-   #  # Function with no argument
-   #  line = "no_pmid()"
-   #  print(line)
-   #  result = parser.parseString(line, parseAll=True)
-   #  print("===", result[0].get_subset(db, variables))
-   #  s = Subset(db)
-   #  s.select_no_pmid()
-   #  print("---", s)
-   #  print()
-
-    # Published during January 2020 with NGI
+    # Published during January 2020 with NGI.
     line = "(published(2020-01-01) - published(2020-02-01)) # label(National Genomics Infrastructure)"
     print(line)
     print("===", get_subset(db, line, variables=variables))

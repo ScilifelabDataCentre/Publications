@@ -35,21 +35,11 @@ def cli(ctx, settings, log):
 
 @cli.command()
 @click.pass_context
-@click.option("--force", is_flag=True, help="Initialize without confirmation.")
-def initialize(ctx, force):
-    """Empty and initialize the database, which must exist.
-    Deletion is done the the slow way. Design documents are loaded.
-    """
-    if not force:
-        click.confirm(f"Delete everything in database {settings['DATABASE_NAME']}",
-                      abort=True)
+def initialize(ctx):
+    "Initialize the database, which must exist; load all design documents."
     db = ctx.obj["db"]
-    click.echo(f"Deleting all documents in the database {settings['DATABASE_NAME']}...")
-    with click.progressbar(db, label="Deleting...") as bar:
-        for doc in bar:
-            db.delete(doc)
     designs.load_design_documents(db)
-    click.echo("Deleted all documents.")
+    click.echo("Loaded all design documents.")
 
 @cli.command()
 @click.pass_context
