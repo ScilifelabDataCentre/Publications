@@ -2,7 +2,6 @@ certifi==2019.11.28
 chardet==3.0.4
 charset-normalizer==2.0.6
 click==8.0.1
-CouchDB==1.2
 CouchDB2==1.11.0
 idna==2.9
 pyparsing==2.4.7
