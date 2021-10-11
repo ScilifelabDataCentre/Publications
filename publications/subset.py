@@ -121,22 +121,23 @@ class Subset:
         result.iuids.update(self.iuids)
         return result
 
-    def select_all(self):
+    def select_all(self, limit=None):
         "Select all publications. Sort by reverse order of the published date."
         self._select("publication", "published",
                      key=constants.CEILING, 
                      last="",
-                     descending=True)
+                     descending=True,
+                     limit=limit)
 
-    def select_year(self, year):
+    def select_year(self, year, limit=None):
         "Select the publications by the 'published' year."
-        self._select("publication", "year", key=year)
+        self._select("publication", "year", key=year, limit=limit)
 
-    def select_label(self, label):
+    def select_label(self, label, limit=None):
         "Select publications by the given label."
-        self._select("publication", "label", key=label.lower())
+        self._select("publication", "label", key=label.lower(), limit=limit)
 
-    def select_author(self, name):
+    def select_author(self, name, limit=None):
         """Select publication by author name.
         The name must be of the form "Familyname Initials". It is normalized, i.e.
         non-ASCII characters are converted to most similar ASCII, and lower-cased.
@@ -147,47 +148,49 @@ class Subset:
         name = utils.to_ascii(name).lower()
         if "*" in name:
             name = name[:-1]
-            self._select("publication", "author", key=name, last=name+constants.CEILING)
+            self._select("publication", "author",
+                         key=name, last=name+constants.CEILING, limit=limit)
         else:
-            self._select("publication", "author", key=name)
+            self._select("publication", "author", key=name, limit=limit)
 
-    def select_orcid(self, orcid):
+    def select_orcid(self, orcid, limit=None):
         "Select publications by researcher ORCID."
         try:
             researcher = utils.get_doc(self.db, "researcher", "orcid", orcid)
             iuid = researcher["_id"]
         except KeyError:
             iuid = "-"
-        self._select("publication", "researcher", key=iuid)
+        self._select("publication", "researcher", key=iuid, limit=limit)
 
-    def select_issn(self, issn):
+    def select_issn(self, issn, limit=None):
         "Select publications by the journal ISSN."
-        self._select("publication", "issn", key=issn)
+        self._select("publication", "issn", key=issn, limit=limit)
 
-    def select_no_pmid(self):
+    def select_no_pmid(self, limit=None):
         "Select all publications lacking PubMed identifier."
-        self._select("publication", "no_pmid")
+        self._select("publication", "no_pmid", limit=limit)
 
-    def select_no_doi(self):
+    def select_no_doi(self, limit=None):
         "Select all publications lacking PubMed identifier."
-        self._select("publication", "no_doi")
+        self._select("publication", "no_doi", limit=limit)
 
-    def select_no_published(self):
+    def select_no_published(self, limit=None):
         "Select all publications lacking 'published' field."
-        self._select("publication", "no_published")
+        self._select("publication", "no_published", limit=limit)
 
-    def select_no_label(self):
+    def select_no_label(self, limit=None):
         "Select all publications having no label"
-        self._select("publication", "no_label")
+        self._select("publication", "no_label", limit=limit)
 
-    def select_published(self, date):
+    def select_published(self, date, limit=None):
         "Select all publications published after the given date, inclusive."
         self._select("publication", "published",
-                     key=date, last=constants.CEILING)
+                     key=date, last=constants.CEILING, limit=limit)
 
     def select_modified(self, date=None, limit=10):
         "Select all publications modified after the given date, inclusive."
-        kwargs = {"descending": True}
+        kwargs = {"descending": True,
+                  "limit": limit}
         if date is not None:
             kwargs["key"] = constants.CEILING
             kwargs["last"] = date
