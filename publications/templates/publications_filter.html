@@ -27,7 +27,7 @@
       {% end %}
     </select>
   </div>
-  <div class="col-md-6 col-md-offset-2 help-block">
+  <div class="col-md-7 col-md-offset-1 help-block">
     Filter publications based on publication year.
     <br>
     This filter is not applied if no years are selected.
@@ -40,7 +40,7 @@
 {# By labels inclusive; publications with any of the selected labels. #}
 <div class="form-group">
   <label class="control-label col-md-1" for="labels">Labels</label>
-  <div class="col-md-5">
+  <div class="col-md-4">
     <select class="form-control" size="{{ max(2, min(len(all_labels), 8)) }}"
 	    id="labels" name="labels" multiple>
       {% for label in all_labels %}
@@ -52,7 +52,7 @@
       {% end %}
     </select>
   </div>
-  <div class="col-md-6 help-block">
+  <div class="col-md-7 help-block">
     <p>
       Filter publications based on the assigned labels. A publication
       must contain <strong>at least one</strong> of the selected
@@ -68,7 +68,7 @@
 {# By labels required; publications must contain all selected labels. #}
 <div class="form-group">
   <label class="control-label col-md-1" for="labels">Labels required</label>
-  <div class="col-md-5">
+  <div class="col-md-4">
     <select class="form-control" size="{{ max(2, min(len(all_labels), 8)) }}"
 	    id="labels_required" name="labels_required" multiple>
       {% for label in all_labels %}
@@ -76,7 +76,7 @@
       {% end %}
     </select>
   </div>
-  <div class="col-md-6 help-block">
+  <div class="col-md-7 help-block">
     <p>
       Filter publications based on the assigned labels. A publication
       must contain <strong>all</strong> selected labels.
@@ -91,7 +91,7 @@
 {# By labels exclude; publications must contain all selected labels. #}
 <div class="form-group">
   <label class="control-label col-md-1" for="labels">Labels excluded</label>
-  <div class="col-md-5">
+  <div class="col-md-4">
     <select class="form-control" size="{{ max(2, min(len(all_labels), 8)) }}"
 	    id="labels_excluded" name="labels_excluded" multiple>
       {% for label in all_labels %}
@@ -99,7 +99,7 @@
       {% end %}
     </select>
   </div>
-  <div class="col-md-6 help-block">
+  <div class="col-md-7 help-block">
     <p>
       Filter publications based on the assigned labels. A publication
       must <strong>not</strong> contain the selected labels.
@@ -124,7 +124,7 @@
       {% end %}
     </select>
   </div>
-  <div class="col-md-6 col-md-offset-2 help-block">
+  <div class="col-md-7 col-md-offset-1 help-block">
     Filter publications based on label activity during the selected
     year. If a publication has no label active during the given
     year, it will not be selected.

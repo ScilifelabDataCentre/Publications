@@ -27,9 +27,9 @@ class RequestHandler(tornado.web.RequestHandler):
         result["utils"] = utils
         result["is_admin"] = self.is_admin()
         result["is_curator"] = self.is_curator()
-        result["error"] = urllib.parse.unquote(self.get_cookie("error", ""))
+        result["error"] = urllib.parse.unquote_plus(self.get_cookie("error", ""))
         self.clear_cookie("error")
-        result["message"] = urllib.parse.unquote(self.get_cookie("message", ""))
+        result["message"] = urllib.parse.unquote_plus(self.get_cookie("message", ""))
         self.clear_cookie("message")
         result["year_counts"] = [(r.key, r.value) for r in 
                                  self.db.view("publication", 

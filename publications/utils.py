@@ -406,8 +406,10 @@ def get_formatted_authors(authors, complete=False):
     result = []
     for author in authors:
         if author:
-            result.append("%s %s" % (author["family"], 
-                                     author.get("initials") or ""))
+            name = "%s %s" % (" ".join(author["family"].split()),
+                              author.get("initials") or "")
+            # Get rid of bizarre newlines in author names.
+            result.append(" ".join(name.strip().split()))
         else:
             result.append("...")
     return ", ".join(result)

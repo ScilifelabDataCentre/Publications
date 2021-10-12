@@ -92,7 +92,7 @@ class Subset:
         return f"{len(self)} publications"
 
     def __repr__(self):
-        return f"{len(self)} publications"
+        return f"Subset({len(self)})"
 
     def __contains__(self, iuid):
         return iuid in self.iuids
@@ -106,7 +106,7 @@ class Subset:
     def __or__(self, other):
         "Union of this subset and the other."
         if not isinstance(other, Subset):
-            raise ValueError("'other' is not a Subset")
+            raise ValueError(f"'other' is not a Subset: {repr(other)}")
         if self.db is not other.db:
             raise ValueError("'other' is connected to a different database.")
         result = self.copy()
@@ -116,7 +116,7 @@ class Subset:
     def __and__(self, other):
         "Intersection of this subset and the other."
         if not isinstance(other, Subset):
-            raise ValueError("'other' is not a Subset")
+            raise ValueError(f"'other' is not a Subset: {repr(other)}")
         if self.db is not other.db:
             raise ValueError("'other' is connected to a different database.")
         result = self.copy()
@@ -126,7 +126,7 @@ class Subset:
     def __sub__(self, other):
         "Difference of this subset and the other."
         if not isinstance(other, Subset):
-            raise ValueError("'other' is not a Subset")
+            raise ValueError(f"'other' is not a Subset: {repr(other)}")
         if self.db is not other.db:
             raise ValueError("'other' is connected to a different database.")
         result = self.copy()
@@ -136,21 +136,20 @@ class Subset:
     def __xor__(self, other):
         "Symmetric difference of this subset and the other."
         if not isinstance(other, Subset):
-            raise ValueError("'other' is not a Subset")
+            raise ValueError(f"'other' is not a Subset: {repr(other)}")
         if self.db is not other.db:
             raise ValueError("'other' is connected to a different database.")
         result = self.copy()
         result.iuids.symmetric_difference_update(other.iuids)
         return result
 
-    def get_publications(self, order="published"):
+    def get_publications(self):
         """Return the list of all selected publication documents.
-        Sort by reverse order of the given field, if given.
+        Sort by reverse order of (published, title), to make order stable.
         """
         publications = self.db.get_bulk(list(self.iuids))
         publications = [p for p in publications if p]
-        if order:
-            publications.sort(key=lambda p: p.get(order, ''), reverse=True)
+        publications.sort(key=lambda p: (p['published'], p['title']), reverse=True)
         return publications
 
     def copy(self):
@@ -213,7 +212,7 @@ class Subset:
         self._select("publication", "no_label")
 
     def select_published(self, date):
-        """Select all publications published after the given date, inclusive.
+        """Select all publications 'published' after the given date, inclusive.
         This means the paper journal publication date.
         """
         self._select("publication", "published",
@@ -221,14 +220,14 @@ class Subset:
 
     def select_first_published(self, date):
         """Select all publications first published after the given date,
-        inclusive. By 'first' is meant the first date of 'epublished',
-        which means online, and published, which means the paper journal date.
+        inclusive. By 'first' is meant the first date of 'epublished'
+        (online), and 'published' (paper journal date).
         """
         self._select("publication", "first_published",
                      key=date, last=constants.CEILING)
 
-    def select_online_published(self, date):
-        """Select all publications online published after the given date,
+    def select_epublished(self, date):
+        """Select all publications by 'epublished' after the given date,
         inclusive.
         """
         self._select("publication", "epublished",
@@ -284,21 +283,8 @@ class Subset:
 
 # Parser for the selection expression mini-language.
 
-class _Identifier:
-    "Identifier for variable."
-
-    def __init__(self, tokens):
-        self.identifier = tokens[0]
-
-    def evaluate(self, db, variables, stack):
-        try:
-            stack.append(variables[self.identifier])
-        except KeyError as error:
-            raise ValueError(f"No such variable '{self.identifier}'.")
-
-
 class _Function:
-    "Function; name and value for argument."
+    "Abstract function; name and value for argument."
 
     def __init__(self, tokens):
         try:
@@ -306,148 +292,199 @@ class _Function:
         except IndexError:      # For argument-less functions.
             self.value = None
 
+    def __repr__(self):
+        return f"{self.__class__.__name__} ({self.value})"
+
+    def evaluate(self, db, variables):
+        raise NotImplementedError
+
+
+class _Identifier(_Function):
+    "Identifier for variable. Not really a function, but easiest this way."
+
+    def __init__(self, tokens):
+        self.value = tokens[0]
+
+    def evaluate(self, db, variables):
+        try:
+            return variables[self.value]
+        except KeyError as error:
+            raise ValueError(f"No such variable '{self.value}'.")
+
+
 class _Label(_Function):
     "Publications selected by label."
 
-    def evaluate(self, db, variables, stack):
-        stack.append(Subset(db, label=self.value))
+    def evaluate(self, db, variables):
+        return Subset(db, label=self.value)
 
 
 class _Year(_Function):
     "Publications selected by 'published' year."
 
-    def evaluate(self, db, variables, stack):
-        stack.append(Subset(db, year=self.value))
+    def evaluate(self, db, variables):
+        return Subset(db, year=self.value)
+
 
 class _Author(_Function):
     "Publications selected by author name, optionally with wildcard at end."
 
-    def evaluate(self, db, variables, stack):
-        stack.append(Subset(db, author=self.value))
+    def evaluate(self, db, variables):
+        return Subset(db, author=self.value)
 
 
 class _Orcid(_Function):
     "Publications selected by researcher ORCID."
 
-    def evaluate(self, db, variables, stack):
-        stack.append(Subset(db, orcid=self.value))
+    def evaluate(self, db, variables):
+        return Subset(db, orcid=self.value)
 
 
 class _Issn(_Function):
     "Publications selected by journal ISSN."
 
-    def evaluate(self, db, variables, stack):
-        stack.append(Subset(db, issn=self.value))
+    def evaluate(self, db, variables):
+        return Subset(db, issn=self.value)
 
 
 class _Published(_Function):
-    "Publications selected by published after the given date, inclusive."
+    "Publications selected by 'published' after the given date, inclusive."
 
-    def evaluate(self, db, variables, stack):
+    def evaluate(self, db, variables):
         s = Subset(db)
         s.select_published(self.value)
-        stack.append(s)
+        return s
+
+
+class _First(_Function):
+    """Publications selected by first publication date
+    (the earliest of 'published' and 'epublished') 
+    after the given date, inclusive.
+    """
+
+    def evaluate(self, db, variables):
+        s = Subset(db)
+        s.select_first_published(self.value)
+        return s
+
+
+class _Online(_Function):
+    "Publications selected by 'epublished' after the given date, inclusive."
+
+    def evaluate(self, db, variables):
+        s = Subset(db)
+        s.select_epublished(self.value)
+        return s
 
 
 class _Modified(_Function):
     "Publications selected by modified after the given date, inclusive."
 
-    def evaluate(self, db, variables, stack):
+    def evaluate(self, db, variables):
         s = Subset(db)
         s.select_modified(self.value)
-        stack.append(s)
+        return s
 
 class _Active(_Function):
     "Publications having at least on label active in the given year."
 
-    def evaluate(self, db, variables, stack):
+    def evaluate(self, db, variables):
         s = Subset(db)
         s.select_active_labels(self.value or 'current')
-        stack.append(s)
+        return s
 
 
 class _NoPmid(_Function):
     "Publications lacking PMID."
 
-    def evaluate(self, db, variables, stack):
+    def evaluate(self, db, variables):
         s = Subset(db)
         s.select_no_pmid()
-        stack.append(s)
+        return s
 
 
 class _NoDoi(_Function):
     "Publications lacking DOI."
 
-    def evaluate(self, db, variables, stack):
+    def evaluate(self, db, variables):
         s = Subset(db)
         s.select_no_doi()
-        stack.append(s)
+        return s
 
 
 class _NoLabel(_Function):
     "Publications lacking Label."
 
-    def evaluate(self, db, variables, stack):
+    def evaluate(self, db, variables):
         s = Subset(db)
         s.select_no_label()
-        stack.append(s)
+        return s
 
 
-class _Operation:
+class _Operator:
     "Subset operators."
 
     def __init__(self, tokens):
         self.operator = tokens[0]
 
-    def evaluate(self, db, variables, stack):
-        stack.append(self.operator)
+    def __repr__(self):
+        return self.operator
+
+
+class _Union(_Operator):
+    "Union of two subsets."
+
+    def evaluate(self, s1, s2):
+        return s1 | s2
+
+
+class _Symdifference(_Operator):
+    "Symmetric difference of two subsets."
+
+    def evaluate(self, s1, s2):
+        return s1 ^ s2
+
+
+class _Intersection(_Operator):
+    "Intersection of two subsets."
+
+    def evaluate(self, s1, s2):
+        return s1 & s2
+
+
+class _Difference(_Operator):
+    "Difference of two subsets."
+
+    def evaluate(self, s1, s2):
+        return s1 - s2
 
 
 class _Expression:
-    "Expression; one subset, or two subsets with an operation."
+    "Expression; one subset, or two subsets with an operator."
 
     def __init__(self, tokens):
-        self.tokens = tokens
+        self.stack = list(tokens)
 
-    def get_subset(self, db, variables=None):
-        stack = []
-        self.evaluate(db, variables=variables, stack=stack)
-        while len(stack) >= 3:
-            self.reduce(stack)
-        if len(stack) != 1:
-            raise ValueError(f"invalid stack {stack}")
-        return stack[0]
-
-    def evaluate(self, db, variables=None, stack=None):
-        "Evaluate the expression."
+    def evaluate(self, db, variables=None):
+        "Evaluate the expression and return the resulting subset."
         if variables is None:
             variables = {}
-        if stack is None:
-            self.stack = []
-        for token in self.tokens:
-            if isinstance(token, pp.ParseResults):
-                token[0].evaluate(db, variables, stack)
-            else:
-                token.evaluate(db, variables, stack)
-        self.reduce(stack)
-
-    def reduce(self, stack):
-        if len(stack) >= 3:
-            stack.reverse()
-            s1 = stack.pop()
-            op = stack.pop()
-            s2 = stack.pop()
-            if op == "+":
-                stack.append(s1 | s2)
-            elif op == "^":
-                stack.append(s1 ^ s2)
-            elif op == "-":
-                stack.append(s1 - s2)
-            elif op == "#":
-                stack.append(s1 & s2)
-            else:
-                raise ValueError(f"invalid operator '{op}'")
-            stack.reverse()
+        while len(self.stack) >= 3:
+            s2 = self.stack.pop()
+            op = self.stack.pop()
+            s1 = self.stack.pop()
+            if isinstance(s1, pp.ParseResults):
+                s1 = s1[0].evaluate(db, variables=variables)
+            elif isinstance(s1, _Function):
+                s1 = s1.evaluate(db, variables)
+            if isinstance(s2, pp.ParseResults):
+                s2 = s2[0].evaluate(db, variables=variables)
+            elif isinstance(s2, _Function):
+                s2 = s2.evaluate(db, variables)
+            self.stack.append(op.evaluate(s1, s2))
+        if len(self.stack) != 1:
+            raise ValueError(f"invalid stack {self.stack}")
+        return self.stack[0]
 
 
 def get_subset(db, expression, variables=None):
@@ -459,7 +496,7 @@ def get_subset(db, expression, variables=None):
         result = parser.parseString(expression, parseAll=True)
     except pp.ParseException as error:
         raise ValueError(str(error))
-    return result[0].get_subset(db, variables=variables)
+    return result[0].evaluate(db, variables=variables)
 
 def get_parser():
     "Construct and return the parser."
@@ -475,22 +512,24 @@ def get_parser():
     orcid = (pp.Keyword("orcid") + left+value+right).setParseAction(_Orcid)
     issn = (pp.Keyword("issn") + left+value+right).setParseAction(_Issn)
     published = (pp.Keyword("published") + left+value+right).setParseAction(_Published)
+    first = (pp.Keyword("first") + left+value+right).setParseAction(_First)
+    online = (pp.Keyword("online") + left+value+right).setParseAction(_Online)
     modified = (pp.Keyword("modified") + left+value+right).setParseAction(_Modified)
     no_pmid = (pp.Keyword("no_pmid") + left+right).setParseAction(_NoPmid)
     no_doi = (pp.Keyword("no_doi") + left+right).setParseAction(_NoDoi)
     no_label = (pp.Keyword("no_label") + left+right).setParseAction(_NoLabel)
-    function = label | year| author | orcid | issn | published | modified | \
-        no_pmid | no_doi | no_label
+    function = label | year| author | orcid | issn | \
+        published | first | online | modified | no_pmid | no_doi | no_label
 
     if settings["TEMPORAL_LABELS"]:
         current = (pp.Keyword("active") + left+right).setParseAction(_Active)
         active = (pp.Keyword("active") + left+value+right).setParseAction(_Active)
         function = function | current | active
 
-    union = pp.Literal("+").setParseAction(_Operation)
-    symdifference = pp.Literal("^").setParseAction(_Operation)
-    intersection = pp.Literal("#").setParseAction(_Operation)
-    difference = pp.Literal("-").setParseAction(_Operation)
+    union = pp.Literal("+").setParseAction(_Union)
+    symdifference = pp.Literal("^").setParseAction(_Symdifference)
+    intersection = pp.Literal("#").setParseAction(_Intersection)
+    difference = pp.Literal("-").setParseAction(_Difference)
     operator = union | symdifference | difference | intersection
 
     expression = pp.Forward()
@@ -508,40 +547,44 @@ if __name__ == "__main__":
 
     parser = get_parser()
 
-    l_jan = "published(2020-01-01)"
-    s_jan = Subset(db)
-    s_jan.select_published("2020-01-01")
+    variables = dict(blah=Subset(db, year="2010"))
 
-    l_feb = "published(2020-02-01)"
-    s_feb = Subset(db)
-    s_feb.select_published("2020-02-01")
+    line = """((label(Clinical Genomics Linköping) +
+ label(Clinical Genomics Gothenburg)) +
+ label(Clinical Genomics Lund) +
+ label(Clinical Genomics Uppsala) +
+ label(Clinical Genomics Stockholm) +
+ label(Clinical Genomics Umeå) + 
+ label(Clinical Genomics Örebro)) #
+ (year(2020) + year(2019) +year(2018) + year(2017)) + blah"""
+    print(">>>", get_subset(db, line, variables=variables))
 
-    l_ngi = "label(National Genomics Infrastructure)"
-    s_ngi = Subset(db, label="National Genomics Infrastructure")
+    print("===", get_subset(db, "year(2020)"))
 
-    l_bio = "label(Bioinformatics Compute and Storage)"
-    s_bio = Subset(db, label="Bioinformatics Compute and Storage")
+    labels = []
+    for name in ["Clinical Genomics Linköping",
+                 "Clinical Genomics Gothenburg",
+                 "Clinical Genomics Lund",
+                 "Clinical Genomics Uppsala",
+                 "Clinical Genomics Stockholm",
+                 "Clinical Genomics Umeå",
+                 "Clinical Genomics Örebro"]:
+        labels.append(Subset(db, label=name))
+        print(name, ":", labels[-1])
+    labels = functools.reduce(lambda s, t: s | t, labels)
+    print("labels :", labels)
+    years = []
+    for year in ["2017", "2018", "2019", "2020"]:
+        years.append(Subset(db, year=year))
+        print(year, ":", years[-1])
+    years = functools.reduce(lambda s, t: s | t, years)
+    print("years :", years)
+    print("labels # years :", labels & years)
 
-    line =f"{l_jan} - {l_feb} # {l_ngi} - {l_bio}"
-    print(line, "=", get_subset(db, line))
-    print(f"{((s_jan - s_feb) & s_ngi) - s_bio=}")
     print()
-
-    line =f"(({l_jan} - {l_feb}) # {l_ngi}) - {l_bio}"
-    print(line, "=", get_subset(db, line))
-    print(f"{((s_jan - s_feb) & s_ngi) - s_bio=}")
-    print()
-
-    line =f"({l_jan} - {l_feb}) # ({l_ngi} - {l_bio})"
-    print(line, "=", get_subset(db, line))
-    print(f"{(s_jan - s_feb) & (s_ngi - s_bio)=}")
-    print()
-
-    for year in ["2010", "2011", "2012", "2013",
-                 "2014", "2015", "2016", "2017",
-                 "2018", "2019", "2020", "current"]:
-        s = Subset(db)
-        s.select_active_labels(year)
-        print(year, ":", s)
-    print(Subset(db, all=True))
-    
+    line = "label(National Genomics Infrastructure) - year(2020)"
+    print(line, get_subset(db, line))
+    print(Subset(db, label="National Genomics Infrastructure")- Subset(db, year="2020"))
+    line = "year(2020) - label(National Genomics Infrastructure)"
+    print(line, get_subset(db, line))
+    print(Subset(db, year="2020") - Subset(db, label="National Genomics Infrastructure"))
