@@ -228,15 +228,6 @@ class RequestHandler(tornado.web.RequestHandler):
             logging.info(f"Basic auth login: {account['email']}")
             return account
 
-    def get_limit(self, default=None):
-        "Get the limit query argument, or the default value."
-        try:
-            limit = int(self.get_argument("limit"))
-            if limit <= 0: raise ValueError
-        except (tornado.web.MissingArgumentError, ValueError, TypeError):
-            limit = default
-        return limit
-
     def get_logs(self, iuid):
         "Get the log entries for the document with the given IUID."
         return self.get_docs("log", "doc",
@@ -371,7 +362,7 @@ class RequestHandler(tornado.web.RequestHandler):
         result["modified"] = account["modified"]
         return result
 
-    def get_label_json(self, label, publications=None, accounts=None, limit=None):
+    def get_label_json(self, label, publications=None, accounts=None):
         "JSON representation of label."
         URL = self.absolute_reverse_url
         result = dict()
@@ -390,8 +381,6 @@ class RequestHandler(tornado.web.RequestHandler):
         if accounts is not None:
             result["accounts"] = [self.get_account_json(account)
                                   for account in accounts]
-        if limit is not None:
-            result["limit"] = limit
         if publications is None:
             try:
                 result["publications_count"] = label["count"]

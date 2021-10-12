@@ -489,12 +489,11 @@ class Publications(RequestHandler):
 
     def get(self, year=None):
         subset = Subset(self.db)
-        limit = self.get_limit()
         if year:
-            subset.select_year(year, limit=limit)
+            subset.select_year(year)
         else:
-            subset.select_all(imit=limit)
-        self.render(self.TEMPLATE, publications=subset, year=year, limit=limit)
+            subset.select_all()
+        self.render(self.TEMPLATE, publications=subset, year=year)
 
 
 class PublicationsTable(Publications):
@@ -523,8 +522,6 @@ class PublicationsJson(Publications):
         else:
             links["self"] = {"href": URL("publications_json")}
             links["display"] = {"href": URL("publications")}
-        if kwargs["limit"]:
-            result["limit"] = kwargs["limit"]
         result["publications_count"] = len(publications)
         full = utils.to_bool(self.get_argument("full", True))
         result["full"] = full
@@ -801,11 +798,13 @@ class PublicationsModified(PublicationMixin, RequestHandler):
 
     def get(self):
         self.check_curator()
-        limit = self.get_limit(settings["LONG_PUBLICATIONS_LIST_LIMIT"])
+        limit = settings["LONG_PUBLICATIONS_LIST_LIMIT"]
         subset = Subset(self.db)
         subset.select_modified(limit=limit)
         publications = subset.get_publications("modified")
-        self.render("publications_modified.html", publications=publications)
+        self.render("publications_modified.html",
+                    publications=publications,
+                    limit=limit)
 
 
 class PublicationAdd(PublicationMixin, RequestHandler):

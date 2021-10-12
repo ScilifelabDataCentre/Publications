@@ -45,7 +45,7 @@
 </p>
 {% end %} {# if current_user #}
 
-{% include 'publications_list_years.html' %}
+{% include 'publications_years.html' %}
 
 {% end %} {# block main_content #}
 
@@ -84,7 +84,7 @@
 {% end %} {# block meta_content #}
 
 {% block alt_format %}
-<a href="{{ handler.reverse_url('label_json', label['value'], limit=limit) }}">
+<a href="{{ handler.reverse_url('label_json', label['value']) }}">
   <img src="{{ static_url('json.png') }}"> JSON
 </a>
 <br>

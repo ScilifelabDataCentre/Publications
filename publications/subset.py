@@ -1,5 +1,6 @@
 "Select a subset of publications."
 
+import functools
 import logging
 
 import pyparsing as pp
@@ -158,23 +159,19 @@ class Subset:
         result.iuids.update(self.iuids)
         return result
 
-    def select_all(self, limit=None):
-        "Select all publications. Sort by reverse order of the published date."
-        self._select("publication", "published",
-                     key=constants.CEILING, 
-                     last="",
-                     descending=True,
-                     limit=limit)
+    def select_all(self):
+        "Select all publications."
+        self._select("publication", "published")
 
-    def select_year(self, year, limit=None):
+    def select_year(self, year):
         "Select the publications by the 'published' year."
-        self._select("publication", "year", key=year, limit=limit)
+        self._select("publication", "year", key=year)
 
-    def select_label(self, label, limit=None):
+    def select_label(self, label):
         "Select publications by the given label."
-        self._select("publication", "label", key=label.lower(), limit=limit)
+        self._select("publication", "label", key=label.lower())
 
-    def select_author(self, name, limit=None):
+    def select_author(self, name):
         """Select publication by author name.
         The name must be of the form "Familyname Initials". It is normalized, i.e.
         non-ASCII characters are converted to most similar ASCII, and lower-cased.
@@ -186,48 +183,90 @@ class Subset:
         if "*" in name:
             name = name[:-1]
             self._select("publication", "author",
-                         key=name, last=name+constants.CEILING, limit=limit)
+                         key=name, last=name+constants.CEILING)
         else:
-            self._select("publication", "author", key=name, limit=limit)
+            self._select("publication", "author", key=name)
 
-    def select_orcid(self, orcid, limit=None):
+    def select_orcid(self, orcid):
         "Select publications by researcher ORCID."
         try:
             researcher = utils.get_doc(self.db, "researcher", "orcid", orcid)
             iuid = researcher["_id"]
         except KeyError:
             iuid = "-"
-        self._select("publication", "researcher", key=iuid, limit=limit)
+        self._select("publication", "researcher", key=iuid)
 
-    def select_issn(self, issn, limit=None):
+    def select_issn(self, issn):
         "Select publications by the journal ISSN."
-        self._select("publication", "issn", key=issn, limit=limit)
+        self._select("publication", "issn", key=issn)
 
-    def select_no_pmid(self, limit=None):
+    def select_no_pmid(self):
         "Select all publications lacking PubMed identifier."
-        self._select("publication", "no_pmid", limit=limit)
+        self._select("publication", "no_pmid")
 
-    def select_no_doi(self, limit=None):
+    def select_no_doi(self):
         "Select all publications lacking PubMed identifier."
-        self._select("publication", "no_doi", limit=limit)
+        self._select("publication", "no_doi")
 
-    def select_no_label(self, limit=None):
+    def select_no_label(self):
         "Select all publications having no label"
-        self._select("publication", "no_label", limit=limit)
+        self._select("publication", "no_label")
 
-    def select_published(self, date, limit=None):
-        "Select all publications published after the given date, inclusive."
+    def select_published(self, date):
+        """Select all publications published after the given date, inclusive.
+        This means the paper journal publication date.
+        """
         self._select("publication", "published",
-                     key=date, last=constants.CEILING, limit=limit)
+                     key=date, last=constants.CEILING)
 
-    def select_modified(self, date=None, limit=10):
+    def select_first_published(self, date):
+        """Select all publications first published after the given date,
+        inclusive. By 'first' is meant the first date of 'epublished',
+        which means online, and published, which means the paper journal date.
+        """
+        self._select("publication", "first_published",
+                     key=date, last=constants.CEILING)
+
+    def select_online_published(self, date):
+        """Select all publications online published after the given date,
+        inclusive.
+        """
+        self._select("publication", "epublished",
+                     key=date, last=constants.CEILING)
+
+    def select_modified(self, limit=None, date=None):
         "Select all publications modified after the given date, inclusive."
-        kwargs = {"descending": True,
-                  "limit": limit}
+        kwargs = {"descending": True, "limit": limit}
         if date is not None:
             kwargs["key"] = constants.CEILING
             kwargs["last"] = date
-        self._select("publication", "modified", limit=limit, **kwargs)
+        self._select("publication", "modified", **kwargs)
+
+    def select_active_labels(self, year):
+        """Select all publications having a label active in the given year.
+        If 'current' is given, then all currently active labels.
+        If temporal labels are not configured, then produce an empty subset.
+        """
+        self.iuids = set()
+        if not settings["TEMPORAL_LABELS"]:
+            return
+        if year.lower() == "current":
+            labels = set([i.value for i in self.db.view("label", "current")])
+        else:
+            labels = set()
+            for label in utils.get_docs(self.db, "label", "value"):
+                started = label.get("started")
+                if started and started <= year: # Year as str
+                    ended = label.get("ended")
+                    if ended:
+                        if year <= ended: # Year as str
+                            labels.add(label["value"])
+                    else:       # Current
+                        labels.add(label["value"])
+        if labels:
+            result = functools.reduce(lambda s, t: s | t,
+                                      [Subset(self.db, label=l) for l in labels])
+            self.iuids = result.iuids
 
     def _select(self, designname, viewname, key=None, last=None, **kwargs):
         "Select the documents by design, view and key."
@@ -249,7 +288,6 @@ class _Identifier:
     "Identifier for variable."
 
     def __init__(self, tokens):
-        print(self.__class__.__name__, tokens)
         self.identifier = tokens[0]
 
     def evaluate(self, db, variables, stack):
@@ -263,11 +301,10 @@ class _Function:
     "Function; name and value for argument."
 
     def __init__(self, tokens):
-        print(self.__class__.__name__, tokens)
         try:
             self.value = tokens[1]
         except IndexError:      # For argument-less functions.
-            pass
+            self.value = None
 
 class _Label(_Function):
     "Publications selected by label."
@@ -320,6 +357,14 @@ class _Modified(_Function):
         s.select_modified(self.value)
         stack.append(s)
 
+class _Active(_Function):
+    "Publications having at least on label active in the given year."
+
+    def evaluate(self, db, variables, stack):
+        s = Subset(db)
+        s.select_active_labels(self.value or 'current')
+        stack.append(s)
+
 
 class _NoPmid(_Function):
     "Publications lacking PMID."
@@ -352,7 +397,6 @@ class _Operation:
     "Subset operators."
 
     def __init__(self, tokens):
-        print(self.__class__.__name__, tokens)
         self.operator = tokens[0]
 
     def evaluate(self, db, variables, stack):
@@ -363,7 +407,6 @@ class _Expression:
     "Expression; one subset, or two subsets with an operation."
 
     def __init__(self, tokens):
-        print(self.__class__.__name__, tokens)
         self.tokens = tokens
 
     def get_subset(self, db, variables=None):
@@ -390,9 +433,10 @@ class _Expression:
 
     def reduce(self, stack):
         if len(stack) >= 3:
-            s2 = stack.pop()
-            op = stack.pop()
+            stack.reverse()
             s1 = stack.pop()
+            op = stack.pop()
+            s2 = stack.pop()
             if op == "+":
                 stack.append(s1 | s2)
             elif op == "^":
@@ -403,6 +447,7 @@ class _Expression:
                 stack.append(s1 & s2)
             else:
                 raise ValueError(f"invalid operator '{op}'")
+            stack.reverse()
 
 
 def get_subset(db, expression, variables=None):
@@ -437,6 +482,11 @@ def get_parser():
     function = label | year| author | orcid | issn | published | modified | \
         no_pmid | no_doi | no_label
 
+    if settings["TEMPORAL_LABELS"]:
+        current = (pp.Keyword("active") + left+right).setParseAction(_Active)
+        active = (pp.Keyword("active") + left+value+right).setParseAction(_Active)
+        function = function | current | active
+
     union = pp.Literal("+").setParseAction(_Operation)
     symdifference = pp.Literal("^").setParseAction(_Operation)
     intersection = pp.Literal("#").setParseAction(_Operation)
@@ -445,9 +495,7 @@ def get_parser():
 
     expression = pp.Forward()
     atom = (function | identifier | pp.Group(left + expression + right))
-    term = pp.Forward()
-    term = atom + (operator + term)[...]
-    expression <<= term + (operator + term)[...]
+    expression <<= atom + (operator + atom)[...]
     expression.setParseAction(_Expression)
     expression.ignore("!" + pp.restOfLine)
     return expression
@@ -459,19 +507,41 @@ if __name__ == "__main__":
     db = utils.get_db()
 
     parser = get_parser()
-    y2020 = Subset(db, year="2020")
-    variables = dict(y2020=y2020)
 
-    # Published during January 2020 with NGI.
-    line = "(published(2020-01-01) - published(2020-02-01)) # label(National Genomics Infrastructure)"
-    print(line)
-    print("===", get_subset(db, line, variables=variables))
-    s1 = Subset(db)
-    s1.select_published("2020-01-01")
-    s2 = Subset(db)
-    s2.select_published("2020-02-01")
-    print("---", (s1-s2) & Subset(db, label="National Genomics Infrastructure"))
+    l_jan = "published(2020-01-01)"
+    s_jan = Subset(db)
+    s_jan.select_published("2020-01-01")
+
+    l_feb = "published(2020-02-01)"
+    s_feb = Subset(db)
+    s_feb.select_published("2020-02-01")
+
+    l_ngi = "label(National Genomics Infrastructure)"
+    s_ngi = Subset(db, label="National Genomics Infrastructure")
+
+    l_bio = "label(Bioinformatics Compute and Storage)"
+    s_bio = Subset(db, label="Bioinformatics Compute and Storage")
+
+    line =f"{l_jan} - {l_feb} # {l_ngi} - {l_bio}"
+    print(line, "=", get_subset(db, line))
+    print(f"{((s_jan - s_feb) & s_ngi) - s_bio=}")
     print()
 
-    line ="(year(2010) # label(National Genomics Infrastructure)) # author(a*)"
-    print("===", get_subset(db, line, variables=variables))
+    line =f"(({l_jan} - {l_feb}) # {l_ngi}) - {l_bio}"
+    print(line, "=", get_subset(db, line))
+    print(f"{((s_jan - s_feb) & s_ngi) - s_bio=}")
+    print()
+
+    line =f"({l_jan} - {l_feb}) # ({l_ngi} - {l_bio})"
+    print(line, "=", get_subset(db, line))
+    print(f"{(s_jan - s_feb) & (s_ngi - s_bio)=}")
+    print()
+
+    for year in ["2010", "2011", "2012", "2013",
+                 "2014", "2015", "2016", "2017",
+                 "2018", "2019", "2020", "current"]:
+        s = Subset(db)
+        s.select_active_labels(year)
+        print(year, ":", s)
+    print(Subset(db, all=True))
+    

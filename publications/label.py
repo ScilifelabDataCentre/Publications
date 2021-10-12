@@ -48,18 +48,10 @@ class Label(RequestHandler):
         accounts = self.get_docs("account", "label",
                                  key=label["value"].lower())
         publications = list(Subset(self.db, label=label["value"]))
-        # This is inefficient; really shouldn't fetch those 
-        # beyond the limit in the first place, but we want
-        # the latest publications, and the index is such that
-        # we have to get all to do the sorting here.
-        limit = self.get_limit()
-        if limit:
-            publications = publications[:limit]
         self.render("label.html",
                     label=label,
                     accounts=accounts,
-                    publications=publications,
-                    limit=limit)
+                    publications=publications)
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -99,12 +91,9 @@ class LabelJson(Label):
     "Label JSON data."
 
     def render(self, template, **kwargs):
-        params = dict(publications=kwargs["publications"],
-                      accounts=kwargs["accounts"])
-        if kwargs.get("limit"):
-            params["limit"] = kwargs["limit"]
-        self.write(self.get_label_json(kwargs["label"], **params))
-
+        self.write(self.get_label_json(kwargs["label"],
+                                       publications=kwargs["publications"],
+                                       accounts=kwargs["accounts"]))
 
 class LabelsList(RequestHandler):
     """Labels list page. By default only current labels,

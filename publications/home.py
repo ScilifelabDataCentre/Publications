@@ -13,7 +13,7 @@ class Home(RequestHandler):
     "Home page."
 
     def get(self):
-        limit = self.get_limit(settings["SHORT_PUBLICATIONS_LIST_LIMIT"])
+        limit = settings["SHORT_PUBLICATIONS_LIST_LIMIT"]
         docs = self.get_docs("publication", "first_published",
                              key=constants.CEILING,
                              last="",

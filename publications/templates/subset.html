@@ -191,51 +191,60 @@ Subset
   <tr>
     <th>year(<i>year</i>)</th>
     <td>Select by year published.</td>
-  <tr>
+  </tr>
   <tr>
     <th>label(<i>label</i>)</th>
     <td>Select by label. Character case is ignored.</td>
-  <tr>
+  </tr>
   <tr>
     <th>author(<i>name</i>)</th>
     <td>
       Select by author name of the form "family initials". Character
       case is ignored.  May contain wildcard '*' at the end.
     </td>
-  <tr>
+  </tr>
   <tr>
     <th>orcid(<i>orcid</i>)</th>
     <td>
       Select by researcher ORCID.
     </td>
-  <tr>
+  </tr>
   <tr>
     <th>issn(<i>code</i>)</th>
     <td>Select by journal ISSN code.</td>
-  <tr>
+  </tr>
   <tr>
     <th>published(<i>date</i>)</th>
     <td>Select by date of publication, of the form YYYY-MM-DD.</td>
-  <tr>
+  </tr>
   <tr>
     <th>modified(<i>date</i>)</th>
     <td>
       Select by date of modification of the database entry, of the
       form YYYY-MM-DD.
     </td>
+  </tr>
+  {% if settings['TEMPORAL_LABELS'] %}
   <tr>
+    <th>active(<i>year</i>)</th>
+    <td>
+      Select publications for labels active in the given year.
+      No value means the current year.
+    </td>
+  </tr>
+  {% end %}
   <tr>
     <th>no_doi()</th>
     <td>Select publications lacking DOI.</td>
-  <tr>
+  </tr>
   <tr>
     <th>no_pmid()</th>
     <td>Select publications lacking PMID (PubMed identifier).</td>
-  <tr>
+  </tr>
   <tr>
     <th>no_label()</th>
     <td>Select publications lacking label.</td>
-  <tr>
+  </tr>
 </table>
 
 <h4>Examples</h4>
@@ -266,3 +275,9 @@ Subset
   </code>
 </p>
 {% end %} {# block meta_content #}
+
+{% block autofocus %}
+<script>
+  $(function(){ $("#expression").focus(); });
+</script>
+{% end %}
