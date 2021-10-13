@@ -86,9 +86,6 @@ from publications.logs import Logs
 def get_args():
     parser = utils.get_command_line_parser(description=
         "Publications web server")
-    parser.add_argument("-p", "--pidfile",
-                        action="store", dest="pidfile", default=None,
-                        metavar="FILE", help="filename of file containing PID")
     return parser.parse_args()
 
 def get_application():
@@ -230,8 +227,8 @@ def main():
     application.listen(settings["PORT"], xheaders=True)
     pid = os.getpid()
     logging.info("web server PID %s at %s", pid, settings["BASE_URL"])
-    if args.pidfile:
-        with open(args.pidfile, "w") as pf:
+    if settings["PIDFILE"]:
+        with open(settings["PIDFILE"], "w") as pf:
             pf.write(str(pid))
     tornado.ioloop.IOLoop.instance().start()
 

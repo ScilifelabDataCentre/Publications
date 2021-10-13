@@ -320,6 +320,18 @@ def select(ctx, years, labels, authors, orcids, expression,
             outfile.write(writer.get_content())
         click.echo(result)
 
+@cli.command()
+def add_label(idfilepath, subsetfilepath):
+    """Add a label to a set of publications.
+    """
+    pass
+
+@cli.command()
+def remove_label(idfilepath, subsetfilepath):
+    """Remove a label from a set of publications.
+    """
+    pass
+
 
 def union(s, t): return s | t
 def json_dumps(doc): return json.dumps(doc, ensure_ascii=False, indent=2)

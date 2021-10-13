@@ -14,6 +14,7 @@ settings = dict(
     TORNADO_DEBUG=False,
     LOGGING_DEBUG=False,
     LOGGING_FORMAT="%(levelname)s [%(asctime)s] %(message)s",
+    PIDFILE=None,
     DATABASE_SERVER="http://localhost:5984/",
     DATABASE_NAME="publications",
     DATABASE_ACCOUNT=None,      # Should probably be set to connect to CouchDB.

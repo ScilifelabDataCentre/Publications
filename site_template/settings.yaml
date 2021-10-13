@@ -1,6 +1,6 @@
 # Publications: Template settings file
 #
-# Copy this to 'settings.yaml' and modify for your site.
+# Copy this to 'Publications/site/settings.yaml' and modify for your site.
 #
 # Remember to hide its contents from prying eyes by setting
 # access such that only the web server is allowed to read it.
