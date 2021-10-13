@@ -96,7 +96,7 @@ def get_application():
     handlers = [url(r"/", Home, name="home"),
                 url(r"/status", Status, name="status"),
                 url(r"/site/([^/]+)", tornado.web.StaticFileHandler,
-                    {"path": settings["SITE_DIR"]}, name="site"),
+                    {"path": settings["SITE_STATIC_DIR"]}, name="site"),
                 url(r"/publication/(.+).json",
                     PublicationJson, name="publication_json"),
                 url(r"/publication/(.+)", Publication, name="publication"),

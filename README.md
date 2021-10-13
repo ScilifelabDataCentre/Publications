@@ -28,6 +28,9 @@ Features
 
 - Publication references can be added manually.
 
+- A powerful subset selection expression evaluator, to produce a wide
+  range of publication subsets from the data. New in version 6.0.
+
 - Curator accounts for adding and editing the publication entries can
   be created by the admin of the instance.
 

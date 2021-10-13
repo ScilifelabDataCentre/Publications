@@ -24,29 +24,6 @@ from publications import designs
 from publications import settings
 
 
-class NocaseDict:
-    "Keys are compared ignoring case."
-    def __init__(self, orig):
-        self.orig = orig.copy()
-        self.lower = dict()
-        for key in orig:
-            self.lower[key.lower()] = orig[key]
-    def keys(self):
-        return list(self.orig.keys())
-    def __getitem__(self, key):
-        return self.lower[key.lower()]
-    def __setitem__(self, key, value):
-        self.orig[key] = value
-        self.lower[key.lower()] = value
-    def __str__(self):
-        return str(dict([(k,self[k]) for k in self.keys()]))
-    def get(self, key, default=None):
-        try:
-            return self[key]
-        except KeyError:
-            return default
-
-
 def get_command_line_parser(description=None):
     "Get the base command line argument parser."
     parser = argparse.ArgumentParser(description=description)
@@ -55,12 +32,11 @@ def get_command_line_parser(description=None):
                         metavar="FILE", help="filename of settings YAML file")
     return parser
 
-def load_settings(filepath=None, ignore_logging_filepath=False):
+def load_settings(filepath=None):
     """Load the settings from the first file given by:
-    1) The argument to this procedure.
+    1) The argument to this procedure (possibly from a command line argument).
     2) The environment variable PUBLICATIONS_SETTINGS.
-    3) The file 'settings.yaml' in this directory.
-    4) The file '../site/settings.yaml' relative to this directory.
+    3) The file '../site/settings.yaml' relative to this directory.
     Raise IOError if settings file could not be read.
     Raise KeyError if a settings variable is missing.
     Raise ValueError if a settings variable value is invalid.
@@ -72,9 +48,9 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
         filepaths.append(os.environ["PUBLICATIONS_SETTINGS"])
     except KeyError:
         pass
-    for filepath in ["settings.yaml", "../site/settings.yaml"]:
-        filepaths.append(
-            os.path.normpath(os.path.join(settings["ROOT"], filepath)))
+    filepaths.append(
+        os.path.normpath(
+            os.path.join(settings["ROOT"], "../site/settings.yaml")))
     for filepath in filepaths:
         try:
             with open(filepath) as infile:
@@ -84,11 +60,10 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
         else:
             settings["SETTINGS_FILEPATH"] = filepath
             break
-    # Expand environment variables (ROOT, SITE_DIR) once and for all
-    for key, value in list(settings.items()):
-        if isinstance(value, str):
-            settings[key] = expand_filepath(value)
-    # Set logging state
+    else:
+        raise IOError("Could not find any settings file.")
+
+    # Set logging state.
     if settings.get("LOGGING_DEBUG"):
         kwargs = dict(level=logging.DEBUG)
     else:
@@ -97,16 +72,15 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
         kwargs["format"] = settings["LOGGING_FORMAT"]
     except KeyError:
         pass
-    if not ignore_logging_filepath:
+    try:
+        kwargs["filename"] = settings["LOGGING_FILEPATH"]
+    except KeyError:
+        pass
+    else:
         try:
-            kwargs["filename"] = settings["LOGGING_FILEPATH"]
+            kwargs["filemode"] = settings["LOGGING_FILEMODE"]
         except KeyError:
             pass
-        else:
-            try:
-                kwargs["filemode"] = settings["LOGGING_FILEMODE"]
-            except KeyError:
-                pass
     logging.basicConfig(**kwargs)
     logging.info(f"Publications version {publications.__version__}")
     logging.info(f"settings from {settings['SETTINGS_FILEPATH']}")
@@ -114,7 +88,8 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
         logging.info("logging debug")
     if settings["TORNADO_DEBUG"]:
         logging.info("tornado debug")
-    # Check settings.
+
+    # Check some settings.
     for key in ["BASE_URL", "PORT", "DATABASE_SERVER", "DATABASE_NAME"]:
         if key not in settings:
             raise KeyError(f"No settings['{key}'] item.")
@@ -124,25 +99,13 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
         raise ValueError("settings['COOKIE_SECRET'] not set, or too short.")
     if len(settings.get("PASSWORD_SALT") or "") < 10:
         raise ValueError("Settings['PASSWORD_SALT'] not set, or too short.")
+
     # Get server version from server.
     settings["DATABASE_SERVER_VERSION"] = get_dbserver().version
-    # Use caseless dictionary for the xref templates URLs.
-    settings["XREF_TEMPLATE_URLS"] = NocaseDict(settings["XREF_TEMPLATE_URLS"])
-    # Set the hard-wired URL xref.
-    settings["XREF_TEMPLATE_URLS"]["URL"] = "%s"
 
-def expand_filepath(filepath):
-    "Expand environment variables (ROOT and SITE_DIR) in filepaths."
-    filepath = os.path.expandvars(filepath)
-    old = None
-    while filepath != old:
-        old = filepath
-        try:
-            filepath = filepath.replace("{SITE_DIR}", settings["SITE_DIR"])
-        except KeyError:
-            pass
-        filepath = filepath.replace("{ROOT}", settings["ROOT"])
-    return filepath
+    # Set up the xref templates URLs.
+    settings["XREF_TEMPLATE_URLS"] = NocaseDict(settings["XREF_TEMPLATE_URLS"])
+    settings["XREF_TEMPLATE_URLS"]["URL"] = "%s"
 
 def get_dbserver():
     "Return the CouchDB2 handle for the CouchDB server."
@@ -480,3 +443,26 @@ class EmailServer:
         mail["From"] = self.email
         mail["To"] = recipient
         self.server.sendmail(self.email, [recipient], mail.as_string())
+
+
+class NocaseDict:
+    "Keys are compared ignoring case."
+    def __init__(self, orig):
+        self.orig = orig.copy()
+        self.lower = dict()
+        for key in orig:
+            self.lower[key.lower()] = orig[key]
+    def keys(self):
+        return list(self.orig.keys())
+    def __getitem__(self, key):
+        return self.lower[key.lower()]
+    def __setitem__(self, key, value):
+        self.orig[key] = value
+        self.lower[key.lower()] = value
+    def __str__(self):
+        return str(dict([(k,self[k]) for k in self.keys()]))
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default

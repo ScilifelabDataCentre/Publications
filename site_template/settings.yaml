@@ -1,10 +1,14 @@
-# Publications: Generic settings file; copy or modify for your site.
-# The Publications app needs a settings file like this at startup.
-# It will look for a file in this directory named '{hostname}.yaml'
-# where {hostname} is the value of the Python expression
-# socket.gethostname().split('.')[0] (socket is a Python standard module).
-# If no such file exists, it will look for 'settings.yaml'.
-# If it can't find any of these, it will fail.
+# Publications: Template settings file
+#
+# Copy this to 'settings.yaml' and modify for your site.
+#
+# Remember to hide its contents from prying eyes by setting
+# access such that only the web server is allowed to read it.
+#
+# The Publications app needs a settings file at startup.
+# If not given as command line argument or in the PUBLICATIONS_SETTINGS
+# environment variable, then it must be located here:
+# 'Publications/site/settings.yaml'
 
 # Base URL for the site
 BASE_URL: 'https://publications.whatever.org/'
@@ -19,8 +23,9 @@ LOGGING_FILEPATH: '/var/log/nginx/publications.log'
 
 # CouchDB database connection
 DATABASE_NAME: 'publications'
-#DATABASE_ACCOUNT: 'admin'
-#DATABASE_PASSWORD: 'secret'
+
+# DATABASE_ACCOUNT: 'admin'
+# DATABASE_PASSWORD: 'secret'
 
 # Login
 COOKIE_SECRET: 'long random string of characters'

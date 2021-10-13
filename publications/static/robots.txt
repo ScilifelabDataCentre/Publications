@@ -1,5 +1,0 @@
-User-agent: *
-Disallow: /static/
-Disallow: /site/
-Disallow: /*format=feed*
-Allow: /

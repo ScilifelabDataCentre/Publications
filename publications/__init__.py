@@ -2,13 +2,15 @@
 
 import os
 
-__version__ = "6.2.6"
+__version__ = "6.3.0"
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # Default settings, may be changed by a settings YAML file.
 settings = dict(
-    ROOT=os.path.dirname(os.path.abspath(__file__)),
+    ROOT=ROOT,
     BASE_URL="http://localhost:8885/",
-    PORT=8885,
+    PORT=8885,                  # The port used by tornado
     TORNADO_DEBUG=False,
     LOGGING_DEBUG=False,
     LOGGING_FORMAT="%(levelname)s [%(asctime)s] %(message)s",
@@ -43,7 +45,7 @@ settings = dict(
     SITE_PARENT_URL=None,
     SITE_EMAIL=None,
     SITE_CONTACT="<p><i>No contact information available.</i></p>",
-    SITE_DIR="static",
+    SITE_STATIC_DIR=os.path.normpath(os.path.join(ROOT, "../site/static")),
     SITE_LABEL_QUALIFIERS=[],
     SOURCE_URL="https://github.com/pekrau/Publications",
     SOURCE_VERSION=__version__,
