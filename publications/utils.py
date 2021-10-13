@@ -114,32 +114,27 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
         logging.info("logging debug")
     if settings["TORNADO_DEBUG"]:
         logging.info("tornado debug")
-    # Check settings
-    for key in ["BASE_URL", "DATABASE_SERVER", "DATABASE_NAME"]:
+    # Check settings.
+    for key in ["BASE_URL", "PORT", "DATABASE_SERVER", "DATABASE_NAME"]:
         if key not in settings:
             raise KeyError(f"No settings['{key}'] item.")
         if not settings[key]:
-            raise ValueError(f"settings['{key}'] has invalid value.")
+            raise ValueError(f"Settings['{key}'] has invalid value.")
     if len(settings.get("COOKIE_SECRET") or "") < 10:
         raise ValueError("settings['COOKIE_SECRET'] not set, or too short.")
     if len(settings.get("PASSWORD_SALT") or "") < 10:
-        raise ValueError("settings['PASSWORD_SALT'] not set, or too short.")
-    # Settings computable from others
+        raise ValueError("Settings['PASSWORD_SALT'] not set, or too short.")
+    # Get server version from server.
     settings["DATABASE_SERVER_VERSION"] = get_dbserver().version
-    if "PORT" not in settings:
-        parts = urllib.parse.urlparse(settings["BASE_URL"])
-        items = parts.netloc.split(":")
-        if len(items) == 2:
-            settings["PORT"] = int(items[1])
-        elif parts.scheme == "http":
-            settings["PORT"] =  80
-        elif parts.scheme == "https":
-            settings["PORT"] =  443
-        else:
-            raise ValueError("Could not determine port from BASE_URL.")
-    # Use caseless dictionary for the xref templates URLs
+    # Check that any port specified explicitly in BASE_URL matches PORT.
+    parts = urllib.parse.urlparse(settings["BASE_URL"])
+    items = parts.netloc.split(":")
+    if len(items) == 2 and int(items[1]) != settings["PORT"]:
+        raise ValueError(f"Mismatch {settings['BASE_URL']=}"
+                         f" and {settings['PORT']=}.")
+    # Use caseless dictionary for the xref templates URLs.
     settings["XREF_TEMPLATE_URLS"] = NocaseDict(settings["XREF_TEMPLATE_URLS"])
-    # Set the hard-wired URL xref
+    # Set the hard-wired URL xref.
     settings["XREF_TEMPLATE_URLS"]["URL"] = "%s"
 
 def expand_filepath(filepath):
