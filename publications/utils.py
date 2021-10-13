@@ -126,12 +126,6 @@ def load_settings(filepath=None, ignore_logging_filepath=False):
         raise ValueError("Settings['PASSWORD_SALT'] not set, or too short.")
     # Get server version from server.
     settings["DATABASE_SERVER_VERSION"] = get_dbserver().version
-    # Check that any port specified explicitly in BASE_URL matches PORT.
-    parts = urllib.parse.urlparse(settings["BASE_URL"])
-    items = parts.netloc.split(":")
-    if len(items) == 2 and int(items[1]) != settings["PORT"]:
-        logging.error(f"Mismatch {settings['BASE_URL']=}"
-                      f" and {settings['PORT']=}.")
     # Use caseless dictionary for the xref templates URLs.
     settings["XREF_TEMPLATE_URLS"] = NocaseDict(settings["XREF_TEMPLATE_URLS"])
     # Set the hard-wired URL xref.
