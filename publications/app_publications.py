@@ -3,6 +3,7 @@
 import logging
 import os
 import os.path
+import sys
 
 import tornado.web
 import tornado.ioloop
@@ -220,8 +221,11 @@ def get_application():
         login_url=r"/login")
 
 def main():
-    args = get_args()
-    utils.load_settings(filepath=args.settings)
+    if len(sys.argv) == 2:
+        filename = sys.argv[1]
+    else:
+        filename = None
+    utils.load_settings(filename=filename)
     designs.load_design_documents(utils.get_db())
     application = get_application()
     application.listen(settings["PORT"], xheaders=True)

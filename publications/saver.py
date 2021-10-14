@@ -146,4 +146,8 @@ class Saver:
                 log["account"] = self.account["email"]
             except (TypeError, AttributeError, KeyError):
                 pass
+            try:
+                log["user_agent"] = self.account["user_agent"]
+            except (TypeError, AttributeError, KeyError):
+                pass
         self.db.put(log)

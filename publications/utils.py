@@ -32,38 +32,33 @@ def get_command_line_parser(description=None):
                         metavar="FILE", help="filename of settings YAML file")
     return parser
 
-def load_settings(filepath=None):
-    """Load the settings from the first file given by:
+def load_settings(filename=None, log=True):
+    """Load the settings from the named file, which must be located in the
+    'Publications/site' directory. The first specified name is used:
     1) The argument to this procedure (possibly from a command line argument).
     2) The environment variable PUBLICATIONS_SETTINGS.
-    3) The file '../site/settings.yaml' relative to this directory.
+    3) The file name 'settings.yaml'.
+    If 'log' is True, activate logging according to DEBUG settings.
     Raise IOError if settings file could not be read.
     Raise KeyError if a settings variable is missing.
     Raise ValueError if a settings variable value is invalid.
     """
-    filepaths = []
-    if filepath:
-        filepaths.append(filepath)
-    try:
-        filepaths.append(os.environ["PUBLICATIONS_SETTINGS"])
-    except KeyError:
-        pass
-    filepaths.append(
-        os.path.normpath(
-            os.path.join(settings["ROOT"], "../site/settings.yaml")))
-    for filepath in filepaths:
+    site_dir = os.path.normpath(os.path.join(settings["ROOT"], "../site"))
+    if not os.path.exists(site_dir):
+        raise IOError(f"The required site directory '{site_dir}' does not exist.")
+    if not os.path.isdir(site_dir):
+        raise IOError(f"The site directory path '{site_dir}' is not a directory.")
+    if filename is None:
         try:
-            with open(filepath) as infile:
-                settings.update(yaml.safe_load(infile))
-        except FileNotFoundError:
-            pass
-        else:
-            settings["SETTINGS_FILEPATH"] = filepath
-            break
-    else:
-        raise IOError("Could not find any settings file.")
+            filename = os.environ["PUBLICATIONS_SETTINGS"]
+        except KeyError:
+            filename = "settings.yaml"
+    filepath = os.path.join(site_dir, filename)
+    with open(filepath) as infile:
+        settings.update(yaml.safe_load(infile))
+    settings["SETTINGS_FILEPATH"] = filepath
 
-    # Set logging state.
+    # Setup logging.
     if settings.get("LOGGING_DEBUG"):
         kwargs = dict(level=logging.DEBUG)
     else:
@@ -81,13 +76,15 @@ def load_settings(filepath=None):
             kwargs["filemode"] = settings["LOGGING_FILEMODE"]
         except KeyError:
             pass
-    logging.basicConfig(**kwargs)
-    logging.info(f"Publications version {publications.__version__}")
-    logging.info(f"settings from {settings['SETTINGS_FILEPATH']}")
-    if settings["LOGGING_DEBUG"]:
-        logging.info("logging debug")
-    if settings["TORNADO_DEBUG"]:
-        logging.info("tornado debug")
+    settings["LOG"] = log
+    if log:
+        logging.basicConfig(**kwargs)
+        logging.info(f"Publications version {publications.__version__}")
+        logging.info(f"settings from {settings['SETTINGS_FILEPATH']}")
+        if settings["LOGGING_DEBUG"]:
+            logging.info("logging debug")
+        if settings["TORNADO_DEBUG"]:
+            logging.info("tornado debug")
 
     # Check some settings.
     for key in ["BASE_URL", "PORT", "DATABASE_SERVER", "DATABASE_NAME"]:

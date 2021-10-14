@@ -1,9 +1,10 @@
 "Command line interface to the Publications database."
 
+import csv
 import functools
 import io
 import json
-import logging
+import os
 import tarfile
 import time
 import sys
@@ -15,21 +16,21 @@ from publications import constants
 from publications import utils
 from publications import designs
 from publications import settings
-from publications.subset import Subset, get_parser
 from publications.account import AccountSaver
+from publications.publication import PublicationSaver
+from publications.subset import Subset, get_parser
 import publications.app_publications
 import publications.writer
 
 
 @click.group()
-@click.option("-s", "--settings", help="Settings YAML file.")
-@click.option("--log", flag_value=True, default=False, help="Enable logging.")
+@click.option("-s", "--settings", help="Name of settings YAML file.")
+@click.option("--log", flag_value=True, default=False,
+              help="Enable logging output.")
 @click.pass_context
 def cli(ctx, settings, log):
     ctx.ensure_object(dict)
-    if not log:
-        logging.getLogger().disabled = True
-    utils.load_settings(settings)
+    utils.load_settings(settings, log=log)
     ctx.obj["db"] = utils.get_db()
     ctx.obj["app"] = publications.app_publications.get_application()
 
@@ -321,21 +322,89 @@ def select(ctx, years, labels, authors, orcids, expression,
         click.echo(result)
 
 @cli.command()
-def add_label(idfilepath, subsetfilepath):
+@click.option("--label", help="The label to add to the publications."
+              " May contain a qualifier after slash '/' character.")
+@click.option("--csvfilepath",
+              help="Path of CSV file of publications to add the label to."
+              " Only the IUID column in the CSV file is used.")
+@click.pass_context
+def add_label(ctx, label, csvfilepath):
     """Add a label to a set of publications.
     """
-    pass
+    db = ctx.obj["db"]
+    parts = label.split("/", 1)
+    if len(parts) == 2:
+        label = parts[0]
+        qualifier = parts[1]
+    else:
+        qualifier = None
+    try:
+        label = utils.get_label(db, label)["value"]
+    except KeyError as error:
+        raise click.ClickException(str(error))
+    if qualifier and qualifier not in settings["SITE_LABEL_QUALIFIERS"]:
+        raise click.ClickException(f"No such label qualifier {qualifier}.")
+    count = 0
+    for iuid in get_iuids_from_csv(csvfilepath):
+        try:
+            publ = db[iuid]
+        except KeyError:
+            click.echo(f"No such publication '{iuid}'; skipping.")
+            continue
+        if label in publ["labels"]: continue
+        account = {"email": os.getlogin(), "user_agent": "CLI"}
+        with PublicationSaver(doc=publ, db=db, account=account) as saver:
+            labels = publ['labels'].copy()
+            labels[label] = qualifier
+            saver['labels'] = labels
+        count += 1
+    click.echo(f"Added label to {count} publications.")
 
 @cli.command()
-def remove_label(idfilepath, subsetfilepath):
+@click.option("--label", help="The label to remove from the publications.")
+@click.option("--csvfilepath",
+              help="Path of CSV file of publications to add the label to."
+              " Only the IUID column in the CSV file is used.")
+@click.pass_context
+def remove_label(ctx, label, csvfilepath):
     """Remove a label from a set of publications.
     """
-    pass
+    db = ctx.obj["db"]
+    try:
+        label = utils.get_label(db, label)["value"]
+    except KeyError as error:
+        raise click.ClickException(str(error))
+    count = 0
+    for iuid in get_iuids_from_csv(csvfilepath):
+        try:
+            publ = db[iuid]
+        except KeyError:
+            click.echo(f"No such publication '{iuid}'; skipping.")
+            continue
+        if label not in publ["labels"]: continue
+        account = {"email": os.getlogin(), "user_agent": "CLI"}
+        with PublicationSaver(doc=publ, db=db, account=account) as saver:
+            labels = publ['labels'].copy()
+            labels.pop(label)
+            saver['labels'] = labels
+        count += 1
+    click.echo(f"Removed label from {count} publications.")
 
+
+def get_iuids_from_csv(csvfilepath):
+    try:
+        with open(csvfilepath) as infile:
+            reader = csv.DictReader(infile)
+            return [p["IUID"] for p in reader]
+    except (IOError, csv.Error, KeyError) as error:
+        raise click.ClickException(str(error))
 
 def union(s, t): return s | t
+
 def json_dumps(doc): return json.dumps(doc, ensure_ascii=False, indent=2)
+
 def asis(value): return value
+
 def normalized(value): return utils.to_ascii(value).lower()
 
 

@@ -3,15 +3,9 @@ Publications
 
 A web-based publications reference database system.
 
-See the [GitHub Publications wiki](https://github.com/pekrau/Publications/wiki)
-for the documentation, including How-to and Installation.
-
 Requires Python 3.6 or higher.
 
-**NOTE:** Since version 6.0, the Python module
-[CouchDB2](https://pypi.org/project/CouchDB2/) is used instead of
-[CouchDB](https://pypi.org/project/CouchDB/). Upgrade your packages
-according to the `requirements.txt`.
+See **[Important changes](#important-changes)**
 
 Features
 --------
@@ -62,6 +56,23 @@ Features
 - API to ask the server to fetch publications from PubMed or Crossref.
   See [its README](https://github.com/pekrau/Publications/tree/master/publications/api).
 
+Important changes
+-----------------
+
+- Since version 6.4, the GitHub wiki has been discontinued. Installation
+  information is available below, and other information is available
+  in the web app interface.
+
+- Since version 6.3, the directory containing site-specific data
+  (e.g. `settings.yaml`, `static` directory for favicon and logo image files)
+  has been moved from `Publications/publications/site` to `Publications/site`.
+  The installation procedure has changed accordingly.
+
+- Since version 6.0, the Python module
+  [CouchDB2](https://pypi.org/project/CouchDB2/) is used instead of
+  [CouchDB](https://pypi.org/project/CouchDB/). Upgrade your packages
+  according to the `requirements.txt`.
+
 Implementation
 --------------
 
@@ -83,9 +94,68 @@ Implementation
 - [pyyaml](https://pypi.python.org/pypi/PyYAML)
 - [requests](http://docs.python-requests.org/en/master/)
 
+Installation
+------------
+
+0. NOTE: tornado is difficult (even impossible?) to set up on Windows
+   systems, so Linux is strongly recommended.
+
+1. Ensure that you have Python 3.6 or higher.
+
+2. Your Python environment must include the Publications directory in
+   its path, e.g.:
+
+   ```
+   $ cd wherever/Publications
+   $ export PYTHONPATH=$PWd
+   ```
+
+3. Install the required Python modules (see `Publications/requirements.txt`)
+
+4. Ensure that you have the CouchDB server installed and running.
+
+5. Create the database publications in the CouchDB server using its
+   own interface. Ensure that the database allows read/write access
+   for the CouchDB server account of your choice.  Record the CouchDB
+   server account name and password for the `settings.yaml` file (see below).
+
+6. Copy the directory `Publications/site_template` and all its contents to
+   `Publications/site`. The latter directory contains files that can or
+   should be modified for your site.
+
+7. Edit your settings file `Publications/site/settings.yaml`.
+   In particular, set the CouchDB connection, site name, etc.
+
+8. The Publications CouchDB database must be initialized using the CLI.
+   This also tests that the CouchDB variables in the `settings.yaml`
+   file are correct.
+
+   ```
+   $ python cli.py initialize 
+   ```
+   
+9. Create an admin account using the CLI. This admin account is needed to
+   create other accounts (admin or curator) in the web interface.
+
+   ```
+   $ python cli.py admin
+   ```
+
+10. Set up the tornado web server to start on boot, using the port
+    number you have defined in the `settings.yaml` file. You need to figure
+    this out yourself.
+
+11. Set a proxy from your outward-facing web server (Apache, nginx, or
+    whatever your site supports) for the tornado server. You need to figure
+    this out yourself.
+
 SciLifeLab
 ----------
 
-The system was designed for keeping track of the publications
-to which the infrastructure units of SciLifeLab contributed.
-See [SciLifeLab Publications](https://publications.scilifelab.se/).
+The system was designed for keeping track of
+[publications to which the infrastructure units of SciLifeLab](https://publications.scilifelab.se/)
+contributed.
+
+Another instance is used to keep track of
+[Covid-19-related research papers](https://publications-covid19.scilifelab.se/)
+from Sweden.

@@ -1,19 +1,18 @@
 # Publications: Template settings file
 #
-# Copy this to 'Publications/site/settings.yaml' and modify for your site.
+# The working instance of this file must be located in the
+# 'Publications/site'. If named other than `settings.yaml´ that name must
+# be specified as a command line argument or in the PUBLICATIONS_SETTINGS
+# environment variable.
 #
 # Remember to hide its contents from prying eyes by setting
 # access such that only the web server is allowed to read it.
-#
-# The Publications app needs a settings file at startup.
-# If not given as command line argument or in the PUBLICATIONS_SETTINGS
-# environment variable, then it must be located here:
-# 'Publications/site/settings.yaml'
 
-# Base URL for the site
+
+# Base URL for the site; the externally visible URL.
 BASE_URL: 'https://publications.whatever.org/'
 
-# Port for the tornado server
+# Port for the tornado server.
 PORT: 8885
 
 # Logging and debug.
@@ -21,17 +20,27 @@ TORNADO_DEBUG: True
 LOGGING_DEBUG: True
 LOGGING_FILEPATH: '/var/log/nginx/publications.log'
 
-# CouchDB database connection
+# CouchDB database connection setup.
+
+# The URL for this software system to access the CouchDB server.
+# The CouchDB server may be on another machine.
+DATABASE_SERVER: 'http://localhost:5984/'
+
+# The name of the database in the CouchDB server.
 DATABASE_NAME: 'publications'
 
-# DATABASE_ACCOUNT: 'admin'
-# DATABASE_PASSWORD: 'secret'
+# The CouchDB account to use for accessing the database.
+# It must have read/write priviliges to the database.
+DATABASE_ACCOUNT: 'admin'
 
-# Login
+# The CouchDB account password to use for accessing the database.
+DATABASE_PASSWORD: 'secret'
+
+# Login setup. Once set, changing these will invalidate all passwords.
 COOKIE_SECRET: 'long random string of characters'
 PASSWORD_SALT: 'another long random string of characters'
 
-# Site customization
+# Site customization.
 SITE_NAME: 'Publications'
 SITE_TITLE: 'Publications'
 SITE_TEXT: 'Publications from our institute.'
@@ -39,7 +48,6 @@ SITE_PARENT_URL: 'https://www.whatever.org/'
 SITE_PARENT_NAME: 'Whatever'
 SITE_CONTACT: '<p>Questions? Contact us: <b>info@swhatever.org</b></p>'
 SITE_EMAIL: 'info@whatever.org'
-SITE_DIR: '{ROOT}/whatever'
 SITE_LABEL_QUALIFIERS:
   - Research
   - Service
