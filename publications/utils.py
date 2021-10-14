@@ -96,6 +96,10 @@ def load_settings(filename=None, log=True):
         raise ValueError("settings['COOKIE_SECRET'] not set, or too short.")
     if len(settings.get("PASSWORD_SALT") or "") < 10:
         raise ValueError("Settings['PASSWORD_SALT'] not set, or too short.")
+    for key in ["PUBMED_DELAY", "PUBMED_TIMEOUT", 
+                "CROSSREF_DELAY", "CROSSREF_TIMEOUT"]:
+        if not isinstance(settings[key], (int, float)) or settings[key] <= 0.0:
+            raise ValueError(f"Invalid '{key}' value: must be positive number.")
 
     # Get server version from server.
     settings["DATABASE_SERVER_VERSION"] = get_dbserver().version

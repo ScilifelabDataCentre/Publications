@@ -13,11 +13,13 @@ import couchdb2
 import click
 
 from publications import constants
-from publications import utils
+from publications import crossref
 from publications import designs
+from publications import pubmed
 from publications import settings
+from publications import utils
 from publications.account import AccountSaver
-from publications.publication import PublicationSaver
+from publications.publication import PublicationSaver, fetch_publication
 from publications.subset import Subset, get_parser
 import publications.app_publications
 import publications.writer
@@ -131,7 +133,7 @@ def undump(ctx, dumpfile):
     
 @cli.command()
 @click.option("--email", prompt=True)
-@click.option("--password")
+@click.option("--password")     # Get password after account existence check.
 @click.pass_context
 def admin(ctx, email, password):
     "Create a user account having the admin role."
@@ -153,7 +155,7 @@ def admin(ctx, email, password):
     
 @cli.command()
 @click.option("--email", prompt=True)
-@click.option("--password")
+@click.option("--password")     # Get password after account existence check.
 @click.pass_context
 def curator(ctx, email, password):
     "Create a user account having the curator role."
@@ -175,7 +177,7 @@ def curator(ctx, email, password):
     
 @cli.command()
 @click.option("--email", prompt=True)
-@click.option("--password")
+@click.option("--password")     # Get password after account existence check.
 @click.pass_context
 def password(ctx, email, password):
     "Set the password for the given account."
@@ -187,7 +189,7 @@ def password(ctx, email, password):
     try:
         with AccountSaver(doc=user, db=db) as saver:
             if not password:
-                password = click.prompt("Password",
+                password = click.prompt("Password", 
                                         hide_input=True,
                                         confirmation_prompt=True)
             saver.set_password(password)
@@ -291,7 +293,7 @@ def select(ctx, years, labels, authors, orcids, expression,
             subset = parsed[0].evaluate(db)
         except Exception as error:
             raise click.ClickException(f"Evaluating selection expression: {error}")
-        if subsets:
+        if subsets:             # Were any previous subset(s) defined?
             result = result & subset
         else:
             result = subset
@@ -322,9 +324,74 @@ def select(ctx, years, labels, authors, orcids, expression,
         click.echo(result)
 
 @cli.command()
-@click.option("--label", help="The label to add to the publications."
+@click.option("-f", "--filepath", required=True,
+              help="Path of the file containing PMIDs and/or DOIs to fetch.")
+@click.option("-l", "--label", help="Optional label to add to the publications."
               " May contain a qualifier after slash '/' character.")
-@click.option("--csvfilepath",
+@click.pass_context
+def fetch(ctx, filepath, label):
+    """Fetch publications given a file containing PMIDs and/or DOIs,
+    one per line. If the publication is already in the database, the label,
+    if given, is added. For a PMID, the publication is fetched from PubMed.
+    For a DOI, an attempt is first made to get the publication from PubMed.
+    If that does not work, Crossref is tried.
+    Delay, timeout and API key for fetching is defined in the settings file.
+    """
+    db = ctx.obj["db"]
+    identifiers = []
+    try:
+        with open(filepath) as infile:
+            for line in infile:
+                try:
+                    identifiers.append(line.strip().split()[0])
+                except IndexError:
+                    pass
+    except IOError as error:
+        raise click.ClickException(str(error))
+    if label:
+        parts = label.split("/", 1)
+        if len(parts) == 2:
+            label = parts[0]
+            qualifier = parts[1]
+        else:
+            qualifier = None
+        try:
+            label = utils.get_label(db, label)["value"]
+        except KeyError as error:
+            raise click.ClickException(str(error))
+        if qualifier and qualifier not in settings["SITE_LABEL_QUALIFIERS"]:
+            raise click.ClickException(f"No such label qualifier {qualifier}.")
+        labels = {label: qualifier}
+    else:
+        labels = {}
+    account = {"email": os.getlogin(), "user_agent": "CLI"}
+    allowed_labels = set([l["value"]
+                          for l in utils.get_docs(db, "label", "value")])
+    for identifier in identifiers:
+        try:
+            publ = utils.get_publication(db, identifier)
+        except KeyError:
+            try:
+                publ = fetch_publication(db, identifier,
+                                         labels=labels, account=account,
+                                         allowed_labels=allowed_labels)
+            except IOError as error:
+                click.echo(f"Error: {error}")
+            except KeyError as error:
+                click.echo(f"Warning: {error}")
+            else:
+                click.echo(f"Fetched {publ['title']}")
+        else:
+            if add_label_to_publication(db, publ, label, qualifier):
+                click.echo(f"{identifier} already in database; label updated.")
+            else:
+                click.echo(f"{identifier} already in database.")
+
+@cli.command()
+@click.option("-l", "--label", required=True,
+              help="The label to add to the publications."
+              " May contain a qualifier after slash '/' character.")
+@click.option("-f", "--csvfilepath", required=True,
               help="Path of CSV file of publications to add the label to."
               " Only the IUID column in the CSV file is used.")
 @click.pass_context
@@ -350,19 +417,15 @@ def add_label(ctx, label, csvfilepath):
             publ = db[iuid]
         except KeyError:
             click.echo(f"No such publication '{iuid}'; skipping.")
-            continue
-        if label in publ["labels"]: continue
-        account = {"email": os.getlogin(), "user_agent": "CLI"}
-        with PublicationSaver(doc=publ, db=db, account=account) as saver:
-            labels = publ['labels'].copy()
-            labels[label] = qualifier
-            saver['labels'] = labels
-        count += 1
+        else:
+            if add_label_to_publication(db, publ, label, qualifier):
+                count += 1
     click.echo(f"Added label to {count} publications.")
 
 @cli.command()
-@click.option("--label", help="The label to remove from the publications.")
-@click.option("--csvfilepath",
+@click.option("-l", "--label", required=True,
+              help="The label to remove from the publications.")
+@click.option("-f", "--csvfilepath", required=True,
               help="Path of CSV file of publications to add the label to."
               " Only the IUID column in the CSV file is used.")
 @click.pass_context
@@ -390,6 +453,16 @@ def remove_label(ctx, label, csvfilepath):
         count += 1
     click.echo(f"Removed label from {count} publications.")
 
+
+def add_label_to_publication(db, publication, label, qualifier):
+    if publication["labels"].get(label, "dummy qualifier") == qualifier:
+        return False
+    account = {"email": os.getlogin(), "user_agent": "CLI"}
+    with PublicationSaver(doc=publication, db=db, account=account) as saver:
+        labels = publication['labels'].copy()
+        labels[label] = qualifier
+        saver['labels'] = labels
+    return True
 
 def get_iuids_from_csv(csvfilepath):
     try:

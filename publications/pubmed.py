@@ -3,6 +3,7 @@
 import json
 import os
 import os.path
+import string
 import sys
 import time
 import unicodedata
@@ -340,8 +341,7 @@ def squish(value):
     "Remove all unnecessary white spaces."
     return " ".join([p for p in value.split() if p])
 
-
-if __name__ == "__main__":
+def test():
     dirname = os.getcwd()
     pmids = sys.argv[1:]
     if not pmids:
@@ -349,3 +349,6 @@ if __name__ == "__main__":
     for pmid in pmids:
         data = fetch(pmid, dirname=dirname, debug=True)
         print(json.dumps(data, indent=2, ensure_ascii=False))
+
+if __name__ == "__main__":
+    print(search(doi="10.1038/356448a0"))

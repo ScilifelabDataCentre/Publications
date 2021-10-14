@@ -21,16 +21,16 @@ class Saver:
 
     def __init__(self, doc=None, rqh=None, db=None, account=None):
         assert self.doctype in constants.ENTITIES
-        if rqh is not None:
-            self.rqh = rqh
-            self.db = rqh.db
-            self.account = account or rqh.current_user
-        elif db is not None:
-            self.rqh = None
-            self.db = db
-            self.account = account
-        else:
+        self.rqh = rqh
+        self.db = db
+        if self.db is None and self.rqh is None:
             raise AttributeError("neither db nor rqh given")
+        if self.db is None:
+            self.db = rqh.db
+        if self.rqh:
+            self.account = account or rqh.current_user
+        else:
+            self.account = account
         self.doc = doc or dict()
         self.changed = dict()
         if "_id" in self.doc:

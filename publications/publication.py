@@ -232,7 +232,6 @@ class PublicationSaver(Saver):
         """
         # Import done here to avoid circularity.
         from publications.journal import JournalSaver
-        assert self.rqh, "requires http request context"
         doc = None
         try:
             journal = self["journal"].copy()
@@ -243,16 +242,16 @@ class PublicationSaver(Saver):
         issn_l = journal.get("issn-l")
         if issn:
             try:
-                doc = self.rqh.get_doc("journal", "issn", issn)
+                doc = utils.get_doc(self.db, "journal", "issn", issn)
                 issn_l = doc.get("issn-l") or issn_l
             except KeyError:
                 try:
-                    doc = self.rqh.get_doc("journal", "issn_l", issn)
+                    doc = utils.get_doc(self.db, "journal", "issn_l", issn)
                     issn_l = issn
                 except KeyError:
                     if title:
                         try:
-                            doc = self.rqh.get_doc("journal", "title", title)
+                            doc = utils.get_doc(self.db, "journal", "title", title)
                         except KeyError:
                             doc = None
                         else:
@@ -272,7 +271,9 @@ class PublicationSaver(Saver):
     def update_labels(self, labels=None, allowed_labels=None, clean=True):
         """Update the labels. If no labels dictionary given, get HTTP form data.
         Only changes the allowed labels for the current user.
-        If clean, then remove any missing allowed labels from existing entry.
+        If clean, then remove any allowed labels missing from existing entry.
+        If labels or allowed_labels are not given, they are obtained
+        from HTML form arguments, so an http request is then required.
         """
         if labels is None:
             # Horrible kludge: Unicode issue for labels and qualifiers...
@@ -337,100 +338,6 @@ class PublicationMixin:
             return set([l["value"] for l in self.get_docs("label", "value")])
         else:
             return set(self.current_user["labels"])
-
-
-class PublicationFetchMixin:
-    "Mixin for method to fetch a number of publications from externa sources."
-
-    def fetch(self, identifier, override=False, labels={}, clean=True):
-        """Fetch the publication given by identifier (PMID or DOI).
-        override: If True, overrides the blacklist.
-        labels: Dictionary of labels (key: label, value: qualifier) to set.
-                Only allowed labels for the curator are updated.
-        clean: Remove any missing allowed labels from an existing entry.
-        Raise IOError if no such publication found, or other error.
-        Raise KeyError if publication is in the blacklist (and not override).
-        """
-        self.check_blacklisted(identifier, override=override)
-
-        # Does the publication already exist in the database?
-        try:
-            current = self.get_publication(identifier)
-        except KeyError:
-            current = None
-
-        # Fetch from external source according to identifier type.
-        identifier_is_pmid = constants.PMID_RX.match(identifier)
-        if identifier_is_pmid:
-            try:
-                new = pubmed.fetch(identifier,
-                                   timeout=settings["PUBMED_TIMEOUT"],
-                                   delay=settings["PUBMED_DELAY"],
-                                   api_key=settings["NCBI_API_KEY"])
-            except IOError:
-                msg = f"No response from PubMed for {identifier}."
-                if current:
-                    msg += " Publication exists, but could not be updated."
-                raise IOError(msg)
-            except ValueError as error:
-                raise IOError(f"{identifier}, {error}")
-
-        else: # Not PMID, assume DOI identifier.
-            try:
-                new = crossref.fetch(identifier,
-                                     timeout=settings["CROSSREF_TIMEOUT"],
-                                     delay=settings["CROSSREF_DELAY"])
-            except IOError:
-                msg = f"No response from Crossref for {identifier}."
-                if current:
-                    msg += " Publication exists, but could not be updated."
-                raise IOError(msg)
-            except ValueError as error:
-                raise IOError(f"{identifier}, {error}")
-
-        # Check blacklist registry again; other external id may be there.
-        self.check_blacklisted(new.get("pmid"), override=override)
-        self.check_blacklisted(new.get("doi"), override=override)
-
-        # Find the current entry again by the other identifier.
-        if current is None:
-            # Maybe the publication has been fetched using the other identifier?
-            if identifier_is_pmid:
-                try:
-                    current = self.get_publication(new.get("doi"))
-                except KeyError:
-                    pass
-            else:
-                try:
-                    current = self.get_publication(new.get("pmid"))
-                except KeyError:
-                    pass
-
-        # Update the current entry, if it exists.
-        if current:
-            with PublicationSaver(current, rqh=self) as saver:
-                saver.update(new, updated_by_pmid=identifier_is_pmid)
-                saver.fix_journal()
-                saver.update_labels(labels=labels, clean=clean)
-            return current
-        # Else create a new entry.
-        else:
-            with PublicationSaver(rqh=self) as saver:
-                saver.update(new, updated_by_pmid=identifier_is_pmid)
-                saver.fix_journal()
-                saver.update_labels(labels=labels)
-            return saver.doc
-
-    def check_blacklisted(self, identifier, override=False):
-        """Raise KeyError if identifier blacklisted.
-        If override, remove from blacklist.
-        """
-        blacklisted = utils.get_blacklisted(self.db, identifier)
-        if blacklisted:
-            if override:
-                self.db.delete(blacklisted)
-            else:
-                raise KeyError(identifier)
 
 
 class Publication(PublicationMixin, RequestHandler):
@@ -786,7 +693,7 @@ class PublicationsModified(PublicationMixin, RequestHandler):
         subset = Subset(self.db)
         subset.select_modified(limit=limit)
         publications = subset.get_publications()
-        publications.sort(lambda p: p["modified"], reverse=True)
+        publications.sort(key=lambda p: p["modified"], reverse=True)
         self.render("publications_modified.html",
                     publications=publications,
                     limit=limit)
@@ -815,15 +722,14 @@ class PublicationAdd(PublicationMixin, RequestHandler):
         self.see_other("publication", publication["_id"])
 
 
-class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
+class PublicationFetch(PublicationMixin, RequestHandler):
     "Fetch publication(s) given list of DOIs or PMIDs."
 
     @tornado.web.authenticated
     def get(self):
         self.check_curator()
-        fetched = self.get_cookie("fetched", None,
-                                  domain=settings["COOKIEDOMAIN"])
-        self.clear_cookie("fetched", domain=settings["COOKIEDOMAIN"])
+        fetched = self.get_cookie("fetched")
+        self.clear_cookie("fetched")
         docs = []
         if fetched:
             for iuid in fetched.split("_"):
@@ -873,8 +779,10 @@ class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
             if len(fetched) >= settings["PUBLICATIONS_FETCHED_LIMIT"]: break
 
             try:
-                publ = self.fetch(identifier, override=override, labels=labels,
-                                  clean=not self.is_admin())
+                publ = fetch_publication(self.db, identifier,
+                                         override=override, labels=labels,
+                                         clean=not self.is_admin(),
+                                         rqh=self)
             except IOError as error:
                 errors.append(str(error))
             except KeyError as error:
@@ -882,8 +790,7 @@ class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
             else:
                 fetched.add(publ["_id"])
 
-        self.set_cookie("fetched", "_".join(fetched),
-                        domain=settings["COOKIEDOMAIN"])
+        self.set_cookie("fetched", "_".join(fetched))
         kwargs = {"message": f"{len(fetched)} publication(s) fetched."}
         kwargs["labels"] = "|".join([f"{label}/{qualifier}" if qualifier 
                                      else label
@@ -1054,8 +961,7 @@ class PublicationBlacklist(PublicationMixin, RequestHandler):
             self.see_other("home")
 
 
-class ApiPublicationFetch(PublicationFetchMixin, PublicationMixin,
-                          ApiMixin, RequestHandler):
+class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
     "Fetch a publication given its PMID or DOI."
 
     @tornado.web.authenticated
@@ -1067,9 +973,10 @@ class ApiPublicationFetch(PublicationFetchMixin, PublicationMixin,
         except KeyError:
             raise tornado.web.HTTPError(400, reason="no identifier given")
         try:
-            publ = self.fetch(identifier,
-                              override=bool(data.get("override")),
-                              labels=data.get("labels", {}))
+            publ = fetch_publication(self.db, identifier,
+                                     override=bool(data.get("override")),
+                                     labels=data.get("labels", {}),
+                                     rqh=self)
         except IOError as error:
             raise tornado.web.HTTPError(400, reason=str(error))
         except KeyError as error:
@@ -1198,3 +1105,121 @@ class PublicationUpdateDoi(PublicationMixin, RequestHandler):
             saver.fix_journal()
         self.see_other("publication", publication["_id"],
                        message="Updated from Crossref.")
+
+
+def fetch_publication(db, identifier, override=False,
+                      labels={}, allowed_labels=None, clean=True,
+                      rqh=None, account=None):
+    """Fetch the publication given by identifier (PMID or DOI).
+    If the publication is already in the database, the label,
+    if given, is added. For a PMID, the publication is fetched from PubMed.
+    For a DOI, an attempt is first made to get the publication from PubMed.
+    If that does not work, Crossref is tried.
+    Delay, timeout and API key for fetching is defined in the settings file.
+    override: If True, overrides the blacklist.
+    labels: Dictionary of labels (key: label, value: qualifier) to set.
+            Only allowed labels for the curator are updated.
+    clean: Remove any allowed labels missing from an existing entry.
+    Raise IOError if no such publication found, or other error.
+    Raise KeyError if publication is in the blacklist (and not override).
+    """
+    check_blacklisted(db, identifier, override=override)
+
+    # Does the publication already exist in the database?
+    try:
+        current = utils.get_publication(db, identifier)
+    except KeyError:
+        current = None
+
+    # Fetch from external source according to identifier type.
+    identifier_is_pmid = constants.PMID_RX.match(identifier)
+    if identifier_is_pmid:
+        try:
+            new = pubmed.fetch(identifier,
+                               timeout=settings["PUBMED_TIMEOUT"],
+                               delay=settings["PUBMED_DELAY"],
+                               api_key=settings["NCBI_API_KEY"])
+        except IOError:
+            msg = f"No response from PubMed for {identifier}."
+            if current:
+                msg += " Publication exists, but could not be updated."
+            raise IOError(msg)
+        except ValueError as error:
+            raise IOError(f"{identifier} {str(error)}")
+
+    else: # Not PMID: DOI identifier; search PubMed first.
+        pmids = pubmed.search(doi=identifier,
+                              timeout=settings["PUBMED_TIMEOUT"],
+                              delay=settings["PUBMED_DELAY"],
+                              api_key=settings["NCBI_API_KEY"])
+        if len(pmids) == 1:  # Unique result: use it.
+            try:
+                new = pubmed.fetch(pmids[0],
+                                   timeout=settings["PUBMED_TIMEOUT"],
+                                   delay=settings["PUBMED_DELAY"],
+                                   api_key=settings["NCBI_API_KEY"])
+            except IOError:
+                msg = f"No response from PubMed for {identifier}."
+                if current:
+                    msg += " Publication exists, but could not be updated."
+                raise IOError(msg)
+            except ValueError as error:
+                raise IOError(f"{identifier} {str(error)}")
+        else:  # No result, or ambiguous. Try Crossref.
+            try:
+                new = crossref.fetch(identifier,
+                                     timeout=settings["CROSSREF_TIMEOUT"],
+                                     delay=settings["CROSSREF_DELAY"])
+            except IOError:
+                msg = f"No response from Crossref for {identifier}."
+                if current:
+                    msg += " Publication exists, but could not be updated."
+                raise IOError(msg)
+            except ValueError as error:
+                raise IOError(f"{identifier} {str(error)}")
+
+    # Check blacklist registry again; other external id may be there.
+    check_blacklisted(db, new.get("pmid"), override=override)
+    check_blacklisted(db, new.get("doi"), override=override)
+
+    # Find the current entry again by the other identifier.
+    if current is None:
+        # Maybe the publication has been fetched using the other identifier?
+        if identifier_is_pmid:
+            try:
+                current = utils.get_publication(db, new.get("doi"))
+            except KeyError:
+                pass
+        else:
+            try:
+                current = utils.get_publication(db, new.get("pmid"))
+            except KeyError:
+                pass
+
+    # Update the current entry, if it exists.
+    if current:
+        with PublicationSaver(doc=current,
+                              db=db, rqh=rqh, account=account) as saver:
+            saver.update(new, updated_by_pmid=identifier_is_pmid)
+            saver.fix_journal()
+            saver.update_labels(labels=labels, clean=clean,
+                                allowed_labels=allowed_labels)
+        return current
+    # Else create a new entry.
+    else:
+        with PublicationSaver(db=db, rqh=rqh, account=account) as saver:
+            saver.update(new, updated_by_pmid=identifier_is_pmid)
+            saver.fix_journal()
+            saver.update_labels(labels=labels, allowed_labels=allowed_labels)
+        return saver.doc
+
+def check_blacklisted(db, identifier, override=False):
+    """Raise KeyError if identifier blacklisted.
+    If override, remove from blacklist.
+    """
+    blacklisted = utils.get_blacklisted(db, identifier)
+    if blacklisted:
+        if override:
+            db.delete(blacklisted)
+        else:
+            raise KeyError(f"{identifier} is blacklisted.")
