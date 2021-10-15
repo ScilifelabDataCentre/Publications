@@ -128,13 +128,15 @@ Installation
 8. The Publications CouchDB database must be initialized using the CLI.
    This also tests that the CouchDB variables in the `settings.yaml`
    file are correct.
-
-   `$ python cli.py initialize `
+   ```
+   $ python cli.py initialize
+   ```
    
 9. Create an admin account using the CLI. This admin account is needed to
    create other accounts (admin or curator) in the web interface.
-
-   `$ python cli.py admin`
+   ```
+   $ python cli.py admin
+   ```
 
 10. Set up the tornado web server to start on boot, using the port
     number you have defined in the `settings.yaml` file. You need to figure
@@ -144,13 +146,13 @@ Installation
     whatever your site supports) for the tornado server. You need to figure
     this out yourself.
 
-SciLifeLab
-----------
+Example instances
+-----------------
 
-The system was designed for keeping track of
-[publications to which the infrastructure units of SciLifeLab](https://publications.scilifelab.se/)
-contributed.
+- [SciLifeLab Infrastructure Units Publications](https://publications.scilifelab.se/)
+  which keeps track of the publications to which the infrastructure
+  units of SciLifeLab have contributed. This was the need that the
+  system was designed for.
 
-Another instance is used to keep track of
-[Covid-19-related research papers](https://publications-covid19.scilifelab.se/)
-from Sweden.
+- [Covid-19 Publications](https://publications-covid19.scilifelab.se/)
+  for publications with contributions from Swedish research.
