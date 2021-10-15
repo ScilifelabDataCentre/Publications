@@ -104,7 +104,6 @@ Installation
 
 2. Your Python environment must include the Publications directory in
    its path, e.g.:
-
    ```
    $ cd wherever/Publications
    $ export PYTHONPATH=$PWd
@@ -130,16 +129,12 @@ Installation
    This also tests that the CouchDB variables in the `settings.yaml`
    file are correct.
 
-   ```
-   $ python cli.py initialize 
-   ```
+   `$ python cli.py initialize `
    
 9. Create an admin account using the CLI. This admin account is needed to
    create other accounts (admin or curator) in the web interface.
 
-   ```
-   $ python cli.py admin
-   ```
+   `$ python cli.py admin`
 
 10. Set up the tornado web server to start on boot, using the port
     number you have defined in the `settings.yaml` file. You need to figure
