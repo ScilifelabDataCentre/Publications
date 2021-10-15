@@ -410,6 +410,16 @@
 	<div class="col-md-2">
 	  {% block meta_content %}
 	  {% end %} {# block meta_content #}
+          {% block documentation %}
+          {% for page in ['overview', 'labels', 'subset'] %}
+          <p>
+            <a href="{{ reverse_url('doc', page) }}">
+              <span class="glyphicon glyphicon-info-sign"></span>
+              {{ page.capitalize() }}
+            </a>
+          </p>
+          {% end %} {# for page in ['overview', 'labels'] #}
+          {% end %} {# block documentation #}
 	</div>
       </div>
       {% end %} {# block content #}

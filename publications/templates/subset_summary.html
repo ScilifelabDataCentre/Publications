@@ -1,0 +1,136 @@
+{# Summary of operators, functions for subset select expressions. #}
+
+<h4>Operators</h4>
+<table class="table table-condensed">
+  <tr>
+    <th>+</th>
+    <td>plus</td>
+    <td>Union of the two sets.</td>
+  <tr>
+  <tr>
+    <th>-</th>
+    <td>minus</td>
+    <td>Difference between first and second set.</td>
+  <tr>
+  <tr>
+    <th>#</th>
+    <td>hash</td>
+    <td>Intersection between the two sets.</td>
+  <tr>
+  <tr>
+    <th>^</th>
+    <td>hat</td>
+    <td>Symmetric difference between the two sets.</td>
+  <tr>
+</table>
+
+<h4>Evaluation</h4>
+<p>
+  Operators are evaluated left-to-right; same precedence.
+  Use parenthesis <strong>( )</strong> to control the evaluation order.
+</p>
+
+<h4>Functions</h4>
+<table class="table table-condensed">
+  <tr>
+    <th>year(<i>year</i>)</th>
+    <td>Select by year published.</td>
+  </tr>
+  <tr>
+    <th>label(<i>label</i>)</th>
+    <td>Select by label. Character case is ignored.</td>
+  </tr>
+  <tr>
+    <th>author(<i>name</i>)</th>
+    <td>
+      Select by author name of the form "family initials". Character
+      case is ignored.  May contain wildcard '*' at the end.
+    </td>
+  </tr>
+  <tr>
+    <th>orcid(<i>orcid</i>)</th>
+    <td>
+      Select by researcher ORCID.
+    </td>
+  </tr>
+  <tr>
+    <th>issn(<i>code</i>)</th>
+    <td>Select by journal ISSN code.</td>
+  </tr>
+  <tr>
+    <th>published(<i>date</i>)</th>
+    <td>
+      Select published (official journal date) after the given
+      date, of the form YYYY-MM-DD.
+    </td>
+  </tr>
+  <tr>
+    <th>first(<i>date</i>)</th>
+    <td>
+      Select published first (official journal date or online) after the
+      given date, of the form YYYY-MM-DD.
+    </td>
+  </tr>
+  <tr>
+    <th>online(<i>date</i>)</th>
+    <td>
+      Select published online after the given date,
+      of the form YYYY-MM-DD.
+    </td>
+  </tr>
+  <tr>
+    <th>modified(<i>date</i>)</th>
+    <td>
+      Select modified after the given date, of the form YYYY-MM-DD.
+    </td>
+  </tr>
+  {% if settings['TEMPORAL_LABELS'] %}
+  <tr>
+    <th>active(<i>year</i>)</th>
+    <td>
+      Select publications for labels active in the given year.
+      If no year value is given, this means the 'current' year.
+    </td>
+  </tr>
+  {% end %}
+  <tr>
+    <th>no_doi()</th>
+    <td>Select publications lacking DOI.</td>
+  </tr>
+  <tr>
+    <th>no_pmid()</th>
+    <td>Select publications lacking PMID (PubMed identifier).</td>
+  </tr>
+  <tr>
+    <th>no_label()</th>
+    <td>Select publications lacking label.</td>
+  </tr>
+</table>
+
+<h4>Examples</h4>
+<p>
+  Labelled by 'ABC' and published during 2020, excluding those also
+  labelled 'XYZ':
+  <br>
+  <code>
+    label(ABC) # year(2020) - label(XYZ)
+  </code>
+</p>
+
+<p>
+  Labelled by 'ABC', excluding those published during 2020 and also
+  labelled 'XYZ':
+  <br>
+  <code>
+    label(ABC) # (year(2020) - label(XYZ))
+  </code>
+</p>
+
+<p>
+  All published during 2020 except those labelled 'ABC' having an
+  author with a name beginning with an "a" (case is ignored):
+  <br>
+  <code>
+    year(2020) - (label(ABC) # author(a*))
+  </code>
+</p>

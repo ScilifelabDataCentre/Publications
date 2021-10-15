@@ -1,4 +1,4 @@
-"Home page."
+"Home page, and a few other pages."
 
 import logging
 
@@ -52,3 +52,10 @@ class Status(RequestHandler):
                         n_publications=self.get_count("publication", "year"),
                         n_labels=self.get_count("label", "value"),
                         n_researchers=self.get_count("researcher", "name")))
+
+
+class Doc(RequestHandler):
+    "Documentation page."
+
+    def get(self, page):
+        self.render(f"doc_{page}.html")

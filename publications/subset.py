@@ -484,7 +484,10 @@ class _Expression:
             self.stack.append(op.evaluate(s1, s2))
         if len(self.stack) != 1:
             raise ValueError(f"invalid stack {self.stack}")
-        return self.stack[0]
+        if isinstance(self.stack[0], _Function):
+            return self.stack[0].evaluate(db, variables)
+        else:
+            return self.stack[0]
 
 
 def get_subset(db, expression, variables=None):

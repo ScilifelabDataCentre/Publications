@@ -1,0 +1,87 @@
+{# Documentation: Overview. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Overview{% end %}
+
+{% block body_title %}Overview{% end %}
+
+{% block main_content %}
+<p class="lead">
+  The <strong>Publications</strong> system stores references to
+  publications. A publication reference is an entity in the database,
+  and is called a 'publication' here, for brevity.
+</p>
+<p class="lead">
+  There should be only one entry in the database for each
+  publication. The publication contains title, authors, abstract,
+  bibliographic data, and labels.
+</p>
+
+<h3>Adding publications by fetching data</h3>
+
+<p>
+  Publication references should be added using the
+  <a href="/fetch"><strong>By fetching data</strong></a> page. By
+  giving a list of Digital Object Identifiers (DOI) and/or PubMed
+  identifiers (PMID), the system goes to the web services at
+  <a href="https://www.crossref.org/">Crossref</a> and/or
+  <a href="https://pubmed.ncbi.nlm.nih.gov/">PubMed</a>, respectively,
+  to fetch the publication reference data.
+</p>
+<p>
+  This method checks whether the DOI or PMID already exists in the
+  database, avoiding multiple copies.
+</p>
+<p>
+  This method also allows adding the labels that you as a curator may
+  edit.
+</p>
+
+<h3>Adding publications manually</h3>
+
+<p>
+  Publication references can be added manually by filling in a
+  form on the <a href="/fetch"><strong>By fetching data</strong></a>
+  page. This is for publication that has neither a DOI nor a PMID,
+  often preprints.
+</p>
+
+<h3>Multiple copies of a publication</h3>
+
+<p>
+  Multiple copies of a publication reference may be created by
+  mistake, for example when adding a reference manually that in fact
+  has already been added.
+</p>
+<p>
+  <strong>admin only</strong>: The admins of the site may view
+  the <a href="/publications/duplicates"><strong>Duplicates</strong></a>
+  page which uses a heuristic algorithm to identify possible
+  duplicates.  One has to edit and/or delete the entries by hand to
+  remove the offending entry.
+</p>
+
+<h3>Account</h3>
+
+<p>
+  Only a user with a valid account may add and edit publications.
+  There are two kinds of accounts:
+  <dl>
+    <dt>admin</dt>
+    <dd>
+      An administrator of the site. Is allowed to do any operation
+      that can be performed via the web interface. In particular, and
+      admin may add accounts, change labels, and execute the
+      publication duplicates procedure.
+    </dd>
+    <dt>curator</dt>
+    <dd>
+      A curator can add and edit publications. To get a curator account,
+      one has to contact the admin of the site. There is no registration
+      procedure in the system.
+    </dd>
+  </dl>
+</p>
+
+{% end %} {# block main_content #}

@@ -16,7 +16,8 @@ from publications import utils
 from publications.home import (Home,
                                Contact,
                                Settings,
-                               Status)
+                               Status,
+                               Doc)
 from publications.login import (Login,
                                 Logout)
 from publications.account import (Account,
@@ -93,6 +94,7 @@ def get_application():
     url = tornado.web.url
     handlers = [url(r"/", Home, name="home"),
                 url(r"/status", Status, name="status"),
+                url(r"/docs/([^/]+)", Doc, name="doc"),
                 url(r"/site/([^/]+)", tornado.web.StaticFileHandler,
                     {"path": settings["SITE_STATIC_DIR"]}, name="site"),
                 url(r"/publication/(.+).json",

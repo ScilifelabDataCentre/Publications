@@ -1,0 +1,30 @@
+{# Documentation: Overview. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Documentation: Subset{% end %}
+
+{% block body_title %}Documentation: Subset{% end %}
+
+{% block main_content %}
+<p class="lead">
+  A subset of publications may be obtained by executing a selection
+  expression in the <a href="/subset"><strong>Subset</strong></a> page.
+</p>
+<p class="lead">
+  The selection expression works by using functions which select a subset of all
+  publications currently in the system. Operators can be used to combine
+  these subsets. Paranthesis are used to determine the order of evaluation
+  if the operators. A selection expression may be arbitrarily complex.
+</p>
+<p class="lead">
+  The list of selected publications can be viewed or downloaded in different
+  file formats.
+</p>
+
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    {% include 'subset_summary.html' %}
+  </div>
+</div>
+{% end %} {# block main_content #}
