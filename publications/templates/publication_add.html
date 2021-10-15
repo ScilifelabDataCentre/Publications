@@ -208,12 +208,10 @@ Add publication manually
 
 {% block meta_content %}
 <p>
-  <a href="{{ reverse_url('home') }}"
-     class="btn btn-default btn-block"
-     role="button">
+  <a href="{{ reverse_url('home') }}" role="button"
+     class="btn btn-default btn-block">
     <span class="glyphicon glyphicon-remove-circle"></span>
     Cancel
   </a>
 </p>
-{% include 'instructions.html' %}
 {% end %} {# block meta_content #}
