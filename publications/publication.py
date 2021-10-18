@@ -936,7 +936,7 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
 
 
 class PublicationBlacklist(PublicationMixin, RequestHandler):
-    "Blacklist a publication and record its external identifiers."
+    "Blacklist a specified publication."
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -959,6 +959,29 @@ class PublicationBlacklist(PublicationMixin, RequestHandler):
             self.redirect(self.get_argument("next"))
         except tornado.web.MissingArgumentError:
             self.see_other("home")
+
+
+class PublicationsBlacklisted(RequestHandler):
+    "Display list of blacklisted publications, and remove entry from it."
+
+    @tornado.web.authenticated
+    def get(self):
+        blacklisted = dict([(d["_id"], d) for d in 
+                            self.get_docs("blacklist", "doi")])
+        blacklisted.update(dict([(d["_id"], d) for d in 
+                                 self.get_docs("blacklist", "pmid")]))
+        self.render("publications_blacklisted.html", 
+                    blacklisted=blacklisted.values())
+
+    @tornado.web.authenticated
+    def post(self):
+        try:
+            doc = self.db[self.get_argument("remove")]
+        except KeyError:
+            pass
+        else:
+            self.db.delete(doc)
+        self.see_other("publications_blacklisted")
 
 
 class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
