@@ -501,6 +501,7 @@ def update_pubmed(ctx, csvfilepath):
     count = 0
     iuids = get_iuids_from_csv(csvfilepath)
     click.echo(f"{len(iuids)} publications in CSV input file.")
+    account = {"email": os.getlogin(), "user_agent": "CLI"}
     for iuid in iuids:
         try:
             publ = db[iuid]
@@ -519,7 +520,7 @@ def update_pubmed(ctx, csvfilepath):
         except ValueError as error:
             click.echo(f"{identifier}, {error}")
         else:
-            with PublicationSaver(doc=publ, db=db) as saver:
+            with PublicationSaver(doc=publ, db=db, account=account) as saver:
                 saver.update(new, updated_by_pmid=True)
                 saver.fix_journal()
             click.echo(f"Updated {iuid} {publ['title'][:50]}...")
@@ -542,6 +543,7 @@ def update_crossref(ctx, csvfilepath):
     count = 0
     iuids = get_iuids_from_csv(csvfilepath)
     click.echo(f"{len(iuids)} publications in CSV input file.")
+    account = {"email": os.getlogin(), "user_agent": "CLI"}
     for iuid in iuids:
         try:
             publ = db[iuid]
@@ -559,7 +561,7 @@ def update_crossref(ctx, csvfilepath):
         except ValueError as error:
             click.echo(f"{identifier}, {error}")
         else:
-            with PublicationSaver(doc=publ, db=db) as saver:
+            with PublicationSaver(doc=publ, db=db, account=account) as saver:
                 saver.update(new)
                 saver.fix_journal()
             click.echo(f"Updated {iuid} {publ['title'][:50]}...")
