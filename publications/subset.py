@@ -233,7 +233,7 @@ class Subset:
         self._select("publication", "epublished",
                      key=date, last=constants.CEILING)
 
-    def select_modified(self, limit=None, date=None):
+    def select_modified(self, date=None, limit=None):
         "Select all publications modified after the given date, inclusive."
         kwargs = {"descending": True, "limit": limit}
         if date is not None:
@@ -382,7 +382,7 @@ class _Modified(_Function):
 
     def evaluate(self, db, variables):
         s = Subset(db)
-        s.select_modified(self.value)
+        s.select_modified(date=self.value)
         return s
 
 class _Active(_Function):
@@ -591,3 +591,6 @@ if __name__ == "__main__":
     line = "year(2020) - label(National Genomics Infrastructure)"
     print(line, get_subset(db, line))
     print(Subset(db, year="2020") - Subset(db, label="National Genomics Infrastructure"))
+    s = Subset(db)
+    s.select_modified(date="2010-01-01")
+    print(s)
