@@ -430,8 +430,7 @@ def add_label(ctx, label, csvfilepath):
               " Only the IUID column in the CSV file is used.")
 @click.pass_context
 def remove_label(ctx, label, csvfilepath):
-    """Remove a label from a set of publications.
-    """
+    "Remove a label from a set of publications."
     db = ctx.obj["db"]
     try:
         label = utils.get_label(db, label)["value"]
@@ -453,6 +452,38 @@ def remove_label(ctx, label, csvfilepath):
         count += 1
     click.echo(f"Removed label from {count} publications.")
 
+@cli.command()
+@click.option("--filepath", default="xrefs.csv",
+              help="Path of the output CSV file.")
+@click.pass_context
+def xrefs(ctx, filepath):
+    """Output all xrefs as CSV data to the given file.
+    The db and key of the xref form the first two columnds.
+    If a URL is defined, it is written to the third column.
+    """
+    db = ctx.obj["db"]
+    dbs = dict()
+    for publication in utils.get_docs(db, "publication", "modified"):
+        for xref in publication.get("xrefs", []):
+            dbs.setdefault(xref["db"], set()).add(xref["key"])
+    with open(filepath, "w") as outfile:
+        writer = csv.writer(outfile)
+        writer.writerow(["db", "key", "url"])
+        count = 0
+        for db, keys in sorted(dbs.items()):
+            for key in sorted(keys):
+                row = [db, key]
+                try:
+                    url = settings["XREF_TEMPLATE_URLS"][db.lower()]
+                    if "%-s" in url:    # Use lowercase key
+                        url.replace("%-s", "%s")
+                        key = key.lower()
+                    row.append(url % key)
+                except KeyError:
+                    pass
+                writer.writerow(row)
+                count += 1
+    click.echo(f"{count} xrefs")
 
 def add_label_to_publication(db, publication, label, qualifier):
     if publication["labels"].get(label, "dummy qualifier") == qualifier:

@@ -86,11 +86,6 @@ from publications.subset import SubsetDisplay
 from publications.logs import Logs
 
 
-def get_args():
-    parser = utils.get_command_line_parser(description=
-        "Publications web server")
-    return parser.parse_args()
-
 def get_application():
     url = tornado.web.url
     handlers = [url(r"/", Home, name="home"),

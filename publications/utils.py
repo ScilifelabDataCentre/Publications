@@ -24,14 +24,6 @@ from publications import designs
 from publications import settings
 
 
-def get_command_line_parser(description=None):
-    "Get the base command line argument parser."
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("-s", "--settings",
-                        action="store", dest="settings", default=None,
-                        metavar="FILE", help="filename of settings YAML file")
-    return parser
-
 def load_settings(filename=None, log=True):
     """Load the settings from the named file, which must be located in the
     'Publications/site' directory. The first specified name is used:
