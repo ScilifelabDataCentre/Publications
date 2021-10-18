@@ -15,7 +15,6 @@ class ResearcherSaver(Saver):
 
     def set_family(self, value=None):
         "Set the family name from form data."
-        assert self.rqh, "requires http request context"
         if value is None:
             value = utils.squish(self.rqh.get_argument("family", ""))
         if not value:
@@ -25,7 +24,6 @@ class ResearcherSaver(Saver):
 
     def set_given(self, value=None):
         "Set the given name from form data."
-        assert self.rqh, "requires http request context"
         if value is None:
             value = utils.squish(self.rqh.get_argument("given", ""))
         self["given"] = value
@@ -33,7 +31,6 @@ class ResearcherSaver(Saver):
 
     def set_initials(self, value=None):
         "Set the initials from form data."
-        assert self.rqh, "requires http request context"
         if value is None:
             value = "".join(self.rqh.get_argument("initials", "").split())
         self["initials"] = value
@@ -41,13 +38,12 @@ class ResearcherSaver(Saver):
 
     def set_orcid(self, value=None):
         "Set ORCID from form data if not already set."
-        assert self.rqh, "requires http request context"
         if self.get("orcid"): return
         if value is None:
             value = self.rqh.get_argument("orcid", "").strip()
         if value:
             try:
-                self.rqh.get_researcher(value)
+                utils.get_researcher(self.db, value)
             except KeyError:
                 pass
             else:
@@ -56,7 +52,6 @@ class ResearcherSaver(Saver):
 
     def set_affiliations(self, affiliations=None):
         "Set affiliations from form data."
-        assert self.rqh, "requires http request context"
         if affiliations is None:
             affiliations = [a.strip() for a in
                             self.rqh.get_argument("affiliations", "").split("\n")

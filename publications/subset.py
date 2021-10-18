@@ -486,6 +486,8 @@ class _Expression:
             raise ValueError(f"invalid stack {self.stack}")
         if isinstance(self.stack[0], _Function):
             return self.stack[0].evaluate(db, variables)
+        elif isinstance(self.stack[0], pp.ParseResults):
+            return self.stack[0][0].evaluate(db, variables=variables)
         else:
             return self.stack[0]
 

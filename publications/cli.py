@@ -416,7 +416,7 @@ def add_label(ctx, label, csvfilepath):
         try:
             publ = db[iuid]
         except KeyError:
-            click.echo(f"No such publication '{iuid}'; skipping.")
+            click.echo(f"No such publication {iuid}; skipping.")
         else:
             if add_label_to_publication(db, publ, label, qualifier):
                 count += 1
@@ -441,7 +441,7 @@ def remove_label(ctx, label, csvfilepath):
         try:
             publ = db[iuid]
         except KeyError:
-            click.echo(f"No such publication '{iuid}'; skipping.")
+            click.echo(f"No such publication {iuid}; skipping.")
             continue
         if label not in publ["labels"]: continue
         account = {"email": os.getlogin(), "user_agent": "CLI"}
@@ -484,6 +484,87 @@ def xrefs(ctx, filepath):
                 writer.writerow(row)
                 count += 1
     click.echo(f"{count} xrefs")
+
+@cli.command()
+@click.option("-f", "--csvfilepath", required=True,
+              help="Path of CSV file of publications to add the label to."
+              " Only the IUID column in the CSV file is used.")
+@click.pass_context
+def update_pubmed(ctx, csvfilepath):
+    """Update the publications given by the CSV file from PubMed.
+    If a publication lacks PMID then that publication is skipped.
+
+    Note that a delay in calling PubMed is applied to avoid bad behaviour
+    towards the web service.
+    """
+    db = ctx.obj["db"]
+    count = 0
+    iuids = get_iuids_from_csv(csvfilepath)
+    click.echo(f"{len(iuids)} publications in CSV input file.")
+    for iuid in iuids:
+        try:
+            publ = db[iuid]
+        except KeyError:
+            click.echo(f"No such publication {iuid}; skipping.")
+            continue
+        identifier = publ.get("pmid")
+        if not identifier: continue
+        try:
+            new = pubmed.fetch(identifier,
+                               timeout=settings["PUBMED_TIMEOUT"],
+                               delay=settings["PUBMED_DELAY"],
+                               api_key=settings["NCBI_API_KEY"])
+        except (OSError, IOError):
+            click.echo(f"No response from PubMed for {identifier}.")
+        except ValueError as error:
+            click.echo(f"{identifier}, {error}")
+        else:
+            with PublicationSaver(doc=publ, db=db) as saver:
+                saver.update(new, updated_by_pmid=True)
+                saver.fix_journal()
+            click.echo(f"Updated {iuid} {publ['title'][:50]}...")
+            count += 1
+    click.echo(f"Updated {count} publications from PubMed.")
+
+@cli.command()
+@click.option("-f", "--csvfilepath", required=True,
+              help="Path of CSV file of publications to add the label to."
+              " Only the IUID column in the CSV file is used.")
+@click.pass_context
+def update_crossref(ctx, csvfilepath):
+    """Update the publications given by the CSV file from Crossref.
+    If a publication lacks DOI then that publication is skipped.
+
+    Note that a delay in calling Crossref is applied to avoid bad behaviour
+    towards the web service.
+    """
+    db = ctx.obj["db"]
+    count = 0
+    iuids = get_iuids_from_csv(csvfilepath)
+    click.echo(f"{len(iuids)} publications in CSV input file.")
+    for iuid in iuids:
+        try:
+            publ = db[iuid]
+        except KeyError:
+            click.echo(f"No such publication {iuid}; skipping.")
+            continue
+        identifier = publ.get("doi")
+        if not identifier: continue
+        try:
+            new = crossref.fetch(identifier,
+                               timeout=settings["CROSSREF_TIMEOUT"],
+                               delay=settings["CROSSREF_DELAY"])
+        except (OSError, IOError):
+            click.echo(f"No response from Crossref for {identifier}.")
+        except ValueError as error:
+            click.echo(f"{identifier}, {error}")
+        else:
+            with PublicationSaver(doc=publ, db=db) as saver:
+                saver.update(new)
+                saver.fix_journal()
+            click.echo(f"Updated {iuid} {publ['title'][:50]}...")
+            count += 1
+    click.echo(f"Updated {count} publications from Crossref.")
 
 def add_label_to_publication(db, publication, label, qualifier):
     if publication["labels"].get(label, "dummy qualifier") == qualifier:

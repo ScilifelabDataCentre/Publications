@@ -210,11 +210,12 @@ class PublicationSaver(Saver):
                 if orcid:
                     # Existing reseacher based on ORCID.
                     try:
-                        author["researcher"] = self.rqh.get_researcher(orcid)["_id"]
+                        author["researcher"] = utils.get_researcher(
+                            self.db, orcid)["_id"]
                     except KeyError:
                         # Create a new researcher.
                         try:
-                            with ResearcherSaver(rqh=self.rqh) as saver:
+                            with ResearcherSaver(db=self.db) as saver:
                                 saver.set_family(author.get("family"))
                                 saver.set_given(author.get("given"))
                                 saver.set_initials(author.get("initials"))
