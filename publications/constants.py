@@ -30,8 +30,7 @@ ENTITIES    = (PUBLICATION, JOURNAL, ACCOUNT, LABEL, RESEARCHER)
 # Account roles
 ADMIN   = "admin"
 CURATOR = "curator"
-XREFCUR = "xref-curator"
-ROLES   = (ADMIN, CURATOR, XREFCUR)
+ROLES   = (ADMIN, CURATOR)
 
 # Boolean string values
 TRUE  = frozenset(["true", "yes", "t", "y", "1"])

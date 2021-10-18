@@ -2,7 +2,7 @@
 
 import os
 
-__version__ = "6.4.3"
+__version__ = "6.5.0"
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -41,7 +41,6 @@ settings = dict(
     SITE_NAME="Publications",
     SITE_TITLE="Publications",
     SITE_TEXT="A publications reference database system.",
-    SITE_INSTRUCTIONS_URL="https://github.com/pekrau/Publications/wiki/Standard-operating-procedure",
     SITE_PARENT_NAME="Site host",
     SITE_PARENT_URL=None,
     SITE_EMAIL=None,
@@ -50,7 +49,6 @@ settings = dict(
     SITE_LABEL_QUALIFIERS=[],
     SOURCE_URL="https://github.com/pekrau/Publications",
     SOURCE_VERSION=__version__,
-    DOCS_URL="https://github.com/pekrau/Publications/wiki",
     IDENTIFIER_PREFIXES=["doi:", 
                          "pmid:",
                          "pubmed:", 

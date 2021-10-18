@@ -52,12 +52,6 @@ Fetch data for publication
 	<input type="checkbox" name="override" id="override" value="true">
 	Fetch the publication data overriding its current blacklisted status,
 	if any.
-        <br>
-        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#override"
-           target="_">
-          <span class="glyphicon glyphicon-question-sign"></span>
-          Explain "override"
-        </a>
       </label>
     </div>
   </div>
@@ -65,20 +59,6 @@ Fetch data for publication
   <div class="form-group">
     <label class="control-label col-md-2">Labels</label>
     <div class=" col-md-8">
-      <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#label"
-         target="_">
-        <span class="glyphicon glyphicon-question-sign"></span>
-        Explain "label"
-      </a>
-      {% if settings['SITE_LABEL_QUALIFIERS'] %}
-      &nbsp;
-      <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#qualifier"
-         target="_">
-        <span class="glyphicon glyphicon-question-sign"></span>
-        Explain "qualifier"
-      </a>
-      {% end %} {# if settings['SITE_LABEL_QUALIFIERS'] #}
-      <br>
       {% for label in sorted(labels) %}
       <div class="checkbox">
 	<label>

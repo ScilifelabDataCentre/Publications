@@ -1,0 +1,28 @@
+{# Documentation: Blacklist #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Blacklist{% end %}
+
+{% block body_title %}Blacklist{% end %}
+
+{% block main_content %}
+<p>
+  The blacklist is a list of PubMed identifiers and DOI's of
+  publication references that should not be present in the
+  database. The idea is that a curator should be able to decide that a
+  specific publication reference is clearly irrelevant for the
+  database, delete the entry from the database, and simultaneously
+  ensure that it does not get added at a later stage.
+</p>
+<p>
+  A curator may override a blacklist entry by explicitly checking an
+  input box in the fetch page. This is to allow rescinding a previous
+  decision, and should be used with care.
+</p>
+<p>
+  The list of current entries in the blacklist can be viewed
+  at <a href="{{ reverse_url('publications_blacklisted') }}">Blacklisted</a>.
+  A curator may delete entries from the blacklist.
+</p>
+{% end %} {# block main_content #}

@@ -66,6 +66,7 @@
     Edit researchers
   </a>
 </p>
+
 {% if publication.get('pmid') %}
 <p>
   <form action="{{ reverse_url('publication_update_pmid', publication['_id']) }}"
@@ -79,6 +80,7 @@
   </form>
 </p>
 {% end %} {# if publication.get('pmid') #}
+
 {% if publication.get('doi') %}
 {% if not publication.get('pmid') %}
 <p>
@@ -105,79 +107,41 @@
   </form>
 </p>
 {% end %} {# if publication.get('doi') #}
-{% end %} {# if is_editable #}
 
-{% if is_xrefs_editable %}
 <p>
-  <table width="100%">
-    <tr>
-      <td>
-        <a href="{{ reverse_url('publication_xrefs', publication['_id']) }}"
-           class="btn btn-info btn-block" role="button">
-          <span class="glyphicon glyphicon-share"></span>
-          Edit xrefs
-        </a>
-      </td>
-      <td style="padding-left: 4px">
-        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#xref"
-           title="Explain 'xref'" target="_">
-          <span class="glyphicon glyphicon-question-sign"></span>
-        </a>
-      </td>
-    </tr>
-  </table>
+  <a href="{{ reverse_url('publication_xrefs', publication['_id']) }}"
+     class="btn btn-info btn-block" role="button">
+    <span class="glyphicon glyphicon-share"></span>
+    Edit xrefs
+  </a>
 </p>
-{% end %} {# if is_xrefs_editable #}
+{% end %} {# if is_editable #}
 
 {% if is_deletable %}
 <p>
-  <table width="100%">
-    <tr>
-      <td>
-        <form action="{{ reverse_url('publication', publication['_id']) }}"
-	      role="form"
-	      method="POST">
-          {% module xsrf_form_html() %}
-          <input type="hidden" name="_http_method" value="delete">
-          <button type="submit" class="btn btn-danger btn-block"
-	          onclick="return confirm('Really delete this publication?');">
-            <span class="glyphicon glyphicon-trash"></span>
-            Delete
-          </button>
-        </form>
-      </td>
-      <td style="padding-left: 4px">
-        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#delete"
-           title="Explain 'delete'" target="_">
-          <span class="glyphicon glyphicon-question-sign"></span>
-        </a>
-      </td>
-    </tr>
-  </table>
+  <form action="{{ reverse_url('publication', publication['_id']) }}"
+	role="form"
+	method="POST">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_http_method" value="delete">
+    <button type="submit" class="btn btn-danger btn-block"
+	    onclick="return confirm('Really delete this publication?');">
+      <span class="glyphicon glyphicon-trash"></span>
+      Delete
+    </button>
+  </form>
 </p>
 <p>
-  <table width="100%">
-    <tr>
-      <td>
-        <form action="{{ reverse_url('publication_blacklist', publication['_id']) }}"
-	      role="form"
-	      method="POST">
-          {% module xsrf_form_html() %}
-          <button type="submit" class="btn btn-danger btn-block"
-	          onclick="return confirm('Really blacklist this publication?');">
-            <span class="glyphicon glyphicon-ban-circle"></span>
-            Blacklist
-          </button>
-        </form>
-      </td>
-      <td style="padding-left: 4px">
-        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#blacklist"
-           title="Explain 'blacklist'" target="_">
-          <span class="glyphicon glyphicon-question-sign"></span>
-        </a>
-      </td>
-    </tr>
-  </table>
+  <form action="{{ reverse_url('publication_blacklist', publication['_id']) }}"
+	role="form"
+	method="POST">
+    {% module xsrf_form_html() %}
+    <button type="submit" class="btn btn-danger btn-block"
+	    onclick="return confirm('Really blacklist this publication?');">
+      <span class="glyphicon glyphicon-ban-circle"></span>
+      Blacklist
+    </button>
+  </form>
 </p>
 {% end %} {# if is_deletable #}
 

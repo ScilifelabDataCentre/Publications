@@ -28,7 +28,8 @@ Blacklisted
             method="POST">
         {% module xsrf_form_html() %}
         <input type="hidden" name="remove" value="{{ entry['_id'] }}">
-        <button type="submit" class="btn btn-danger">
+        <button type="submit" class="btn btn-danger"
+	        onclick="return confirm('Really remove this blacklist entry?');">
 	  <span class="glyphicon glyphicon-remove"></span>
 	  Remove
         </button>

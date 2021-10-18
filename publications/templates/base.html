@@ -237,6 +237,12 @@
 	      </a>
               <ul class="dropdown-menu">
 		<li>
+		  <a href="{{ reverse_url('doc', 'overview') }}">
+                    <span class="glyphicon glyphicon-info-sign"></span>
+		    Overview
+		  </a>
+		</li>
+		<li>
 		  <a href="{{ reverse_url('contact') }}">
 		    <span class="glyphicon glyphicon-bullhorn"></span>
 		    Contact
@@ -259,15 +265,9 @@
 		</li>
 		{% end %} {# if is_admin #}
 		<li>
-		  <a href="{{ settings['DOCS_URL'] }}" target="_">
-		    <span class="glyphicon glyphicon-book"></span>
-		    Software documentation
-		  </a>
-		</li>
-		<li>
 		  <a href="{{ settings['SOURCE_URL'] }}" target="_">
 		    <span class="glyphicon glyphicon-briefcase"></span>
-		    Software version {{ settings['SOURCE_VERSION'] }}
+		    Version {{ settings['SOURCE_VERSION'] }}
 		  </a>
 		</li>
 	      </ul>
@@ -417,14 +417,16 @@
 	  {% block meta_content %}
 	  {% end %} {# block meta_content #}
           {% block documentation %}
-          {% for page in ['overview', 'labels', 'subset'] %}
-          <p>
-            <a href="{{ reverse_url('doc', page) }}">
-              <span class="glyphicon glyphicon-info-sign"></span>
-              {{ page.capitalize() }}
-            </a>
-          </p>
-          {% end %} {# for page in ['overview', 'labels'] #}
+          <div style="padding-top: 1em;">
+            {% for page in ['Overview', 'Add_publication', 'Labels', 'Xref', 'Subset', 'User_account', 'Multiple_copies', 'Blacklist', 'API'] %}
+            <p>
+              <a href="{{ reverse_url('doc', page.lower()) }}">
+                <span class="glyphicon glyphicon-info-sign"></span>
+                {{ page.replace('_', ' ') }}
+              </a>
+            </p>
+            {% end %} {# for page in [...] #}
+	  </div>
           {% end %} {# block documentation #}
 	</div>
       </div>

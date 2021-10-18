@@ -58,4 +58,8 @@ class Doc(RequestHandler):
     "Documentation page."
 
     def get(self, page):
-        self.render(f"doc_{page}.html")
+        try:
+            self.render(f"doc_{page}.html")
+        except FileNotFoundError:
+            self.set_error_flash("No such documentation page.")
+            self.see_other("doc", "overview")

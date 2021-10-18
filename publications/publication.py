@@ -311,17 +311,6 @@ class PublicationMixin:
         if self.is_editable(publication): return
         raise ValueError("You many not edit the publication.")
 
-    def is_xrefs_editable(self, publication):
-        "Are the xrefs of the publication editable by the current user?"
-        if not self.is_xrefcur(): return False
-        return True
-
-    def check_xrefs_editable(self, publication):
-        """Check that the xrefs of the publication are editable by
-        the current user."""
-        if self.is_xrefs_editable(publication): return
-        raise ValueError("You many not edit the xrefs of the publication.")
-
     def is_deletable(self, publication):
         "Is the publication deletable by the current user?"
         if not self.is_curator(): return False
@@ -353,7 +342,6 @@ class Publication(PublicationMixin, RequestHandler):
         self.render("publication.html",
                     publication=publication,
                     is_editable=self.is_editable(publication),
-                    is_xrefs_editable=self.is_xrefs_editable(publication),
                     is_deletable=self.is_deletable(publication))
 
     @tornado.web.authenticated
@@ -664,6 +652,7 @@ class PublicationsDuplicates(RequestHandler):
     Some false positives are expected.
     """
 
+    @tornado.web.authenticated
     def get(self):
         lookup = {}             # Key: 4 longest words in title
         duplicates = []
@@ -885,7 +874,7 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
     def get(self, iuid):
         try:
             publication = self.get_publication(iuid)
-            self.check_xrefs_editable(publication)
+            self.check_editable(publication)
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
@@ -895,7 +884,7 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
     def post(self, iuid):
         try:
             publication = self.get_publication(iuid)
-            self.check_xrefs_editable(publication)
+            self.check_editable(publication)
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
