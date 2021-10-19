@@ -3,9 +3,13 @@ Publications
 
 A web-based publications reference database system.
 
-Requires Python 3.6 or higher.
+- **[Features](#features)**
+- **[Important changes](#important-changes)**
+- **[Implementation](#implementation)**
+- **[Installation](#installation)**
+- **[Command-line interface](#command-line-interface)**
+- **[Example instances](#example-instances)**
 
-See **[Important changes](#important-changes)**
 
 Features
 --------
@@ -76,6 +80,8 @@ Important changes
 Implementation
 --------------
 
+This system requires Python 3.6 or higher.
+
 ### Front-end (via CDN's)
 
 - [Bootstrap 3](https://getbootstrap.com/docs/3.4/)
@@ -145,6 +151,40 @@ Installation
 11. Set a proxy from your outward-facing web server (Apache, nginx, or
     whatever your site supports) for the tornado server. You need to figure
     this out yourself.
+
+Command-line interface
+----------------------
+
+There is a command-line interface (CLI) for admin work on the machine
+the system is running on. See its help texts. The top-level help text is:
+
+```
+$ python cli.py --help
+Usage: cli.py [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  -s, --settings TEXT  Name of settings YAML file.
+  --log                Enable logging output.
+  --help               Show this message and exit.
+
+Commands:
+  add-label        Add a label to a set of publications.
+  admin            Create a user account having the admin role.
+  counts           Output counts of database entities.
+  curator          Create a user account having the curator role.
+  dump             Dump all data in the database to a .tar.gz dump file.
+  fetch            Fetch publications given a file containing PMIDs...
+  find-pmid        Try to find the PMID for the publications given by the...
+  initialize       Initialize the database, which must exist; load all...
+  password         Set the password for the given account.
+  remove-label     Remove a label from a set of publications.
+  select           Select a subset of publications and output to a file.
+  show             Display the JSON for the single item in the database.
+  undump           Load a Publications database .tar.gz dump file.
+  update-crossref  Update the publications given by the CSV file from...
+  update-pubmed    Update the publications given by the CSV file from...
+  xrefs            Output all xrefs as CSV data to the given file.
+```
 
 Example instances
 -----------------
