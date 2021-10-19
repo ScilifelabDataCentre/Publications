@@ -9,8 +9,8 @@ import tarfile
 import time
 import sys
 
-import couchdb2
 import click
+import couchdb2
 
 from publications import constants
 from publications import crossref
@@ -29,26 +29,20 @@ import publications.writer
 @click.option("-s", "--settings", help="Name of settings YAML file.")
 @click.option("--log", flag_value=True, default=False,
               help="Enable logging output.")
-@click.pass_context
-def cli(ctx, settings, log):
-    ctx.ensure_object(dict)
+def cli(settings, log):
     utils.load_settings(settings, log=log)
-    ctx.obj["db"] = utils.get_db()
-    ctx.obj["app"] = publications.app_publications.get_application()
 
 @cli.command()
-@click.pass_context
-def initialize(ctx):
+def initialize():
     "Initialize the database, which must exist; load all design documents."
-    db = ctx.obj["db"]
+    db = utils.get_db()
     designs.load_design_documents(db)
     click.echo("Loaded all design documents.")
 
 @cli.command()
-@click.pass_context
-def counts(ctx):
+def counts():
     "Output counts of database entities."
-    db = ctx.obj["db"]
+    db = utils.get_db()
     designs.load_design_documents(db)
     click.echo(f"{utils.get_count(db, 'publication', 'year'):>5} publications")
     click.echo(f"{utils.get_count(db, 'label', 'value'):>5} labels")
@@ -60,10 +54,9 @@ def counts(ctx):
                 help="The path of the Publications database dump file.")
 @click.option("-D", "--dumpdir", type=str,
                 help="The directory to write the dump file in, using the standard name.")
-@click.pass_context
-def dump(ctx, dumpfile, dumpdir):
+def dump(dumpfile, dumpdir):
     "Dump all data in the database to a .tar.gz dump file."
-    db = ctx.obj["db"]
+    db = utils.get_db()
     if not dumpfile:
         dumpfile = "dump_{0}.tar.gz".format(time.strftime("%Y-%m-%d"))
         if dumpdir:
@@ -98,10 +91,9 @@ def dump(ctx, dumpfile, dumpdir):
 
 @cli.command()
 @click.argument("dumpfile", type=click.Path(exists=True))
-@click.pass_context
-def undump(ctx, dumpfile):
+def undump(dumpfile):
     "Load a Publications database .tar.gz dump file. The database must be empty."
-    db = ctx.obj["db"]
+    db = utils.get_db()
     designs.load_design_documents(db)
     if utils.get_count(db, 'publication', 'year') != 0:
         raise click.ClickException(f"The {settings['DATABASE_NAME']} database is not empty.")
@@ -134,10 +126,9 @@ def undump(ctx, dumpfile):
 @cli.command()
 @click.option("--email", prompt=True)
 @click.option("--password")     # Get password after account existence check.
-@click.pass_context
-def admin(ctx, email, password):
+def admin(email, password):
     "Create a user account having the admin role."
-    db = ctx.obj["db"]
+    db = utils.get_db()
     try:
         with AccountSaver(db=db) as saver:
             saver.set_email(email)
@@ -156,10 +147,9 @@ def admin(ctx, email, password):
 @cli.command()
 @click.option("--email", prompt=True)
 @click.option("--password")     # Get password after account existence check.
-@click.pass_context
-def curator(ctx, email, password):
+def curator(email, password):
     "Create a user account having the curator role."
-    db = ctx.obj["db"]
+    db = utils.get_db()
     try:
         with AccountSaver(db=db) as saver:
             saver.set_email(email)
@@ -178,10 +168,9 @@ def curator(ctx, email, password):
 @cli.command()
 @click.option("--email", prompt=True)
 @click.option("--password")     # Get password after account existence check.
-@click.pass_context
-def password(ctx, email, password):
+def password(email, password):
     "Set the password for the given account."
-    db = ctx.obj["db"]
+    db = utils.get_db()
     try:
         user = utils.get_account(db, email)
     except KeyError as error:
@@ -199,13 +188,12 @@ def password(ctx, email, password):
 
 @cli.command()
 @click.argument("identifier")
-@click.pass_context
-def show(ctx, identifier):
+def show(identifier):
     """Display the JSON for the single item in the database.
     The identifier may be a PMID, DOI, email, API key, label, ISSN, ISSN-L,
     ORCID, or IUID of the document.
     """
-    db = ctx.obj["db"]
+    db = utils.get_db()
     for designname, viewname, operation in [("publication", "pmid", asis),
                                             ("publication", "doi", asis),
                                             ("account", "email", asis),
@@ -253,15 +241,15 @@ def show(ctx, identifier):
               type=click.Choice(["all", "minimal", "nonnumeric", "none"],
                                 case_sensitive=False))
 # XXX format: numbered, maxline, issn, single_label, encoding, doi_url, pmid_url
-@click.pass_context
-def select(ctx, years, labels, authors, orcids, expression,
+def select(years, labels, authors, orcids, expression,
            format, filepath, quoting):
     """Select a subset of publications and output to a file.
     The options '--year', '--label' and '--orcid' may be given multiple 
     times, giving the union of publications within the option type.
     These separate sets are the intersected to give the final subset.
     """
-    db = ctx.obj["db"]
+    db = utils.get_db()
+    app = publications.app_publications.get_application()
     subsets = []
     if years:
         subsets.append(
@@ -299,20 +287,19 @@ def select(ctx, years, labels, authors, orcids, expression,
             result = subset
 
     if format == "CSV":
-        writer = publications.writer.CsvWriter(db, ctx.obj["app"],
-                                               quoting=quoting)
+        writer = publications.writer.CsvWriter(db, app, quoting=quoting)
         writer.write(result)
         filepath = filepath or "publications.csv"
 
     elif format == "XLSX":
         if filepath == "-":
             raise click.ClickException("Cannot output XLSX to stdout.")
-        writer = publications.writer.XlsxWriter(db, ctx.obj["app"])
+        writer = publications.writer.XlsxWriter(db, app)
         writer.write(result)
         filepath = filepath or "publications.xlsx"
 
     elif format in ("TEXT", "TXT"):
-        writer = publications.writer.TextWriter(db, ctx.obj["app"])
+        writer = publications.writer.TextWriter(db, app)
         writer.write(result)
         filepath = filepath or "publications.txt"
 
@@ -328,8 +315,7 @@ def select(ctx, years, labels, authors, orcids, expression,
               help="Path of the file containing PMIDs and/or DOIs to fetch.")
 @click.option("-l", "--label", help="Optional label to add to the publications."
               " May contain a qualifier after slash '/' character.")
-@click.pass_context
-def fetch(ctx, filepath, label):
+def fetch(filepath, label):
     """Fetch publications given a file containing PMIDs and/or DOIs,
     one per line. If the publication is already in the database, the label,
     if given, is added. For a PMID, the publication is fetched from PubMed.
@@ -337,7 +323,7 @@ def fetch(ctx, filepath, label):
     If that does not work, Crossref is tried.
     Delay, timeout and API key for fetching is defined in the settings file.
     """
-    db = ctx.obj["db"]
+    db = utils.get_db()
     identifiers = []
     try:
         with open(filepath) as infile:
@@ -394,11 +380,10 @@ def fetch(ctx, filepath, label):
 @click.option("-f", "--csvfilepath", required=True,
               help="Path of CSV file of publications to add the label to."
               " Only the IUID column in the CSV file is used.")
-@click.pass_context
-def add_label(ctx, label, csvfilepath):
+def add_label(label, csvfilepath):
     """Add a label to a set of publications.
     """
-    db = ctx.obj["db"]
+    db = utils.get_db()
     parts = label.split("/", 1)
     if len(parts) == 2:
         label = parts[0]
@@ -428,10 +413,9 @@ def add_label(ctx, label, csvfilepath):
 @click.option("-f", "--csvfilepath", required=True,
               help="Path of CSV file of publications to add the label to."
               " Only the IUID column in the CSV file is used.")
-@click.pass_context
-def remove_label(ctx, label, csvfilepath):
+def remove_label(label, csvfilepath):
     "Remove a label from a set of publications."
-    db = ctx.obj["db"]
+    db = utils.get_db()
     try:
         label = utils.get_label(db, label)["value"]
     except KeyError as error:
@@ -455,13 +439,12 @@ def remove_label(ctx, label, csvfilepath):
 @cli.command()
 @click.option("--filepath", default="xrefs.csv",
               help="Path of the output CSV file.")
-@click.pass_context
-def xrefs(ctx, filepath):
+def xrefs(filepath):
     """Output all xrefs as CSV data to the given file.
     The db and key of the xref form the first two columnds.
     If a URL is defined, it is written to the third column.
     """
-    db = ctx.obj["db"]
+    db = utils.get_db()
     dbs = dict()
     for publication in utils.get_docs(db, "publication", "modified"):
         for xref in publication.get("xrefs", []):
@@ -489,15 +472,14 @@ def xrefs(ctx, filepath):
 @click.option("-f", "--csvfilepath", required=True,
               help="Path of CSV file of publications to add the label to."
               " Only the IUID column in the CSV file is used.")
-@click.pass_context
-def update_pubmed(ctx, csvfilepath):
+def update_pubmed(csvfilepath):
     """Update the publications given by the CSV file from PubMed.
     If a publication lacks PMID then that publication is skipped.
 
-    Note that a delay in calling PubMed is applied to avoid bad behaviour
-    towards the web service.
+    Note that a delay is inserted between each call to PubMed to avoid
+    bad behaviour towards the web service.
     """
-    db = ctx.obj["db"]
+    db = utils.get_db()
     count = 0
     iuids = get_iuids_from_csv(csvfilepath)
     click.echo(f"{len(iuids)} publications in CSV input file.")
@@ -508,20 +490,21 @@ def update_pubmed(ctx, csvfilepath):
         except KeyError:
             click.echo(f"No such publication {iuid}; skipping.")
             continue
-        identifier = publ.get("pmid")
-        if not identifier: continue
+        pmid = publ.get("pmid")
+        if not pmid:
+            continue
         try:
-            new = pubmed.fetch(identifier,
+            new = pubmed.fetch(pmid,
                                timeout=settings["PUBMED_TIMEOUT"],
                                delay=settings["PUBMED_DELAY"],
                                api_key=settings["NCBI_API_KEY"])
         except (OSError, IOError):
-            click.echo(f"No response from PubMed for {identifier}.")
+            click.echo(f"No response from PubMed for {pmid}.")
         except ValueError as error:
-            click.echo(f"{identifier}, {error}")
+            click.echo(f"{pmid}, {error}")
         else:
             with PublicationSaver(doc=publ, db=db, account=account) as saver:
-                saver.update(new, updated_by_pmid=True)
+                saver.update(new)
                 saver.fix_journal()
             click.echo(f"Updated {iuid} {publ['title'][:50]}...")
             count += 1
@@ -531,15 +514,14 @@ def update_pubmed(ctx, csvfilepath):
 @click.option("-f", "--csvfilepath", required=True,
               help="Path of CSV file of publications to add the label to."
               " Only the IUID column in the CSV file is used.")
-@click.pass_context
-def update_crossref(ctx, csvfilepath):
+def update_crossref(csvfilepath):
     """Update the publications given by the CSV file from Crossref.
     If a publication lacks DOI then that publication is skipped.
 
-    Note that a delay in calling Crossref is applied to avoid bad behaviour
-    towards the web service.
+    Note that a delay is inserted between each call to Crossref to avoid
+    bad behaviour towards the web service.
     """
-    db = ctx.obj["db"]
+    db = utils.get_db()
     count = 0
     iuids = get_iuids_from_csv(csvfilepath)
     click.echo(f"{len(iuids)} publications in CSV input file.")
@@ -550,16 +532,17 @@ def update_crossref(ctx, csvfilepath):
         except KeyError:
             click.echo(f"No such publication {iuid}; skipping.")
             continue
-        identifier = publ.get("doi")
-        if not identifier: continue
+        doi = publ.get("doi")
+        if not doi:
+            continue
         try:
-            new = crossref.fetch(identifier,
+            new = crossref.fetch(doi,
                                timeout=settings["CROSSREF_TIMEOUT"],
                                delay=settings["CROSSREF_DELAY"])
         except (OSError, IOError):
-            click.echo(f"No response from Crossref for {identifier}.")
+            click.echo(f"No response from Crossref for {doi}.")
         except ValueError as error:
-            click.echo(f"{identifier}, {error}")
+            click.echo(f"{doi}, {error}")
         else:
             with PublicationSaver(doc=publ, db=db, account=account) as saver:
                 saver.update(new)
@@ -567,6 +550,43 @@ def update_crossref(ctx, csvfilepath):
             click.echo(f"Updated {iuid} {publ['title'][:50]}...")
             count += 1
     click.echo(f"Updated {count} publications from Crossref.")
+
+@cli.command()
+@click.option("-f", "--csvfilepath", required=True,
+              help="Path of CSV file of publications to add the label to."
+              " Only the IUID column in the CSV file is used.")
+def find_pmid(csvfilepath):
+    """Try to find the PMID for the publications given by the CSV file.
+    Search by DOI and title.
+
+    Note that a delay is inserted between each call to PubMed to avoid
+    bad behaviour towards the web service.
+    """
+    db = utils.get_db()
+    count = 0
+    iuids = get_iuids_from_csv(csvfilepath)
+    click.echo(f"{len(iuids)} publications in CSV input file.")
+    account = {"email": os.getlogin(), "user_agent": "CLI"}
+    for iuid in iuids:
+        try:
+            publ = db[iuid]
+        except KeyError:
+            click.echo(f"No such publication {iuid}; skipping.")
+            continue
+        if publ.get("pmid"):
+            continue
+        doi = publ.get("doi")
+        if doi:
+            result = pubmed.search(doi=doi)
+        else:
+            result = pubmed.search(title=publ["title"])
+        if len(result) == 1:
+            with PublicationSaver(doc=publ, db=db, account=account) as saver:
+                saver["pmid"] = result[0]
+            click.echo(f"PMID {result[0]}: {publ['title'][:50]}...")
+            count += 1
+    click.echo(f"Set PMID for {count} publications.")
+
 
 def add_label_to_publication(db, publication, label, qualifier):
     if publication["labels"].get(label, "dummy qualifier") == qualifier:

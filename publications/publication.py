@@ -164,11 +164,10 @@ class PublicationSaver(Saver):
         assert self.rqh, "requires http request context"
         self["notes"] = self.rqh.get_argument("notes", "") or None
 
-    def update(self, other, updated_by_pmid=False):
+    def update(self, other):
         """Update a field in the current publication if there is a value 
         in the other publication. It is assumed that they are representations
         of the same source publication.
-        Set the 'uppated_by_pmid' flag if True.
         Check if author can be associated with a researcher.
         Create a researcher, if ORCID is available.
         """
@@ -182,8 +181,6 @@ class PublicationSaver(Saver):
         self["epublished"] = other.get("epublished") or self.get("epublished")
         self["abstract"] = other.get("abstract") or self.get("abstract")
         self["xrefs"] = other.get("xrefs") or self.get("xrefs") or []
-        if updated_by_pmid:
-            self["updated_by_pmid"] = utils.timestamp()
 
         # Special case for journal field: copy each component field.
         try:
@@ -546,8 +543,8 @@ class PublicationsNoPmid(PublicationMixin, RequestHandler):
         for publication in publications:
             publication["pmid_findable"] = self.is_editable(publication) and \
                                            publication.get("doi")
-        # Put the publications first for which there is a DOI, making PMID
-        # findable, and for which find has not been attempted
+        # Put the publications first for which there is a DOI
+        # (making PMID findable) and for which find has not been attempted.
         publs1 = []
         publs2 = []
         publs3 = []
@@ -1033,7 +1030,7 @@ class PublicationUpdatePmid(PublicationMixin, RequestHandler):
                            error=f"{identifier}, {error}")
             return
         with PublicationSaver(doc=publication, rqh=self) as saver:
-            saver.update(new, updated_by_pmid=True)
+            saver.update(new)
             saver.fix_journal()
         self.see_other("publication", publication["_id"],
                        message="Updated from PubMed.")
@@ -1213,7 +1210,7 @@ def fetch_publication(db, identifier, override=False,
     if current:
         with PublicationSaver(doc=current,
                               db=db, rqh=rqh, account=account) as saver:
-            saver.update(new, updated_by_pmid=identifier_is_pmid)
+            saver.update(new)
             saver.fix_journal()
             saver.update_labels(labels=labels, clean=clean,
                                 allowed_labels=allowed_labels)
@@ -1221,7 +1218,7 @@ def fetch_publication(db, identifier, override=False,
     # Else create a new entry.
     else:
         with PublicationSaver(db=db, rqh=rqh, account=account) as saver:
-            saver.update(new, updated_by_pmid=identifier_is_pmid)
+            saver.update(new)
             saver.fix_journal()
             saver.update_labels(labels=labels, allowed_labels=allowed_labels)
         return saver.doc
