@@ -3,12 +3,12 @@ Publications
 
 A web-based publications reference database system.
 
-- **[Features](#features)**
-- **[Important changes](#important-changes)**
-- **[Implementation](#implementation)**
-- **[Installation](#installation)**
-- **[Command-line interface](#command-line-interface)**
-- **[Example instances](#example-instances)**
+- [Features](#features)
+- [Important changes](#important-changes)
+- [Implementation](#implementation)
+- [Installation](#installation)
+- [Command-line interface](#command-line-interface)
+- [Example instances](#example-instances)
 
 
 Features
