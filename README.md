@@ -174,15 +174,15 @@ Commands:
   curator          Create a user account having the curator role.
   dump             Dump all data in the database to a .tar.gz dump file.
   fetch            Fetch publications given a file containing PMIDs...
-  find-pmid        Try to find the PMID for the publications given by the...
+  find-pmid        Find the PMID for the publications in the CSV file.
   initialize       Initialize the database, which must exist; load all...
   password         Set the password for the given account.
   remove-label     Remove a label from a set of publications.
   select           Select a subset of publications and output to a file.
   show             Display the JSON for the single item in the database.
   undump           Load a Publications database .tar.gz dump file.
-  update-crossref  Update the publications given by the CSV file from...
-  update-pubmed    Update the publications given by the CSV file from...
+  update-crossref  Use Crossref to update the publications in the CSV file.
+  update-pubmed    Use PubMed to update the publications in the CSV file.
   xrefs            Output all xrefs as CSV data to the given file.
 ```
 

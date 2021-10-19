@@ -511,7 +511,7 @@ def xrefs(filepath):
               help="Path of CSV file of publications to add the label to."
               " Only the IUID column in the CSV file is used.")
 def update_pubmed(csvfilepath):
-    """Update the publications given by the CSV file from PubMed.
+    """Use PubMed to update the publications in the CSV file.
     If a publication lacks PMID then that publication is skipped.
 
     Note that a delay is inserted between each call to PubMed to avoid
@@ -553,7 +553,7 @@ def update_pubmed(csvfilepath):
               help="Path of CSV file of publications to add the label to."
               " Only the IUID column in the CSV file is used.")
 def update_crossref(csvfilepath):
-    """Update the publications given by the CSV file from Crossref.
+    """Use Crossref to update the publications in the CSV file.
     If a publication lacks DOI then that publication is skipped.
 
     Note that a delay is inserted between each call to Crossref to avoid
@@ -594,7 +594,7 @@ def update_crossref(csvfilepath):
               help="Path of CSV file of publications to add the label to."
               " Only the IUID column in the CSV file is used.")
 def find_pmid(csvfilepath):
-    """Try to find the PMID for the publications given by the CSV file.
+    """Find the PMID for the publications in the CSV file.
     Search by DOI and title.
 
     Note that a delay is inserted between each call to PubMed to avoid
