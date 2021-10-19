@@ -176,15 +176,12 @@ class JournalEdit(JournalMixin, RequestHandler):
                 self.see_other("journal")
                 return
             saver["title"] = title
-            saver["issn"] = issn = self.get_argument("issn", None) or None
+            saver["issn"] = issn = self.get_argument("issn") or None
+            saver["issn-l"] = self.get_argument("issn-l") or None
         if old_title != title or old_issn != issn:
-            view = self.db.view("publication",
-                                "journal",
-                                key=old_title,
-                                include_docs=True,
-                                reduce=False)
-            for row in view:
-                with PublicationSaver(doc=row.doc, rqh=self) as saver:
+            publications = self.get_docs("publication", "journal", old_title)
+            for publ in publications:
+                with PublicationSaver(doc=publ, rqh=self) as saver:
                     journal  = saver["journal"].copy()
                     journal["title"] = title
                     journal["issn"] = issn
