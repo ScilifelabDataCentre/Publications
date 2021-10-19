@@ -231,20 +231,39 @@ def show(identifier):
               help="Evaluate the selection expression in the named file."
               " If any other selection options are given, the expression"
               " is evaluated for that subset.")
-@click.option("--format", help="Format of the output.",
+@click.option("--format", help="Format of the output. Default CSV.",
               default="CSV",
-              type=click.Choice(["CSV", "XLSX", "TEXT", "TXT"],
+              type=click.Choice(["CSV", "XLSX", "TXT"],
                                 case_sensitive=False))
 @click.option("--filepath", help="Path of the output file. Use '-' for stdout.")
-@click.option("--quoting", help="CSV only: Quoting scheme to use.",
+@click.option("--all-authors/--few-authors", default=False,
+              help="Include all authors in output; default first and last few.")
+@click.option("--issn/--no-issn", default=False,
+              help="Include journal ISSN and ISSN-L in output.")
+@click.option("--encoding", default="utf-8",
+              help="Character encoding; default utf-8.")
+@click.option("--delimiter", default="comma",
+              type=click.Choice(["comma", "semi-colon", "tab"],
+                                case_sensitive=False),
+              help="CSV: Delimiter between parts in record.")
+@click.option("--quoting", help="CSV: Quoting scheme.",
               default="nonnumeric",
               type=click.Choice(["all", "minimal", "nonnumeric", "none"],
                                 case_sensitive=False))
+@click.option("--single-label/--multi-label", default=False,
+              help="CSV, XLSX: Output one single label per record;"
+              " default is all labels in one record.")
 @click.option("--numbered/--not-numbered", default=False,
-              help="TEXT only: Number for each item.")
-# XXX format: maxline, issn, single_label, encoding, doi_url, pmid_url
+              help="TXT: Number for each item.")
+@click.option("--maxline", type=int, default=None,
+              help="TXT: Max length of each line in output.")
+@click.option("--doi-url/--no-doi-url", default=False,
+              help="TXT: Output URL for DOI.")
+@click.option("--pmid-url/--no-pmid-url", default=False,
+              help="TXT: Output URL for PMID.")
 def select(years, labels, authors, orcids, expression,
-           format, filepath, quoting, numbered):
+           format, filepath, all_authors, issn, encoding, delimiter,
+           quoting, single_label, numbered, maxline, doi_url, pmid_url):
     """Select a subset of publications and output to a file.
     The options '--year', '--label' and '--orcid' may be given multiple 
     times, giving the union of publications within the option type.
@@ -289,24 +308,41 @@ def select(years, labels, authors, orcids, expression,
             result = subset
 
     if format == "CSV":
-        writer = publications.writer.CsvWriter(db, app, quoting=quoting)
+        writer = publications.writer.CsvWriter(db, app, 
+                                               all_authors=all_authors,
+                                               single_label=single_label,
+                                               issn=issn,
+                                               encoding=encoding,
+                                               quoting=quoting,
+                                               delimiter=delimiter)
         writer.write(result)
         filepath = filepath or "publications.csv"
 
     elif format == "XLSX":
         if filepath == "-":
             raise click.ClickException("Cannot output XLSX to stdout.")
-        writer = publications.writer.XlsxWriter(db, app)
+        writer = publications.writer.XlsxWriter(db, app,
+                                                all_authors=all_authors,
+                                                single_label=single_label,
+                                                issn=issn,
+                                                encoding=encoding)
         writer.write(result)
         filepath = filepath or "publications.xlsx"
 
-    elif format in ("TEXT", "TXT"):
-        writer = publications.writer.TextWriter(db, app, numbered=numbered)
+    elif format == "TXT":
+        writer = publications.writer.TextWriter(db, app,
+                                                all_authors=all_authors,
+                                                issn=issn,
+                                                encoding=encoding,
+                                                numbered=numbered,
+                                                maxline=maxline,
+                                                doi_url=doi_url,
+                                                pmid_url=pmid_url)
         writer.write(result)
         filepath = filepath or "publications.txt"
 
     if filepath == "-":
-        sys.stdout.write(writer.get_content().decode("utf-8"))
+        sys.stdout.write(writer.get_content().decode(encoding))
     elif filepath:
         with open(filepath, "wb") as outfile:
             outfile.write(writer.get_content())

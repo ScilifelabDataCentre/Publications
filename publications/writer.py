@@ -151,8 +151,16 @@ class CsvWriter(TabularWriter):
     def __init__(self, db, app, **kwargs):
         super().__init__(db, app, **kwargs)
         self.csvbuffer = io.StringIO()
+        if self.parameters["delimiter"].lower() == "comma":
+            delimiter = ","
+        elif self.parameters["delimiter"].lower() == "semi-colon":
+            delimiter = ";"
+        elif self.parameters["delimiter"].lower() == "tab":
+            delimiter = "\t"
+        else:
+            delimiter = self.parameters["delimiter"]
         self.writer = csv.writer(self.csvbuffer,
-                                 delimiter=self.parameters["delimiter"],
+                                 delimiter=delimiter,
                                  quoting=self.parameters["quoting"])
 
     def write_header(self, row):

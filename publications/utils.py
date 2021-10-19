@@ -387,6 +387,8 @@ class DownloadParametersMixin:
             result['delimiter'] = ","
         elif delimiter == "semi-colon":
             result['delimiter'] = ";"
+        elif delimiter == "tab":
+            result['delimiter'] = "\t"
         encoding = self.get_argument("encoding", "").lower()
         if encoding:
             result['encoding'] = encoding
