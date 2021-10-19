@@ -240,9 +240,11 @@ def show(identifier):
               default="nonnumeric",
               type=click.Choice(["all", "minimal", "nonnumeric", "none"],
                                 case_sensitive=False))
-# XXX format: numbered, maxline, issn, single_label, encoding, doi_url, pmid_url
+@click.option("--numbered/--not-numbered", default=False,
+              help="TEXT only: Number for each item.")
+# XXX format: maxline, issn, single_label, encoding, doi_url, pmid_url
 def select(years, labels, authors, orcids, expression,
-           format, filepath, quoting):
+           format, filepath, quoting, numbered):
     """Select a subset of publications and output to a file.
     The options '--year', '--label' and '--orcid' may be given multiple 
     times, giving the union of publications within the option type.
@@ -299,7 +301,7 @@ def select(years, labels, authors, orcids, expression,
         filepath = filepath or "publications.xlsx"
 
     elif format in ("TEXT", "TXT"):
-        writer = publications.writer.TextWriter(db, app)
+        writer = publications.writer.TextWriter(db, app, numbered=numbered)
         writer.write(result)
         filepath = filepath or "publications.txt"
 
