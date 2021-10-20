@@ -477,7 +477,6 @@ class _Expression:
     def evaluate(self, db, variables=None):
         "Evaluate the expression and return the resulting subset."
         self.stack.reverse()    # Left-to-right evaluation.
-        print("evaluate", self)
         if variables is None:
             variables = {}
         while len(self.stack) >= 3:
