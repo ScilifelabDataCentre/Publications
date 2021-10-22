@@ -72,12 +72,13 @@ def dump(dumpfile, dumpdir):
             for doc in bar:
                 # Only documents that explicitly belong to the application.
                 if doc.get(constants.DOCTYPE) is None: continue
-                del doc["_rev"]
+                rev = doc.pop("_rev")
                 info = tarfile.TarInfo(doc["_id"])
                 data = json.dumps(doc).encode("utf-8")
                 info.size = len(data)
                 outfile.addfile(info, io.BytesIO(data))
                 count_items += 1
+                doc["_rev"] = rev       # Revision required to get attachments.
                 for attname in doc.get("_attachments", dict()):
                     info = tarfile.TarInfo("{0}_att/{1}".format(doc["_id"], attname))
                     attfile = db.get_attachment(doc, attname)
@@ -96,7 +97,8 @@ def undump(dumpfile):
     db = utils.get_db()
     designs.load_design_documents(db)
     if utils.get_count(db, 'publication', 'year') != 0:
-        raise click.ClickException(f"The {settings['DATABASE_NAME']} database is not empty.")
+        raise click.ClickException(
+            f"The database '{settings['DATABASE_NAME']}' is not empty.")
     count_items = 0
     count_files = 0
     attachments = dict()

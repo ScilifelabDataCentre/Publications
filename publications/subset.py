@@ -564,39 +564,39 @@ if __name__ == "__main__":
 
     variables = dict(blah=Subset(db, year="2010"))
 
- #    line = """((label(Clinical Genomics Linköping) +
- # label(Clinical Genomics Gothenburg)) +
- # label(Clinical Genomics Lund) +
- # label(Clinical Genomics Uppsala) +
- # label(Clinical Genomics Stockholm) +
- # label(Clinical Genomics Umeå) + 
- # label(Clinical Genomics Örebro)) #
- # (year(2020) + year(2019) +year(2018) + year(2017)) + blah"""
- #    print(">>>", get_subset(db, line, variables=variables))
+    line = """((label(Clinical Genomics Linköping) +
+ label(Clinical Genomics Gothenburg)) +
+ label(Clinical Genomics Lund) +
+ label(Clinical Genomics Uppsala) +
+ label(Clinical Genomics Stockholm) +
+ label(Clinical Genomics Umeå) + 
+ label(Clinical Genomics Örebro)) #
+ (year(2020) + year(2019) +year(2018) + year(2017)) + blah"""
+    print(">>>", get_subset(db, line, variables=variables))
 
- #    print("===", get_subset(db, "year(2020)"))
+    print("===", get_subset(db, "year(2020)"))
 
- #    labels = []
- #    for name in ["Clinical Genomics Linköping",
- #                 "Clinical Genomics Gothenburg",
- #                 "Clinical Genomics Lund",
- #                 "Clinical Genomics Uppsala",
- #                 "Clinical Genomics Stockholm",
- #                 "Clinical Genomics Umeå",
- #                 "Clinical Genomics Örebro"]:
- #        labels.append(Subset(db, label=name))
- #        print(name, ":", labels[-1])
- #    labels = functools.reduce(lambda s, t: s | t, labels)
- #    print("labels :", labels)
- #    years = []
- #    for year in ["2017", "2018", "2019", "2020"]:
- #        years.append(Subset(db, year=year))
- #        print(year, ":", years[-1])
- #    years = functools.reduce(lambda s, t: s | t, years)
- #    print("years :", years)
- #    print("labels # years :", labels & years)
+    labels = []
+    for name in ["Clinical Genomics Linköping",
+                 "Clinical Genomics Gothenburg",
+                 "Clinical Genomics Lund",
+                 "Clinical Genomics Uppsala",
+                 "Clinical Genomics Stockholm",
+                 "Clinical Genomics Umeå",
+                 "Clinical Genomics Örebro"]:
+        labels.append(Subset(db, label=name))
+        print(name, ":", labels[-1])
+    labels = functools.reduce(lambda s, t: s | t, labels)
+    print("labels :", labels)
+    years = []
+    for year in ["2017", "2018", "2019", "2020"]:
+        years.append(Subset(db, year=year))
+        print(year, ":", years[-1])
+    years = functools.reduce(lambda s, t: s | t, years)
+    print("years :", years)
+    print("labels # years :", labels & years)
 
- #    print()
+    print()
 
     s1 = Subset(db, label="National Genomics Infrastructure")
     print(s1)
@@ -604,6 +604,6 @@ if __name__ == "__main__":
     print(s2)
     s3 = Subset(db, label="Spatial proteomics")
     print(s3)
-    # print(f"{s1-s2-s3=}")
-    # print(f"{(s1-s2)-s3=}")
-    # print(f"{s1-(s2-s3)=}")
+    print("s1-s2-s3 =", s1-s2-s3)
+    print("(s1-s2)-s3 =", (s1-s2)-s3)
+    print("s1-(s2-s3) =", s1-(s2-s3))
