@@ -4,7 +4,9 @@ import base64
 import json
 import logging
 import os.path
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 
 import tornado.web
 
