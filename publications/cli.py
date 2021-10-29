@@ -26,7 +26,7 @@ import publications.writer
 
 
 @click.group()
-@click.option("-s", "--settings", help="Name of settings YAML file.")
+@click.option("-s", "--settings", help="Path of settings YAML file.")
 @click.option("--log", flag_value=True, default=False,
               help="Enable logging output.")
 def cli(settings, log):
@@ -35,8 +35,7 @@ def cli(settings, log):
 @cli.command()
 def initialize():
     "Initialize the database, which must exist; load all design documents."
-    db = utils.get_db()
-    designs.load_design_documents(db)
+    designs.load_design_documents(utils.get_db())
     click.echo("Loaded all design documents.")
 
 @cli.command()
@@ -80,7 +79,7 @@ def dump(dumpfile, dumpdir):
                 count_items += 1
                 doc["_rev"] = rev       # Revision required to get attachments.
                 for attname in doc.get("_attachments", dict()):
-                    info = tarfile.TarInfo("{0}_att/{1}".format(doc["_id"], attname))
+                    info = tarfile.TarInfo(f"{doc['_id']}_att/{attname}")
                     attfile = db.get_attachment(doc, attname)
                     if attfile is None: continue
                     data = attfile.read()
@@ -102,8 +101,11 @@ def undump(dumpfile):
     count_items = 0
     count_files = 0
     attachments = dict()
-    with tarfile.open(dumpfile, mode="r") as infile:
-        length = sum(1 for member in infile if member.isreg())
+    try:
+        with tarfile.open(dumpfile, mode="r") as infile:
+            length = sum(1 for member in infile if member.isreg())
+    except IOError as error:
+        raise click.ClickException(str(error))
     with tarfile.open(dumpfile, mode="r") as infile:
         with click.progressbar(infile, label="Loading...", length=length) as bar:
             for item in bar:
@@ -120,11 +122,11 @@ def undump(dumpfile):
                     db.put(doc)
                     count_items += 1
                     for attname, attinfo in list(atts.items()):
-                        key = "{0}_att/{1}".format(doc["_id"], attname)
+                        key = f"{doc['_id']}_att/{attname}"
                         attachments[key] = dict(filename=attname,
                                                 content_type=attinfo["content_type"])
     click.echo(f"Loaded {count_items} items and {count_files} files.")
-    
+
 @cli.command()
 @click.option("--email", prompt=True)
 @click.option("--password")     # Get password after account existence check.
@@ -145,7 +147,7 @@ def admin(email, password):
     except ValueError as error:
         raise click.ClickException(str(error))
     click.echo(f"Created 'admin' role account {email}")
-    
+
 @cli.command()
 @click.option("--email", prompt=True)
 @click.option("--password")     # Get password after account existence check.
@@ -166,7 +168,7 @@ def curator(email, password):
     except ValueError as error:
         raise click.ClickException(str(error))
     click.echo(f"Created 'curator' role account {email}")
-    
+
 @cli.command()
 @click.option("--email", prompt=True)
 @click.option("--password")     # Get password after account existence check.

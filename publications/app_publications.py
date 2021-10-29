@@ -222,18 +222,18 @@ def get_application():
 
 def main():
     if len(sys.argv) == 2:
-        filename = sys.argv[1]
+        filepath = sys.argv[1]
     else:
-        filename = None
-    utils.load_settings(filename=filename)
+        filepath = None
+    utils.load_settings(filepath=filepath)
     designs.load_design_documents(utils.get_db())
     application = get_application()
     application.listen(settings["PORT"], xheaders=True)
     pid = os.getpid()
-    logging.info("web server PID %s at %s", pid, settings["BASE_URL"])
     if settings["PIDFILE"]:
         with open(settings["PIDFILE"], "w") as pf:
             pf.write(str(pid))
+    logging.info(f"web server PID {pid} at {settings['BASE_URL']}")
     tornado.ioloop.IOLoop.instance().start()
 
 

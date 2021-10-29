@@ -24,31 +24,30 @@ from publications import designs
 from publications import settings
 
 
-def load_settings(filename=None, log=True):
-    """Load the settings from the named file, which must be located in the
-    'Publications/site' directory. The first specified name is used:
+def load_settings(filepath=None, log=True):
+    """Load the settings. The file path first specified is used:
     1) The argument to this procedure (possibly from a command line argument).
     2) The environment variable PUBLICATIONS_SETTINGS.
-    3) The file name 'settings.yaml'.
+    3) The file '../site/settings.yaml' relative to this directory.
     If 'log' is True, activate logging according to DEBUG settings.
     Raise IOError if settings file could not be read.
     Raise KeyError if a settings variable is missing.
     Raise ValueError if a settings variable value is invalid.
     """
-    site_dir = os.path.normpath(os.path.join(settings["ROOT"], "../site"))
+    site_dir = settings["SITE_DIR"]
     if not os.path.exists(site_dir):
         raise IOError(f"The required site directory '{site_dir}' does not exist.")
     if not os.path.isdir(site_dir):
         raise IOError(f"The site directory path '{site_dir}' is not a directory.")
-    if filename is None:
+    # Find and read the settings file, updating the defaults.
+    if not filepath:
         try:
             filename = os.environ["PUBLICATIONS_SETTINGS"]
         except KeyError:
-            filename = "settings.yaml"
-    filepath = os.path.join(site_dir, filename)
+            filepath = os.path.join(site_dir, "settings.yaml")
     with open(filepath) as infile:
         settings.update(yaml.safe_load(infile))
-    settings["SETTINGS_FILEPATH"] = filepath
+    settings["SETTINGS_FILE"] = filepath
 
     # Setup logging.
     if settings.get("LOGGING_DEBUG"):
@@ -72,11 +71,11 @@ def load_settings(filename=None, log=True):
     if log:
         logging.basicConfig(**kwargs)
         logging.info(f"Publications version {publications.__version__}")
-        logging.info(f"settings from {settings['SETTINGS_FILEPATH']}")
-        if settings["LOGGING_DEBUG"]:
-            logging.info("logging debug")
-        if settings["TORNADO_DEBUG"]:
-            logging.info("tornado debug")
+        logging.info(f"ROOT: {settings['ROOT']}")
+        logging.info(f"SITE_DIR: {settings['SITE_DIR']}")
+        logging.info(f"settings: {settings['SETTINGS_FILE']}")
+        logging.info(f"logging debug: {settings['LOGGING_DEBUG']}")
+        logging.info(f"tornado debug: {settings['TORNADO_DEBUG']}")
 
     # Check some settings.
     for key in ["BASE_URL", "PORT", "DATABASE_SERVER", "DATABASE_NAME"]:
@@ -92,9 +91,6 @@ def load_settings(filename=None, log=True):
                 "CROSSREF_DELAY", "CROSSREF_TIMEOUT"]:
         if not isinstance(settings[key], (int, float)) or settings[key] <= 0.0:
             raise ValueError(f"Invalid '{key}' value: must be positive number.")
-
-    # Get server version from server.
-    settings["DATABASE_SERVER_VERSION"] = get_dbserver().version
 
     # Set up the xref templates URLs.
     settings["XREF_TEMPLATE_URLS"] = NocaseDict(settings["XREF_TEMPLATE_URLS"])
