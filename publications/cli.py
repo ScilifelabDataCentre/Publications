@@ -198,16 +198,16 @@ def show(identifier):
     ORCID, or IUID of the document.
     """
     db = utils.get_db()
-    for designname, viewname, operation in [("publication", "pmid", asis),
-                                            ("publication", "doi", asis),
-                                            ("account", "email", asis),
-                                            ("account", "api_key", asis),
-                                            ("label", "normalized_value", normalized),
-                                            ("journal", "issn", asis),
-                                            ("journal", "issn_l", asis),
-                                            ("researcher", "orcid", asis),
-                                            ("blacklist", "doi", asis),
-                                            ("blacklist", "pmid", asis)]:
+    for designname, viewname, operation in [("publication", "pmid", _asis),
+                                            ("publication", "doi", _asis),
+                                            ("account", "email", _asis),
+                                            ("account", "api_key", _asis),
+                                            ("label", "normalized_value", _normalized),
+                                            ("journal", "issn", _asis),
+                                            ("journal", "issn_l", _asis),
+                                            ("researcher", "orcid", _asis),
+                                            ("blacklist", "doi", _asis),
+                                            ("blacklist", "pmid", _asis)]:
         try:
             doc = utils.get_doc(db, designname, viewname, operation(identifier))
             break
@@ -218,7 +218,11 @@ def show(identifier):
             doc = db[identifier]
         except couchdb2.NotFoundError:
             raise click.ClickException("No such item in the database.")
-    click.echo(json_dumps(doc))
+    click.echo(json.dumps(doc, ensure_ascii=False, indent=2))
+
+def _asis(value): return value
+
+def _normalized(value): return utils.to_ascii(value).lower()
 
 @cli.command()
 @click.option("-y", "--year", "years",
@@ -276,18 +280,19 @@ def select(years, labels, authors, orcids, expression,
     db = utils.get_db()
     app = publications.app_publications.get_application()
     subsets = []
+    def _union(s, t): return s | t
     if years:
         subsets.append(
-            functools.reduce(union, [Subset(db, year=y) for y in years]))
+            functools.reduce(_union, [Subset(db, year=y) for y in years]))
     if labels:
         subsets.append(
-            functools.reduce(union, [Subset(db, label=l) for l in labels]))
+            functools.reduce(_union, [Subset(db, label=l) for l in labels]))
     if orcids:
         subsets.append(
-            functools.reduce(union, [Subset(db, orcid=o) for o in orcids]))
+            functools.reduce(_union, [Subset(db, orcid=o) for o in orcids]))
     if authors:
         subsets.append(
-            functools.reduce(union, [Subset(db,author=a) for a in authors]))
+            functools.reduce(_union, [Subset(db,author=a) for a in authors]))
     if subsets:
         result = functools.reduce(lambda s, t: s & t, subsets)
     else:
@@ -647,14 +652,6 @@ def get_iuids_from_csv(csvfilepath):
             return [p["IUID"] for p in reader]
     except (IOError, csv.Error, KeyError) as error:
         raise click.ClickException(str(error))
-
-def union(s, t): return s | t
-
-def json_dumps(doc): return json.dumps(doc, ensure_ascii=False, indent=2)
-
-def asis(value): return value
-
-def normalized(value): return utils.to_ascii(value).lower()
 
 
 if __name__ == "__main__":
