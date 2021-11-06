@@ -2,10 +2,8 @@
 
 import csv
 import functools
-import io
 import json
 import os
-import tarfile
 import time
 import sys
 
@@ -53,79 +51,33 @@ def counts():
                 help="The path of the Publications database dump file.")
 @click.option("-D", "--dumpdir", type=str,
                 help="The directory to write the dump file in, using the standard name.")
-def dump(dumpfile, dumpdir):
+@click.option("--progressbar/--no-progressbar", default=True,
+              help="Display a progressbar.")
+def dump(dumpfile, dumpdir, progressbar):
     "Dump all data in the database to a .tar.gz dump file."
     db = utils.get_db()
     if not dumpfile:
         dumpfile = "dump_{0}.tar.gz".format(time.strftime("%Y-%m-%d"))
         if dumpdir:
             filepath = os.path.join(dumpdir, dumpfile)
-    count_items = 0
-    count_files = 0
-    if dumpfile.endswith(".gz"):
-        mode = "w:gz"
-    else:
-        mode = "w"
-    with tarfile.open(dumpfile, mode=mode) as outfile:
-        with click.progressbar(db, label="Dumping...") as bar:
-            for doc in bar:
-                # Only documents that explicitly belong to the application.
-                if doc.get(constants.DOCTYPE) is None: continue
-                rev = doc.pop("_rev")
-                info = tarfile.TarInfo(doc["_id"])
-                data = json.dumps(doc).encode("utf-8")
-                info.size = len(data)
-                outfile.addfile(info, io.BytesIO(data))
-                count_items += 1
-                doc["_rev"] = rev       # Revision required to get attachments.
-                for attname in doc.get("_attachments", dict()):
-                    info = tarfile.TarInfo(f"{doc['_id']}_att/{attname}")
-                    attfile = db.get_attachment(doc, attname)
-                    if attfile is None: continue
-                    data = attfile.read()
-                    attfile.close()
-                    info.size = len(data)
-                    outfile.addfile(info, io.BytesIO(data))
-                    count_files += 1
-    click.echo(f"Dumped {count_items} items and {count_files} files to {dumpfile}")
+    ndocs, nfiles = db.dump(dumpfile,
+                            exclude_designs=True,
+                            progressbar=progressbar)
+    click.echo(f"Dumped {ndocs} documents and {nfiles} files to '{dumpfile}'.")
 
 @cli.command()
 @click.argument("dumpfile", type=click.Path(exists=True))
-def undump(dumpfile):
+@click.option("--progressbar/--no-progressbar", default=True,
+              help="Display a progressbar.")
+def undump(dumpfile, progressbar):
     "Load a Publications database .tar.gz dump file. The database must be empty."
     db = utils.get_db()
     designs.load_design_documents(db)
     if utils.get_count(db, 'publication', 'year') != 0:
         raise click.ClickException(
             f"The database '{settings['DATABASE_NAME']}' is not empty.")
-    count_items = 0
-    count_files = 0
-    attachments = dict()
-    try:
-        with tarfile.open(dumpfile, mode="r") as infile:
-            length = sum(1 for member in infile if member.isreg())
-    except IOError as error:
-        raise click.ClickException(str(error))
-    with tarfile.open(dumpfile, mode="r") as infile:
-        with click.progressbar(infile, label="Loading...", length=length) as bar:
-            for item in bar:
-                itemfile = infile.extractfile(item)
-                itemdata = itemfile.read()
-                itemfile.close()
-                if item.name in attachments:
-                    # This relies on an attachment being after its item in the tarfile.
-                    db.put_attachment(doc, itemdata, **attachments.pop(item.name))
-                    count_files += 1
-                else:
-                    doc = json.loads(itemdata)
-                    atts = doc.pop("_attachments", dict())
-                    db.put(doc)
-                    count_items += 1
-                    for attname, attinfo in list(atts.items()):
-                        key = f"{doc['_id']}_att/{attname}"
-                        attachments[key] = dict(filename=attname,
-                                                content_type=attinfo["content_type"])
-    click.echo(f"Loaded {count_items} items and {count_files} files.")
+    ndocs, nfiles = db.undump(dumpfile, progressbar=progressbar)
+    click.echo(f"Loaded {ndocs} documents and {nfiles} files to '{dumpfile}'.")
 
 @cli.command()
 @click.option("--email", prompt=True)
