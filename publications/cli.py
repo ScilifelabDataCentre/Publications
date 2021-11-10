@@ -195,7 +195,8 @@ def _normalized(value): return utils.to_ascii(value).lower()
               default="CSV",
               type=click.Choice(["CSV", "XLSX", "TXT"],
                                 case_sensitive=False))
-@click.option("--filepath", help="Path of the output file. Use '-' for stdout.")
+@click.option("-f", "--filepath",
+              help="Path of the output file. Use '-' for stdout.")
 @click.option("--all-authors/--few-authors", default=False,
               help="Include all authors in output; default first and last few.")
 @click.option("--issn/--no-issn", default=False,
@@ -436,7 +437,7 @@ def remove_label(label, csvfilepath):
     click.echo(f"Removed label from {count} publications.")
 
 @cli.command()
-@click.option("--filepath", default="xrefs.csv",
+@click.option("-f", "--filepath", default="xrefs.csv",
               help="Path of the output CSV file.")
 def xrefs(filepath):
     """Output all xrefs as CSV data to the given file.
