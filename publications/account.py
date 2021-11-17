@@ -319,11 +319,12 @@ class AccountReset(RequestHandler):
             account = self.current_user["email"]
         else:
             account = None
-        if settings["EMAIL"]["HOST"]:
+        if settings.get("EMAIL") and settings["EMAIL"].get("HOST"):
             self.render("account_reset.html", account=account)
         else:
             self.set_error_flash("Cannot reset password since"
-                                 " no email server configuration.")
+                                 " no email server configuration."
+                                 " Contact the system administrator.")
             self.see_other("home")
 
     def post(self):
