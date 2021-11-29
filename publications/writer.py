@@ -180,7 +180,7 @@ class CsvWriter(TabularWriter):
 
     def get_content(self):
         content = self.csvbuffer.getvalue()
-        return content.encode(self.parameters["encoding"], "ignore")
+        return content.encode(self.parameters["encoding"], "backslashreplace")
 
 
 class XlsxWriter(TabularWriter):
@@ -290,4 +290,4 @@ class TextWriter(Writer):
     def get_content(self):
         "Get the file contents as bytes."
         content = self.text.getvalue()
-        return content.encode(self.parameters["encoding"], "ignore")
+        return content.encode(self.parameters["encoding"], "backslashreplace")

@@ -2,7 +2,7 @@
 
 import os.path
 
-__version__ = "6.5.11"
+__version__ = "6.5.12"
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
