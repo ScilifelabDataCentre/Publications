@@ -38,13 +38,17 @@
   </tr>
   <tr>
     <th>label(<i>label</i>)</th>
-    <td>Select by label. Character case is ignored.</td>
+    <td>
+      Select by label. Character case is ignored. May contain wildcard
+      '*' at the end. Use double-quotes around the value if it
+      contains parentheses.
+    </td>
   </tr>
   <tr>
     <th>author(<i>name</i>)</th>
     <td>
       Select by author name of the form "family initials". Character
-      case is ignored.  May contain wildcard '*' at the end.
+      case is ignored. May contain wildcard '*' at the end.
     </td>
   </tr>
   <tr>
@@ -132,5 +136,13 @@
   <br>
   <code>
     year(2020) - (label(ABC) # author(a*))
+  </code>
+</p>
+
+<p>
+  A label having a parentheses within it; use double-quotes.
+  <br>
+  <code>
+    label("ABC (minor)")
   </code>
 </p>

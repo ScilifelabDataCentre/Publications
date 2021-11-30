@@ -167,19 +167,29 @@ class Subset:
         self._select("publication", "year", key=year)
 
     def select_label(self, label):
-        "Select publications by the given label."
-        self._select("publication", "label", key=label.lower())
+        """Select publications by the given label.
+        If a wildcard '*' is present at the end, all suffixes are allowed
+        from that point.
+        """
+        label = label.lower().strip()
+        if label.endswith("*"):
+            label = label[:-1]
+            self._select("publication", "label",
+                         key=label, last=label+constants.CEILING)
+        else:
+            self._select("publication", "label", key=label)
 
     def select_author(self, name):
         """Select publication by author name.
-        The name must be of the form "Familyname Initials". It is normalized, i.e.
-        non-ASCII characters are converted to most similar ASCII, and lower-cased.
-        The match is exact, which is problematic; e.g. the initials used differs
-        substantially between publications.
-        If a wildcard '*' is added at the end, all suffixes are allow from that point.
+        The name must be of the form "Familyname Initials". It is normalized, 
+        i.e. non-ASCII characters are converted to most similar ASCII,
+        and lower-cased. The match is exact, which is problematic;
+        e.g. the initials used differs substantially between publications.
+        If a wildcard '*' is present at the end, all suffixes are allowed
+        from that point.
         """
-        name = utils.to_ascii(name).lower()
-        if "*" in name:
+        name = utils.to_ascii(name).lower().strip()
+        if name.endswith("*"):
             name = name[:-1]
             self._select("publication", "author",
                          key=name, last=name+constants.CEILING)
@@ -508,7 +518,7 @@ def get_subset(db, expression, variables=None):
         return Subset(db)
     parser = get_parser()
     try:
-        result = parser.parseString(expression, parseAll=True)
+        result = parser.parse_string(expression, parse_all=True)
     except pp.ParseException as error:
         raise ValueError(str(error))
     return result[0].evaluate(db, variables=variables)
@@ -518,40 +528,40 @@ def get_parser():
 
     left = pp.Suppress("(")
     right = pp.Suppress(")")
-    value = pp.CharsNotIn(")")
-    identifier = pp.Word(pp.alphas, pp.alphanums).setParseAction(_Identifier)
+    value = pp.QuotedString(quote_char='"', esc_char="\\") | pp.CharsNotIn(")")
+    identifier = pp.Word(pp.alphas, pp.alphanums).set_parse_action(_Identifier)
 
-    label = (pp.Keyword("label") + left+value+right).setParseAction(_Label)
-    year = (pp.Keyword("year") + left+value+right).setParseAction(_Year)
-    author = (pp.Keyword("author") + left+value+right).setParseAction(_Author)
-    orcid = (pp.Keyword("orcid") + left+value+right).setParseAction(_Orcid)
-    issn = (pp.Keyword("issn") + left+value+right).setParseAction(_Issn)
-    published = (pp.Keyword("published") + left+value+right).setParseAction(_Published)
-    first = (pp.Keyword("first") + left+value+right).setParseAction(_First)
-    online = (pp.Keyword("online") + left+value+right).setParseAction(_Online)
-    modified = (pp.Keyword("modified") + left+value+right).setParseAction(_Modified)
-    no_pmid = (pp.Keyword("no_pmid") + left+right).setParseAction(_NoPmid)
-    no_doi = (pp.Keyword("no_doi") + left+right).setParseAction(_NoDoi)
-    no_label = (pp.Keyword("no_label") + left+right).setParseAction(_NoLabel)
+    label = (pp.Keyword("label") + left+value+right).set_parse_action(_Label)
+    year = (pp.Keyword("year") + left+value+right).set_parse_action(_Year)
+    author = (pp.Keyword("author") + left+value+right).set_parse_action(_Author)
+    orcid = (pp.Keyword("orcid") + left+value+right).set_parse_action(_Orcid)
+    issn = (pp.Keyword("issn") + left+value+right).set_parse_action(_Issn)
+    published = (pp.Keyword("published") + left+value+right).set_parse_action(_Published)
+    first = (pp.Keyword("first") + left+value+right).set_parse_action(_First)
+    online = (pp.Keyword("online") + left+value+right).set_parse_action(_Online)
+    modified = (pp.Keyword("modified") + left+value+right).set_parse_action(_Modified)
+    no_pmid = (pp.Keyword("no_pmid") + left+right).set_parse_action(_NoPmid)
+    no_doi = (pp.Keyword("no_doi") + left+right).set_parse_action(_NoDoi)
+    no_label = (pp.Keyword("no_label") + left+right).set_parse_action(_NoLabel)
     function = label | year| author | orcid | issn | \
         published | first | online | modified | no_pmid | no_doi | no_label
 
     if settings["TEMPORAL_LABELS"]:
-        current = (pp.Keyword("active") + left+right).setParseAction(_Active)
-        active = (pp.Keyword("active") + left+value+right).setParseAction(_Active)
+        current = (pp.Keyword("active") + left+right).set_parse_action(_Active)
+        active = (pp.Keyword("active") + left+value+right).set_parse_action(_Active)
         function = function | current | active
 
-    union = pp.Literal("+").setParseAction(_Union)
-    symdifference = pp.Literal("^").setParseAction(_Symdifference)
-    intersection = pp.Literal("#").setParseAction(_Intersection)
-    difference = pp.Literal("-").setParseAction(_Difference)
+    union = pp.Literal("+").set_parse_action(_Union)
+    symdifference = pp.Literal("^").set_parse_action(_Symdifference)
+    intersection = pp.Literal("#").set_parse_action(_Intersection)
+    difference = pp.Literal("-").set_parse_action(_Difference)
     operator = union | symdifference | difference | intersection
 
     expression = pp.Forward()
     atom = (function | identifier | pp.Group(left + expression + right))
     expression <<= atom + (operator + atom)[...]
-    expression.setParseAction(_Expression)
-    expression.ignore("!" + pp.restOfLine)
+    expression.set_parse_action(_Expression)
+    expression.ignore("!" + pp.rest_of_line)
     return expression
 
 
