@@ -22,15 +22,10 @@ class Authors(tornado.web.UIModule):
                 continue
             name = "%s %s" % (author["family"], author.get("initials") or "")
             if author.get("researcher"):
-                try:
-                    researcher = self.handler.get_researcher(author["researcher"])
-                except KeyError:
-                    pass
-                else:
-                    url = self.handler.reverse_url("researcher", researcher["_id"])
-                    result.append(f'<a href="{url}">{name}</a>')
-                    continue
-            result.append(name)
+                url = self.handler.reverse_url("researcher", author["researcher"])
+                result.append(f'<a href="{url}">{name}</a>')
+            else:
+                result.append(name)
         return ", ".join(result)
 
 
