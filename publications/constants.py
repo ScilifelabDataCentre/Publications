@@ -31,10 +31,7 @@ JQUERY_UI_JS_INTEGRITY = "sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
 
 # DataTables
 DATATABLES_URL = "https://datatables.net/"
-DATATABLES_VERSION = "1.10.13"
-# DATATABLES_JS_URL = "https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"
-# DATATABLES_BOOTSTRAP_JS_URL = "https://cdn.datatables.net/1.10.13/js/dataTables.bootstrap.min.js"
-
+DATATABLES_VERSION = "1.11.3"
 DATATABLES_CSS_URL = "https://cdn.datatables.net/v/bs/jqc-1.12.4/dt-1.11.3/datatables.min.css"
 DATATABLES_JS_URL = "https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"
 DATATABLES_BOOTSTRAP_JS_URL = "https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap.min.js"
