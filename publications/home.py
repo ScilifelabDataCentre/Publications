@@ -1,6 +1,5 @@
 "Home page, and a few other pages."
 
-import logging
 import sys
 
 import certifi
