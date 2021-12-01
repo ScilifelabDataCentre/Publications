@@ -39,7 +39,8 @@ class Settings(RequestHandler):
         for key in ["PASSWORD_SALT", "COOKIE_SECRET", "DATABASE_PASSWORD"]:
             if key in cleaned:
                 cleaned[key] = "****"
-        if "PASSWORD" in cleaned.get("EMAIL", {}):
+        email = cleaned.get("EMAIL") or {}
+        if "PASSWORD" in email:
             cleaned["EMAIL"]["PASSWORD"] = "****"
         self.render("settings.html", cleaned_settings=sorted(cleaned.items()))
 
