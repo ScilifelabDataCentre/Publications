@@ -7,14 +7,13 @@
     <title>{% block head_title %}{{ title }}{% end %}</title>
     <link rel="shortcut icon" type="image/png"
           href="{{ reverse_url('site', 'favicon.png') }}">
-    <link rel="stylesheet"
-          href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="{{ constants.JQUERY_UI_CSS_URL }}">
     <link rel="stylesheet" crossorigin="anonymous"
-          href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" 
-          integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu">
+          href="{{ constants.BOOTSTRAP_CSS_URL }}"
+          integrity="{{ constants.BOOTSTRAP_CSS_INTEGRITY }}">
     <link rel="stylesheet" crossorigin="anonymous"
-          href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css"
-          integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ">
+          href="{{ constants.BOOTSTRAP_THEME_CSS_URL }}"
+          integrity="{{ constants.BOOTSTRAP_THEME_CSS_INTEGRITY }}">
     <link rel="stylesheet" href="{{ static_url('publications.css') }}">
   </head>
 
@@ -265,9 +264,9 @@
 		</li>
 		{% end %} {# if is_admin #}
 		<li>
-		  <a href="{{ settings['SOURCE_URL'] }}" target="_">
+		  <a href="{{ reverse_url('software') }}">
 		    <span class="glyphicon glyphicon-briefcase"></span>
-		    Version {{ settings['SOURCE_VERSION'] }}
+                    Software
 		  </a>
 		</li>
 	      </ul>
@@ -445,34 +444,37 @@
 	  {% end %}
         </div>
 	<div class="col-md-2 col-md-offset-2">
-	  <a href="{{ settings['SOURCE_URL'] }}"
-             target="_blank" class="pull-right">
-	    <span class="glyphicon glyphicon-briefcase"></span>
-	    Version {{ settings['SOURCE_VERSION'] }}
-	  </a>
+          <div class="pull-right">
+	    <a href="{{ settings['SOURCE_URL'] }}" target="_blank">
+              Publications
+	    </a>
+	    version {{ settings['SOURCE_VERSION'] }}
+	  </div>
 	</div>
       </div>
       {% end %} {# block footer #}
       
     </div>
 
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js"
-            integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
+    <script src="{{ constants.JQUERY_JS_URL }}"
+            integrity="{{ constants.JQUERY_JS_INTEGRITY }}"
             crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="{{ constants.JQUERY_UI_JS_URL }}"
+            integrity="{{ constants.JQUERY_UI_JS_INTEGRITY }}"
+            crossorigin="anonymous"></script>
     <script src="{{ static_url('jquery.localtime-0.9.1.min.js') }}"></script>
     <script>
       $.datepicker.setDefaults({dateFormat: "yy-mm-dd"});
       $(function(){ $(".datepicker").datepicker(); });
     </script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
-            integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+    <script src="{{ constants.BOOTSTRAP_JS_URL }}"
+            integrity="{{ constants.BOOTSTRAP_JS_INTEGRITY }}"
             crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.13/js/dataTables.bootstrap.min.js"></script>
+    <script src="{{ constants.DATATABLES_JS_URL }}"></script>
+    <script src="{{ constants.DATATABLES_BOOTSTRAP_JS_URL}}"></script>
 
     {% block autofocus %}
-    <script>
+    <script type="text/javascript" >
       $(function(){ $("#terms").focus(); });
     </script>
     {% end %}

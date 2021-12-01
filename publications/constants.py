@@ -10,6 +10,35 @@ DATE_RX  = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$") # Safe until 9999 CE...
 EMAIL_RX = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
 PMID_RX  = re.compile(r"^[1-9]\d*$")
 
+# Bootstrap
+BOOTSTRAP_URL = "https://getbootstrap.com/"
+BOOTSTRAP_VERSION = "3.4.1"
+BOOTSTRAP_CSS_URL = "https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+BOOTSTRAP_CSS_INTEGRITY = "sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu"
+BOOTSTRAP_THEME_CSS_URL = "https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css"
+BOOTSTRAP_THEME_CSS_INTEGRITY = "sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ"
+BOOTSTRAP_JS_URL = "https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
+BOOTSTRAP_JS_INTEGRITY = "sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+
+# jQuery
+JQUERY_URL = "https://jquery.com/"
+JQUERY_VERSION = "1.12.4"
+JQUERY_UI_CSS_URL = "https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+JQUERY_JS_URL = "https://code.jquery.com/jquery-1.12.4.min.js"
+JQUERY_JS_INTEGRITY = "sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+JQUERY_UI_JS_URL = "https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+JQUERY_UI_JS_INTEGRITY = "sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+
+# DataTables
+DATATABLES_URL = "https://datatables.net/"
+DATATABLES_VERSION = "1.10.13"
+# DATATABLES_JS_URL = "https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"
+# DATATABLES_BOOTSTRAP_JS_URL = "https://cdn.datatables.net/1.10.13/js/dataTables.bootstrap.min.js"
+
+DATATABLES_CSS_URL = "https://cdn.datatables.net/v/bs/jqc-1.12.4/dt-1.11.3/datatables.min.css"
+DATATABLES_JS_URL = "https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"
+DATATABLES_BOOTSTRAP_JS_URL = "https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap.min.js"
+
 # CouchDB
 # For view ranges: CouchDB uses the Unicode Collation Algorithm,
 # which is not the same as the ASCII collation sequence.

@@ -1,0 +1,27 @@
+{# Software information page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Software{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-briefcase"></span>
+Software
+{% end %}
+
+{% block main_content %}
+<table class="table table-sm">
+  <tr>
+    <th>Software</th>
+    <th>Version</th>
+    <th>Link</th>
+  </tr>
+  {% for name, version, url in software %}
+  <tr>
+    <td>{{ name }}</td>
+    <td>{{ version }}</td>
+    <td><a href="{{ url }}">{{ url }}</a></td>
+  </tr>
+  {% end %}
+</table>
+{% end %} {# block main_content #}

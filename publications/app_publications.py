@@ -16,6 +16,7 @@ from publications import utils
 from publications.home import (Home,
                                Contact,
                                Settings,
+                               Software,
                                Status,
                                Doc)
 from publications.login import (Login,
@@ -204,6 +205,7 @@ def get_application():
                 url(r"/logs/([^/]+)", Logs, name="logs"),
                 url(r"/contact", Contact, name="contact"),
                 url(r"/settings", Settings, name="settings"),
+                url(r"/software", Software, name="software"),
                 url(r"/login", Login, name="login"),
                 url(r"/logout", Logout, name="logout"),
                 url(r"/api/publication",
