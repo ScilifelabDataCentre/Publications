@@ -8,6 +8,7 @@ import sys
 import tornado.web
 import tornado.ioloop
 
+from publications import constants
 from publications import designs
 from publications import settings
 from publications import uimodules
@@ -218,8 +219,8 @@ def get_application():
         cookie_secret=settings["COOKIE_SECRET"],
         xsrf_cookies=True,
         ui_modules=uimodules,
-        template_path=os.path.join(settings["ROOT"], "templates"),
-        static_path=os.path.join(settings["ROOT"], "static"),
+        template_path=os.path.join(constants.ROOT, "templates"),
+        static_path=os.path.join(constants.ROOT, "static"),
         login_url=r"/login")
 
 def main():

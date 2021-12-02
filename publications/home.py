@@ -1,7 +1,5 @@
 "Home page, and a few other pages."
 
-import sys
-
 import certifi
 import couchdb2
 import pyparsing
@@ -56,23 +54,24 @@ class Software(RequestHandler):
     "Software version information."
 
     def get(self):
-        v = sys.version_info
-        self.render("software.html", software=[
-            ("Publications", settings["SOURCE_VERSION"],settings["SOURCE_URL"]),
-            ("Python", f"{v.major}.{v.minor}.{v.micro}", "https://www.python.org/"),
-            ("tornado", tornado.version, "http://tornadoweb.org/"),
-            ("certifi", certifi.__version__, "https://pypi.org/project/certifi/"),
-            ("CouchDB server", self.db.server.version, "https://couchdb.apache.org/"),
-            ("CouchDB2 interface", couchdb2.__version__, "https://pypi.org/project/couchdb2"),
-            ("PyYAML", yaml.__version__, "https://pypi.org/project/PyYAML/"),
-            ("pyparsing", pyparsing.__version__, "https://pyparsing-docs.readthedocs.io/"),
-            ("requests", requests.__version__, "https://docs.python-requests.org/"),
-            ("XlsxWriter", xlsxwriter.__version__, "https://pypi.org/project/XlsxWriter/"),
+        software = [
+            ("Publications", constants.VERSION, constants.URL),
+            ("Python", constants.PYTHON_VERSION, constants.PYTHON_URL),
+            ("tornado", tornado.version, constants.TORNADO_URL),
+            ("certifi", certifi.__version__, constants.CERTIFI_URL),
+            ('CouchDB server', self.db.server.version, constants.COUCHDB_URL),
+            ('CouchDB2 interface', couchdb2.__version__, constants.COUCHDB2_URL),
+            ('XslxWriter', xlsxwriter.__version__, constants.XLSXWRITER_URL),
+
+            ("PyYAML", yaml.__version__, constants.PYYAML_URL),
+            ("pyparsing", pyparsing.__version__, constants.PYPARSING_URL),
+            ("requests", requests.__version__, constants.REQUESTS_URL),
             ("Bootstrap", constants.BOOTSTRAP_VERSION, constants.BOOTSTRAP_URL),
             ("jQuery", constants.JQUERY_VERSION, constants.JQUERY_URL),
-            ('jQuery.localtime', '0.9.1', 'https://github.com/GregDThomas/jquery-localtime'),
+            ('jQuery.localtime', constants.JQUERY_LOCALTIME_VERSION, constants.JQUERY_LOCALTIME_URL),
             ("DataTables", constants.DATATABLES_VERSION, constants.DATATABLES_URL),
-        ])
+        ]     
+        self.render("software.html", software=software)
 
 class Status(RequestHandler):
     "Return JSON for the current status and some counts for the database."

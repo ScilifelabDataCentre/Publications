@@ -1,24 +1,19 @@
 "Various utility functions."
 
-import argparse
 import datetime
 import email.mime.text
 import hashlib
 import logging
-import optparse
 import os
 import os.path
-import socket
 import smtplib
 import string
-import urllib.parse
 import uuid
 import unicodedata
 
 import couchdb2
 import yaml
 
-import publications
 from publications import constants
 from publications import designs
 from publications import settings
@@ -70,8 +65,8 @@ def load_settings(filepath=None, log=True):
     settings["LOG"] = log
     if log:
         logging.basicConfig(**kwargs)
-        logging.info(f"Publications version {publications.__version__}")
-        logging.info(f"ROOT: {settings['ROOT']}")
+        logging.info(f"Publications version {constants.VERSION}")
+        logging.info(f"ROOT: {constants.ROOT}")
         logging.info(f"SITE_DIR: {settings['SITE_DIR']}")
         logging.info(f"settings: {settings['SETTINGS_FILE']}")
         logging.info(f"logging debug: {settings['LOGGING_DEBUG']}")
