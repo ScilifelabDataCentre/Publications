@@ -274,10 +274,10 @@ class PublicationSaver(Saver):
         from HTML form arguments, so an http request is then required.
         """
         if labels is None:
-            # Horrible kludge: Unicode issue for labels and qualifiers...
+            # Handle weird problem with non-ASCII characters in label...
             values = {}
             for key in self.rqh.request.arguments.keys():
-                values[utils.to_ascii(key)] =self.rqh.get_argument(key)
+                values[utils.to_ascii(key)] = self.rqh.get_argument(key)
             labels = {}
             for label in self.rqh.get_arguments("label"):
                 qualifier = values.get(utils.to_ascii(f"{label}_qualifier"))

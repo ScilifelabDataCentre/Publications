@@ -203,7 +203,8 @@ Edit
       <div style="padding-left: 2em;">
 	{% for qualifier in settings['SITE_LABEL_QUALIFIERS'] %}
 	<label class="radio-inline">
-	  <input type="radio" name="{{ label }}_qualifier"
+          {# Handle weird problem with non-ASCII characters in label... #}
+	  <input type="radio" name="{{ utils.to_ascii(label) }}_qualifier"
 		 value="{{ qualifier }}"
 		 {{ publication['labels'].get(label) == qualifier and 'checked' or '' }} >{{ qualifier }}
 	</label>
