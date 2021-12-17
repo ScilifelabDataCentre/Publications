@@ -167,21 +167,25 @@ class RequestHandler(tornado.web.RequestHandler):
         """Get the current user by API key authentication.
         Raise ValueError if no or erroneous authentication.
         """
+        for header in constants.API_KEY_HEADERS:
+            try:
+                api_key = self.request.headers[header]
+            except KeyError:
+                pass
+            else:
+                break
+        else:
+            raise ValueError
         try:
-            api_key = self.request.headers[constants.API_KEY_HEADER]
+            account = self.get_doc("account", "api_key", api_key)
         except KeyError:
             raise ValueError
+        if account.get("disabled"):
+            logging.info(f"API key login: DISABLED {account['email']}")
+            return None
         else:
-            try:
-                account = self.get_doc("account", "api_key", api_key)
-            except KeyError:
-                raise ValueError
-            if account.get("disabled"):
-                logging.info(f"API key login: DISABLED {account['email']}")
-                return None
-            else:
-                logging.info(f"API key login: {account['email']}")
-                return account
+            logging.info(f"API key login: {account['email']}")
+            return account
 
     def get_current_user_session(self):
         """Get the current user from a secure login session cookie.

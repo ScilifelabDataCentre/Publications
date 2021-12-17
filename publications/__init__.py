@@ -4,7 +4,7 @@ import os.path
 import re
 import sys
 
-__version__ = "6.6.7"
+__version__ = "6.7.0"
 
 
 class Constants:
@@ -89,8 +89,8 @@ class Constants:
     FALSE = frozenset(["false", "no", "f", "n", "0"])
 
     # User login account
-    USER_COOKIE    = "publications_user"
-    API_KEY_HEADER = "X-Publications-API-key"
+    USER_COOKIE = "publications_user"
+    API_KEY_HEADERS = ["X-API-key", "X-Publications-API-key"]
 
     # Content types (MIME types)
     HTML_MIME = "text/html"

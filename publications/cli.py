@@ -351,6 +351,7 @@ def fetch(filepath, label):
     else:
         labels = {}
     account = {"email": os.getlogin(), "user_agent": "CLI"}
+    # All labels are allowed from the CLI; as if admin were logged in.
     allowed_labels = set([l["value"]
                           for l in utils.get_docs(db, "label", "value")])
     for identifier in identifiers:

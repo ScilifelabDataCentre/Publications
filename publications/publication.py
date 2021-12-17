@@ -268,10 +268,11 @@ class PublicationSaver(Saver):
 
     def update_labels(self, labels=None, allowed_labels=None, clean=True):
         """Update the labels. If no labels dictionary given, get HTTP form data.
+        If labels are not given, they are obtained from HTML form arguments,
+        so an http request is required in that case.
         Only changes the allowed labels for the current user.
-        If clean, then remove any allowed labels missing from existing entry.
-        If labels or allowed_labels are not given, they are obtained
-        from HTML form arguments, so an http request is then required.
+        If clean, then remove any allowed labels missing in the input
+        labels that are set in the existing publication entry.
         """
         if labels is None:
             # Handle weird problem with non-ASCII characters in label...
@@ -320,7 +321,7 @@ class PublicationMixin:
         raise ValueError("You may not delete the publication.")
 
     def get_allowed_labels(self):
-        "Get the set of allowed labels for the account."
+        "Get the set of allowed labels for the logged-in account."
         if self.is_admin():
             return set([l["value"] for l in self.get_docs("label", "value")])
         else:
@@ -766,7 +767,8 @@ class PublicationFetch(PublicationMixin, RequestHandler):
             if len(fetched) >= settings["PUBLICATIONS_FETCHED_LIMIT"]: break
 
             try:
-                publ = fetch_publication(self.db, identifier,
+                publ = fetch_publication(self.db,
+                                         identifier,
                                          override=override, labels=labels,
                                          clean=not self.is_admin(),
                                          rqh=self)
@@ -971,31 +973,6 @@ class PublicationsBlacklisted(RequestHandler):
         self.see_other("publications_blacklisted")
 
 
-class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
-    "Fetch a publication given its PMID or DOI."
-
-    @tornado.web.authenticated
-    def post(self):
-        self.check_curator()
-        data = self.get_json_body()
-        try:
-            identifier = data["identifier"]
-        except KeyError:
-            raise tornado.web.HTTPError(400, reason="no identifier given")
-        try:
-            publ = fetch_publication(self.db, identifier,
-                                     override=bool(data.get("override")),
-                                     labels=data.get("labels", {}),
-                                     rqh=self)
-        except IOError as error:
-            raise tornado.web.HTTPError(400, reason=str(error))
-        except KeyError as error:
-            raise tornado.web.HTTPError(409, reason=f"blacklisted {error}")
-        self.write(
-            dict(iuid=publ["_id"],
-                 href=self.absolute_reverse_url("publication", publ["_id"])))
-
-
 class PublicationUpdatePmid(PublicationMixin, RequestHandler):
     """Update the publication by data from PubMed.
     Same action as fetching an already existing publication.
@@ -1037,7 +1014,7 @@ class PublicationUpdatePmid(PublicationMixin, RequestHandler):
 
 
 class PublicationFindPmid(PublicationMixin, RequestHandler):
-    "Given DOI, try to locate publication at PubMed and set PMID."
+    "If DOI is available, try to locate publication at PubMed and set PMID."
 
     @tornado.web.authenticated
     def post(self, iuid):
@@ -1115,6 +1092,56 @@ class PublicationUpdateDoi(PublicationMixin, RequestHandler):
             saver.fix_journal()
         self.see_other("publication", publication["_id"],
                        message="Updated from Crossref.")
+
+
+class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
+    "Fetch a publication given its PMID or DOI. Set its labels."
+
+    @tornado.web.authenticated
+    def post(self):
+        self.check_curator()
+        data = self.get_json_body()
+        try:
+            identifier = data["identifier"]
+        except KeyError:
+            raise tornado.web.HTTPError(400, reason="no identifier given")
+        try:
+            publ = fetch_publication(self.db,
+                                     identifier,
+                                     override=bool(data.get("override")),
+                                     labels=data.get("labels", {}),
+                                     rqh=self)
+        except IOError as error:
+            raise tornado.web.HTTPError(400, reason=str(error))
+        except KeyError as error:
+            raise tornado.web.HTTPError(409, reason=f"blacklisted {error}")
+        except SaverError as error:
+            raise tornado.web.HTTPError(409, reason="revision conflict")
+        self.write(self.get_publication_json(publ, single=True))
+
+
+class ApiPublicationLabels(PublicationMixin, ApiMixin, RequestHandler):
+    "Set the labels of a publication."
+
+    @tornado.web.authenticated
+    def post(self, iuid):
+        self.check_curator()
+        try:
+            print(iuid)
+            publ = self.get_publication(iuid)
+        except KeyError as error:
+            raise tornado.web.HTTPError(404)
+        data = self.get_json_body()
+        try:
+            labels = data["labels"] or {}
+        except KeyError:
+            raise tornado.web.HTTPError(400, reason="no labels given")
+        try:
+            with PublicationSaver(doc=publ, rqh=self) as saver:
+                saver.update_labels(labels=labels)
+        except SaverError as error:
+            raise tornado.web.HTTPError(409, reason="revision conflict")
+        self.write(self.get_publication_json(publ, single=True))
 
 
 def fetch_publication(db, identifier, override=False,
