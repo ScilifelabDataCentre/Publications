@@ -462,7 +462,7 @@
     <script src="{{ constants.JQUERY_UI_JS_URL }}"
             integrity="{{ constants.JQUERY_UI_JS_INTEGRITY }}"
             crossorigin="anonymous"></script>
-    <script src="{{ static_url('jquery.localtime-0.9.1.min.js') }}"></script>
+    <script src="{{ static_url(constants.JQUERY_LOCALTIME_FILENAME) }}"></script>
     <script>
       $.datepicker.setDefaults({dateFormat: "yy-mm-dd"});
       $(function(){ $(".datepicker").datepicker(); });
