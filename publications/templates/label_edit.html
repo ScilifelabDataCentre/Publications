@@ -36,8 +36,7 @@ Edit '{{ label['value'] }}'
       <input type="text" name="href" id="href" class="form-control"
 	     value="{{ label.get('href') or '' }}">
       <span class="help-block">
-        A URL to a resource providing information about the label,
-        e.g. a facility page.
+        A URL to a resource providing information about the label.
       </span>
     </div>
   </div>
@@ -48,6 +47,17 @@ Edit '{{ label['value'] }}'
       <textarea class="form-control" rows="4"
 		name="description" id="description"
 		>{{ label.get('description') or '' }}</textarea>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-2" for="secondary">Secondary</label>
+    <div class="col-md-8 checkbox">
+      <label>
+	<input type="checkbox" name="secondary" id="secondary" value="true"
+               "{{ label.get('secondary') and 'checked' or '' }}">
+        Secondary label: It is not shown in the list of current labels.
+      </label>
     </div>
   </div>
 

@@ -18,7 +18,7 @@ Add label
   {% module xsrf_form_html() %}
 
   <div class="form-group has-feedback">
-    <label class="control-label col-md-1" for="value">Label</label>
+    <label class="control-label col-md-2" for="value">Label</label>
     <div class="col-md-5">
       <input type="value" name="value" id="value" class="form-control">
       <span class="glyphicon glyphicon-star text-danger form-control-feedback"></span>
@@ -29,7 +29,40 @@ Add label
   </div>
 
   <div class="form-group">
-    <div class="col-md-11 col-md-offset-1">
+    <label class="control-label col-md-2" for="secondary">Secondary</label>
+    <div class="col-md-8 checkbox">
+      <label>
+	<input type="checkbox" name="secondary" id="secondary" value="true">
+        Secondary label: It is not shown in the list of current labels.
+      </label>
+    </div>
+  </div>
+
+  {% if settings['TEMPORAL_LABELS'] %}
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-2" for="started">Started</label>
+    <div class="col-md-6">
+      <input type="text" name="started" id="started" class="form-control">
+      <span class="help-block">
+        The year the label became valid (if applicable).
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-2" for="ended">Ended</label>
+    <div class="col-md-6">
+      <input type="text" name="ended" id="ended" class="form-control">
+      <span class="help-block">
+        The year the label became invalid (if applicable). If not set,
+        then the label is current.
+      </span>
+    </div>
+  </div>
+  {% end %}
+
+  <div class="form-group">
+    <div class="col-md-11 col-md-offset-2">
       <button type="submit" class="btn btn-success">
 	<span class="glyphicon glyphicon-plus"></span>
 	Add

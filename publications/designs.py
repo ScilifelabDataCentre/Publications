@@ -73,6 +73,7 @@ DESIGNS = dict(
 """function (doc) {
   if (doc.publications_doctype !== 'label') return;
   if (doc.ended) return;
+  if (doc.secondary) return;
   emit(doc.started, doc.value);
 }""")),
 

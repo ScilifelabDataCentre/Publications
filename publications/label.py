@@ -14,12 +14,19 @@ from publications.publication import PublicationSaver
 from publications.subset import Subset
 
 
+def init(db):
+    pass
+
+
 class LabelSaver(Saver):
     doctype = constants.LABEL
 
     def set_value(self, value):
         self["value"] = value
         self["normalized_value"] = utils.to_ascii(value).lower()
+
+    def set_secondary(self, value):
+        self["secondary"] = utils.to_bool(value)
 
     def check_value(self, value):
         "Value must be unique."
@@ -170,6 +177,7 @@ class LabelAdd(RequestHandler):
         try:
             with LabelSaver(rqh=self) as saver:
                 saver.set_value(value)
+                saver.set_secondary(self.get_argument("secondary", None))
             label = saver.doc
         except ValueError as error:
             self.set_error_flash(str(error))
@@ -205,6 +213,7 @@ class LabelEdit(RequestHandler):
             with LabelSaver(label, rqh=self) as saver:
                 saver.check_revision()
                 saver.set_value(new_value)
+                saver.set_secondary(self.get_argument("secondary", None))
                 saver["href"] = self.get_argument("href", None)
                 saver["description"] = self.get_argument("description", None)
                 if settings["TEMPORAL_LABELS"]:

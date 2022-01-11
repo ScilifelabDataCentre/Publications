@@ -18,6 +18,7 @@
 	<tr>
 	  <th>{% module Translate('Label') %}</th>
 	  <th># Publications</th>
+	  <th>Type</th>
           {% if settings['TEMPORAL_LABELS'] %}
 	  <th>Started</th>
 	  <th>Ended</th>
@@ -38,6 +39,13 @@
 	  <td>
 	    <span class="badge">{{ label['count'] }}</span>
 	  </td>
+          <td>
+            {% if label.get('secondary') %}
+            Secondary
+            {% else %}
+            Primary
+            {% end %}
+          </td>
           {% if settings['TEMPORAL_LABELS'] %}
           <td>
             {{ label.get('started') or '-' }}
