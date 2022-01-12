@@ -27,7 +27,7 @@
     <a class="label label-primary"
        href="{{ reverse_url('label', label) }}">
       {{ label }}
-      {% if publication['labels'][label] %}
+      {% if publication['labels'].get(label) %}
       [{{ publication['labels'][label] }}]
       {% end %}
     </a>

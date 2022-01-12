@@ -34,11 +34,12 @@
     {% module OpenAccess(publication) %}
   </div>
   <div>
-    {% for l in sorted(publication['labels']) %}
+    {% for label in sorted(publication['labels']) %}
     <a class="label label-primary margin-r1"
-       href="{{ reverse_url('label', l) }}">{{ l }}
-      {% if publication['labels'][l] %}
-      [{{ publication['labels'][l] }}]
+       href="{{ reverse_url('label', label) }}">
+      {{ label }}
+      {% if publication['labels'].get(label) %}
+      [{{ publication['labels'][label] }}]
       {% end %}
     </a>
     {% end %}
