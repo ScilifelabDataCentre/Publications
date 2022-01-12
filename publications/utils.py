@@ -15,7 +15,6 @@ import couchdb2
 import yaml
 
 from publications import constants
-from publications import designs
 from publications import settings
 
 

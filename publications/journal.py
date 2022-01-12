@@ -12,6 +12,29 @@ from publications.requesthandler import RequestHandler
 from publications.publication import PublicationSaver
 
 
+def init(db):
+    "Initialize; update the CouchDB design documents."
+    if db.put_design("journal", DESIGN_DOC):
+        logging.info("Updated 'journal' design document.")
+
+DESIGN_DOC = {
+    "views": {
+        "issn": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'journal') return;
+  emit(doc.issn, doc.title);
+}"""},
+        "issn_l": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'journal' || !doc['issn-l']) return;
+  emit(doc['issn-l'], doc.issn);
+}"""},
+        "title": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'journal') return;
+  emit(doc.title, doc.issn);
+}"""}
+    }
+}
+
+
 class JournalSaver(Saver):
     doctype = constants.JOURNAL
 

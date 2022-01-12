@@ -17,6 +17,179 @@ from publications.writer import CsvWriter, XlsxWriter, TextWriter
 from publications.requesthandler import RequestHandler, ApiMixin
 
 
+def init(db):
+    "Initialize; update the CouchDB design documents."
+    if db.put_design("publication", DESIGN_DOC):
+        logging.info("Updated 'publication' design document.")
+
+REMOVE = "".join(constants.SEARCH_REMOVE)
+IGNORE = ",".join(["'%s':1" % i for i in constants.SEARCH_IGNORE])
+
+DESIGN_DOC = {
+    "views": {
+        "author": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var au, name;
+  var length = doc.authors.length;
+  for (var i=0; i<length; i++) {
+    au = doc.authors[i];
+    if (!au.family_normalized) continue;
+    emit(au.family_normalized, null);
+    if (au.initials_normalized) {
+      name = au.family_normalized + ' ' + au.initials_normalized;
+      emit(name, null);
+    }
+    if (au.given_normalized) {
+      name = au.family_normalized + ' ' + au.given_normalized;
+      emit(name, null);
+    }
+  }
+}"""},
+        "researcher": {"reduce": "_count",
+                       "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var au;
+  var length = doc.authors.length;
+  for (var i=0; i<length; i++) {
+    au = doc.authors[i];
+    if (au.researcher) emit(au.researcher, au.family + ' ' + au.initials);
+  }
+}"""},
+        "pmid": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (doc.pmid) emit(doc.pmid, null);
+}"""},
+        "doi": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (doc.doi) emit(doc.doi.toLowerCase(), null);
+}"""},
+        "no_pmid": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.pmid) emit(doc.published, null);
+}"""},
+        "no_doi": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.doi) emit(doc.published, null);
+}"""},
+        "epublished": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.epublished) return;
+  emit(doc.epublished, null);
+}"""},
+        "first_published": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.published) return;
+  if (doc.epublished) {
+    if (doc.published < doc.epublished) {
+      emit(doc.published, null);
+    } else {
+      emit(doc.epublished, null);
+    };
+  } else {
+    emit(doc.published, null);
+  };
+}"""},
+        "label_parts": {"map": """var REMOVE = /[%s]/g;
+var IGNORE = {%s};
+function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var label, parts, part;
+  for (var key in doc.labels) {
+    label = doc.labels[key].toLowerCase();
+    label = label.replace(REMOVE, ' ');
+    parts = label.split(/\s+/);
+    var length = parts.length;
+    for (var i=0; i<length; i++) {
+      part = parts[i];
+      if (!part) continue;
+      if (IGNORE[part]) continue;
+      emit(part, null);
+    }
+  }
+}""" % (REMOVE, IGNORE)},
+        "issn": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.journal) return;
+  if (doc.journal.issn) emit(doc.journal.issn, null);
+  if (doc.journal['issn-l']) emit(doc.journal['issn-l'], null);
+}"""},
+        "journal": {"reduce": "_count",
+                    "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.journal) return;
+  if (!doc.journal.title) return;
+  emit(doc.journal.title, null);
+}"""},
+        "label": {"reduce": "_count",
+                  "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  for (var key in doc.labels) emit(key.toLowerCase(), null);
+}"""},
+        "no_label": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (Object.keys(doc.labels).length === 0) emit(doc.title, null);
+}"""},
+        "year": {"reduce": "_count",
+                 "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.published) return;
+  var year = doc.published.split('-')[0];
+  emit(year, null);
+}"""},
+        "modified": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  emit(doc.modified, null);
+}"""},
+        "notes": {"map": """var REMOVE = /[%s]/g;
+var IGNORE = {%s};
+function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var notes = doc.notes.split(/\s+/);
+  var note;
+  var length = notes.length;
+  for (var i=0; i<length; i++) {
+    note = notes[i].toLowerCase();
+    note = note.replace(REMOVE, '');
+    if (!note) continue;
+    if (IGNORE[note]) continue;
+    emit(note, null);
+  }
+}""" % (REMOVE, IGNORE)},
+        "published": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.published) return;
+  emit(doc.published, null);
+}"""},
+        "title": {"map": """var REMOVE = /[%s]/g;
+var IGNORE = {%s};
+function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var words = doc.title.split(/\s+/);
+  var word;
+  var length = words.length;
+  for (var i=0; i<length; i++) {
+    word = words[i].toLowerCase();
+    word = word.replace(REMOVE, '');
+    if (!word) continue;
+    if (IGNORE[word]) continue;
+    emit(word, null);
+  }
+}""" % (REMOVE, IGNORE)},
+        "xref": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var xref;
+  var length = doc.xrefs.length;
+  for (var i=0; i<length; i++) {
+    xref = doc.xrefs[i];
+    if (!xref.db) continue;
+    if (!xref.key) continue;
+    emit(xref.key, xref.db);
+  }
+}"""},
+    }
+}
+
+
 class PublicationSaver(Saver):
     doctype = constants.PUBLICATION
 
@@ -922,55 +1095,6 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
             self.see_other("publication_xrefs", publication["_id"])
         else:
             self.see_other("publication", publication["_id"])
-
-
-class PublicationBlacklist(PublicationMixin, RequestHandler):
-    "Blacklist a specified publication."
-
-    @tornado.web.authenticated
-    def post(self, identifier):
-        try:
-            publication = self.get_publication(identifier)
-            self.check_deletable(publication)
-        except (KeyError, ValueError) as error:
-            self.see_other("home", error=str(error))
-            return
-        blacklist = {constants.DOCTYPE: constants.BLACKLIST,
-                     "_id": utils.get_iuid(),
-                     "title": publication["title"],
-                     "pmid": publication.get("pmid"),
-                     "doi": publication.get("doi"),
-                     "created": utils.timestamp(),
-                     "owner": self.current_user["email"]}
-        self.db.put(blacklist)
-        self.delete_entity(publication)
-        try:
-            self.redirect(self.get_argument("next"))
-        except tornado.web.MissingArgumentError:
-            self.see_other("home")
-
-
-class PublicationsBlacklisted(RequestHandler):
-    "Display list of blacklisted publications, and remove entry from it."
-
-    @tornado.web.authenticated
-    def get(self):
-        blacklisted = dict([(d["_id"], d) for d in 
-                            self.get_docs("blacklist", "doi")])
-        blacklisted.update(dict([(d["_id"], d) for d in 
-                                 self.get_docs("blacklist", "pmid")]))
-        self.render("publications_blacklisted.html", 
-                    blacklisted=blacklisted.values())
-
-    @tornado.web.authenticated
-    def post(self):
-        try:
-            doc = self.db[self.get_argument("remove")]
-        except KeyError:
-            pass
-        else:
-            self.db.delete(doc)
-        self.see_other("publications_blacklisted")
 
 
 class PublicationUpdatePmid(PublicationMixin, RequestHandler):

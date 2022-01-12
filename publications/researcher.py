@@ -1,5 +1,7 @@
 "Researcher (person, but also possibly consortium or similar) pages."
 
+import logging
+
 import tornado.web
 
 from publications import constants
@@ -8,6 +10,30 @@ from publications import settings
 from publications import utils
 from publications.saver import Saver, SaverError
 from publications.requesthandler import RequestHandler, ApiMixin
+
+
+def init(db):
+    "Initialize; update the CouchDB design documents."
+    if db.put_design("researcher", DESIGN_DOC):
+        logging.info("Updated 'researcher' design document.")
+
+DESIGN_DOC = {
+    "views": {
+        "orcid": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  if (doc.orcid) emit(doc.orcid, doc.family + ' ' + doc.initials);
+}"""},
+        "family": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  emit(doc.family_normalized, doc.family + ' ' + doc.initials);
+}"""},
+        "name": {"reduce": "_count",
+                 "map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  emit(doc.family_normalized + ' ' + doc.initials_normalized, null);
+}"""},
+    }
+}
 
 
 class ResearcherSaver(Saver):

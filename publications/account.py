@@ -41,6 +41,30 @@ Or, go to %(url)s and fill in the one-time code %(code)s manually and provide yo
 
 EMAIL_ERROR = "Could not send email! Contact the administrator."
 
+def init(db):
+    "Initialize; update the CouchDB design documents."
+    if db.put_design("account", DESIGN_DOC):
+        logging.info("Updated 'account' design document.")
+
+DESIGN_DOC = {
+    "views": {
+        "api_key": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'account') return;
+  if (!doc.api_key) return;
+  emit(doc.api_key, doc.email);
+}"""},
+        "email":  {"reduce": "_count",
+                   "map": """function (doc) {
+  if (doc.publications_doctype !== 'account') return;
+  emit(doc.email, null);
+}"""},
+        "label": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'account') return;
+  for (var key in doc.labels) emit(doc.labels[key].toLowerCase(), doc.email);
+}"""},
+    }
+}
+
 
 class AccountSaver(Saver):
     doctype = constants.ACCOUNT

@@ -15,7 +15,29 @@ from publications.subset import Subset
 
 
 def init(db):
-    pass
+    "Initialize; update the CouchDB design documents."
+    if db.put_design("label", DESIGN_DOC):
+        logging.info("Updated 'label' design document.")
+
+DESIGN_DOC = {
+    "views": {
+        "normalized_value": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'label') return;
+  emit(doc.normalized_value, doc.value);
+}"""},
+        "value": {"reduce": "_count",
+                  "map": """function (doc) {
+  if (doc.publications_doctype !== 'label') return;
+  emit(doc.value, null);
+}"""},
+        "current": {"map": """function (doc) {
+  if (doc.publications_doctype !== 'label') return;
+  if (doc.ended) return;
+  if (doc.secondary) return;
+  emit(doc.started, doc.value);
+}"""},
+    }
+}
 
 
 class LabelSaver(Saver):

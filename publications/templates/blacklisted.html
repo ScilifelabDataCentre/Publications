@@ -22,7 +22,7 @@ Blacklisted
     <td>{% module PubmedButton(entry.get("pmid"), full=True) %}</td>
     <td>{% module DoiButton(entry.get("doi"), full=True) %}</td>
     <td>
-      <form action="{{ reverse_url('publications_blacklisted') }}"
+      <form action="{{ reverse_url('blacklisted') }}"
             role="form"
             class="form-horizontal"
             method="POST">

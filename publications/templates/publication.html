@@ -132,7 +132,7 @@
   </form>
 </p>
 <p>
-  <form action="{{ reverse_url('publication_blacklist', publication['_id']) }}"
+  <form action="{{ reverse_url('blacklist', publication['_id']) }}"
 	role="form"
 	method="POST">
     {% module xsrf_form_html() %}
