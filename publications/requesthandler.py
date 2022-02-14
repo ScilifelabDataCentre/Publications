@@ -34,12 +34,12 @@ class RequestHandler(tornado.web.RequestHandler):
         self.clear_cookie("error")
         result["message"] = urllib.parse.unquote_plus(self.get_cookie("message", ""))
         self.clear_cookie("message")
-        result["year_counts"] = [(r.key, r.value) for r in 
-                                 self.db.view("publication", 
-                                              "year",
-                                              descending=True,
-                                              reduce=True,
-                                              group_level=1)]
+        result["year_counts"] = [
+            (r.key, r.value)
+            for r in self.db.view(
+                "publication", "year", descending=True, reduce=True, group_level=1
+            )
+        ]
         return result
 
     def see_other(self, name, *args, **kwargs):
@@ -68,10 +68,9 @@ class RequestHandler(tornado.web.RequestHandler):
     def reverse_url(self, name, *args, **query):
         "Allow adding query arguments to the URL."
         url = super(RequestHandler, self).reverse_url(name, *args)
-        url = url.rstrip("?")   # tornado bug? sometimes left-over '?'
+        url = url.rstrip("?")  # tornado bug? sometimes left-over '?'
         # Skip query arguments with None as value
-        query = dict([(k, str(v)) for k,v in list(query.items())
-                      if v is not None])
+        query = dict([(k, str(v)) for k, v in list(query.items()) if v is not None])
         if query:
             url += "?" + urllib.parse.urlencode(query)
         return url
@@ -98,8 +97,9 @@ class RequestHandler(tornado.web.RequestHandler):
         """Get the list of documents using the named view
         and the given key or interval.
         """
-        return utils.get_docs(self.db, designname, viewname,
-                              key=key, last=last, **kwargs)
+        return utils.get_docs(
+            self.db, designname, viewname, key=key, last=last, **kwargs
+        )
 
     def get_count(self, designname, viewname, key=None):
         "Get the reduce value for the name view and the given key."
@@ -117,7 +117,7 @@ class RequestHandler(tornado.web.RequestHandler):
         """
         return utils.get_researcher(self.db, identifier)
 
-    def get_researchers(self,  family, given=None, initials=None):
+    def get_researchers(self, family, given=None, initials=None):
         """Get the researcher entities for the family name,
         optionally filtering by given name, and/or initials.
         Return a list of researcher documents.
@@ -126,12 +126,12 @@ class RequestHandler(tornado.web.RequestHandler):
         result = self.get_docs("researcher", "family", key=family)
         if given:
             given = utils.to_ascii(given).lower()
-            result = [p for p in result 
-                      if p["given_normalized"] == given]
+            result = [p for p in result if p["given_normalized"] == given]
         if initials:
             initials = utils.to_ascii(initials).lower()
-            result = [p for p in result
-                      if p["initials_normalized"].startswith(initials)]
+            result = [
+                p for p in result if p["initials_normalized"].startswith(initials)
+            ]
         return result
 
     def get_label(self, identifier):
@@ -192,16 +192,18 @@ class RequestHandler(tornado.web.RequestHandler):
         Raise ValueError if no or erroneous authentication.
         """
         email = self.get_secure_cookie(
-            constants.USER_COOKIE,
-            max_age_days=settings["LOGIN_MAX_AGE_DAYS"])
-        if not email: raise ValueError
+            constants.USER_COOKIE, max_age_days=settings["LOGIN_MAX_AGE_DAYS"]
+        )
+        if not email:
+            raise ValueError
         email = email.decode("utf-8")
         try:
             account = self.get_account(email)
         except KeyError:
             return None
         # Check if login session is invalidated.
-        if account.get("login") is None: raise ValueError
+        if account.get("login") is None:
+            raise ValueError
         if account.get("disabled"):
             logging.info(f"Session authentication: DISABLED {account['email']}")
             return None
@@ -220,7 +222,8 @@ class RequestHandler(tornado.web.RequestHandler):
             raise ValueError
         try:
             auth = auth.split()
-            if auth[0].lower() != "basic": raise ValueError
+            if auth[0].lower() != "basic":
+                raise ValueError
             auth = base64.b64decode(auth[1])
             email, password = auth.split(":", 1)
             account = self.get_account(email)
@@ -237,41 +240,48 @@ class RequestHandler(tornado.web.RequestHandler):
 
     def get_logs(self, iuid):
         "Get the log entries for the document with the given IUID."
-        return self.get_docs("log", "doc",
-                             key=[iuid, constants.CEILING],
-                             last=[iuid, ""],
-                             descending=True)
+        return self.get_docs(
+            "log",
+            "doc",
+            key=[iuid, constants.CEILING],
+            last=[iuid, ""],
+            descending=True,
+        )
 
     def is_admin(self):
         "Does the current user have the 'admin' role?"
-        return bool(self.current_user) and \
-               self.current_user["role"] == constants.ADMIN
+        return bool(self.current_user) and self.current_user["role"] == constants.ADMIN
 
     def check_admin(self):
         "Check that the current user has the 'admin' role."
-        if self.is_admin(): return
+        if self.is_admin():
+            return
         raise tornado.web.HTTPError(403, reason="Role 'admin' required.")
 
     def is_curator(self):
         "Does the current user have the 'curator' or 'admin' role?"
-        return bool(self.current_user) and \
-               self.current_user["role"] in (constants.CURATOR, constants.ADMIN)
-        
+        return bool(self.current_user) and self.current_user["role"] in (
+            constants.CURATOR,
+            constants.ADMIN,
+        )
+
     def check_curator(self):
         "Check that the current user has the 'curator' or 'admin' role."
-        if self.is_curator(): return
+        if self.is_curator():
+            return
         raise tornado.web.HTTPError(403, reason="Role 'curator' required.")
 
     def is_owner(self, doc):
         """Is the current user the owner of the document?
         Role 'admin' is also allowed."""
-        return bool(self.current_user) and \
-               (self.current_user["email"] == doc["owner"] or
-                self.is_admin())
+        return bool(self.current_user) and (
+            self.current_user["email"] == doc["owner"] or self.is_admin()
+        )
 
     def check_owner(self, doc):
         "Check that the current user is the owner of the document."
-        if self.is_owner(doc): return
+        if self.is_owner(doc):
+            return
         raise tornado.web.HTTPError(403, reason="You are not the owner.")
 
     def delete_entity(self, doc):
@@ -291,9 +301,12 @@ class RequestHandler(tornado.web.RequestHandler):
             result["iuid"] = publication["_id"]
             if single:
                 result["timestamp"] = utils.timestamp()
-            result["links"] = dict([
-                ("self", { "href": URL("publication_json",publication["_id"])}),
-                ("display", {"href": URL("publication", publication["_id"])})])
+            result["links"] = dict(
+                [
+                    ("self", {"href": URL("publication_json", publication["_id"])}),
+                    ("display", {"href": URL("publication", publication["_id"])}),
+                ]
+            )
         result["title"] = publication["title"]
         if full:
             result["authors"] = []
@@ -306,8 +319,9 @@ class RequestHandler(tornado.web.RequestHandler):
                     researcher = self.get_researcher(author["researcher"])
                     if researcher.get("orcid"):
                         au["orcid"] = researcher["orcid"]
-                    au["researcher"] = {"href": URL("researcher_json",
-                                                    author["researcher"])}
+                    au["researcher"] = {
+                        "href": URL("researcher_json", author["researcher"])
+                    }
                 result["authors"].append(au)
             result["type"] = publication.get("type")
         result["published"] = publication.get("published")
@@ -334,11 +348,14 @@ class RequestHandler(tornado.web.RequestHandler):
         result["entity"] = "account"
         result["iuid"] = account["_id"]
         result["timestamp"] = utils.timestamp()
-        result["links"] = dict([
-            ("self", { "href": URL("account_json", account["email"])}),
-            ("display", {"href": URL("account", account["email"])})])
+        result["links"] = dict(
+            [
+                ("self", {"href": URL("account_json", account["email"])}),
+                ("display", {"href": URL("account", account["email"])}),
+            ]
+        )
         result["email"] = account["email"]
-        result["name"] = account.get("name") # May be absent.
+        result["name"] = account.get("name")  # May be absent.
         result["role"] = account["role"]
         result["status"] = account.get("disabled") and "disabled" or "enabled"
         result["login"] = account.get("login")
@@ -349,8 +366,7 @@ class RequestHandler(tornado.web.RequestHandler):
                 links = dict()
                 links["self"] = {"href": URL("label_json", label)}
                 links["display"] = {"href": URL("label", label)}
-                labels.append(dict([("value", label),
-                                    ("links", links)]))
+                labels.append(dict([("value", label), ("links", links)]))
         result["created"] = account["created"]
         result["modified"] = account["modified"]
         return result
@@ -372,8 +388,9 @@ class RequestHandler(tornado.web.RequestHandler):
         result["created"] = label["created"]
         result["modified"] = label["modified"]
         if accounts is not None:
-            result["accounts"] = [self.get_account_json(account)
-                                  for account in accounts]
+            result["accounts"] = [
+                self.get_account_json(account) for account in accounts
+            ]
         if publications is None:
             try:
                 result["publications_count"] = label["count"]
@@ -381,8 +398,9 @@ class RequestHandler(tornado.web.RequestHandler):
                 pass
         else:
             result["publications_count"] = len(publications)
-            result["publications"] = [self.get_publication_json(publication)
-                                      for publication in publications]
+            result["publications"] = [
+                self.get_publication_json(publication) for publication in publications
+            ]
         return result
 
     def get_issn_l(self, issn):
@@ -392,8 +410,9 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             return self._issn_l_map.get(issn)
         except AttributeError:
-            self._issn_l_map = dict([(r.value, r.key) for r in 
-                                     self.db.view("journal", "issn_l")])
+            self._issn_l_map = dict(
+                [(r.value, r.key) for r in self.db.view("journal", "issn_l")]
+            )
             return self._issn_l_map.get(issn)
 
 

@@ -45,7 +45,8 @@ class Saver:
         return self
 
     def __exit__(self, type, value, tb):
-        if type is not None: return False # No exceptions handled here.
+        if type is not None:
+            return False  # No exceptions handled here.
         self.finalize()
         try:
             self.db.put(self.doc)
@@ -69,7 +70,8 @@ class Saver:
         else:
             value = converter(value)
         try:
-            if self.doc[key] == value: return
+            if self.doc[key] == value:
+                return
         except KeyError:
             pass
         self.doc[key] = value
@@ -110,10 +112,13 @@ class Saver:
         Raise Saverrror if incorrect.
         """
         old_rev = self.doc.get("_rev")
-        if not old_rev: return
-        if self.rqh is None: return
+        if not old_rev:
+            return
+        if self.rqh is None:
+            return
         new_rev = self.rqh.get_argument("_rev", None)
-        if not new_rev: return
+        if not new_rev:
+            return
         if old_rev != new_rev:
             raise SaverError
 
@@ -127,11 +132,13 @@ class Saver:
 
     def write_log(self):
         "Write a log entry for the change."
-        log = dict(_id=utils.get_iuid(),
-                   doc=self.doc["_id"],
-                   doctype=self.doc[constants.DOCTYPE],
-                   changed=self.changed,
-                   modified=utils.timestamp())
+        log = dict(
+            _id=utils.get_iuid(),
+            doc=self.doc["_id"],
+            doctype=self.doc[constants.DOCTYPE],
+            changed=self.changed,
+            modified=utils.timestamp(),
+        )
         log[constants.DOCTYPE] = constants.LOG
         if self.rqh:
             # xheaders argument to HTTPServer takes care of X-Real-Ip

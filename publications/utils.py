@@ -81,14 +81,14 @@ def load_settings(filepath=None, log=True):
         raise ValueError("settings['COOKIE_SECRET'] not set, or too short.")
     if len(settings.get("PASSWORD_SALT") or "") < 10:
         raise ValueError("Settings['PASSWORD_SALT'] not set, or too short.")
-    for key in ["PUBMED_DELAY", "PUBMED_TIMEOUT", 
-                "CROSSREF_DELAY", "CROSSREF_TIMEOUT"]:
+    for key in ["PUBMED_DELAY", "PUBMED_TIMEOUT", "CROSSREF_DELAY", "CROSSREF_TIMEOUT"]:
         if not isinstance(settings[key], (int, float)) or settings[key] <= 0.0:
             raise ValueError(f"Invalid '{key}' value: must be positive number.")
 
     # Set up the xref templates URLs.
     settings["XREF_TEMPLATE_URLS"] = NocaseDict(settings["XREF_TEMPLATE_URLS"])
     settings["XREF_TEMPLATE_URLS"]["URL"] = "%s"
+
 
 def get_dbserver():
     "Return the CouchDB2 handle for the CouchDB server."
@@ -97,6 +97,7 @@ def get_dbserver():
         kwargs["username"] = settings["DATABASE_ACCOUNT"]
         kwargs["password"] = settings["DATABASE_PASSWORD"]
     return couchdb2.Server(**kwargs)
+
 
 def get_db():
     """Return the CouchDB2 handle for the CouchDB database.
@@ -109,19 +110,17 @@ def get_db():
     except couchdb2.NotFoundError:
         raise KeyError(f"CouchDB database '{name}' does not exist.")
 
+
 def get_doc(db, designname, viewname, key):
     """Get the document with the given key from the given design view.
     Raise KeyError if not found.
     """
-    view = db.view(designname,
-                   viewname,
-                   key=key,
-                   include_docs=True,
-                   reduce=False)
+    view = db.view(designname, viewname, key=key, include_docs=True, reduce=False)
     result = list(view)
     if len(result) != 1:
         raise KeyError(f"{len(result)} items found")
     return result[0].doc
+
 
 def get_docs(db, designname, viewname, key=None, last=None, **kwargs):
     """Get the list of documents using the given design view and
@@ -134,12 +133,9 @@ def get_docs(db, designname, viewname, key=None, last=None, **kwargs):
     else:
         kwargs["startkey"] = key
         kwargs["endkey"] = last
-    view = db.view(designname,
-                   viewname,
-                   include_docs=True,
-                   reduce=False,
-                   **kwargs)
+    view = db.view(designname, viewname, include_docs=True, reduce=False, **kwargs)
     return [i.doc for i in view]
+
 
 def get_count(db, designname, viewname, key=None):
     "Get the reduce value for the name view and the given key."
@@ -152,6 +148,7 @@ def get_count(db, designname, viewname, key=None):
     except IndexError:
         return 0
 
+
 def get_account(db, email):
     """Get the account identified by the email address.
     Raise KeyError if not found.
@@ -162,11 +159,13 @@ def get_account(db, email):
         raise KeyError(f"no such account '{email}'")
     return doc
 
+
 def get_publication(db, identifier):
     """Get the publication given its IUID, DOI or PMID.
     Raise KeyError if not found.
     """
-    if not identifier: raise KeyError
+    if not identifier:
+        raise KeyError
     identifier = identifier.lower()
     try:
         doc = db[identifier]
@@ -182,11 +181,13 @@ def get_publication(db, identifier):
             raise KeyError(f"no such publication '{identifier}'.")
     return doc
 
+
 def get_researcher(db, identifier):
     """Get the researcher entity given its IUID or ORCID.
     Raise KeyError if not found.
     """
-    if not identifier: raise KeyError
+    if not identifier:
+        raise KeyError
     try:
         doc = db[identifier.lower()]
     except couchdb2.NotFoundError:
@@ -196,11 +197,13 @@ def get_researcher(db, identifier):
             raise KeyError(f"no such researcher '{identifier}'.")
     return doc
 
+
 def get_label(db, identifier):
     """Get the label document by its IUID or value.
     Raise KeyError if not found.
     """
-    if not identifier: raise KeyError("no identifier provided")
+    if not identifier:
+        raise KeyError("no identifier provided")
     try:
         doc = db[identifier]
     except couchdb2.NotFoundError:
@@ -211,11 +214,13 @@ def get_label(db, identifier):
             raise KeyError(f"no such label '{identifier}'")
     return doc
 
+
 def get_blacklisted(db, identifier):
     """Get the blacklist document if the publication with
     the external identifier has been blacklisted.
     """
-    if not identifier: return None
+    if not identifier:
+        return None
     for viewname in ["doi", "pmid"]:
         try:
             return get_doc(db, "blacklist", viewname, identifier)
@@ -223,9 +228,11 @@ def get_blacklisted(db, identifier):
             pass
     return None
 
+
 def get_iuid():
     "Return a unique instance identifier."
     return uuid.uuid4().hex
+
 
 def hashed_password(password):
     "Return the password in hashed form."
@@ -233,12 +240,17 @@ def hashed_password(password):
     sha256.update(password.encode("utf-8"))
     return sha256.hexdigest()
 
+
 def check_password(password):
     """Check that the password is long and complex enough.
     Raise ValueError otherwise."""
     if len(password) < settings["MIN_PASSWORD_LENGTH"]:
-        raise ValueError("Password must be at least {0} characters.".
-                         format(settings["MIN_PASSWORD_LENGTH"]))
+        raise ValueError(
+            "Password must be at least {0} characters.".format(
+                settings["MIN_PASSWORD_LENGTH"]
+            )
+        )
+
 
 def timestamp(days=None):
     """Current date and time (UTC) in ISO format, with millisecond precision.
@@ -250,12 +262,14 @@ def timestamp(days=None):
     instant = instant.isoformat()
     return instant[:17] + "%06.3f" % float(instant[17:]) + "Z"
 
+
 def epoch_to_iso(epoch):
     """Convert the given number of seconds since the epoch
     to date and time in ISO format.
     """
     dt = datetime.datetime.fromtimestamp(float(epoch))
     return dt.isoformat() + "Z"
+
 
 def today(days=None):
     """Current date (UTC) in ISO format.
@@ -265,7 +279,8 @@ def today(days=None):
     if days:
         instant += datetime.timedelta(days=days)
     result = instant.isoformat()
-    return result[:result.index("T")]
+    return result[: result.index("T")]
+
 
 def to_date(value):
     """Convert value to proper ISO format date.
@@ -280,69 +295,92 @@ def to_date(value):
         year = int(parts[0])
         try:
             month = int(parts[1])
-            if month < 0: raise ValueError
-            if month > 12: raise ValueError
+            if month < 0:
+                raise ValueError
+            if month > 12:
+                raise ValueError
         except IndexError:
             month = 0
         try:
             day = int(parts[2])
-            if day < 0: raise ValueError
-            if day > 31: raise ValueError
+            if day < 0:
+                raise ValueError
+            if day > 31:
+                raise ValueError
         except IndexError:
             day = 0
     except (TypeError, ValueError):
         raise ValueError(f"invalid date '{value}'")
     return "%s-%02i-%02i" % (year, month, day)
 
+
 def years():
     "Return a list of years from the first year to the current."
     return list(range(settings["FIRST_YEAR"], int(today().split("-")[0]) + 1))
+
 
 def to_ascii(value, alphanum=False):
     """Convert any non-ASCII character to its closest ASCII equivalent.
     'alphanum': retain only alphanumerical characters and whitespace.
     """
-    if value is None: return ""
+    if value is None:
+        return ""
     value = unicodedata.normalize("NFKD", str(value))
-    value = u"".join([c for c in value if not unicodedata.combining(c)])
+    value = "".join([c for c in value if not unicodedata.combining(c)])
     if alphanum:
         alphanum = set(string.ascii_letters + string.digits + string.whitespace)
-        value = u"".join([c for c in value if c in alphanum])
+        value = "".join([c for c in value if c in alphanum])
     return value
+
 
 def squish(value):
     "Remove all unnecessary white spaces."
     return " ".join([p for p in value.split() if p])
 
+
 def to_bool(value):
     "Convert the value into a boolean, interpreting various string values."
-    if isinstance(value, bool): return value
-    if not value: return False
+    if isinstance(value, bool):
+        return value
+    if not value:
+        return False
     lowvalue = value.lower()
-    if lowvalue in constants.TRUE: return True
-    if lowvalue in constants.FALSE: return False
+    if lowvalue in constants.TRUE:
+        return True
+    if lowvalue in constants.FALSE:
+        return False
     raise ValueError("invalid boolean: '{value}'")
+
 
 def strip_prefix(value):
     "Strip any prefix from the string value."
     value = value.strip()
     lowcase = value.lower()
-    for prefix in settings['IDENTIFIER_PREFIXES']:
+    for prefix in settings["IDENTIFIER_PREFIXES"]:
         if lowcase.startswith(prefix):
-            return value[len(prefix):].strip()
+            return value[len(prefix) :].strip()
     return value
+
 
 def get_formatted_authors(authors, complete=False):
     "Get formatted list of authors; partial or complete list."
-    if not complete and len(authors) > settings['NUMBER_FIRST_AUTHORS'] + settings['NUMBER_LAST_AUTHORS']:
-        authors = authors[:settings["NUMBER_FIRST_AUTHORS"]] + \
-            [None] + \
-            authors[-settings["NUMBER_LAST_AUTHORS"]:]
+    if (
+        not complete
+        and len(authors)
+        > settings["NUMBER_FIRST_AUTHORS"] + settings["NUMBER_LAST_AUTHORS"]
+    ):
+        authors = (
+            authors[: settings["NUMBER_FIRST_AUTHORS"]]
+            + [None]
+            + authors[-settings["NUMBER_LAST_AUTHORS"] :]
+        )
     result = []
     for author in authors:
         if author:
-            name = "%s %s" % (" ".join((author["family"] or "").split()),
-                              author.get("initials") or "")
+            name = "%s %s" % (
+                " ".join((author["family"] or "").split()),
+                author.get("initials") or "",
+            )
             # Get rid of bizarre newlines in author names.
             result.append(" ".join(name.strip().split()))
         else:
@@ -358,30 +396,31 @@ class DownloadParametersMixin:
     def get_parameters(self):
         "Return the output parameters from the form arguments."
         result = dict(
-            single_label = to_bool(self.get_argument("single_label", False)),
-            all_authors = to_bool(self.get_argument("all_authors", False)),
-            issn = to_bool(self.get_argument("issn", False)),
-            numbered = to_bool(self.get_argument("numbered", False)),
-            doi_url= to_bool(self.get_argument("doi_url", False)),
-            pmid_url= to_bool(self.get_argument("pmid_url", False))
+            single_label=to_bool(self.get_argument("single_label", False)),
+            all_authors=to_bool(self.get_argument("all_authors", False)),
+            issn=to_bool(self.get_argument("issn", False)),
+            numbered=to_bool(self.get_argument("numbered", False)),
+            doi_url=to_bool(self.get_argument("doi_url", False)),
+            pmid_url=to_bool(self.get_argument("pmid_url", False)),
         )
         try:
-            result['maxline'] = self.get_argument("maxline", None)
-            if result['maxline']:
-                result['maxline'] = int(result['maxline'])
-                if result['maxline'] <= 20: raise ValueError
+            result["maxline"] = self.get_argument("maxline", None)
+            if result["maxline"]:
+                result["maxline"] = int(result["maxline"])
+                if result["maxline"] <= 20:
+                    raise ValueError
         except (ValueError, TypeError):
-            result['maxline'] = None
+            result["maxline"] = None
         delimiter = self.get_argument("delimiter", "").lower()
         if delimiter == "comma":
-            result['delimiter'] = ","
+            result["delimiter"] = ","
         elif delimiter == "semi-colon":
-            result['delimiter'] = ";"
+            result["delimiter"] = ";"
         elif delimiter == "tab":
-            result['delimiter'] = "\t"
+            result["delimiter"] = "\t"
         encoding = self.get_argument("encoding", "").lower()
         if encoding:
-            result['encoding'] = encoding
+            result["encoding"] = encoding
         return result
 
 
@@ -394,7 +433,8 @@ class EmailServer:
         """
         try:
             host = settings["EMAIL"]["HOST"]
-            if not host: raise ValueError
+            if not host:
+                raise ValueError
             self.email = settings.get("SITE_EMAIL") or settings["EMAIL"]["SENDER"]
         except (KeyError, TypeError):
             raise ValueError("email server host is not properly defined")
@@ -432,20 +472,26 @@ class EmailServer:
 
 class NocaseDict:
     "Keys are compared ignoring case."
+
     def __init__(self, orig):
         self.orig = orig.copy()
         self.lower = dict()
         for key in orig:
             self.lower[key.lower()] = orig[key]
+
     def keys(self):
         return list(self.orig.keys())
+
     def __getitem__(self, key):
         return self.lower[key.lower()]
+
     def __setitem__(self, key, value):
         self.orig[key] = value
         self.lower[key.lower()] = value
+
     def __str__(self):
-        return str(dict([(k,self[k]) for k in self.keys()]))
+        return str(dict([(k, self[k]) for k in self.keys()]))
+
     def get(self, key, default=None):
         try:
             return self[key]

@@ -16,16 +16,21 @@ def init(db):
     if db.put_design("blacklist", DESIGN_DOC):
         logging.info("Updated 'blacklist' design document.")
 
+
 DESIGN_DOC = {
     "views": {
-        "doi": {"map": """function (doc) {
+        "doi": {
+            "map": """function (doc) {
   if (doc.publications_doctype !== 'blacklist') return;
   if (doc.doi) emit(doc.doi, doc.title);
-}"""},
-        "pmid": {"map": """function (doc) {
+}"""
+        },
+        "pmid": {
+            "map": """function (doc) {
   if (doc.publications_doctype !== 'blacklist') return;
   if (doc.pmid) emit(doc.pmid, doc.title);
-}"""}
+}"""
+        },
     }
 }
 
@@ -41,13 +46,15 @@ class Blacklist(PublicationMixin, RequestHandler):
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
-        blacklist = {constants.DOCTYPE: constants.BLACKLIST,
-                     "_id": utils.get_iuid(),
-                     "title": publication["title"],
-                     "pmid": publication.get("pmid"),
-                     "doi": publication.get("doi"),
-                     "created": utils.timestamp(),
-                     "owner": self.current_user["email"]}
+        blacklist = {
+            constants.DOCTYPE: constants.BLACKLIST,
+            "_id": utils.get_iuid(),
+            "title": publication["title"],
+            "pmid": publication.get("pmid"),
+            "doi": publication.get("doi"),
+            "created": utils.timestamp(),
+            "owner": self.current_user["email"],
+        }
         self.db.put(blacklist)
         self.delete_entity(publication)
         try:
@@ -61,10 +68,10 @@ class Blacklisted(RequestHandler):
 
     @tornado.web.authenticated
     def get(self):
-        blacklisted = dict([(d["_id"], d) for d in 
-                            self.get_docs("blacklist", "doi")])
-        blacklisted.update(dict([(d["_id"], d) for d in 
-                                 self.get_docs("blacklist", "pmid")]))
+        blacklisted = dict([(d["_id"], d) for d in self.get_docs("blacklist", "doi")])
+        blacklisted.update(
+            dict([(d["_id"], d) for d in self.get_docs("blacklist", "pmid")])
+        )
         self.render("blacklisted.html", blacklisted=blacklisted.values())
 
     @tornado.web.authenticated
@@ -76,5 +83,3 @@ class Blacklisted(RequestHandler):
         else:
             self.db.delete(doc)
         self.see_other("blacklisted")
-
-

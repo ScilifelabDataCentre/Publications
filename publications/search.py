@@ -26,8 +26,9 @@ class Search(RequestHandler):
         # Split up into separate terms.
         else:
             # Remove DOI and PMID prefixes and lowercase.
-            terms = [utils.strip_prefix(t)
-                     for t in self.get_argument("terms", "").split()]
+            terms = [
+                utils.strip_prefix(t) for t in self.get_argument("terms", "").split()
+            ]
 
         iuids = set()
 
@@ -43,32 +44,37 @@ class Search(RequestHandler):
         terms = [t.lower() for t in terms if t]
 
         # Keep all characters for these searches.
-        for viewname in [None,
-                         "publication/author",
-                         "publication/doi",
-                         "publication/published",
-                         "publication/epublished",
-                         "publication/issn",
-                         "publication/journal",
-                         "publication/xref"]:
+        for viewname in [
+            None,
+            "publication/author",
+            "publication/doi",
+            "publication/published",
+            "publication/epublished",
+            "publication/issn",
+            "publication/journal",
+            "publication/xref",
+        ]:
             iuids.update(self.search(viewname, terms))
 
         # Remove set of insignificant characters for these seaches.
-        terms = ["".join([c for c in t if c not in SEARCH_REMOVE])
-                 for t in terms]
+        terms = ["".join([c for c in t if c not in SEARCH_REMOVE]) for t in terms]
         terms = [t for t in terms if t]
-        for viewname in ["publication/title",
-                         "publication/notes",
-                         "publication/pmid",
-                         "publication/label_parts"]:
+        for viewname in [
+            "publication/title",
+            "publication/notes",
+            "publication/pmid",
+            "publication/label_parts",
+        ]:
             iuids.update(self.search(viewname, terms))
 
         # Finally get the publication documents for IUIDs
         publications = [self.get_publication(iuid) for iuid in iuids]
         publications.sort(key=lambda p: p["published"], reverse=True)
-        self.render("search.html",
-                    publications=publications,
-                    terms=self.get_argument("terms", ""))
+        self.render(
+            "search.html",
+            publications=publications,
+            terms=self.get_argument("terms", ""),
+        )
 
     def search(self, designview, terms):
         "Search the given view using the terms. Return set of IUIDs."
@@ -83,12 +89,15 @@ class Search(RequestHandler):
         else:
             designname, viewname = designview.split("/")
             for term in terms:
-                if term in SEARCH_IGNORE: continue
-                view = self.db.view(designname,
-                                    viewname,
-                                    startkey=term,
-                                    endkey=term+constants.CEILING,
-                                    reduce=False)
+                if term in SEARCH_IGNORE:
+                    continue
+                view = self.db.view(
+                    designname,
+                    viewname,
+                    startkey=term,
+                    endkey=term + constants.CEILING,
+                    reduce=False,
+                )
                 for item in view:
                     result.add(item.id)
         return result
@@ -109,6 +118,7 @@ class SearchJson(Search):
         links["self"] = {"href": URL("search_json", terms=terms)}
         links["display"] = {"href": URL("search", terms=terms)}
         result["publications_count"] = len(publications)
-        result["publications"] = [self.get_publication_json(publication)
-                                  for publication in publications]
+        result["publications"] = [
+            self.get_publication_json(publication) for publication in publications
+        ]
         self.write(result)

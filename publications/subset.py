@@ -23,10 +23,11 @@ class SubsetDisplay(utils.DownloadParametersMixin, RequestHandler):
     def post(self):
         expression = self.get_argument("expression", "")
         try:
-            if not expression: raise ValueError("No expression given.")
+            if not expression:
+                raise ValueError("No expression given.")
             subset = get_subset(self.db, expression)
         except ValueError as error:
-            subset = Subset(self.db) # Empty subset.
+            subset = Subset(self.db)  # Empty subset.
             message = str(error)
         else:
             message = None
@@ -38,38 +39,41 @@ class SubsetDisplay(utils.DownloadParametersMixin, RequestHandler):
                 writer.write(subset)
                 self.write(writer.get_content())
                 self.set_header("Content-Type", constants.CSV_MIME)
-                self.set_header("Content-Disposition", 
-                                'attachment; filename="publications.csv"')
+                self.set_header(
+                    "Content-Disposition", 'attachment; filename="publications.csv"'
+                )
                 return
             elif format == "XLSX":
                 writer = XlsxWriter(self.db, self.application, **parameters)
                 writer.write(subset)
                 self.write(writer.get_content())
                 self.set_header("Content-Type", constants.XLSX_MIME)
-                self.set_header("Content-Disposition", 
-                                'attachment; filename="publications.xlsx"')
+                self.set_header(
+                    "Content-Disposition", 'attachment; filename="publications.xlsx"'
+                )
                 return
             elif format == "TXT":
                 writer = TextWriter(self.db, self.application, **parameters)
                 writer.write(subset)
                 self.write(writer.get_content())
                 self.set_header("Content-Type", constants.TXT_MIME)
-                self.set_header("Content-Disposition", 
-                                'attachment; filename="publications.txt"')
+                self.set_header(
+                    "Content-Disposition", 'attachment; filename="publications.txt"'
+                )
                 return
             else:
                 error = f"Unknown format '{format}"
-        self.render("subset.html",
-                    expression=expression,
-                    publications=subset,
-                    error=message)
+        self.render(
+            "subset.html", expression=expression, publications=subset, error=message
+        )
 
 
 class Subset:
     "Publication subset selection and operations."
 
-    def __init__(self, db, all=False, year=None, label=None,
-                 author=None, orcid=None, issn=None):
+    def __init__(
+        self, db, all=False, year=None, label=None, author=None, orcid=None, issn=None
+    ):
         self.db = db
         self.iuids = set()
         if all:
@@ -149,7 +153,7 @@ class Subset:
         """
         publications = self.db.get_bulk(list(self.iuids))
         publications = [p for p in publications if p]
-        publications.sort(key=lambda p: (p['published'], p['title']), reverse=True)
+        publications.sort(key=lambda p: (p["published"], p["title"]), reverse=True)
         return publications
 
     def copy(self):
@@ -174,14 +178,15 @@ class Subset:
         label = label.lower().strip()
         if label.endswith("*"):
             label = label[:-1]
-            self._select("publication", "label",
-                         key=label, last=label+constants.CEILING)
+            self._select(
+                "publication", "label", key=label, last=label + constants.CEILING
+            )
         else:
             self._select("publication", "label", key=label)
 
     def select_author(self, name):
         """Select publication by author name.
-        The name must be of the form "Familyname Initials". It is normalized, 
+        The name must be of the form "Familyname Initials". It is normalized,
         i.e. non-ASCII characters are converted to most similar ASCII,
         and lower-cased. The match is exact, which is problematic;
         e.g. the initials used differs substantially between publications.
@@ -191,8 +196,9 @@ class Subset:
         name = utils.to_ascii(name).lower().strip()
         if name.endswith("*"):
             name = name[:-1]
-            self._select("publication", "author",
-                         key=name, last=name+constants.CEILING)
+            self._select(
+                "publication", "author", key=name, last=name + constants.CEILING
+            )
         else:
             self._select("publication", "author", key=name)
 
@@ -225,23 +231,20 @@ class Subset:
         """Select all publications 'published' after the given date, inclusive.
         This means the paper journal publication date.
         """
-        self._select("publication", "published",
-                     key=date, last=constants.CEILING)
+        self._select("publication", "published", key=date, last=constants.CEILING)
 
     def select_first_published(self, date):
         """Select all publications first published after the given date,
         inclusive. By 'first' is meant the first date of 'epublished'
         (online), and 'published' (paper journal date).
         """
-        self._select("publication", "first_published",
-                     key=date, last=constants.CEILING)
+        self._select("publication", "first_published", key=date, last=constants.CEILING)
 
     def select_epublished(self, date):
         """Select all publications by 'epublished' after the given date,
         inclusive.
         """
-        self._select("publication", "epublished",
-                     key=date, last=constants.CEILING)
+        self._select("publication", "epublished", key=date, last=constants.CEILING)
 
     def select_modified(self, date=None, limit=None):
         "Select all publications modified after the given date, inclusive."
@@ -265,16 +268,17 @@ class Subset:
             labels = set()
             for label in utils.get_docs(self.db, "label", "value"):
                 started = label.get("started")
-                if started and started <= year: # Year as str
+                if started and started <= year:  # Year as str
                     ended = label.get("ended")
                     if ended:
-                        if year <= ended: # Year as str
+                        if year <= ended:  # Year as str
                             labels.add(label["value"])
-                    else:       # Current
+                    else:  # Current
                         labels.add(label["value"])
         if labels:
-            result = functools.reduce(lambda s, t: s | t,
-                                      [Subset(self.db, label=l) for l in labels])
+            result = functools.reduce(
+                lambda s, t: s | t, [Subset(self.db, label=l) for l in labels]
+            )
             self.iuids = result.iuids
 
     def _select(self, designname, viewname, key=None, last=None, **kwargs):
@@ -293,13 +297,14 @@ class Subset:
 
 # Parser for the selection expression mini-language.
 
+
 class _Function:
     "Abstract function; name and value for argument."
 
     def __init__(self, tokens):
         try:
             self.value = tokens[1]
-        except IndexError:      # For argument-less functions.
+        except IndexError:  # For argument-less functions.
             self.value = None
 
     def __repr__(self):
@@ -368,7 +373,7 @@ class _Published(_Function):
 
 class _First(_Function):
     """Publications selected by first publication date
-    (the earliest of 'published' and 'epublished') 
+    (the earliest of 'published' and 'epublished')
     after the given date, inclusive.
     """
 
@@ -395,12 +400,13 @@ class _Modified(_Function):
         s.select_modified(date=self.value)
         return s
 
+
 class _Active(_Function):
     "Publications having at least on label active in the given year."
 
     def evaluate(self, db, variables):
         s = Subset(db)
-        s.select_active_labels(self.value or 'current')
+        s.select_active_labels(self.value or "current")
         return s
 
 
@@ -486,7 +492,7 @@ class _Expression:
 
     def evaluate(self, db, variables=None):
         "Evaluate the expression and return the resulting subset."
-        self.stack.reverse()    # Left-to-right evaluation.
+        self.stack.reverse()  # Left-to-right evaluation.
         if variables is None:
             variables = {}
         while len(self.stack) >= 3:
@@ -523,6 +529,7 @@ def get_subset(db, expression, variables=None):
         raise ValueError(str(error))
     return result[0].evaluate(db, variables=variables)
 
+
 def get_parser():
     "Construct and return the parser."
 
@@ -531,24 +538,40 @@ def get_parser():
     value = pp.QuotedString(quote_char='"', esc_char="\\") | pp.CharsNotIn(")")
     identifier = pp.Word(pp.alphas, pp.alphanums).set_parse_action(_Identifier)
 
-    label = (pp.Keyword("label") + left+value+right).set_parse_action(_Label)
-    year = (pp.Keyword("year") + left+value+right).set_parse_action(_Year)
-    author = (pp.Keyword("author") + left+value+right).set_parse_action(_Author)
-    orcid = (pp.Keyword("orcid") + left+value+right).set_parse_action(_Orcid)
-    issn = (pp.Keyword("issn") + left+value+right).set_parse_action(_Issn)
-    published = (pp.Keyword("published") + left+value+right).set_parse_action(_Published)
-    first = (pp.Keyword("first") + left+value+right).set_parse_action(_First)
-    online = (pp.Keyword("online") + left+value+right).set_parse_action(_Online)
-    modified = (pp.Keyword("modified") + left+value+right).set_parse_action(_Modified)
-    no_pmid = (pp.Keyword("no_pmid") + left+right).set_parse_action(_NoPmid)
-    no_doi = (pp.Keyword("no_doi") + left+right).set_parse_action(_NoDoi)
-    no_label = (pp.Keyword("no_label") + left+right).set_parse_action(_NoLabel)
-    function = label | year| author | orcid | issn | \
-        published | first | online | modified | no_pmid | no_doi | no_label
+    label = (pp.Keyword("label") + left + value + right).set_parse_action(_Label)
+    year = (pp.Keyword("year") + left + value + right).set_parse_action(_Year)
+    author = (pp.Keyword("author") + left + value + right).set_parse_action(_Author)
+    orcid = (pp.Keyword("orcid") + left + value + right).set_parse_action(_Orcid)
+    issn = (pp.Keyword("issn") + left + value + right).set_parse_action(_Issn)
+    published = (pp.Keyword("published") + left + value + right).set_parse_action(
+        _Published
+    )
+    first = (pp.Keyword("first") + left + value + right).set_parse_action(_First)
+    online = (pp.Keyword("online") + left + value + right).set_parse_action(_Online)
+    modified = (pp.Keyword("modified") + left + value + right).set_parse_action(
+        _Modified
+    )
+    no_pmid = (pp.Keyword("no_pmid") + left + right).set_parse_action(_NoPmid)
+    no_doi = (pp.Keyword("no_doi") + left + right).set_parse_action(_NoDoi)
+    no_label = (pp.Keyword("no_label") + left + right).set_parse_action(_NoLabel)
+    function = (
+        label
+        | year
+        | author
+        | orcid
+        | issn
+        | published
+        | first
+        | online
+        | modified
+        | no_pmid
+        | no_doi
+        | no_label
+    )
 
     if settings["TEMPORAL_LABELS"]:
-        current = (pp.Keyword("active") + left+right).set_parse_action(_Active)
-        active = (pp.Keyword("active") + left+value+right).set_parse_action(_Active)
+        current = (pp.Keyword("active") + left + right).set_parse_action(_Active)
+        active = (pp.Keyword("active") + left + value + right).set_parse_action(_Active)
         function = function | current | active
 
     union = pp.Literal("+").set_parse_action(_Union)
@@ -558,7 +581,7 @@ def get_parser():
     operator = union | symdifference | difference | intersection
 
     expression = pp.Forward()
-    atom = (function | identifier | pp.Group(left + expression + right))
+    atom = function | identifier | pp.Group(left + expression + right)
     expression <<= atom + (operator + atom)[...]
     expression.set_parse_action(_Expression)
     expression.ignore("!" + pp.rest_of_line)
@@ -587,13 +610,15 @@ if __name__ == "__main__":
     print("===", get_subset(db, "year(2020)"))
 
     labels = []
-    for name in ["Clinical Genomics Linköping",
-                 "Clinical Genomics Gothenburg",
-                 "Clinical Genomics Lund",
-                 "Clinical Genomics Uppsala",
-                 "Clinical Genomics Stockholm",
-                 "Clinical Genomics Umeå",
-                 "Clinical Genomics Örebro"]:
+    for name in [
+        "Clinical Genomics Linköping",
+        "Clinical Genomics Gothenburg",
+        "Clinical Genomics Lund",
+        "Clinical Genomics Uppsala",
+        "Clinical Genomics Stockholm",
+        "Clinical Genomics Umeå",
+        "Clinical Genomics Örebro",
+    ]:
         labels.append(Subset(db, label=name))
         print(name, ":", labels[-1])
     labels = functools.reduce(lambda s, t: s | t, labels)
@@ -614,6 +639,6 @@ if __name__ == "__main__":
     print(s2)
     s3 = Subset(db, label="Spatial proteomics")
     print(s3)
-    print("s1-s2-s3 =", s1-s2-s3)
-    print("(s1-s2)-s3 =", (s1-s2)-s3)
-    print("s1-(s2-s3) =", s1-(s2-s3))
+    print("s1-s2-s3 =", s1 - s2 - s3)
+    print("(s1-s2)-s3 =", (s1 - s2) - s3)
+    print("s1-(s2-s3) =", s1 - (s2 - s3))

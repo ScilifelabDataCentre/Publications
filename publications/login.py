@@ -16,8 +16,9 @@ class Login(RequestHandler):
 
     def get(self):
         "Display login page."
-        self.render("login.html",
-                    next=self.get_argument("next", self.reverse_url("home")))
+        self.render(
+            "login.html", next=self.get_argument("next", self.reverse_url("home"))
+        )
 
     def post(self):
         """Login to a account account. Set a secure cookie.
@@ -38,11 +39,13 @@ class Login(RequestHandler):
             self.set_error_flash("No such account or invalid password.")
             self.see_other("login")
         else:
-            self.set_secure_cookie(constants.USER_COOKIE,
-                                   account["email"],
-                                   expires_days=settings["LOGIN_MAX_AGE_DAYS"])
+            self.set_secure_cookie(
+                constants.USER_COOKIE,
+                account["email"],
+                expires_days=settings["LOGIN_MAX_AGE_DAYS"],
+            )
             with AccountSaver(doc=account, rqh=self) as saver:
-                saver["login"] = utils.timestamp() # Set last login timestamp.
+                saver["login"] = utils.timestamp()  # Set last login timestamp.
             self.redirect(self.get_argument("next", self.reverse_url("home")))
 
 

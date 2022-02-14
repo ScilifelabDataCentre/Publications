@@ -14,21 +14,28 @@ def init(db):
     if db.put_design("log", DESIGN_DOC):
         logging.info("Updated 'log' design document.")
 
+
 DESIGN_DOC = {
     "views": {
-        "account": {"map": """function (doc) {
+        "account": {
+            "map": """function (doc) {
   if (doc.publications_doctype !== 'log') return;
   if (!doc.account) return;
   emit([doc.account, doc.modified], null);
-}"""},
-        "doc": {"map": """function (doc) {
+}"""
+        },
+        "doc": {
+            "map": """function (doc) {
   if (doc.publications_doctype !== 'log') return;
   emit([doc.doc, doc.modified], null);
-}"""},
-        "modified": {"map": """function (doc) {
+}"""
+        },
+        "modified": {
+            "map": """function (doc) {
   if (doc.publications_doctype !== 'log') return;
    emit(doc.modified, null);
-}"""}
+}"""
+        },
     }
 }
 
@@ -51,7 +58,4 @@ class Logs(RequestHandler):
             href = self.reverse_url("account", doc["email"])
         else:
             raise NotImplementedError
-        self.render("logs.html",
-                    title=title,
-                    href=href,
-                    logs=self.get_logs(doc["_id"]))
+        self.render("logs.html", title=title, href=href, logs=self.get_logs(doc["_id"]))

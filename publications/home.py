@@ -19,11 +19,14 @@ class Home(RequestHandler):
 
     def get(self):
         limit = settings["SHORT_PUBLICATIONS_LIST_LIMIT"]
-        docs = self.get_docs("publication", "first_published",
-                             key=constants.CEILING,
-                             last="",
-                             descending=True,
-                             limit=limit)
+        docs = self.get_docs(
+            "publication",
+            "first_published",
+            key=constants.CEILING,
+            last="",
+            descending=True,
+            limit=limit,
+        )
         self.render("home.html", publications=docs, limit=limit)
 
 
@@ -59,28 +62,36 @@ class Software(RequestHandler):
             ("Python", constants.PYTHON_VERSION, constants.PYTHON_URL),
             ("tornado", tornado.version, constants.TORNADO_URL),
             ("certifi", certifi.__version__, constants.CERTIFI_URL),
-            ('CouchDB server', self.db.server.version, constants.COUCHDB_URL),
-            ('CouchDB2 interface', couchdb2.__version__, constants.COUCHDB2_URL),
-            ('XslxWriter', xlsxwriter.__version__, constants.XLSXWRITER_URL),
-
+            ("CouchDB server", self.db.server.version, constants.COUCHDB_URL),
+            ("CouchDB2 interface", couchdb2.__version__, constants.COUCHDB2_URL),
+            ("XslxWriter", xlsxwriter.__version__, constants.XLSXWRITER_URL),
             ("PyYAML", yaml.__version__, constants.PYYAML_URL),
             ("pyparsing", pyparsing.__version__, constants.PYPARSING_URL),
             ("requests", requests.__version__, constants.REQUESTS_URL),
             ("Bootstrap", constants.BOOTSTRAP_VERSION, constants.BOOTSTRAP_URL),
             ("jQuery", constants.JQUERY_VERSION, constants.JQUERY_URL),
-            ('jQuery.localtime', constants.JQUERY_LOCALTIME_VERSION, constants.JQUERY_LOCALTIME_URL),
+            (
+                "jQuery.localtime",
+                constants.JQUERY_LOCALTIME_VERSION,
+                constants.JQUERY_LOCALTIME_URL,
+            ),
             ("DataTables", constants.DATATABLES_VERSION, constants.DATATABLES_URL),
-        ]     
+        ]
         self.render("software.html", software=software)
+
 
 class Status(RequestHandler):
     "Return JSON for the current status and some counts for the database."
 
     def get(self):
-        self.write(dict(status="OK",
-                        n_publications=self.get_count("publication", "year"),
-                        n_labels=self.get_count("label", "value"),
-                        n_researchers=self.get_count("researcher", "name")))
+        self.write(
+            dict(
+                status="OK",
+                n_publications=self.get_count("publication", "year"),
+                n_labels=self.get_count("label", "value"),
+                n_researchers=self.get_count("researcher", "name"),
+            )
+        )
 
 
 class Doc(RequestHandler):

@@ -19,23 +19,30 @@ def init(db):
     if db.put_design("label", DESIGN_DOC):
         logging.info("Updated 'label' design document.")
 
+
 DESIGN_DOC = {
     "views": {
-        "normalized_value": {"map": """function (doc) {
+        "normalized_value": {
+            "map": """function (doc) {
   if (doc.publications_doctype !== 'label') return;
   emit(doc.normalized_value, doc.value);
-}"""},
-        "value": {"reduce": "_count",
-                  "map": """function (doc) {
+}"""
+        },
+        "value": {
+            "reduce": "_count",
+            "map": """function (doc) {
   if (doc.publications_doctype !== 'label') return;
   emit(doc.value, null);
-}"""},
-        "current": {"map": """function (doc) {
+}""",
+        },
+        "current": {
+            "map": """function (doc) {
   if (doc.publications_doctype !== 'label') return;
   if (doc.ended) return;
   if (doc.secondary) return;
   emit(doc.started, doc.value);
-}"""},
+}"""
+        },
     }
 }
 
@@ -54,7 +61,8 @@ class LabelSaver(Saver):
         "Value must be unique."
         try:
             label = utils.get_label(self.db, value)
-            if label["_id"] == self.doc.get("_id"): return
+            if label["_id"] == self.doc.get("_id"):
+                return
         except KeyError:
             pass
         else:
@@ -74,13 +82,11 @@ class Label(RequestHandler):
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        accounts = self.get_docs("account", "label",
-                                 key=label["value"].lower())
+        accounts = self.get_docs("account", "label", key=label["value"].lower())
         publications = list(Subset(self.db, label=label["value"]))
-        self.render("label.html",
-                    label=label,
-                    accounts=accounts,
-                    publications=publications)
+        self.render(
+            "label.html", label=label, accounts=accounts, publications=publications
+        )
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -88,7 +94,8 @@ class Label(RequestHandler):
             self.delete(identifier)
             return
         raise tornado.web.HTTPError(
-            405, reason="Internal problem; POST only allowed for DELETE.")
+            405, reason="Internal problem; POST only allowed for DELETE."
+        )
 
     @tornado.web.authenticated
     def delete(self, identifier):
@@ -120,9 +127,14 @@ class LabelJson(Label):
     "Label JSON data."
 
     def render(self, template, **kwargs):
-        self.write(self.get_label_json(kwargs["label"],
-                                       publications=kwargs["publications"],
-                                       accounts=kwargs["accounts"]))
+        self.write(
+            self.get_label_json(
+                kwargs["label"],
+                publications=kwargs["publications"],
+                accounts=kwargs["accounts"],
+            )
+        )
+
 
 class LabelsList(RequestHandler):
     """Labels list page. By default only current labels,
@@ -250,8 +262,7 @@ class LabelEdit(RequestHandler):
             self.see_other("label_edit", old_value)
             return
         if new_value != old_value:
-            for account in self.get_docs("account", "label",
-                                         key=old_value.lower()):
+            for account in self.get_docs("account", "label", key=old_value.lower()):
                 with AccountSaver(account, rqh=self) as saver:
                     labels = set(account["labels"])
                     labels.discard(old_value)
@@ -278,9 +289,9 @@ class LabelMerge(RequestHandler):
         except KeyError as error:
             self.see_other("labels", error=str(error))
             return
-        self.render("label_merge.html",
-                    label=label,
-                    labels=self.get_docs("label", "value"))
+        self.render(
+            "label_merge.html", label=label, labels=self.get_docs("label", "value")
+        )
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -313,8 +324,9 @@ class LabelMerge(RequestHandler):
         for publication in Subset(self.db, label=old_label):
             with PublicationSaver(publication, rqh=self) as saver:
                 labels = publication["labels"].copy()
-                qual = labels.pop(old_label, None) or \
-                       labels.pop(old_label.lower(), None)
+                qual = labels.pop(old_label, None) or labels.pop(
+                    old_label.lower(), None
+                )
                 labels[new_label] = labels.get(new_label) or qual
                 saver["labels"] = labels
         self.see_other("label", new_label)
