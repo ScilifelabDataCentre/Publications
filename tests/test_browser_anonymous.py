@@ -43,4 +43,23 @@ def test_about(settings, page):  # 'page' fixture from 'pytest-playwright'
     page.click("text=Overview")
     assert page.url == f"{settings['BASE_URL']}/docs/overview"
 
+
+def test_hrefs(settings, page):
+    "Test that all hrefs in the start page are reachable."
+    page.set_default_navigation_timeout(10000)
+
+    page.goto(settings["BASE_URL"])
+    hrefs = set()
+    links = page.locator("a")
+    for pos in range(links.count()):
+        href = links.nth(pos).element_handle().get_attribute("href")
+        # Link within Publications.
+        if href.startswith("/") and not href.endswith(".json"):
+            hrefs.add(settings["BASE_URL"] + href)
+
+    for href in hrefs:
+        page.goto(href)
+        assert "Error:" not in page.inner_text("body")
+        assert page.url == href
+
     # page.wait_for_timeout(3000)
