@@ -279,7 +279,7 @@
 	    <ul class="nav navbar-nav navbar-right">
 	      {% if current_user %}
 	      <li>
-		<a href="{{ reverse_url('account', current_user['email']) }}">
+		<a id="user" href="{{ reverse_url('account', current_user['email']) }}">
 		   {{ current_user['email'] }}
 		</a>
 	      </li>
