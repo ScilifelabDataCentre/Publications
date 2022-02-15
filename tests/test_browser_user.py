@@ -7,7 +7,7 @@ To run while displaying browser window:
 $ pytest --headed
 
 Much of the code below was created using the playwright code generation feature:
-$ playwright codegen http://localhost:5001/
+$ playwright codegen http://localhost:8885/
 """
 
 import urllib.parse
@@ -45,3 +45,39 @@ def test_user(settings, page):
 
     page.click("#user")
     assert settings["USER_USERNAME"] == page.inner_text("h1").strip()
+
+
+def test_fetching_publication(settings, page):
+    "Test fetching a publication by PMID, and deleting it."
+    login_user(settings, page)
+    
+    page.click("text=Publications")
+    page.click("text=By fetching data")
+    assert page.url == "http://localhost:8885/fetch"
+    page.fill("textarea[name=\"identifiers\"]", "8142349")
+    page.click("textarea[name=\"identifiers\"]")
+    page.click(":nth-match(button:has-text(\"Fetch\"), 2)")
+    page.click("text=Solution structure and dynamics of ras p21.GDP determined by heteronuclear three")
+    url = page.url
+
+    page.click("a[role=\"button\"]:has-text(\"1994 (1)\")")
+    assert page.url == "http://localhost:8885/publications/1994"
+    page.click("text=Solution structure and dynamics of ras p21.GDP determined by heteronuclear three")
+    assert page.url == url
+
+    # Try fetching it again; should not add anything.
+    page.click("text=Publications")
+    page.click("text=By fetching data")
+    assert page.url == "http://localhost:8885/fetch"
+    page.fill("textarea[name=\"identifiers\"]", "8142349")
+    page.click(":nth-match(button:has-text(\"Fetch\"), 2)")
+    page.click("text=Solution structure and dynamics of ras p21.GDP determined by heteronuclear three")
+    assert page.url == url
+
+    # Delete the publication.
+    page.once("dialog", lambda dialog: dialog.accept())  # Callback for next click.
+    page.click("text=Delete")
+    assert page.url == "http://localhost:8885/"
+
+    locator = page.locator("a[role=\"button\"]:has-text(\"1994 (1)\")")
+    playwright.sync_api.expect(locator).to_have_count(0)
