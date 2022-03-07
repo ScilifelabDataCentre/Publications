@@ -111,6 +111,25 @@ def get_db():
         raise KeyError(f"CouchDB database '{name}' does not exist.")
 
 
+def init_db():
+    "Initialize the database by loading the design documents. Return the database."
+    import publications.account
+    import publications.blacklist
+    import publications.journal
+    import publications.label
+    import publications.log
+    import publications.publication
+    import publications.researcher
+    db = get_db()
+    publications.account.init(db)
+    publications.blacklist.init(db)
+    publications.journal.init(db)
+    publications.label.init(db)
+    publications.log.init(db)
+    publications.publication.init(db)
+    publications.researcher.init(db)
+    return db
+
 def get_doc(db, designname, viewname, key):
     """Get the document with the given key from the given design view.
     Raise KeyError if not found.

@@ -306,14 +306,7 @@ def main():
     else:
         filepath = None
     utils.load_settings(filepath=filepath)
-    db = utils.get_db()
-    publications.account.init(db)
-    publications.publication.init(db)
-    publications.blacklist.init(db)
-    publications.journal.init(db)
-    publications.label.init(db)
-    publications.researcher.init(db)
-    publications.log.init(db)
+    utils.init_db()
     application = get_application()
     application.listen(settings["PORT"], xheaders=True)
     pid = os.getpid()

@@ -12,7 +12,6 @@ import couchdb2
 
 from publications import constants
 from publications import crossref
-from publications import designs
 from publications import pubmed
 from publications import settings
 from publications import utils
@@ -33,15 +32,14 @@ def cli(settings, log):
 @cli.command()
 def initialize():
     "Initialize the database, which must exist; load all design documents."
-    designs.load_design_documents(utils.get_db())
+    utils.init_db()
     click.echo("Loaded all design documents.")
 
 
 @cli.command()
 def counts():
     "Output counts of database entities."
-    db = utils.get_db()
-    designs.load_design_documents(db)
+    db = utils.init_db()
     click.echo(f"{utils.get_count(db, 'publication', 'year'):>5} publications")
     click.echo(f"{utils.get_count(db, 'label', 'value'):>5} labels")
     click.echo(f"{utils.get_count(db, 'account', 'email'):>5} accounts")
@@ -82,8 +80,7 @@ def dump(dumpfile, dumpdir, progressbar):
 )
 def undump(dumpfile, progressbar):
     "Load a Publications database .tar.gz dump file. The database must be empty."
-    db = utils.get_db()
-    designs.load_design_documents(db)
+    db = utils.init_db()
     if utils.get_count(db, "publication", "year") != 0:
         raise click.ClickException(
             f"The database '{settings['DATABASE_NAME']}' is not empty."
