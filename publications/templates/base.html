@@ -7,14 +7,15 @@
     <title>{% block head_title %}{{ title }}{% end %}</title>
     <link rel="shortcut icon" type="image/png"
           href="{{ reverse_url('site', 'favicon.png') }}">
-    <link rel="stylesheet"
-          href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="{{ constants.JQUERY_UI_CSS_URL }}">
     <link rel="stylesheet" crossorigin="anonymous"
-          href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" 
-          integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu">
+          href="{{ constants.BOOTSTRAP_CSS_URL }}"
+          integrity="{{ constants.BOOTSTRAP_CSS_INTEGRITY }}">
     <link rel="stylesheet" crossorigin="anonymous"
-          href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css"
-          integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ">
+          href="{{ constants.BOOTSTRAP_THEME_CSS_URL }}"
+          integrity="{{ constants.BOOTSTRAP_THEME_CSS_INTEGRITY }}">
+    <link rel="stylesheet" crossorigin="anonymous"
+          href="{{ constants.DATATABLES_CSS_URL }}">
     <link rel="stylesheet" href="{{ static_url('publications.css') }}">
   </head>
 
@@ -91,6 +92,12 @@
 		  <a href="{{ reverse_url('publications_modified') }}">
 		    <span class="glyphicon glyphicon-time"></span>
                     Recently modified
+		  </a>
+		</li>
+		<li>
+		  <a href="{{ reverse_url('blacklisted') }}">
+		    <span class="glyphicon glyphicon-ban-circle"></span>
+                    Blacklisted
 		  </a>
 		</li>
 		{% end %} {# if is_curator #}
@@ -231,6 +238,12 @@
 	      </a>
               <ul class="dropdown-menu">
 		<li>
+		  <a href="{{ reverse_url('doc', 'overview') }}">
+                    <span class="glyphicon glyphicon-info-sign"></span>
+		    Overview
+		  </a>
+		</li>
+		<li>
 		  <a href="{{ reverse_url('contact') }}">
 		    <span class="glyphicon glyphicon-bullhorn"></span>
 		    Contact
@@ -253,15 +266,9 @@
 		</li>
 		{% end %} {# if is_admin #}
 		<li>
-		  <a href="{{ settings['DOCS_URL'] }}" target="_">
-		    <span class="glyphicon glyphicon-book"></span>
-		    Software documentation
-		  </a>
-		</li>
-		<li>
-		  <a href="{{ settings['SOURCE_URL'] }}" target="_">
+		  <a href="{{ reverse_url('software') }}">
 		    <span class="glyphicon glyphicon-briefcase"></span>
-		    Software version {{ settings['SOURCE_VERSION'] }}
+                    Software
 		  </a>
 		</li>
 	      </ul>
@@ -272,7 +279,7 @@
 	    <ul class="nav navbar-nav navbar-right">
 	      {% if current_user %}
 	      <li>
-		<a href="{{ reverse_url('account', current_user['email']) }}">
+		<a id="user" href="{{ reverse_url('account', current_user['email']) }}">
 		   {{ current_user['email'] }}
 		</a>
 	      </li>
@@ -321,17 +328,17 @@
     <div class="container-fluid">
       {% block body_header %}
       <div class="row">
-	<div class="col-sm-2">
+	<div class="col-md-2">
 	  <img src="{{ reverse_url('site', 'logo.png') }}"
 	       class="img-responsive"
 	       style="padding-bottom: 10px;"
 	       title="{{ settings['SITE_NAME'] }}">
 	</div>
-	<div class="col-sm-8">
+	<div class="col-md-8">
 	  <h1>{% block body_title %}{{ title }}{% end %}</h1>
 	  {% block body_subtitle %}{% end %}
 	</div>
-	<div class="col-sm-2">
+	<div class="col-md-2">
 	  {% block alt_format %}
 	  {% end %}
 	</div>
@@ -342,7 +349,7 @@
       {% try %}
       {% if error %}
       <div class="row">
-	<div class="col-sm-9 col-sm-offset-2 lead alert alert-danger">
+	<div class="col-md-9 col-md-offset-2 lead alert alert-danger">
 	  <strong>Error:</strong> {{ error }}
 	</div>
       </div>
@@ -355,7 +362,7 @@
       {% try %}
       {% if message %}
       <div class="row">
-	<div class="col-sm-9 col-sm-offset-2 lead alert alert-warning">
+	<div class="col-md-9 col-md-offset-2 lead alert alert-warning">
 	  {# Allow links in message #}
 	  {% raw message %}
 	</div>
@@ -367,7 +374,7 @@
 
       {% block content %}
       <div class="row">
-	<div class="col-sm-2">
+	<div class="col-md-2">
           <p class="text-center">
 	    <span class="glyphicon glyphicon-file"></span> Publications
           </p>
@@ -403,13 +410,25 @@
 	  </p>
 	  {% end %} {# block menu_content #}
 	</div>
-	<div class="col-sm-8">
+	<div class="col-md-8">
 	  {% block main_content %}
 	  {% end %} {# block main_content #}
 	</div>
-	<div class="col-sm-2">
+	<div class="col-md-2">
 	  {% block meta_content %}
 	  {% end %} {# block meta_content #}
+          {% block documentation %}
+          <div style="padding-top: 1em;">
+            {% for page in ['Overview', 'Add_publication', 'Labels', 'Xref', 'Subset', 'User_account', 'Multiple_copies', 'Blacklist', 'API'] %}
+            <p>
+              <a href="{{ reverse_url('doc', page.lower()) }}">
+                <span class="glyphicon glyphicon-info-sign"></span>
+                {{ page.replace('_', ' ') }}
+              </a>
+            </p>
+            {% end %} {# for page in [...] #}
+	  </div>
+          {% end %} {# block documentation #}
 	</div>
       </div>
       {% end %} {# block content #}
@@ -417,7 +436,7 @@
       {% block footer %}
       <hr>
       <div class="row">
-	<div class="col-sm-8">
+	<div class="col-md-8">
 	  {% if settings['SITE_PARENT_URL'] %}
 	  <a href="{{ settings['SITE_PARENT_URL'] }}">
             {{ settings['SITE_PARENT_NAME'] }}
@@ -426,35 +445,36 @@
             {{ settings['SITE_PARENT_NAME'] }}
 	  {% end %}
         </div>
-	<div class="col-sm-2 col-sm-offset-2">
-	  <a href="{{ settings['SOURCE_URL'] }}"
-             target="_blank" class="pull-right">
-	    <span class="glyphicon glyphicon-briefcase"></span>
-	    Version {{ settings['SOURCE_VERSION'] }}
-	  </a>
+	<div class="col-md-2 col-md-offset-2">
+          <div class="pull-right">
+	    <a href="{{ constants.URL }}">Publications</a> 
+            {{ constants.VERSION }}
+	  </div>
 	</div>
       </div>
       {% end %} {# block footer #}
       
     </div>
 
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js"
-            integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
+    <script src="{{ constants.JQUERY_JS_URL }}"
+            integrity="{{ constants.JQUERY_JS_INTEGRITY }}"
             crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <script src="{{ static_url('jquery.localtime-0.9.1.min.js') }}"></script>
+    <script src="{{ constants.JQUERY_UI_JS_URL }}"
+            integrity="{{ constants.JQUERY_UI_JS_INTEGRITY }}"
+            crossorigin="anonymous"></script>
+    <script src="{{ static_url(constants.JQUERY_LOCALTIME_FILENAME) }}"></script>
     <script>
       $.datepicker.setDefaults({dateFormat: "yy-mm-dd"});
       $(function(){ $(".datepicker").datepicker(); });
     </script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
-            integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+    <script src="{{ constants.BOOTSTRAP_JS_URL }}"
+            integrity="{{ constants.BOOTSTRAP_JS_INTEGRITY }}"
             crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.13/js/dataTables.bootstrap.min.js"></script>
+    <script src="{{ constants.DATATABLES_JS_URL }}"></script>
+    <script src="{{ constants.DATATABLES_BOOTSTRAP_JS_URL}}"></script>
 
     {% block autofocus %}
-    <script>
+    <script type="text/javascript" >
       $(function(){ $("#terms").focus(); });
     </script>
     {% end %}

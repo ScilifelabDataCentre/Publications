@@ -1,5 +1,7 @@
 "Researcher (person, but also possibly consortium or similar) pages."
 
+import logging
+
 import tornado.web
 
 from publications import constants
@@ -10,12 +12,42 @@ from publications.saver import Saver, SaverError
 from publications.requesthandler import RequestHandler, ApiMixin
 
 
+def init(db):
+    "Initialize; update the CouchDB design documents."
+    if db.put_design("researcher", DESIGN_DOC):
+        logging.info("Updated 'researcher' design document.")
+
+
+DESIGN_DOC = {
+    "views": {
+        "orcid": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  if (doc.orcid) emit(doc.orcid, doc.family + ' ' + doc.initials);
+}"""
+        },
+        "family": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  emit(doc.family_normalized, doc.family + ' ' + doc.initials);
+}"""
+        },
+        "name": {
+            "reduce": "_count",
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  emit(doc.family_normalized + ' ' + doc.initials_normalized, null);
+}""",
+        },
+    }
+}
+
+
 class ResearcherSaver(Saver):
     doctype = constants.RESEARCHER
 
     def set_family(self, value=None):
         "Set the family name from form data."
-        assert self.rqh, "requires http request context"
         if value is None:
             value = utils.squish(self.rqh.get_argument("family", ""))
         if not value:
@@ -25,7 +57,6 @@ class ResearcherSaver(Saver):
 
     def set_given(self, value=None):
         "Set the given name from form data."
-        assert self.rqh, "requires http request context"
         if value is None:
             value = utils.squish(self.rqh.get_argument("given", ""))
         self["given"] = value
@@ -33,7 +64,6 @@ class ResearcherSaver(Saver):
 
     def set_initials(self, value=None):
         "Set the initials from form data."
-        assert self.rqh, "requires http request context"
         if value is None:
             value = "".join(self.rqh.get_argument("initials", "").split())
         self["initials"] = value
@@ -41,13 +71,13 @@ class ResearcherSaver(Saver):
 
     def set_orcid(self, value=None):
         "Set ORCID from form data if not already set."
-        assert self.rqh, "requires http request context"
-        if self.get("orcid"): return
+        if self.get("orcid"):
+            return
         if value is None:
             value = self.rqh.get_argument("orcid", "").strip()
         if value:
             try:
-                self.rqh.get_researcher(value)
+                utils.get_researcher(self.db, value)
             except KeyError:
                 pass
             else:
@@ -56,11 +86,12 @@ class ResearcherSaver(Saver):
 
     def set_affiliations(self, affiliations=None):
         "Set affiliations from form data."
-        assert self.rqh, "requires http request context"
         if affiliations is None:
-            affiliations = [a.strip() for a in
-                            self.rqh.get_argument("affiliations", "").split("\n")
-                            if a.strip()]
+            affiliations = [
+                a.strip()
+                for a in self.rqh.get_argument("affiliations", "").split("\n")
+                if a.strip()
+            ]
         self["affiliations"] = affiliations
 
     def finalize(self):
@@ -71,7 +102,7 @@ class ResearcherSaver(Saver):
             self["initials"] = value
             self["initials_normalized"] = utils.to_ascii(value).lower()
 
-    
+
 class ResearcherMixin:
     "Mixin for access check methods."
 
@@ -81,19 +112,22 @@ class ResearcherMixin:
 
     def check_editable(self, researcher):
         "Raise ValueError if researcher is not editable."
-        if self.is_editable(researcher): return
+        if self.is_editable(researcher):
+            return
         raise ValueError("You may not edit the researcher.")
 
     def is_deletable(self, researcher):
         "Is the researcher deletable by the current user?"
-        if not self.is_admin(): return False
+        if not self.is_admin():
+            return False
         if self.get_count("publication", "researcher", key=researcher["_id"]):
             return False
         return True
 
     def check_deletable(self, journal):
         "Raise ValueError if researcher is not deletable."
-        if self.is_deletable(journal): return
+        if self.is_deletable(journal):
+            return
         raise ValueError("You may not delete the researcher.")
 
 
@@ -107,14 +141,15 @@ class Researcher(ResearcherMixin, RequestHandler):
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        publications = self.get_docs("publication", "researcher",
-                                     key=researcher["_id"])
+        publications = self.get_docs("publication", "researcher", key=researcher["_id"])
         publications.sort(key=lambda i: i["published"], reverse=True)
-        self.render("researcher.html",
-                    researcher=researcher,
-                    publications=publications,
-                    is_editable=self.is_editable(researcher),
-                    is_deletable=self.is_deletable(researcher))
+        self.render(
+            "researcher.html",
+            researcher=researcher,
+            publications=publications,
+            is_editable=self.is_editable(researcher),
+            is_deletable=self.is_deletable(researcher),
+        )
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -168,15 +203,15 @@ class ResearcherJson(JsonMixin, Researcher):
             researcher = self.get_researcher(identifier)
         except KeyError as error:
             raise tornado.web.HTTPError(404, reason="no such researcher")
-        publications = self.get_docs("publication", "researcher",
-                                     key=researcher["_id"])
+        publications = self.get_docs("publication", "researcher", key=researcher["_id"])
         publications.sort(key=lambda i: i["published"], reverse=True)
         result = dict()
         result["entity"] = "researcher"
         result["timestamp"] = utils.timestamp()
         result.update(self.get_json(researcher))
-        result["publications"] = [self.get_publication_json(publ)
-                                  for publ in publications]
+        result["publications"] = [
+            self.get_publication_json(publ) for publ in publications
+        ]
         self.write(result)
 
 
@@ -247,14 +282,12 @@ class ResearcherFilterMixin:
 
     def get_filtered_publications(self):
         "Overrides the method from PublicationsCsv; not really filtered."
-        result = self.get_docs("publication", "researcher",
-                               key=self.researcher["_id"])
+        result = self.get_docs("publication", "researcher", key=self.researcher["_id"])
         result.sort(key=lambda i: i["published"], reverse=True)
         return result
 
 
-class ResearcherPublicationsCsv(ResearcherFilterMixin,
-                                publication.PublicationsCsv):
+class ResearcherPublicationsCsv(ResearcherFilterMixin, publication.PublicationsCsv):
     "Researcher publication CSV output."
 
     def get(self, identifier):
@@ -264,8 +297,7 @@ class ResearcherPublicationsCsv(ResearcherFilterMixin,
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        self.render("researcher_publications_csv.html",
-                    researcher=researcher)
+        self.render("researcher_publications_csv.html", researcher=researcher)
 
     def post(self, identifier):
         try:
@@ -276,8 +308,7 @@ class ResearcherPublicationsCsv(ResearcherFilterMixin,
         super().post()
 
 
-class ResearcherPublicationsXlsx(ResearcherFilterMixin,
-                                 publication.PublicationsXlsx):
+class ResearcherPublicationsXlsx(ResearcherFilterMixin, publication.PublicationsXlsx):
     "Researcher publication XLSX output."
 
     def get(self, identifier):
@@ -287,8 +318,7 @@ class ResearcherPublicationsXlsx(ResearcherFilterMixin,
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        self.render("researcher_publications_xlsx.html",
-                    researcher=researcher)
+        self.render("researcher_publications_xlsx.html", researcher=researcher)
 
     def post(self, identifier):
         try:
@@ -299,8 +329,7 @@ class ResearcherPublicationsXlsx(ResearcherFilterMixin,
         super().post()
 
 
-class ResearcherPublicationsTxt(ResearcherFilterMixin,
-                                publication.PublicationsTxt):
+class ResearcherPublicationsTxt(ResearcherFilterMixin, publication.PublicationsTxt):
     "Researcher publication text file output."
 
     def get(self, identifier):
@@ -310,8 +339,7 @@ class ResearcherPublicationsTxt(ResearcherFilterMixin,
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        self.render("researcher_publications_txt.html",
-                    researcher=researcher)
+        self.render("researcher_publications_txt.html", researcher=researcher)
 
     def post(self, identifier):
         try:
@@ -335,13 +363,16 @@ class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
             return
         publications = self.get_publications(researcher)
         publications.sort(key=lambda p: p["published"], reverse=True)
-        self.render("researcher_publications_edit.html",
-                    researcher=researcher,
-                    publications=publications)
+        self.render(
+            "researcher_publications_edit.html",
+            researcher=researcher,
+            publications=publications,
+        )
 
     @tornado.web.authenticated
     def post(self, identifier):
         from publications.publication import PublicationSaver
+
         try:
             researcher = self.get_researcher(identifier)
             self.check_editable(researcher)
@@ -360,14 +391,26 @@ class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
                             if author.get("researcher") == researcher["_id"]:
                                 author.pop("researcher")
                 except tornado.web.MissingArgumentError:
-                    if publication["_id"] not in add: continue
+                    if publication["_id"] not in add:
+                        continue
                     with PublicationSaver(doc=publication, rqh=self) as saver:
                         for author in saver["authors"]:
-                            if author.get("researcher"): continue
-                            if author["family_normalized"] != researcher["family_normalized"]: continue
-                            length = min(len(author["initials_normalized"]),
-                                         len(researcher["initials_normalized"]))
-                            if author["initials_normalized"][:length] != researcher["initials_normalized"][:length]: continue
+                            if author.get("researcher"):
+                                continue
+                            if (
+                                author["family_normalized"]
+                                != researcher["family_normalized"]
+                            ):
+                                continue
+                            length = min(
+                                len(author["initials_normalized"]),
+                                len(researcher["initials_normalized"]),
+                            )
+                            if (
+                                author["initials_normalized"][:length]
+                                != researcher["initials_normalized"][:length]
+                            ):
+                                continue
                             author["researcher"] = researcher["_id"]
                             break
         except ValueError as error:
@@ -380,20 +423,27 @@ class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
         """Get the publications for the researcher based on name comparison,
         but excluding those already identified with another researcher.
         """
-        result = dict([(d["_id"], d)
-                       for d in self.get_docs("publication", "researcher",
-                                              key=researcher["_id"])])
+        result = dict(
+            [
+                (d["_id"], d)
+                for d in self.get_docs(
+                    "publication", "researcher", key=researcher["_id"]
+                )
+            ]
+        )
         # Only use first initial; inclusion of more initials is not certain.
         name = f"{researcher['family_normalized']} {researcher['initials_normalized'][:1]}".strip()
-        publications = self.get_docs("publication", "author",
-                                     key=name,
-                                     last=name+constants.CEILING)
+        publications = self.get_docs(
+            "publication", "author", key=name, last=name + constants.CEILING
+        )
         for publ in publications:
             for author in publ["authors"]:
                 name2 = f"{author['family_normalized']} {author['initials_normalized'][:1]}".strip()
-                if name != name2: continue
+                if name != name2:
+                    continue
                 try:
-                    if author["researcher"] != researcher["_id"]: break
+                    if author["researcher"] != researcher["_id"]:
+                        break
                 except KeyError:
                     pass
             else:
@@ -406,10 +456,7 @@ class Researchers(RequestHandler):
 
     def get(self):
         researchers = self.get_docs("researcher", "name")
-        view = self.db.view("publication",
-                            "researcher",
-                            group=True,
-                            reduce=True)
+        view = self.db.view("publication", "researcher", group=True, reduce=True)
         counts = dict((r.key, r.value) for r in view)
         for researcher in researchers:
             researcher["n_publications"] = counts.get(researcher["_id"], 0)

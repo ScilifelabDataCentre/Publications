@@ -15,40 +15,134 @@ Subset
   {% module xsrf_form_html() %}
 
   <div class="form-group has-feedback">
-    <label class="control-label col-sm-2" for="title">Selection expression</label>
-    <div class="col-sm-10">
-      <textarea class="form-control" rows="8"
+    <div class="col-md-2">
+      <label class="control-label" for="expression">Selection expression</label>
+      <p>
+        Select publications using the operators and functions
+        in the right-hand panel.
+      </p>
+    </div>
+    <div class="col-md-10">
+      <textarea class="form-control" rows="4"
 		name="expression" id="expression"
 		>{{ expression or '' }}</textarea>
     </div>
   </div>
 
-  <div class="form-group">
-    <div class="col-sm-3 col-sm-offset-2">
-      <button type="submit" class="btn btn-success btn-block">
-	<span class="glyphicon glyphicon-adjust"></span>
-	Select
-      </button>
+  <div class="row">
+    <div class="col-md-12">
+
+      <div style="margin: 0 2em;">
+        <ul id="myTabs" class="nav nav-tabs" role="tablist">
+          <li role="presentation" class="active">
+            <a href="#list" aria-controls="list" role="tab" data-toggle="tab">
+              <strong style="padding: 0 1em;">List display</strong>
+            </a>
+          </li>
+          <li role="presentation">
+            <a href="#csv" aria-controls="csv" role="tab" data-toggle="tab">
+              <strong style="padding: 0 1em;">Download CSV file</strong>
+            </a>
+          </li>
+          <li role="presentation">
+            <a href="#xlsx" aria-controls="xlsx" role="tab" data-toggle="tab">
+              <strong style="padding: 0 1em;">Download XLSX file</strong>
+            </a>
+          </li>
+          <li role="presentation">
+            <a href="#txt" aria-controls="txt" role="tab" data-toggle="tab">
+              <strong style="padding: 0 1em;">Download TXT file</strong>
+            </a>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+
+          <div role="tabpanel" class="tab-pane fade in active" id="list">
+            <div style="padding: 1em;">
+              <button type="submit" class="btn btn-success"
+                      style="padding-left: 2em; padding-right: 2em;">
+	        <span class="glyphicon glyphicon-adjust"></span>
+                Select
+              </button>
+            </div>
+          </div>
+
+          <div role="tabpanel" class="tab-pane fade" id="csv">
+            <div style="padding: 1em;">
+              {% include 'publications_authors_parameters.html' %}
+              {% include 'publications_label_parameters.html' %}
+              {% include 'publications_issn_parameters.html' %}
+              {% include 'publications_csv_parameters.html' %}
+              <button type="submit" class="btn btn-success"
+                      name="format" value="CSV"
+                      style="padding-left: 2em; padding-right: 2em;">
+	        <span class="glyphicon glyphicon-adjust"></span>
+	        <span class="glyphicon glyphicon-download-alt"></span>
+                Select and download CSV
+              </button>
+            </div>
+          </div>
+
+          <div role="tabpanel" class="tab-pane fade" id="xlsx">.
+            <div style="padding: 1em;">
+              {% include 'publications_authors_parameters.html' %}
+              {% include 'publications_label_parameters.html' %}
+              {% include 'publications_issn_parameters.html' %}
+              <button type="submit" class="btn btn-success"
+                      name="format" value="XLSX"
+                      style="padding-left: 2em; padding-right: 2em;">
+	        <span class="glyphicon glyphicon-adjust"></span>
+	        <span class="glyphicon glyphicon-download-alt"></span>
+                Select and download XLSX
+              </button>
+            </div>
+          </div>
+
+          <div role="tabpanel" class="tab-pane fade" id="txt">
+            <div style="padding: 1em;">
+              {% include 'publications_authors_parameters.html' %}
+              {% include 'publications_txt_parameters.html' %}
+              <button type="submit" class="btn btn-success"
+                      name="format" value="TXT"
+                      style="padding-left: 2em; padding-right: 2em;">
+	        <span class="glyphicon glyphicon-adjust"></span>
+	        <span class="glyphicon glyphicon-download-alt"></span>
+                Select and download TXT
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
     </div>
   </div>
 
 </form>
 
 {% if publications is not None %}
-<p>
-  {{ len(publications) }} publications
-</p>
+<h3>{{ len(publications) }} publications</h3>
 {% for publication in publications %}
 {% include 'publication_item.html' %}
-{% end %} {# for #}
 {% end %}
+{% end %} {# if publications is not None #}
 
 {% end %} {# block main_content #}
 
-{% block meta_content %}
-<a href="{{ reverse_url('home') }}"
-   role="button" class="btn btn-default btn-block">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
-</a>
-{% end %} {# block meta_content #}
+{% block documentation %}
+{% include 'subset_summary.html' %}
+{% end %} {# block documentation #}
+
+{% block javascript %}
+$('#myTabs a').click(function (e) {
+  e.preventDefault()
+  $(this).tab('show')
+})
+{% end %}
+
+{% block autofocus %}
+<script>
+  $(function(){ $("#expression").focus(); });
+</script>
+{% end %}

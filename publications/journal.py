@@ -12,6 +12,36 @@ from publications.requesthandler import RequestHandler
 from publications.publication import PublicationSaver
 
 
+def init(db):
+    "Initialize; update the CouchDB design documents."
+    if db.put_design("journal", DESIGN_DOC):
+        logging.info("Updated 'journal' design document.")
+
+
+DESIGN_DOC = {
+    "views": {
+        "issn": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'journal') return;
+  emit(doc.issn, doc.title);
+}"""
+        },
+        "issn_l": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'journal' || !doc['issn-l']) return;
+  emit(doc['issn-l'], doc.issn);
+}"""
+        },
+        "title": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'journal') return;
+  emit(doc.title, doc.issn);
+}"""
+        },
+    }
+}
+
+
 class JournalSaver(Saver):
     doctype = constants.JOURNAL
 
@@ -37,19 +67,22 @@ class JournalMixin:
 
     def check_editable(self, journal):
         "Raise ValueError if journal is not editable."
-        if self.is_editable(journal): return
+        if self.is_editable(journal):
+            return
         raise ValueError("You may not edit the journal.")
 
     def is_deletable(self, journal):
         "Is the journal deletable by the current user?"
-        if not self.is_admin(): return False
+        if not self.is_admin():
+            return False
         if self.get_docs("publication", "journal", key=journal["title"]):
             return False
         return True
 
     def check_deletable(self, journal):
         "Raise ValueError if journal is not deletable."
-        if self.is_deletable(journal): return
+        if self.is_deletable(journal):
+            return
         raise ValueError("You may not delete the journal.")
 
 
@@ -72,16 +105,18 @@ class Journal(JournalMixin, RequestHandler):
         duplicates = [d for d in duplicates if d["_id"] != journal["_id"]]
         publications = {}
         if journal["title"]:
-            view = self.db.view("publication", "journal",
-                                key=journal["title"], reduce=False)
+            view = self.db.view(
+                "publication", "journal", key=journal["title"], reduce=False
+            )
             for row in view:
                 try:
                     publications[row.id] += 1
                 except KeyError:
                     publications[row.id] = 1
         if journal["issn"]:
-            view = self.db.view("publication", "issn",
-                                key=journal["issn"], reduce=False)
+            view = self.db.view(
+                "publication", "issn", key=journal["issn"], reduce=False
+            )
             for row in view:
                 try:
                     publications[row.id] += 1
@@ -89,12 +124,14 @@ class Journal(JournalMixin, RequestHandler):
                     publications[row.id] = 1
         publications = [self.db[i] for i in publications]
         publications.sort(key=lambda p: p["published"], reverse=True)
-        self.render("journal.html",
-                    journal=journal,
-                    is_editable=self.is_editable(journal),
-                    is_deletable=self.is_deletable(journal),
-                    publications=publications,
-                    duplicates=duplicates)
+        self.render(
+            "journal.html",
+            journal=journal,
+            is_editable=self.is_editable(journal),
+            is_deletable=self.is_deletable(journal),
+            publications=publications,
+            duplicates=duplicates,
+        )
 
     @tornado.web.authenticated
     def post(self, title):
@@ -102,7 +139,8 @@ class Journal(JournalMixin, RequestHandler):
             self.delete(title)
             return
         raise tornado.web.HTTPError(
-            405, reason="Internal problem; POST only allowed for DELETE.")
+            405, reason="Internal problem; POST only allowed for DELETE."
+        )
 
     @tornado.web.authenticated
     def delete(self, title):
@@ -134,8 +172,9 @@ class JournalJson(Journal):
         result["issn"] = journal.get("issn")
         result["issn-l"] = journal.get("issn-l")
         result["publications_count"] = len(publications)
-        result["publications"] = [self.get_publication_json(publication)
-                                  for publication in publications]
+        result["publications"] = [
+            self.get_publication_json(publication) for publication in publications
+        ]
         result["created"] = journal["created"]
         result["modified"] = journal["modified"]
         self.write(result)
@@ -152,10 +191,12 @@ class JournalEdit(JournalMixin, RequestHandler):
         except (KeyError, ValueError) as error:
             self.see_other("journals", error=str(error))
             return
-        self.render("journal_edit.html",
-                    is_editable=self.is_editable(journal),
-                    is_deletable=self.is_deletable(journal),
-                    journal=journal)
+        self.render(
+            "journal_edit.html",
+            is_editable=self.is_editable(journal),
+            is_deletable=self.is_deletable(journal),
+            journal=journal,
+        )
 
     @tornado.web.authenticated
     def post(self, title):
@@ -176,22 +217,19 @@ class JournalEdit(JournalMixin, RequestHandler):
                 self.see_other("journal")
                 return
             saver["title"] = title
-            saver["issn"] = issn = self.get_argument("issn", None) or None
+            saver["issn"] = issn = self.get_argument("issn") or None
+            saver["issn-l"] = self.get_argument("issn-l") or None
         if old_title != title or old_issn != issn:
-            view = self.db.view("publication",
-                                "journal",
-                                key=old_title,
-                                include_docs=True,
-                                reduce=False)
-            for row in view:
-                with PublicationSaver(doc=row.doc, rqh=self) as saver:
-                    journal  = saver["journal"].copy()
+            publications = self.get_docs("publication", "journal", old_title)
+            for publ in publications:
+                with PublicationSaver(doc=publ, rqh=self) as saver:
+                    journal = saver["journal"].copy()
                     journal["title"] = title
                     journal["issn"] = issn
                     saver["journal"] = journal
         self.see_other("journal", journal["title"])
 
-    
+
 class Journals(RequestHandler):
     "Journals table page."
 

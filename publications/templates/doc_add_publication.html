@@ -1,0 +1,51 @@
+{# Documentation: Add a publication #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Add a publicaton{% end %}
+
+{% block body_title %}Add a publication{% end %}
+
+{% block main_content %}
+<h3>Add publications by fetching data</h3>
+
+<p>
+  <strong>Note:</strong> This is the recommended method for adding publications.
+</p>
+
+<p>
+  Publication references should be added using the
+  <a href="/fetch"><strong>Fetch data for publication</strong></a> page.
+  By giving a list of Digital Object Identifiers (DOI) and/or PubMed
+  identifiers (PMID), the system goes to the web services at
+  <a href="https://www.crossref.org/">Crossref</a> and/or
+  <a href="https://pubmed.ncbi.nlm.nih.gov/">PubMed</a>, respectively,
+  to fetch the publication reference data.
+</p>
+<p>
+  This method checks whether the DOI or PMID already exists in the
+  database, avoiding multiple copies.
+</p>
+<p>
+  This method also allows adding the labels that you as a curator may
+  edit.
+</p>
+
+<h3>Add publications manually</h3>
+
+<p>
+  Publication references can be added manually by filling in a
+  form on the <a href="/add"><strong>Add publication manually</strong></a>
+  page. This is for publication that has neither a DOI nor a PMID,
+  often preprints.
+</p>
+
+<h3>Delete a publication</h3>
+
+<p>
+  A curator may delete any publication. This should be
+  done <strong>only</strong> if the publication is clearly irrelevant
+  for the site as a whole, or if it is a duplicate. 
+</p>
+
+{% end %} {# block main_content #}

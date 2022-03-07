@@ -18,7 +18,7 @@ Search publications
       class="form-horizontal"
       method="GET">
     <div class="form-group">
-      <div class="col-sm-8">
+      <div class="col-md-8">
 	<input type="search" id="terms" name="terms"
 	       class="form-control", value="{{ terms }}">
 	<span class="help-block">
@@ -26,7 +26,7 @@ Search publications
 	  published, labels and xref accessions.
 	</span>
       </div>
-      <div class="col-sm-2">
+      <div class="col-md-2">
 	<button type="submit" class="btn btn-default">
 	  <span class="glyphicon glyphicon-search"></span>
 	  Submit
@@ -34,7 +34,12 @@ Search publications
       </div>
     </div>
 </form>
-{% include 'publications_list.html' %}
+
+<h3>{{ len(publications) }} publications</h3>
+{% for publication in publications %}
+{% include 'publication_item.html' %}
+{% end %}
+
 {% end %} {# block main_content #}
 
 {% block alt_format %}

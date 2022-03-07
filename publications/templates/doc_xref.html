@@ -1,0 +1,30 @@
+{# Documentation: Xref #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Xref{% end %}
+
+{% block body_title %}Xref{% end %}
+
+{% block main_content %}
+<p>
+  An xref is a reference to an external resource, most often a
+  database entry. Ideally, it should be accessible on the web. The
+  reference consists of two parts: The external database and the
+  accession code for the entry in it.
+</p>
+<p>
+  In those cases where the external database provides a URL template,
+  the Publications system can be configured to allow the button in the
+  interface to open a new browser tab for the database entry.
+</p>
+<p>
+  There is currently also an optional free-text description field
+  associated with an xref. This may be used for a brief
+  characterization of the data available in the database entry.
+</p>
+<p>
+  The procedure to add xrefs to a publication is described in Add
+  dataset xrefs.
+</p>
+{% end %} {# block main_content #}

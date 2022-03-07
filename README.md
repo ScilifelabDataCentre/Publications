@@ -3,15 +3,13 @@ Publications
 
 A web-based publications reference database system.
 
-See the [GitHub Publications wiki](https://github.com/pekrau/Publications/wiki)
-for the documentation, including How-to and Installation.
+- [Features](#features)
+- [Important changes](#important-changes)
+- [Implementation](#implementation)
+- [Installation](#installation)
+- [Command-line interface](#command-line-interface)
+- [Example instances](#example-instances)
 
-Requires Python 3.6 or higher.
-
-**NOTE:** Since version 6.0, the Python module
-[CouchDB2](https://pypi.org/project/CouchDB2/) is used instead of
-[CouchDB](https://pypi.org/project/CouchDB/). Upgrade your packages
-according to the `requirements.txt`.
 
 Features
 --------
@@ -27,6 +25,9 @@ Features
      using the Digital Object Identifier (DOI).
 
 - Publication references can be added manually.
+
+- A powerful subset selection expression evaluator, to produce a wide
+  range of publication subsets from the data. New in version 6.0.
 
 - Curator accounts for adding and editing the publication entries can
   be created by the admin of the instance.
@@ -59,8 +60,27 @@ Features
 - API to ask the server to fetch publications from PubMed or Crossref.
   See [its README](https://github.com/pekrau/Publications/tree/master/publications/api).
 
+Important changes
+-----------------
+
+- Since version 6.4, the GitHub wiki has been discontinued. Installation
+  information is available below, and other information is available
+  in the web app interface.
+
+- Since version 6.3, the directory containing site-specific data
+  (e.g. `settings.yaml`, `static` directory for favicon and logo image files)
+  has been moved from `Publications/publications/site` to `Publications/site`.
+  The installation procedure has changed accordingly.
+
+- Since version 6.0, the Python module
+  [CouchDB2](https://pypi.org/project/CouchDB2/) is used instead of
+  [CouchDB](https://pypi.org/project/CouchDB/). Upgrade your packages
+  according to the `requirements.txt`.
+
 Implementation
 --------------
+
+This system requires Python 3.6 or higher.
 
 ### Front-end (via CDN's)
 
@@ -80,9 +100,99 @@ Implementation
 - [pyyaml](https://pypi.python.org/pypi/PyYAML)
 - [requests](http://docs.python-requests.org/en/master/)
 
-SciLifeLab
-----------
+Installation
+------------
 
-The system was designed for keeping track of the publications
-to which the infrastructure units of SciLifeLab contributed.
-See [SciLifeLab Publications](https://publications.scilifelab.se/).
+0. NOTE: tornado is difficult (even impossible?) to set up on Windows
+   systems, so Linux is strongly recommended.
+
+1. Ensure that you have Python 3.6 or higher.
+
+2. Your Python environment must include the Publications directory in
+   its path, e.g.:
+   ```
+   $ cd wherever/Publications
+   $ export PYTHONPATH=$PWd
+   ```
+
+3. Install the required Python modules (see `Publications/requirements.txt`)
+
+4. Ensure that you have the CouchDB server installed and running.
+
+5. Create the database publications in the CouchDB server using its
+   own interface. Ensure that the database allows read/write access
+   for the CouchDB server account of your choice.  Record the CouchDB
+   server account name and password for the `settings.yaml` file (see below).
+
+6. Copy the directory `Publications/site_template` and all its contents to
+   `Publications/site`. The latter directory contains files that can or
+   should be modified for your site.
+
+7. Edit your settings file `Publications/site/settings.yaml`.
+   In particular, set the CouchDB connection, site name, etc.
+
+8. The Publications CouchDB database must be initialized using the CLI.
+   This also tests that the CouchDB variables in the `settings.yaml`
+   file are correct.
+   ```
+   $ python cli.py initialize
+   ```
+   
+9. Create an admin account using the CLI. This admin account is needed to
+   create other accounts (admin or curator) in the web interface.
+   ```
+   $ python cli.py admin
+   ```
+
+10. Set up the tornado web server to start on boot, using the port
+    number you have defined in the `settings.yaml` file. You need to figure
+    this out yourself.
+
+11. Set a proxy from your outward-facing web server (Apache, nginx, or
+    whatever your site supports) for the tornado server. You need to figure
+    this out yourself.
+
+Command-line interface
+----------------------
+
+There is a command-line interface (CLI) for admin work on the machine
+the system is running on. See its help texts. The top-level help text is:
+
+```
+$ python cli.py --help
+Usage: cli.py [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  -s, --settings TEXT  Name of settings YAML file.
+  --log                Enable logging output.
+  --help               Show this message and exit.
+
+Commands:
+  add-label        Add a label to a set of publications.
+  admin            Create a user account having the admin role.
+  counts           Output counts of database entities.
+  curator          Create a user account having the curator role.
+  dump             Dump all data in the database to a .tar.gz dump file.
+  fetch            Fetch publications given a file containing PMIDs...
+  find-pmid        Find the PMID for the publications in the CSV file.
+  initialize       Initialize the database, which must exist; load all...
+  password         Set the password for the given account.
+  remove-label     Remove a label from a set of publications.
+  select           Select a subset of publications and output to a file.
+  show             Display the JSON for the single item in the database.
+  undump           Load a Publications database .tar.gz dump file.
+  update-crossref  Use Crossref to update the publications in the CSV file.
+  update-pubmed    Use PubMed to update the publications in the CSV file.
+  xrefs            Output all xrefs as CSV data to the given file.
+```
+
+Example instances
+-----------------
+
+- [SciLifeLab Infrastructure Units Publications](https://publications.scilifelab.se/)
+  which keeps track of the publications to which the infrastructure
+  units of SciLifeLab have contributed. This was the need that the
+  system was designed for.
+
+- [Covid-19 Publications](https://publications-covid19.scilifelab.se/)
+  for publications with contributions from Swedish research.

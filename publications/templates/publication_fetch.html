@@ -17,8 +17,8 @@ Fetch data for publication
       method="POST">
   {% module xsrf_form_html() %}
   <div class="form-group">
-    <label class="col-sm-2 control-label" for="identifier">PMID or DOI</label>
-    <div class="col-sm-8">
+    <label class="col-md-2 control-label" for="identifier">PMID or DOI</label>
+    <div class="col-md-8">
       <textarea class="form-control" rows="4"
                 name="identifiers" id="identifiers"></textarea>
       <span class="help-block">
@@ -32,12 +32,11 @@ Fetch data for publication
         line.
         <br>
         A client-side script can use an API call to ask the server to
-        fetch a publication. See the
-        <a href="https://github.com/pekrau/Publications/wiki/Use-API-fetch" target="_blank">Publications wiki</a>
+        fetch a publication. See the <a href="/docs/api">API documentation</a>
         for more information.
       </span>
     </div>
-    <div class="col-sm-2">
+    <div class="col-md-2">
       <button type="submit" class="btn btn-success btn-block">
 	<span class="glyphicon glyphicon-cloud-download"></span>
 	Fetch
@@ -46,39 +45,19 @@ Fetch data for publication
   </div>
 
   <div class="form-group">
-    <label class="col-sm-2 control-label" for="override">Override</label>
-    <div class="col-sm-8 checkbox">
+    <label class="col-md-2 control-label" for="override">Override</label>
+    <div class="col-md-8 checkbox">
       <label>
 	<input type="checkbox" name="override" id="override" value="true">
 	Fetch the publication data overriding its current blacklisted status,
 	if any.
-        <br>
-        <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#override"
-           target="_">
-          <span class="glyphicon glyphicon-question-sign"></span>
-          Explain "override"
-        </a>
       </label>
     </div>
   </div>
 
   <div class="form-group">
-    <label class="control-label col-sm-2">Labels</label>
-    <div class=" col-sm-8">
-      <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#label"
-         target="_">
-        <span class="glyphicon glyphicon-question-sign"></span>
-        Explain "label"
-      </a>
-      {% if settings['SITE_LABEL_QUALIFIERS'] %}
-      &nbsp;
-      <a href="https://github.com/pekrau/Publications/wiki/Terms-explained#qualifier"
-         target="_">
-        <span class="glyphicon glyphicon-question-sign"></span>
-        Explain "qualifier"
-      </a>
-      {% end %} {# if settings['SITE_LABEL_QUALIFIERS'] #}
-      <br>
+    <label class="control-label col-md-2">Labels</label>
+    <div class=" col-md-8">
       {% for label in sorted(labels) %}
       <div class="checkbox">
 	<label>
@@ -116,8 +95,10 @@ Fetch data for publication
 
 {% if publications %}
 <div>
-  {% set list_title = "Fetched publications" %}
-  {% include 'publications_list.html' %}
+  <h3>{{ len(publications) }} fetched publications</h3>
+  {% for publication in publications %}
+  {% include 'publication_item.html' %}
+  {% end %}
 </div>
 {% end %} {# if publications #}
 {% end %} {# block main_content #}
@@ -130,7 +111,6 @@ Fetch data for publication
     Cancel
   </a>
 </p>
-{% include 'instructions.html' %}
 {% end %} {# block meta_content #}
 
 {% block autofocus %}

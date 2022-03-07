@@ -40,7 +40,10 @@
   </tr>
 </table>
 
-{% include 'publications_list.html' %}
+<h3>{{ len(publications) }} publications</h3>
+{% for publication in publications %}
+{% include 'publication_item.html' %}
+{% end %}
 
 {% end %} {# block main_content #}
 

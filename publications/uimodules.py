@@ -11,10 +11,16 @@ class Authors(tornado.web.UIModule):
     "HTML for authors list, including links to researcher page when available."
 
     def render(self, authors, complete=False):
-        if not complete and len(authors) > settings["NUMBER_FIRST_AUTHORS"] + settings["NUMBER_LAST_AUTHORS"]:
-            authors = authors[:settings["NUMBER_FIRST_AUTHORS"]] + \
-                [None] + \
-                authors[-settings["NUMBER_LAST_AUTHORS"]:]
+        if (
+            not complete
+            and len(authors)
+            > settings["NUMBER_FIRST_AUTHORS"] + settings["NUMBER_LAST_AUTHORS"]
+        ):
+            authors = (
+                authors[: settings["NUMBER_FIRST_AUTHORS"]]
+                + [None]
+                + authors[-settings["NUMBER_LAST_AUTHORS"] :]
+            )
         result = []
         for author in authors:
             if not author:
@@ -22,15 +28,10 @@ class Authors(tornado.web.UIModule):
                 continue
             name = "%s %s" % (author["family"], author.get("initials") or "")
             if author.get("researcher"):
-                try:
-                    researcher = self.handler.get_researcher(author["researcher"])
-                except KeyError:
-                    pass
-                else:
-                    url = self.handler.reverse_url("researcher", researcher["_id"])
-                    result.append(f'<a href="{url}">{name}</a>')
-                    continue
-            result.append(name)
+                url = self.handler.reverse_url("researcher", author["researcher"])
+                result.append(f'<a href="{url}">{name}</a>')
+            else:
+                result.append(name)
         return ", ".join(result)
 
 
@@ -70,7 +71,7 @@ class OpenAccess(tornado.web.UIModule):
             url = self.handler.static_url("open_access.png")
             return f'<img src="{url}" title="Open Access">'
         else:
-            return ''
+            return ""
 
 
 class Xref(tornado.web.UIModule):
@@ -98,7 +99,7 @@ class Xref(tornado.web.UIModule):
                 if full and description:
                     title += f" {description}"
             else:
-                if "%-s" in url:    # Use lowercase key
+                if "%-s" in url:  # Use lowercase key
                     url.replace("%-s", "%s")
                     key = key.lower()
                 url = url % key
@@ -106,10 +107,12 @@ class Xref(tornado.web.UIModule):
                 if full and description:
                     title += f" {description}"
         if url:
-            result = f'<a target="_" style="margin-right: 1em;" href="{url}">' \
-                     f'{self.ICON} <small>{title}</small></a>'
+            result = (
+                f'<a target="_" style="margin-right: 1em;" href="{url}">'
+                f"{self.ICON} <small>{title}</small></a>"
+            )
         else:
-            result = f'<span {self.ATTRS}>{self.ICON} <small>{title}</small></span>'
+            result = f"<span {self.ATTRS}>{self.ICON} <small>{title}</small></span>"
         return result
 
 
@@ -126,17 +129,23 @@ class ExternalButton(tornado.web.UIModule):
         assert self.URL
         if key:
             url = self.URL % key
-            result = '<a %s href="%s">%s %s</a>' % \
-                     (self.ATTRS, url, self.ICON, self.NAME)
-            if full: result = "<p>" + result + " " + key + "</p>"
+            result = '<a %s href="%s">%s %s</a>' % (
+                self.ATTRS,
+                url,
+                self.ICON,
+                self.NAME,
+            )
+            if full:
+                result = "<p>" + result + " " + key + "</p>"
             return result
         else:
             return ""
 
+
 class PubmedButton(ExternalButton):
     NAME = "PubMed"
     URL = constants.PUBMED_URL
-    
+
 
 class DoiButton(ExternalButton):
     NAME = "DOI"
@@ -150,7 +159,7 @@ class CrossrefButton(ExternalButton):
 
 class OrcidButton(ExternalButton):
     NAME = "ORCID"
-    URL  = constants.ORCID_URL
+    URL = constants.ORCID_URL
 
 
 class Translate(tornado.web.UIModule):

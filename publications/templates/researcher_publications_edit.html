@@ -22,7 +22,7 @@ Edit publications researcher
 
   {% for publication in publications %}
   <div class="form-group">
-    <div class="col-sm-2" style="vertical-align: top;">
+    <div class="col-md-2" style="vertical-align: top;">
       {% if researcher['_id'] in [a.get('researcher') for a in publication['authors']] %}
       <div class="radio" style="padding-top: 0;">
         <label class="radio" style="padding-top: 0;">
@@ -43,7 +43,7 @@ Edit publications researcher
       </div>
       {% end %}
     </div>
-    <div class="col-sm-10">
+    <div class="col-md-10">
       <div>
         <a href="{{ reverse_url('publication', publication['_id']) }}">
           <span class="glyphicon glyphicon-file"></span>

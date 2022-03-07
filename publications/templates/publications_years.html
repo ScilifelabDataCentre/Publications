@@ -1,0 +1,13 @@
+{# List of publications, divided by years.
+   The list of publications must have been reverse sorted by published date.
+#}
+
+{% set yr = None %}
+
+{% for publication in publications %}
+{% if publication['published'].split('-')[0] != yr %}
+{% set yr = publication['published'].split('-')[0] %}
+<h3>Year {{ yr }}</h3>
+{% end %}
+{% include 'publication_item.html' %}
+{% end %} {# for #}

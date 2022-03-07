@@ -22,6 +22,18 @@
   <a href="{{ label.get('href') }}" target="_">{{ label.get('href') }}</a>
 </p>
 {% end %}
+<p>
+  {% if label.get('secondary') %}
+  <strong>Secondary</strong>: Not shown in the list of current labels.
+  {% else %}
+  <strong>Primary</strong>:
+  {% if settings['TEMPORAL_LABELS'] %}
+  Shown in the list of current labels, if end date is not specified.
+  {% else %}
+  Shown in the list of current labels.
+  {% end %}
+  {% end %}
+</p>
 {% if settings['TEMPORAL_LABELS'] %}
 <p>
   <strong>Started:</strong> {{ label.get('started') or '-' }}
@@ -45,7 +57,7 @@
 </p>
 {% end %} {# if current_user #}
 
-{% include 'publications_list_years.html' %}
+{% include 'publications_years.html' %}
 
 {% end %} {# block main_content #}
 
@@ -84,7 +96,7 @@
 {% end %} {# block meta_content #}
 
 {% block alt_format %}
-<a href="{{ handler.reverse_url('label_json', label['value'], limit=limit) }}">
+<a href="{{ handler.reverse_url('label_json', label['value']) }}">
   <img src="{{ static_url('json.png') }}"> JSON
 </a>
 <br>

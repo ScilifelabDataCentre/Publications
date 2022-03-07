@@ -3,6 +3,7 @@
 import json
 import os
 import os.path
+import string
 import sys
 import time
 import unicodedata
@@ -17,14 +18,36 @@ PUBMED_SEARCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?
 DEFAULT_TIMEOUT = 5.0
 DEFAULT_DELAY = 1.0
 
-MONTHS = dict(jan=1, feb=2, mar=3, apr=4, may=5, jun=6,
-              jul=7, aug=8, sep=9, oct=10, nov=11, dec=12)
+MONTHS = dict(
+    jan=1,
+    feb=2,
+    mar=3,
+    apr=4,
+    may=5,
+    jun=6,
+    jul=7,
+    aug=8,
+    sep=9,
+    oct=10,
+    nov=11,
+    dec=12,
+)
 
 
-def search(author=None, published=None, journal=None, doi=None,
-           affiliation=None, title=None, exclude_title=None,
-           retmax=20, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
-           api_key=None, debug=False):
+def search(
+    author=None,
+    published=None,
+    journal=None,
+    doi=None,
+    affiliation=None,
+    title=None,
+    exclude_title=None,
+    retmax=20,
+    timeout=DEFAULT_TIMEOUT,
+    delay=DEFAULT_DELAY,
+    api_key=None,
+    debug=False,
+):
     """Get list of PMIDs for PubMed hits given the data.
     Delay the HTTP request if positive value (seconds).
     The API key is the one set for your NCBI account, if any.
@@ -54,16 +77,22 @@ def search(author=None, published=None, journal=None, doi=None,
         if debug:
             print("url>", url)
         response = requests.get(url, timeout=timeout)
-    except (requests.exceptions.ReadTimeout,
-            requests.exceptions.ConnectionError):
+    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
         raise IOError("timeout")
     if response.status_code != 200:
         raise IOError(f"HTTP status {response.status_code} {url}")
     root = xml.etree.ElementTree.fromstring(response.content)
     return [e.text for e in root.findall("IdList/Id")]
 
-def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
-           api_key=None, debug=False):
+
+def fetch(
+    pmid,
+    dirname=None,
+    timeout=DEFAULT_TIMEOUT,
+    delay=DEFAULT_DELAY,
+    api_key=None,
+    debug=False,
+):
     """Fetch publication XML from PubMed and parse into a dictionary.
     Return None if no article data in XML.
     Use the file cache directory if given.
@@ -89,8 +118,7 @@ def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
             print("url>", url)
         try:
             response = requests.get(url, timeout=timeout)
-        except (requests.exceptions.ReadTimeout,
-                requests.exceptions.ConnectionError):
+        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
             raise IOError("timeout")
         if response.status_code != 200:
             raise IOError(f"HTTP status {response.status_code} {url}")
@@ -101,6 +129,7 @@ def fetch(pmid, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY,
                 outfile.write(content)
     return parse(content)
 
+
 def parse(data):
     "Parse XML text data for a publication into a dictionary."
     tree = xml.etree.ElementTree.fromstring(data)
@@ -109,16 +138,16 @@ def parse(data):
     except ValueError:
         raise ValueError("no article with the given PMID")
     result = dict()
-    result["title"]      = squish(get_title(article))
-    result["pmid"]       = get_pmid(article)
-    result["doi"]        = None
-    result["authors"]    = get_authors(article)
-    result["journal"]    = get_journal(article)
-    result["type"]       = get_type(article)
-    result["published"]  = get_published(article)
+    result["title"] = squish(get_title(article))
+    result["pmid"] = get_pmid(article)
+    result["doi"] = None
+    result["authors"] = get_authors(article)
+    result["journal"] = get_journal(article)
+    result["type"] = get_type(article)
+    result["published"] = get_published(article)
     result["epublished"] = get_epublished(article)
-    result["abstract"]   = get_abstract(article)
-    result["xrefs"]      = []
+    result["abstract"] = get_abstract(article)
+    result["xrefs"] = []
     # Remove PMID from xrefs; get and remove DOI
     for xref in get_xrefs(article):
         if xref["db"] == "doi":
@@ -129,30 +158,37 @@ def parse(data):
             result["xrefs"].append(xref)
     return result
 
+
 def get_title(article):
     "Get the title from the article XML tree."
     element = get_element(article, "MedlineCitation/Article/ArticleTitle")
     return get_text(element)
 
+
 def get_pmid(article):
     "Get the PMID from the article XML tree."
     return article.findtext("MedlineCitation/PMID")
+
 
 def get_authors(article):
     "Get the list of authors from the article XML tree."
     element = get_element(article, "MedlineCitation/Article")
     authorlist = element.find("AuthorList")
-    if not authorlist: return []
+    if not authorlist:
+        return []
     result = []
-    existing = set()                # Handle pathological multi-mention.
+    existing = set()  # Handle pathological multi-mention.
     for element in authorlist.findall("Author"):
         author = dict()
         # Name of author
-        for jkey, xkey in [("family", "LastName"),
-                           ("given", "ForeName"),
-                           ("initials", "Initials")]:
+        for jkey, xkey in [
+            ("family", "LastName"),
+            ("given", "ForeName"),
+            ("initials", "Initials"),
+        ]:
             value = element.findtext(xkey)
-            if not value: continue
+            if not value:
+                continue
             value = str(value)
             author[jkey] = value
             author[jkey + "_normalized"] = to_ascii(value).lower()
@@ -162,7 +198,8 @@ def get_authors(article):
                 author["family"] = author.pop("given")
             except KeyError:
                 value = element.findtext("CollectiveName")
-                if not value: continue # Give up.
+                if not value:
+                    continue  # Give up.
                 value = str(value)
                 author["family"] = value
             author["given"] = ""
@@ -177,7 +214,7 @@ def get_authors(article):
         for elem in element.findall(".//Affiliation"):
             author.setdefault("affiliations", []).append(get_text(elem))
         if author:
-            try:                    # Don't add author if this doesn't work.
+            try:  # Don't add author if this doesn't work.
                 key = f"{author['family']} {author['given']}"
                 if key not in existing:
                     result.append(author)
@@ -185,6 +222,7 @@ def get_authors(article):
             except KeyError:
                 pass
     return result
+
 
 def get_journal(article):
     "Get the journal data from the article XML tree."
@@ -204,7 +242,7 @@ def get_journal(article):
         pages = element.text
         if pages:
             pages = pages.split("-")
-            if len(pages) == 2:         # Complete page numbers!
+            if len(pages) == 2:  # Complete page numbers!
                 diff = len(pages[0]) - len(pages[1])
                 if diff > 0:
                     pages[1] = pages[0][0:diff] + pages[1]
@@ -212,13 +250,17 @@ def get_journal(article):
         result["pages"] = pages
     return result
 
+
 def get_type(article):
     "Get the type from the article XML tree."
-    element = get_element(article, "MedlineCitation/Article/PublicationTypeList/PublicationType")
+    element = get_element(
+        article, "MedlineCitation/Article/PublicationTypeList/PublicationType"
+    )
     if element is not None:
         return element.text.lower()
     else:
         return None
+
 
 def get_published(article):
     "Get the publication date from the article XML tree."
@@ -226,25 +268,29 @@ def get_published(article):
     date = []
     if elem is not None:
         date = get_date(elem)
-    if len(date) < 2:               # Fallback 1: ArticleDate
+    if len(date) < 2:  # Fallback 1: ArticleDate
         elem = article.find("MedlineCitation/Article/ArticleDate")
         if elem is not None:
             date = get_date(elem)
-    if len(date) < 2:               # Fallback 2: PubMedPubDate
+    if len(date) < 2:  # Fallback 2: PubMedPubDate
         dates = article.findall("PubmedData/History/PubMedPubDate")
         for status in ["epublish", "aheadofprint", "pubmed"]:
             for elem in dates:
                 if elem.get("PubStatus") == status:
                     date = get_date(elem)
                     break
-            if len(date) >= 2: break
-    if len(date) == 0:              # Fallback 3: today's year
+            if len(date) >= 2:
+                break
+    if len(date) == 0:  # Fallback 3: today's year
         d = time.localtime()
         date = [d.tm_year, 0, 0]
     # Add dummy values, if missing
-    if len(date) == 1: date.append(0)
-    if len(date) == 2: date.append(0)
+    if len(date) == 1:
+        date.append(0)
+    if len(date) == 2:
+        date.append(0)
     return "%s-%02i-%02i" % tuple(date)
+
 
 def get_epublished(article):
     "Get the online publication date from the article XML tree, or None."
@@ -259,13 +305,17 @@ def get_epublished(article):
                 if elem.get("PubStatus") == status:
                     date = get_date(elem)
                     break
-            if len(date) >= 2: break
-    if len(date) == 0:          # No date found
+            if len(date) >= 2:
+                break
+    if len(date) == 0:  # No date found
         return None
     # Add dummy values, if missing
-    if len(date) == 1: date.append(0)
-    if len(date) == 2: date.append(0)
+    if len(date) == 1:
+        date.append(0)
+    if len(date) == 2:
+        date.append(0)
     return "%s-%02i-%02i" % tuple(date)
+
 
 def get_abstract(article):
     "Get the abstract from the article XML tree."
@@ -279,6 +329,7 @@ def get_abstract(article):
             text.append(get_text(elem))
         return "\n\n".join([t for t in text if t]).strip()
 
+
 def get_xrefs(article):
     "Get the list of cross-references from the article XML tree."
     result = []
@@ -286,15 +337,19 @@ def get_xrefs(article):
         result.append(dict(db=elem.get("IdType"), key=elem.text))
     for elem in article.findall("MedlineCitation/Article/DataBankList/DataBank"):
         db = elem.findtext("DataBankName")
-        if not db: continue
+        if not db:
+            continue
         for elem2 in elem.findall("AccessionNumberList/AccessionNumber"):
             result.append(dict(db=db, key=elem2.text))
     return result
 
+
 def get_element(tree, key):
     element = tree.find(key)
-    if element is None: raise ValueError(f"Could not find '{key}' element.")
+    if element is None:
+        raise ValueError(f"Could not find '{key}' element.")
     return element
+
 
 def get_date(element):
     "Get the [year, month, day] from the element."
@@ -319,6 +374,7 @@ def get_date(element):
     result.append(day)
     return result
 
+
 def get_text(element):
     "Get all text from element and its children. Normalize blanks."
     text = []
@@ -330,18 +386,21 @@ def get_text(element):
     text = " ".join([t for t in text.split()])
     return text
 
+
 def to_ascii(value):
     "Convert any non-ASCII character to its closest ASCII equivalent."
-    if value is None: return ""
+    if value is None:
+        return ""
     value = unicodedata.normalize("NFKD", str(value))
-    return u"".join([c for c in value if not unicodedata.combining(c)])
+    return "".join([c for c in value if not unicodedata.combining(c)])
+
 
 def squish(value):
     "Remove all unnecessary white spaces."
     return " ".join([p for p in value.split() if p])
 
 
-if __name__ == "__main__":
+def test():
     dirname = os.getcwd()
     pmids = sys.argv[1:]
     if not pmids:
@@ -349,3 +408,7 @@ if __name__ == "__main__":
     for pmid in pmids:
         data = fetch(pmid, dirname=dirname, debug=True)
         print(json.dumps(data, indent=2, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    print(search(doi="10.1038/356448a0"))

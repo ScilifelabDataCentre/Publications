@@ -13,15 +13,15 @@
 {% if all is not None %}
 <p>
   {% if all %}
-  All {% module Translate('Labels') %} are shown,
-  regardless of when they were active. Click
+  All {% module Translate('labels') %} are shown,
+  regardless of whether they are current or not.
   <a href="{{ reverse_url('labels', all=False) }}">
-    here to see only current {% module Translate('Labels') %}.
+    Click here to see only current {% module Translate('labels') %}.
   </a>
   {% else %}
-  Only current {% module Translate('Labels') %} are shown. Click
+  Only current {% module Translate('labels') %} are shown.
   <a href="{{ reverse_url('labels', all=True) }}">
-    here to see all {% module Translate('Labels') %}.
+    Click here to see all {% module Translate('labels') %}.
   </a>
   {% end %}
 </p>
@@ -34,6 +34,12 @@
 	<a href="{{ reverse_url('label', label['value']) }}"
 	   class="btn btn-default btn-block label-custom">
 	  {{ label['value'] }}
+          {% if label.get('secondary') %}
+          <i>[Secondary]</i>
+          {% end %}
+          {% if label.get('ended') %}
+          <i>[Not current]</i>
+          {% end %}
 	</a>
       </li>
       {% end %}
@@ -44,6 +50,12 @@
 	<a href="{{ reverse_url('label', label['value']) }}"
 	   class="btn btn-default btn-block label-custom">
 	  {{ label['value'] }}
+          {% if label.get('secondary') %}
+          <i>[Secondary]</i>
+          {% end %}
+          {% if label.get('ended') %}
+          <i>[Not current]</i>
+          {% end %}
 	</a>
       </li>
       {% end %}

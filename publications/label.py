@@ -14,6 +14,39 @@ from publications.publication import PublicationSaver
 from publications.subset import Subset
 
 
+def init(db):
+    "Initialize; update the CouchDB design documents."
+    if db.put_design("label", DESIGN_DOC):
+        logging.info("Updated 'label' design document.")
+
+
+DESIGN_DOC = {
+    "views": {
+        "normalized_value": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'label') return;
+  emit(doc.normalized_value, doc.value);
+}"""
+        },
+        "value": {
+            "reduce": "_count",
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'label') return;
+  emit(doc.value, null);
+}""",
+        },
+        "current": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'label') return;
+  if (doc.ended) return;
+  if (doc.secondary) return;
+  emit(doc.started, doc.value);
+}"""
+        },
+    }
+}
+
+
 class LabelSaver(Saver):
     doctype = constants.LABEL
 
@@ -21,11 +54,15 @@ class LabelSaver(Saver):
         self["value"] = value
         self["normalized_value"] = utils.to_ascii(value).lower()
 
+    def set_secondary(self, value):
+        self["secondary"] = utils.to_bool(value)
+
     def check_value(self, value):
         "Value must be unique."
         try:
             label = utils.get_label(self.db, value)
-            if label["_id"] == self.doc.get("_id"): return
+            if label["_id"] == self.doc.get("_id"):
+                return
         except KeyError:
             pass
         else:
@@ -45,21 +82,11 @@ class Label(RequestHandler):
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        accounts = self.get_docs("account", "label",
-                                 key=label["value"].lower())
+        accounts = self.get_docs("account", "label", key=label["value"].lower())
         publications = list(Subset(self.db, label=label["value"]))
-        # This is inefficient; really shouldn't fetch those 
-        # beyond the limit in the first place, but we want
-        # the latest publications, and the index is such that
-        # we have to get all to do the sorting here.
-        limit = self.get_limit()
-        if limit:
-            publications = publications[:limit]
-        self.render("label.html",
-                    label=label,
-                    accounts=accounts,
-                    publications=publications,
-                    limit=limit)
+        self.render(
+            "label.html", label=label, accounts=accounts, publications=publications
+        )
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -67,7 +94,8 @@ class Label(RequestHandler):
             self.delete(identifier)
             return
         raise tornado.web.HTTPError(
-            405, reason="Internal problem; POST only allowed for DELETE.")
+            405, reason="Internal problem; POST only allowed for DELETE."
+        )
 
     @tornado.web.authenticated
     def delete(self, identifier):
@@ -99,11 +127,13 @@ class LabelJson(Label):
     "Label JSON data."
 
     def render(self, template, **kwargs):
-        params = dict(publications=kwargs["publications"],
-                      accounts=kwargs["accounts"])
-        if kwargs.get("limit"):
-            params["limit"] = kwargs["limit"]
-        self.write(self.get_label_json(kwargs["label"], **params))
+        self.write(
+            self.get_label_json(
+                kwargs["label"],
+                publications=kwargs["publications"],
+                accounts=kwargs["accounts"],
+            )
+        )
 
 
 class LabelsList(RequestHandler):
@@ -181,6 +211,7 @@ class LabelAdd(RequestHandler):
         try:
             with LabelSaver(rqh=self) as saver:
                 saver.set_value(value)
+                saver.set_secondary(self.get_argument("secondary", None))
             label = saver.doc
         except ValueError as error:
             self.set_error_flash(str(error))
@@ -216,6 +247,7 @@ class LabelEdit(RequestHandler):
             with LabelSaver(label, rqh=self) as saver:
                 saver.check_revision()
                 saver.set_value(new_value)
+                saver.set_secondary(self.get_argument("secondary", None))
                 saver["href"] = self.get_argument("href", None)
                 saver["description"] = self.get_argument("description", None)
                 if settings["TEMPORAL_LABELS"]:
@@ -230,8 +262,7 @@ class LabelEdit(RequestHandler):
             self.see_other("label_edit", old_value)
             return
         if new_value != old_value:
-            for account in self.get_docs("account", "label",
-                                         key=old_value.lower()):
+            for account in self.get_docs("account", "label", key=old_value.lower()):
                 with AccountSaver(account, rqh=self) as saver:
                     labels = set(account["labels"])
                     labels.discard(old_value)
@@ -258,9 +289,9 @@ class LabelMerge(RequestHandler):
         except KeyError as error:
             self.see_other("labels", error=str(error))
             return
-        self.render("label_merge.html",
-                    label=label,
-                    labels=self.get_docs("label", "value"))
+        self.render(
+            "label_merge.html", label=label, labels=self.get_docs("label", "value")
+        )
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -293,8 +324,9 @@ class LabelMerge(RequestHandler):
         for publication in Subset(self.db, label=old_label):
             with PublicationSaver(publication, rqh=self) as saver:
                 labels = publication["labels"].copy()
-                qual = labels.pop(old_label, None) or \
-                       labels.pop(old_label.lower(), None)
+                qual = labels.pop(old_label, None) or labels.pop(
+                    old_label.lower(), None
+                )
                 labels[new_label] = labels.get(new_label) or qual
                 saver["labels"] = labels
         self.see_other("label", new_label)

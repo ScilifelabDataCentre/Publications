@@ -1,5 +1,6 @@
 "Publication pages."
 
+import functools
 import logging
 
 import couchdb2
@@ -14,6 +15,221 @@ from publications.saver import Saver, SaverError
 from publications.subset import Subset
 from publications.writer import CsvWriter, XlsxWriter, TextWriter
 from publications.requesthandler import RequestHandler, ApiMixin
+
+
+def init(db):
+    "Initialize; update the CouchDB design documents."
+    if db.put_design("publication", DESIGN_DOC):
+        logging.info("Updated 'publication' design document.")
+
+
+REMOVE = "".join(constants.SEARCH_REMOVE)
+IGNORE = ",".join(["'%s':1" % i for i in constants.SEARCH_IGNORE])
+
+DESIGN_DOC = {
+    "views": {
+        "author": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var au, name;
+  var length = doc.authors.length;
+  for (var i=0; i<length; i++) {
+    au = doc.authors[i];
+    if (!au.family_normalized) continue;
+    emit(au.family_normalized, null);
+    if (au.initials_normalized) {
+      name = au.family_normalized + ' ' + au.initials_normalized;
+      emit(name, null);
+    }
+    if (au.given_normalized) {
+      name = au.family_normalized + ' ' + au.given_normalized;
+      emit(name, null);
+    }
+  }
+}"""
+        },
+        "researcher": {
+            "reduce": "_count",
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var au;
+  var length = doc.authors.length;
+  for (var i=0; i<length; i++) {
+    au = doc.authors[i];
+    if (au.researcher) emit(au.researcher, au.family + ' ' + au.initials);
+  }
+}""",
+        },
+        "pmid": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (doc.pmid) emit(doc.pmid, null);
+}"""
+        },
+        "doi": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (doc.doi) emit(doc.doi.toLowerCase(), null);
+}"""
+        },
+        "no_pmid": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.pmid) emit(doc.published, null);
+}"""
+        },
+        "no_doi": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.doi) emit(doc.published, null);
+}"""
+        },
+        "epublished": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.epublished) return;
+  emit(doc.epublished, null);
+}"""
+        },
+        "first_published": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.published) return;
+  if (doc.epublished) {
+    if (doc.published < doc.epublished) {
+      emit(doc.published, null);
+    } else {
+      emit(doc.epublished, null);
+    };
+  } else {
+    emit(doc.published, null);
+  };
+}"""
+        },
+        "label_parts": {
+            "map": """var REMOVE = /[%s]/g;
+var IGNORE = {%s};
+function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var label, parts, part;
+  for (var key in doc.labels) {
+    label = doc.labels[key].toLowerCase();
+    label = label.replace(REMOVE, ' ');
+    parts = label.split(/\s+/);
+    var length = parts.length;
+    for (var i=0; i<length; i++) {
+      part = parts[i];
+      if (!part) continue;
+      if (IGNORE[part]) continue;
+      emit(part, null);
+    }
+  }
+}"""
+            % (REMOVE, IGNORE)
+        },
+        "issn": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.journal) return;
+  if (doc.journal.issn) emit(doc.journal.issn, null);
+  if (doc.journal['issn-l']) emit(doc.journal['issn-l'], null);
+}"""
+        },
+        "journal": {
+            "reduce": "_count",
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.journal) return;
+  if (!doc.journal.title) return;
+  emit(doc.journal.title, null);
+}""",
+        },
+        "label": {
+            "reduce": "_count",
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  for (var key in doc.labels) emit(key.toLowerCase(), null);
+}""",
+        },
+        "no_label": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (Object.keys(doc.labels).length === 0) emit(doc.title, null);
+}"""
+        },
+        "year": {
+            "reduce": "_count",
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.published) return;
+  var year = doc.published.split('-')[0];
+  emit(year, null);
+}""",
+        },
+        "modified": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  emit(doc.modified, null);
+}"""
+        },
+        "notes": {
+            "map": """var REMOVE = /[%s]/g;
+var IGNORE = {%s};
+function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var notes = doc.notes.split(/\s+/);
+  var note;
+  var length = notes.length;
+  for (var i=0; i<length; i++) {
+    note = notes[i].toLowerCase();
+    note = note.replace(REMOVE, '');
+    if (!note) continue;
+    if (IGNORE[note]) continue;
+    emit(note, null);
+  }
+}"""
+            % (REMOVE, IGNORE)
+        },
+        "published": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  if (!doc.published) return;
+  emit(doc.published, null);
+}"""
+        },
+        "title": {
+            "map": """var REMOVE = /[%s]/g;
+var IGNORE = {%s};
+function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var words = doc.title.split(/\s+/);
+  var word;
+  var length = words.length;
+  for (var i=0; i<length; i++) {
+    word = words[i].toLowerCase();
+    word = word.replace(REMOVE, '');
+    if (!word) continue;
+    if (IGNORE[word]) continue;
+    emit(word, null);
+  }
+}"""
+            % (REMOVE, IGNORE)
+        },
+        "xref": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'publication') return;
+  var xref;
+  var length = doc.xrefs.length;
+  for (var i=0; i<length; i++) {
+    xref = doc.xrefs[i];
+    if (!xref.db) continue;
+    if (!xref.key) continue;
+    emit(xref.key, xref.db);
+  }
+}"""
+        },
+    }
+}
 
 
 class PublicationSaver(Saver):
@@ -64,14 +280,15 @@ class PublicationSaver(Saver):
         authors = []
         for author in self.rqh.get_argument("authors", "").split("\n"):
             author = author.strip()
-            if not author: continue
+            if not author:
+                continue
             try:
                 family, given = author.split(",", 1)
             except ValueError:  # Name written as 'Per Kraulis'
                 parts = author.split()
                 family = parts[-1]
                 given = " ".join(parts[:-1])
-            else:               # Name written as 'Kraulis, Per'
+            else:  # Name written as 'Kraulis, Per'
                 family = family.strip()
                 if not family:
                     family = author
@@ -79,17 +296,19 @@ class PublicationSaver(Saver):
                 given = given.strip()
             initials = "".join([c[0] for c in given.split()])
             authors.append(
-                dict(family=family,
-                     family_normalized=utils.to_ascii(family).lower(),
-                     given=given,
-                     given_normalized=utils.to_ascii(given).lower(),
-                     initials=initials,
-                     initials_normalized=utils.to_ascii(initials).lower()))
+                dict(
+                    family=family,
+                    family_normalized=utils.to_ascii(family).lower(),
+                    given=given,
+                    given_normalized=utils.to_ascii(given).lower(),
+                    initials=initials,
+                    initials_normalized=utils.to_ascii(initials).lower(),
+                )
+            )
         # Authors: Transfer previously associated researchers.
         researchers = self._get_researchers()
         for author in authors:
-            key = "%s %s" % (author["family_normalized"],
-                             author["initials_normalized"])
+            key = "%s %s" % (author["family_normalized"], author["initials_normalized"])
             try:
                 author["researcher"] = researchers[key]
             except KeyError:
@@ -101,9 +320,9 @@ class PublicationSaver(Saver):
         result = {}
         for author in self.doc["authors"]:
             researcher = author.get("researcher")
-            if not researcher: continue
-            key = "%s %s" % (author["family_normalized"],
-                             author["initials_normalized"])
+            if not researcher:
+                continue
+            key = "%s %s" % (author["family_normalized"], author["initials_normalized"])
             result[key] = researcher
         return result
 
@@ -163,16 +382,16 @@ class PublicationSaver(Saver):
         assert self.rqh, "requires http request context"
         self["notes"] = self.rqh.get_argument("notes", "") or None
 
-    def update(self, other, updated_by_pmid=False):
-        """Update a field in the current publication if there is a value 
+    def update(self, other):
+        """Update a field in the current publication if there is a value
         in the other publication. It is assumed that they are representations
         of the same source publication.
-        Set the 'uppated_by_pmid' flag if True.
         Check if author can be associated with a researcher.
         Create a researcher, if ORCID is available.
         """
         # Import done here to avoid circularity.
         from publications.researcher import ResearcherSaver
+
         self["title"] = other["title"] or self["title"]
         self["pmid"] = other["pmid"] or self["pmid"]
         self["doi"] = other["doi"] or self["doi"]
@@ -181,8 +400,6 @@ class PublicationSaver(Saver):
         self["epublished"] = other.get("epublished") or self.get("epublished")
         self["abstract"] = other.get("abstract") or self.get("abstract")
         self["xrefs"] = other.get("xrefs") or self.get("xrefs") or []
-        if updated_by_pmid:
-            self["updated_by_pmid"] = utils.timestamp()
 
         # Special case for journal field: copy each component field.
         try:
@@ -198,8 +415,7 @@ class PublicationSaver(Saver):
         self["authors"] = other["authors"]
         # Transfer the researcher association, if any.
         for author in self["authors"]:
-            key = "%s %s" % (author["family_normalized"],
-                             author["initials_normalized"])
+            key = "%s %s" % (author["family_normalized"], author["initials_normalized"])
             try:
                 # Previously associated researcher; just set it.
                 author["researcher"] = researchers[key]
@@ -209,11 +425,13 @@ class PublicationSaver(Saver):
                 if orcid:
                     # Existing reseacher based on ORCID.
                     try:
-                        author["researcher"] = self.rqh.get_researcher(orcid)["_id"]
+                        author["researcher"] = utils.get_researcher(self.db, orcid)[
+                            "_id"
+                        ]
                     except KeyError:
                         # Create a new researcher.
                         try:
-                            with ResearcherSaver(rqh=self.rqh) as saver:
+                            with ResearcherSaver(db=self.db) as saver:
                                 saver.set_family(author.get("family"))
                                 saver.set_given(author.get("given"))
                                 saver.set_initials(author.get("initials"))
@@ -221,7 +439,7 @@ class PublicationSaver(Saver):
                                 saver.set_affiliations(author.get("affiliations"))
                             author["researcher"] = saver.doc["_id"]
                         except ValueError:
-                            pass    # Just skip if any problem.
+                            pass  # Just skip if any problem.
             # Don't save affiliations in publication itself.
             author.pop("affiliations", None)
 
@@ -231,7 +449,7 @@ class PublicationSaver(Saver):
         """
         # Import done here to avoid circularity.
         from publications.journal import JournalSaver
-        assert self.rqh, "requires http request context"
+
         doc = None
         try:
             journal = self["journal"].copy()
@@ -242,16 +460,16 @@ class PublicationSaver(Saver):
         issn_l = journal.get("issn-l")
         if issn:
             try:
-                doc = self.rqh.get_doc("journal", "issn", issn)
+                doc = utils.get_doc(self.db, "journal", "issn", issn)
                 issn_l = doc.get("issn-l") or issn_l
             except KeyError:
                 try:
-                    doc = self.rqh.get_doc("journal", "issn_l", issn)
+                    doc = utils.get_doc(self.db, "journal", "issn_l", issn)
                     issn_l = issn
                 except KeyError:
                     if title:
                         try:
-                            doc = self.rqh.get_doc("journal", "title", title)
+                            doc = utils.get_doc(self.db, "journal", "title", title)
                         except KeyError:
                             doc = None
                         else:
@@ -270,14 +488,17 @@ class PublicationSaver(Saver):
 
     def update_labels(self, labels=None, allowed_labels=None, clean=True):
         """Update the labels. If no labels dictionary given, get HTTP form data.
+        If labels are not given, they are obtained from HTML form arguments,
+        so an http request is required in that case.
         Only changes the allowed labels for the current user.
-        If clean, then remove any missing allowed labels from existing entry.
+        If clean, then remove any allowed labels missing in the input
+        labels that are set in the existing publication entry.
         """
         if labels is None:
-            # Horrible kludge: Unicode issue for labels and qualifiers...
+            # Handle weird problem with non-ASCII characters in label...
             values = {}
             for key in self.rqh.request.arguments.keys():
-                values[utils.to_ascii(key)] =self.rqh.get_argument(key)
+                values[utils.to_ascii(key)] = self.rqh.get_argument(key)
             labels = {}
             for label in self.rqh.get_arguments("label"):
                 qualifier = values.get(utils.to_ascii(f"{label}_qualifier"))
@@ -292,7 +513,8 @@ class PublicationSaver(Saver):
             try:
                 updated[label] = labels[label]
             except KeyError:
-                if clean: updated.pop(label, None)
+                if clean:
+                    updated.pop(label, None)
         self["labels"] = updated
 
 
@@ -301,135 +523,34 @@ class PublicationMixin:
 
     def is_editable(self, publication):
         "Is the publication editable by the current user?"
-        if not self.is_curator(): return False
+        if not self.is_curator():
+            return False
         return True
 
     def check_editable(self, publication):
         "Check that the publication is editable by the current user."
-        if self.is_editable(publication): return
+        if self.is_editable(publication):
+            return
         raise ValueError("You many not edit the publication.")
-
-    def is_xrefs_editable(self, publication):
-        "Are the xrefs of the publication editable by the current user?"
-        if not self.is_xrefcur(): return False
-        return True
-
-    def check_xrefs_editable(self, publication):
-        """Check that the xrefs of the publication are editable by
-        the current user."""
-        if self.is_xrefs_editable(publication): return
-        raise ValueError("You many not edit the xrefs of the publication.")
 
     def is_deletable(self, publication):
         "Is the publication deletable by the current user?"
-        if not self.is_curator(): return False
+        if not self.is_curator():
+            return False
         return True
 
     def check_deletable(self, publication):
         "Check that the publication is deletable by the current user."
-        if self.is_deletable(publication): return
+        if self.is_deletable(publication):
+            return
         raise ValueError("You may not delete the publication.")
 
     def get_allowed_labels(self):
-        "Get the set of allowed labels for the account."
+        "Get the set of allowed labels for the logged-in account."
         if self.is_admin():
             return set([l["value"] for l in self.get_docs("label", "value")])
         else:
             return set(self.current_user["labels"])
-
-
-class PublicationFetchMixin:
-    "Mixin for method to fetch a number of publications from externa sources."
-
-    def fetch(self, identifier, override=False, labels={}, clean=True):
-        """Fetch the publication given by identifier (PMID or DOI).
-        override: If True, overrides the blacklist.
-        labels: Dictionary of labels (key: label, value: qualifier) to set.
-                Only allowed labels for the curator are updated.
-        clean: Remove any missing allowed labels from an existing entry.
-        Raise IOError if no such publication found, or other error.
-        Raise KeyError if publication is in the blacklist (and not override).
-        """
-        self.check_blacklisted(identifier, override=override)
-
-        # Does the publication already exist in the database?
-        try:
-            current = self.get_publication(identifier)
-        except KeyError:
-            current = None
-
-        # Fetch from external source according to identifier type.
-        identifier_is_pmid = constants.PMID_RX.match(identifier)
-        if identifier_is_pmid:
-            try:
-                new = pubmed.fetch(identifier,
-                                   timeout=settings["PUBMED_TIMEOUT"],
-                                   delay=settings["PUBMED_DELAY"],
-                                   api_key=settings["NCBI_API_KEY"])
-            except IOError:
-                msg = f"No response from PubMed for {identifier}."
-                if current:
-                    msg += " Publication exists, but could not be updated."
-                raise IOError(msg)
-            except ValueError as error:
-                raise IOError(f"{identifier}, {error}")
-
-        else: # Not PMID, assume DOI identifier.
-            try:
-                new = crossref.fetch(identifier,
-                                     timeout=settings["CROSSREF_TIMEOUT"],
-                                     delay=settings["CROSSREF_DELAY"])
-            except IOError:
-                msg = f"No response from Crossref for {identifier}."
-                if current:
-                    msg += " Publication exists, but could not be updated."
-                raise IOError(msg)
-            except ValueError as error:
-                raise IOError(f"{identifier}, {error}")
-
-        # Check blacklist registry again; other external id may be there.
-        self.check_blacklisted(new.get("pmid"), override=override)
-        self.check_blacklisted(new.get("doi"), override=override)
-
-        # Find the current entry again by the other identifier.
-        if current is None:
-            # Maybe the publication has been fetched using the other identifier?
-            if identifier_is_pmid:
-                try:
-                    current = self.get_publication(new.get("doi"))
-                except KeyError:
-                    pass
-            else:
-                try:
-                    current = self.get_publication(new.get("pmid"))
-                except KeyError:
-                    pass
-
-        # Update the current entry, if it exists.
-        if current:
-            with PublicationSaver(current, rqh=self) as saver:
-                saver.update(new, updated_by_pmid=identifier_is_pmid)
-                saver.fix_journal()
-                saver.update_labels(labels=labels, clean=clean)
-            return current
-        # Else create a new entry.
-        else:
-            with PublicationSaver(rqh=self) as saver:
-                saver.update(new, updated_by_pmid=identifier_is_pmid)
-                saver.fix_journal()
-                saver.update_labels(labels=labels)
-            return saver.doc
-
-    def check_blacklisted(self, identifier, override=False):
-        """Raise KeyError if identifier blacklisted.
-        If override, remove from blacklist.
-        """
-        blacklisted = utils.get_blacklisted(self.db, identifier)
-        if blacklisted:
-            if override:
-                self.db.delete(blacklisted)
-            else:
-                raise KeyError(identifier)
 
 
 class Publication(PublicationMixin, RequestHandler):
@@ -442,11 +563,12 @@ class Publication(PublicationMixin, RequestHandler):
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        self.render("publication.html",
-                    publication=publication,
-                    is_editable=self.is_editable(publication),
-                    is_xrefs_editable=self.is_xrefs_editable(publication),
-                    is_deletable=self.is_deletable(publication))
+        self.render(
+            "publication.html",
+            publication=publication,
+            is_editable=self.is_editable(publication),
+            is_deletable=self.is_deletable(publication),
+        )
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -489,12 +611,11 @@ class Publications(RequestHandler):
 
     def get(self, year=None):
         subset = Subset(self.db)
-        limit = self.get_limit()
         if year:
-            subset.select_year(year, limit=limit)
+            subset.select_year(year)
         else:
-            subset.select_all(imit=limit)
-        self.render(self.TEMPLATE, publications=subset, year=year, limit=limit)
+            subset.select_all()
+        self.render(self.TEMPLATE, publications=subset, year=year)
 
 
 class PublicationsTable(Publications):
@@ -523,17 +644,16 @@ class PublicationsJson(Publications):
         else:
             links["self"] = {"href": URL("publications_json")}
             links["display"] = {"href": URL("publications")}
-        if kwargs["limit"]:
-            result["limit"] = kwargs["limit"]
         result["publications_count"] = len(publications)
         full = utils.to_bool(self.get_argument("full", True))
         result["full"] = full
-        result["publications"] = [self.get_publication_json(publ, full=full)
-                                  for publ in publications]
+        result["publications"] = [
+            self.get_publication_json(publ, full=full) for publ in publications
+        ]
         self.write(result)
 
 
-class PublicationsFile(Publications):
+class PublicationsFile(utils.DownloadParametersMixin, Publications):
     "Class adding methods for output of publications to a file."
 
     def get_filtered_publications(self):
@@ -541,9 +661,9 @@ class PublicationsFile(Publications):
         # Start with subset of publications based on given published years.
         years = self.get_arguments("years")
         if years:
-            subset = Subset(self.db, year=years[0])
-            for year in years[1:]:
-                subset = subset | Subset(self.db, year=year)
+            subset = functools.reduce(
+                lambda s, t: s | t, [Subset(self.db, year=y) for y in years]
+            )
         # No given years: Start with all publications.
         else:
             subset = Subset(self.db, all=True)
@@ -551,10 +671,9 @@ class PublicationsFile(Publications):
         # If any labels, intersect with the union of those publications.
         labels = list(set(self.get_arguments("labels")))
         if labels:
-            subset_labels = Subset(self.db, label=labels[0])
-            for label in labels[1:]:
-                subset_labels = subset_labels | Subset(self.db, label=label)
-            subset = subset & subset_labels
+            subset = subset & functools.reduce(
+                lambda s, t: s | t, [Subset(self.db, label=l) for l in labels]
+            )
 
         # If any required labels, intersect with publications for each label.
         for label in set(self.get_arguments("labels_required")):
@@ -567,53 +686,11 @@ class PublicationsFile(Publications):
         # Filter by active labels during a year (current, or explicit).
         active = self.get_argument("active", "")
         if settings["TEMPORAL_LABELS"] and active:
-            if active.lower() == "current":
-                labels = set([d["value"] for d in self.get_docs("label", "current")])
-            else:
-                labels = set()
-                for label in self.get_docs("label", "value"):
-                    started = label.get("started")
-                    if started and started <= active: # Year as str
-                        ended = label.get("ended")
-                        if ended:
-                            if active <= ended: # Year as str
-                                labels.add(label["value"])
-                        else:
-                            labels.add(label["value"])
-            if labels:
-                labels = list(labels)
-                subset_labels = Subset(self.db, label=labels[0])
-                for label in labels[1:]:
-                    subset_labels = subset_labels | Subset(self.db, label=label)
-                subset = subset & subset_labels
-        return subset
+            s = Subset(self.db)
+            s.select_active_labels(active)
+            subset = subset & s
 
-    def get_parameters(self):
-        "Return the output parameters from the form arguments."
-        result = dict(
-            single_label = utils.to_bool(self.get_argument("single_label", False)),
-            all_authors = utils.to_bool(self.get_argument("all_authors", False)),
-            issn = utils.to_bool(self.get_argument("issn", False)),
-            numbered = utils.to_bool(self.get_argument("numbered", False)),
-            doi_url= utils.to_bool(self.get_argument("doi_url", False)),
-            pmid_url= utils.to_bool(self.get_argument("pmid_url", False))
-        )
-        try:
-            result['maxline'] = self.get_argument("maxline", None)
-            if result['maxline']:
-                result['maxline'] = int(result['maxline'])
-                if result['maxline'] <= 20: raise ValueError
-        except (ValueError, TypeError):
-            result['maxline'] = None
-        delimiter = self.get_argument("delimiter", "").lower()
-        if delimiter == "comma":
-            result['delimiter'] = ","
-        elif delimiter == "semi-colon":
-            result['delimiter'] = ";"
-        encoding = self.get_argument("encoding", "").lower()
-        if encoding:
-            result['encoding'] = encoding
-        return result
+        return subset
 
 
 class PublicationsCsv(PublicationsFile):
@@ -621,21 +698,23 @@ class PublicationsCsv(PublicationsFile):
 
     def get(self):
         "Show output selection page."
-        all_labels = sorted([l["value"]
-                             for l in self.get_docs("label", "value")])
-        self.render("publications_csv.html",
-                    year=self.get_argument("year", None),
-                    labels=set(self.get_arguments("label")),
-                    all_labels=all_labels,
-                    cancel_url=self.get_argument("cancel_url", None))
+        all_labels = sorted([l["value"] for l in self.get_docs("label", "value")])
+        self.render(
+            "publications_csv.html",
+            year=self.get_argument("year", None),
+            labels=set(self.get_arguments("label")),
+            all_labels=all_labels,
+            cancel_url=self.get_argument("cancel_url", None),
+        )
 
     def post(self):
         writer = CsvWriter(self.db, self.application, **self.get_parameters())
         writer.write(self.get_filtered_publications())
         self.write(writer.get_content())
         self.set_header("Content-Type", constants.CSV_MIME)
-        self.set_header("Content-Disposition", 
-                        'attachment; filename="publications.csv"')
+        self.set_header(
+            "Content-Disposition", 'attachment; filename="publications.csv"'
+        )
 
 
 class PublicationsXlsx(PublicationsFile):
@@ -643,14 +722,15 @@ class PublicationsXlsx(PublicationsFile):
 
     def get(self):
         "Show output selection page."
-        all_labels = sorted([l["value"]
-                             for l in self.get_docs("label", "value")])
-        self.render("publications_xlsx.html",
-                    year=self.get_argument("year", None),
-                    labels=set(self.get_arguments("label")),
-                    all_labels=all_labels,
-                    cancel_url=self.get_argument("cancel_url", None))
-        
+        all_labels = sorted([l["value"] for l in self.get_docs("label", "value")])
+        self.render(
+            "publications_xlsx.html",
+            year=self.get_argument("year", None),
+            labels=set(self.get_arguments("label")),
+            all_labels=all_labels,
+            cancel_url=self.get_argument("cancel_url", None),
+        )
+
     # Authentication is *not* required!
     def post(self):
         "Produce XLSX output."
@@ -658,8 +738,9 @@ class PublicationsXlsx(PublicationsFile):
         writer.write(self.get_filtered_publications())
         self.write(writer.get_content())
         self.set_header("Content-Type", constants.XLSX_MIME)
-        self.set_header("Content-Disposition", 
-                        'attachment; filename="publications.xlsx"')
+        self.set_header(
+            "Content-Disposition", 'attachment; filename="publications.xlsx"'
+        )
 
 
 class PublicationsTxt(PublicationsFile):
@@ -667,13 +748,14 @@ class PublicationsTxt(PublicationsFile):
 
     def get(self):
         "Show output selection page."
-        all_labels = sorted([l["value"]
-                             for l in self.get_docs("label", "value")])
-        self.render("publications_txt.html",
-                    year=self.get_argument("year", None),
-                    labels=set(self.get_arguments("label")),
-                    all_labels=all_labels,
-                    cancel_url=self.get_argument("cancel_url", None))
+        all_labels = sorted([l["value"] for l in self.get_docs("label", "value")])
+        self.render(
+            "publications_txt.html",
+            year=self.get_argument("year", None),
+            labels=set(self.get_arguments("label")),
+            all_labels=all_labels,
+            cancel_url=self.get_argument("cancel_url", None),
+        )
 
     # Authentication is *not* required!
     def post(self):
@@ -682,8 +764,9 @@ class PublicationsTxt(PublicationsFile):
         writer.write(self.get_filtered_publications())
         self.write(writer.get_content())
         self.set_header("Content-Type", constants.TXT_MIME)
-        self.set_header("Content-Disposition", 
-                        'attachment; filename="publications.txt"')
+        self.set_header(
+            "Content-Disposition", 'attachment; filename="publications.txt"'
+        )
 
 
 class PublicationsNoPmid(PublicationMixin, RequestHandler):
@@ -694,10 +777,11 @@ class PublicationsNoPmid(PublicationMixin, RequestHandler):
         subset.select_no_pmid()
         publications = subset.get_publications()
         for publication in publications:
-            publication["pmid_findable"] = self.is_editable(publication) and \
-                                           publication.get("doi")
-        # Put the publications first for which there is a DOI, making PMID
-        # findable, and for which find has not been attempted
+            publication["pmid_findable"] = self.is_editable(
+                publication
+            ) and publication.get("doi")
+        # Put the publications first for which there is a DOI
+        # (making PMID findable) and for which find has not been attempted.
         publs1 = []
         publs2 = []
         publs3 = []
@@ -730,8 +814,9 @@ class PublicationsNoPmidJson(PublicationsNoPmid):
         links["self"] = {"href": URL("publications_no_pmid_json")}
         links["display"] = {"href": URL("publications_no_pmid")}
         result["publications_count"] = len(publications)
-        result["publications"] = [self.get_publication_json(publ)
-                                  for publ in publications]
+        result["publications"] = [
+            self.get_publication_json(publ) for publ in publications
+        ]
         self.write(result)
 
 
@@ -760,8 +845,9 @@ class PublicationsNoDoiJson(PublicationsNoDoi):
         links["self"] = {"href": URL("publications_no_doi_json")}
         links["display"] = {"href": URL("publications_no_doi")}
         result["publications_count"] = len(publications)
-        result["publications"] = [self.get_publication_json(publ)
-                                  for publ in publications]
+        result["publications"] = [
+            self.get_publication_json(publ) for publ in publications
+        ]
         self.write(result)
 
 
@@ -790,8 +876,9 @@ class PublicationsNoLabelJson(PublicationsNoLabel):
         result["publications_count"] = len(publications)
         full = utils.to_bool(self.get_argument("full", True))
         result["full"] = full
-        result["publications"] = [self.get_publication_json(publ, full=full)
-                                  for publ in publications]
+        result["publications"] = [
+            self.get_publication_json(publ, full=full) for publ in publications
+        ]
         self.write(result)
 
 
@@ -803,8 +890,9 @@ class PublicationsDuplicates(RequestHandler):
     Some false positives are expected.
     """
 
+    @tornado.web.authenticated
     def get(self):
-        lookup = {}             # Key: 4 longest words in title
+        lookup = {}  # Key: 4 longest words in title
         duplicates = []
         for publ1 in self.get_docs("publication", "modified"):
             title = utils.to_ascii(publ1["title"], alphanum=True).lower()
@@ -812,8 +900,7 @@ class PublicationsDuplicates(RequestHandler):
             key = " ".join(parts[:4])
             try:
                 publ2 = lookup[key]
-                for auth1, auth2 in zip(publ1["authors"][:4],
-                                        publ2["authors"][:4]):
+                for auth1, auth2 in zip(publ1["authors"][:4], publ2["authors"][:4]):
                     if auth1["family_normalized"] != auth2["family_normalized"]:
                         break
                 else:
@@ -828,11 +915,14 @@ class PublicationsModified(PublicationMixin, RequestHandler):
 
     def get(self):
         self.check_curator()
-        limit = self.get_limit(settings["LONG_PUBLICATIONS_LIST_LIMIT"])
+        limit = settings["LONG_PUBLICATIONS_LIST_LIMIT"]
         subset = Subset(self.db)
         subset.select_modified(limit=limit)
-        publications = subset.get_publications("modified")
-        self.render("publications_modified.html", publications=publications)
+        publications = subset.get_publications()
+        publications.sort(key=lambda p: p["modified"], reverse=True)
+        self.render(
+            "publications_modified.html", publications=publications, limit=limit
+        )
 
 
 class PublicationAdd(PublicationMixin, RequestHandler):
@@ -858,13 +948,13 @@ class PublicationAdd(PublicationMixin, RequestHandler):
         self.see_other("publication", publication["_id"])
 
 
-class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
+class PublicationFetch(PublicationMixin, RequestHandler):
     "Fetch publication(s) given list of DOIs or PMIDs."
 
     @tornado.web.authenticated
     def get(self):
         self.check_curator()
-        fetched = self.get_cookie("fetched", None)
+        fetched = self.get_cookie("fetched")
         self.clear_cookie("fetched")
         docs = []
         if fetched:
@@ -885,15 +975,19 @@ class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
         labels = self.get_allowed_labels()
         # If curator for only a small number of labels (see settings),
         # then check them to start with. Otherwise let be unchecked.
-        if not checked_labels and \
-           self.current_user["role"] == constants.CURATOR and \
-           len(labels) <= settings["MAX_NUMBER_LABELS_PRECHECKED"]:
+        if (
+            not checked_labels
+            and self.current_user["role"] == constants.CURATOR
+            and len(labels) <= settings["MAX_NUMBER_LABELS_PRECHECKED"]
+        ):
             for label in labels:
                 checked_labels[label] = None
-        self.render("publication_fetch.html", 
-                    labels=labels,
-                    checked_labels=checked_labels,
-                    publications=docs)
+        self.render(
+            "publication_fetch.html",
+            labels=labels,
+            checked_labels=checked_labels,
+            publications=docs,
+        )
 
     @tornado.web.authenticated
     def post(self):
@@ -912,11 +1006,18 @@ class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
         existing = set()
         for identifier in identifiers:
             # Skip if number of loaded publications reached the limit
-            if len(fetched) >= settings["PUBLICATIONS_FETCHED_LIMIT"]: break
+            if len(fetched) >= settings["PUBLICATIONS_FETCHED_LIMIT"]:
+                break
 
             try:
-                publ = self.fetch(identifier, override=override, labels=labels,
-                                  clean=not self.is_admin())
+                publ = fetch_publication(
+                    self.db,
+                    identifier,
+                    override=override,
+                    labels=labels,
+                    clean=not self.is_admin(),
+                    rqh=self,
+                )
             except IOError as error:
                 errors.append(str(error))
             except KeyError as error:
@@ -926,14 +1027,18 @@ class PublicationFetch(PublicationFetchMixin, PublicationMixin, RequestHandler):
 
         self.set_cookie("fetched", "_".join(fetched))
         kwargs = {"message": f"{len(fetched)} publication(s) fetched."}
-        kwargs["labels"] = "|".join([f"{label}/{qualifier}" if qualifier 
-                                     else label
-                                     for label, qualifier in labels.items()])
+        kwargs["labels"] = "|".join(
+            [
+                f"{label}/{qualifier}" if qualifier else label
+                for label, qualifier in labels.items()
+            ]
+        )
         if errors:
             kwargs["error"] = constants.FETCH_ERROR + ", ".join(errors)
         if blacklisted:
-            kwargs["message"] += " " + constants.BLACKLISTED_MESSAGE + \
-                                 ", ".join(blacklisted)
+            kwargs["message"] += (
+                " " + constants.BLACKLISTED_MESSAGE + ", ".join(blacklisted)
+            )
         self.see_other("publication_fetch", **kwargs)
 
 
@@ -948,9 +1053,11 @@ class PublicationEdit(PublicationMixin, RequestHandler):
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
-        self.render("publication_edit.html",
-                    publication=publication,
-                    labels=self.get_allowed_labels())
+        self.render(
+            "publication_edit.html",
+            publication=publication,
+            labels=self.get_allowed_labels(),
+        )
 
     @tornado.web.authenticated
     def post(self, iuid):
@@ -991,9 +1098,9 @@ class PublicationResearchers(PublicationMixin, RequestHandler):
         for author in publication["authors"]:
             if not author.get("researcher"):
                 author["researchers"] = self.get_researchers(
-                    author["family"], initials=author["initials"])
-        self.render("publication_researchers.html",
-                    publication=publication)
+                    author["family"], initials=author["initials"]
+                )
+        self.render("publication_researchers.html", publication=publication)
 
     @tornado.web.authenticated
     def post(self, iuid):
@@ -1019,7 +1126,7 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
     def get(self, iuid):
         try:
             publication = self.get_publication(iuid)
-            self.check_xrefs_editable(publication)
+            self.check_editable(publication)
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
@@ -1029,7 +1136,7 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
     def post(self, iuid):
         try:
             publication = self.get_publication(iuid)
-            self.check_xrefs_editable(publication)
+            self.check_editable(publication)
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
@@ -1039,25 +1146,26 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
                 db = self.get_argument("db_other", None)
                 if not db:
                     db = self.get_argument("db", None)
-                if not db: raise ValueError("No db given.")
+                if not db:
+                    raise ValueError("No db given.")
                 key = self.get_argument("key")
-                if not key: raise ValueError("No accession (key) given.")
+                if not key:
+                    raise ValueError("No accession (key) given.")
                 description = self.get_argument("description", None) or None
-                xrefs = publication.get("xrefs", [])[:] # Copy of list
+                xrefs = publication.get("xrefs", [])[:]  # Copy of list
                 if self.get_argument("_http_method", None) == "DELETE":
-                    saver["xrefs"] = [x for x in xrefs
-                                      if (x["db"].lower() != db.lower() or
-                                          x["key"] != key)]
+                    saver["xrefs"] = [
+                        x
+                        for x in xrefs
+                        if (x["db"].lower() != db.lower() or x["key"] != key)
+                    ]
                 else:
-                    for xref in xrefs: # Update description if already there.
-                        if xref["db"].lower() == db.lower() and \
-                           xref["key"] == key:
+                    for xref in xrefs:  # Update description if already there.
+                        if xref["db"].lower() == db.lower() and xref["key"] == key:
                             xref["description"] = description
                             break
                     else:
-                        xrefs.append(dict(db=db,
-                                          key=key,
-                                          description=description))
+                        xrefs.append(dict(db=db, key=key, description=description))
                     saver["xrefs"] = xrefs
         except SaverError:
             self.set_error_flash(constants.REV_ERROR)
@@ -1067,57 +1175,6 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
             self.see_other("publication_xrefs", publication["_id"])
         else:
             self.see_other("publication", publication["_id"])
-
-
-class PublicationBlacklist(PublicationMixin, RequestHandler):
-    "Blacklist a publication and record its external identifiers."
-
-    @tornado.web.authenticated
-    def post(self, identifier):
-        try:
-            publication = self.get_publication(identifier)
-            self.check_deletable(publication)
-        except (KeyError, ValueError) as error:
-            self.see_other("home", error=str(error))
-            return
-        blacklist = {constants.DOCTYPE: constants.BLACKLIST,
-                     "_id": utils.get_iuid(),
-                     "title": publication["title"],
-                     "pmid": publication.get("pmid"),
-                     "doi": publication.get("doi"),
-                     "created": utils.timestamp(),
-                     "owner": self.current_user["email"]}
-        self.db.put(blacklist)
-        self.delete_entity(publication)
-        try:
-            self.redirect(self.get_argument("next"))
-        except tornado.web.MissingArgumentError:
-            self.see_other("home")
-
-
-class ApiPublicationFetch(PublicationFetchMixin, PublicationMixin,
-                          ApiMixin, RequestHandler):
-    "Fetch a publication given its PMID or DOI."
-
-    @tornado.web.authenticated
-    def post(self):
-        self.check_curator()
-        data = self.get_json_body()
-        try:
-            identifier = data["identifier"]
-        except KeyError:
-            raise tornado.web.HTTPError(400, reason="no identifier given")
-        try:
-            publ = self.fetch(identifier,
-                              override=bool(data.get("override")),
-                              labels=data.get("labels", {}))
-        except IOError as error:
-            raise tornado.web.HTTPError(400, reason=str(error))
-        except KeyError as error:
-            raise tornado.web.HTTPError(409, reason=f"blacklisted {error}")
-        self.write(
-            dict(iuid=publ["_id"],
-                 href=self.absolute_reverse_url("publication", publ["_id"])))
 
 
 class PublicationUpdatePmid(PublicationMixin, RequestHandler):
@@ -1141,27 +1198,34 @@ class PublicationUpdatePmid(PublicationMixin, RequestHandler):
             self.see_other("publication", publication["_id"], error=str(error))
             return
         try:
-            new = pubmed.fetch(identifier,
-                               timeout=settings["PUBMED_TIMEOUT"],
-                               delay=settings["PUBMED_DELAY"],
-                               api_key=settings["NCBI_API_KEY"])
+            new = pubmed.fetch(
+                identifier,
+                timeout=settings["PUBMED_TIMEOUT"],
+                delay=settings["PUBMED_DELAY"],
+                api_key=settings["NCBI_API_KEY"],
+            )
         except (OSError, IOError):
-            self.see_other("publication", publication["_id"],
-                           error=f"No response from PubMed for {identifier}.")
+            self.see_other(
+                "publication",
+                publication["_id"],
+                error=f"No response from PubMed for {identifier}.",
+            )
             return
         except ValueError as error:
-            self.see_other("publication", publication["_id"],
-                           error=f"{identifier}, {error}")
+            self.see_other(
+                "publication", publication["_id"], error=f"{identifier}, {error}"
+            )
             return
         with PublicationSaver(doc=publication, rqh=self) as saver:
-            saver.update(new, updated_by_pmid=True)
+            saver.update(new)
             saver.fix_journal()
-        self.see_other("publication", publication["_id"],
-                       message="Updated from PubMed.")
+        self.see_other(
+            "publication", publication["_id"], message="Updated from PubMed."
+        )
 
 
 class PublicationFindPmid(PublicationMixin, RequestHandler):
-    "Given DOI, try to locate publication at PubMed and set PMID."
+    "If DOI is available, try to locate publication at PubMed and set PMID."
 
     @tornado.web.authenticated
     def post(self, iuid):
@@ -1180,11 +1244,13 @@ class PublicationFindPmid(PublicationMixin, RequestHandler):
             return
         try:
             try:
-                found = pubmed.search(doi=identifier,
-                                      timeout=settings["PUBMED_TIMEOUT"],
-                                      delay=settings["PUBMED_DELAY"],
-                                      api_key=settings["NCBI_API_KEY"])
-                if len(found) == 0: 
+                found = pubmed.search(
+                    doi=identifier,
+                    timeout=settings["PUBMED_TIMEOUT"],
+                    delay=settings["PUBMED_DELAY"],
+                    api_key=settings["NCBI_API_KEY"],
+                )
+                if len(found) == 0:
                     raise ValueError("No PubMed entry found")
                 if len(found) > 1:
                     raise ValueError("More than one PubMed entry found")
@@ -1223,19 +1289,212 @@ class PublicationUpdateDoi(PublicationMixin, RequestHandler):
             self.see_other("publication", publication["_id"], error=str(error))
             return
         try:
-            new = crossref.fetch(identifier,
-                                 timeout=settings["CROSSREF_TIMEOUT"],
-                                 delay=settings["CROSSREF_DELAY"])
+            new = crossref.fetch(
+                identifier,
+                timeout=settings["CROSSREF_TIMEOUT"],
+                delay=settings["CROSSREF_DELAY"],
+            )
         except (OSError, IOError):
-            self.see_other("publication", publication["_id"],
-                           error=f"No response from Crossref for {identifier}.")
+            self.see_other(
+                "publication",
+                publication["_id"],
+                error=f"No response from Crossref for {identifier}.",
+            )
             return
         except ValueError as error:
-            self.see_other("publication", publication["_id"],
-                           error=f"{identifier}, {error}")
+            self.see_other(
+                "publication", publication["_id"], error=f"{identifier}, {error}"
+            )
             return
         with PublicationSaver(doc=publication, rqh=self) as saver:
             saver.update(new)
             saver.fix_journal()
-        self.see_other("publication", publication["_id"],
-                       message="Updated from Crossref.")
+        self.see_other(
+            "publication", publication["_id"], message="Updated from Crossref."
+        )
+
+
+class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
+    "Fetch a publication given its PMID or DOI. Set its labels."
+
+    @tornado.web.authenticated
+    def post(self):
+        self.check_curator()
+        data = self.get_json_body()
+        try:
+            identifier = data["identifier"]
+        except KeyError:
+            raise tornado.web.HTTPError(400, reason="no identifier given")
+        try:
+            publ = fetch_publication(
+                self.db,
+                identifier,
+                override=bool(data.get("override")),
+                labels=data.get("labels", {}),
+                rqh=self,
+            )
+        except IOError as error:
+            raise tornado.web.HTTPError(400, reason=str(error))
+        except KeyError as error:
+            raise tornado.web.HTTPError(409, reason=f"blacklisted {error}")
+        except SaverError as error:
+            raise tornado.web.HTTPError(409, reason="revision conflict")
+        self.write(self.get_publication_json(publ, single=True))
+
+
+class ApiPublicationLabels(PublicationMixin, ApiMixin, RequestHandler):
+    "Set the labels of a publication."
+
+    @tornado.web.authenticated
+    def post(self, iuid):
+        self.check_curator()
+        try:
+            print(iuid)
+            publ = self.get_publication(iuid)
+        except KeyError as error:
+            raise tornado.web.HTTPError(404)
+        data = self.get_json_body()
+        try:
+            labels = data["labels"] or {}
+        except KeyError:
+            raise tornado.web.HTTPError(400, reason="no labels given")
+        try:
+            with PublicationSaver(doc=publ, rqh=self) as saver:
+                saver.update_labels(labels=labels)
+        except SaverError as error:
+            raise tornado.web.HTTPError(409, reason="revision conflict")
+        self.write(self.get_publication_json(publ, single=True))
+
+
+def fetch_publication(
+    db,
+    identifier,
+    override=False,
+    labels={},
+    allowed_labels=None,
+    clean=True,
+    rqh=None,
+    account=None,
+):
+    """Fetch the publication given by identifier (PMID or DOI).
+    If the publication is already in the database, the label,
+    if given, is added. For a PMID, the publication is fetched from PubMed.
+    For a DOI, an attempt is first made to get the publication from PubMed.
+    If that does not work, Crossref is tried.
+    Delay, timeout and API key for fetching is defined in the settings file.
+    override: If True, overrides the blacklist.
+    labels: Dictionary of labels (key: label, value: qualifier) to set.
+            Only allowed labels for the curator are updated.
+    clean: Remove any allowed labels missing from an existing entry.
+    Raise IOError if no such publication found, or other error.
+    Raise KeyError if publication is in the blacklist (and not override).
+    """
+    check_blacklisted(db, identifier, override=override)
+
+    # Does the publication already exist in the database?
+    try:
+        current = utils.get_publication(db, identifier)
+    except KeyError:
+        current = None
+
+    # Fetch from external source according to identifier type.
+    identifier_is_pmid = constants.PMID_RX.match(identifier)
+    if identifier_is_pmid:
+        try:
+            new = pubmed.fetch(
+                identifier,
+                timeout=settings["PUBMED_TIMEOUT"],
+                delay=settings["PUBMED_DELAY"],
+                api_key=settings["NCBI_API_KEY"],
+            )
+        except IOError:
+            msg = f"No response from PubMed for {identifier}."
+            if current:
+                msg += " Publication exists, but could not be updated."
+            raise IOError(msg)
+        except ValueError as error:
+            raise IOError(f"{identifier} {str(error)}")
+
+    else:  # Not PMID: DOI identifier; search PubMed first.
+        pmids = pubmed.search(
+            doi=identifier,
+            timeout=settings["PUBMED_TIMEOUT"],
+            delay=settings["PUBMED_DELAY"],
+            api_key=settings["NCBI_API_KEY"],
+        )
+        if len(pmids) == 1:  # Unique result: use it.
+            try:
+                new = pubmed.fetch(
+                    pmids[0],
+                    timeout=settings["PUBMED_TIMEOUT"],
+                    delay=settings["PUBMED_DELAY"],
+                    api_key=settings["NCBI_API_KEY"],
+                )
+            except IOError:
+                msg = f"No response from PubMed for {identifier}."
+                if current:
+                    msg += " Publication exists, but could not be updated."
+                raise IOError(msg)
+            except ValueError as error:
+                raise IOError(f"{identifier} {str(error)}")
+        else:  # No result, or ambiguous. Try Crossref.
+            try:
+                new = crossref.fetch(
+                    identifier,
+                    timeout=settings["CROSSREF_TIMEOUT"],
+                    delay=settings["CROSSREF_DELAY"],
+                )
+            except IOError:
+                msg = f"No response from Crossref for {identifier}."
+                if current:
+                    msg += " Publication exists, but could not be updated."
+                raise IOError(msg)
+            except ValueError as error:
+                raise IOError(f"{identifier} {str(error)}")
+
+    # Check blacklist registry again; other external id may be there.
+    check_blacklisted(db, new.get("pmid"), override=override)
+    check_blacklisted(db, new.get("doi"), override=override)
+
+    # Find the current entry again by the other identifier.
+    if current is None:
+        # Maybe the publication has been fetched using the other identifier?
+        if identifier_is_pmid:
+            try:
+                current = utils.get_publication(db, new.get("doi"))
+            except KeyError:
+                pass
+        else:
+            try:
+                current = utils.get_publication(db, new.get("pmid"))
+            except KeyError:
+                pass
+
+    # Update the current entry, if it exists.
+    if current:
+        with PublicationSaver(doc=current, db=db, rqh=rqh, account=account) as saver:
+            saver.update(new)
+            saver.fix_journal()
+            saver.update_labels(
+                labels=labels, clean=clean, allowed_labels=allowed_labels
+            )
+        return current
+    # Else create a new entry.
+    else:
+        with PublicationSaver(db=db, rqh=rqh, account=account) as saver:
+            saver.update(new)
+            saver.fix_journal()
+            saver.update_labels(labels=labels, allowed_labels=allowed_labels)
+        return saver.doc
+
+
+def check_blacklisted(db, identifier, override=False):
+    """Raise KeyError if identifier blacklisted.
+    If override, remove from blacklist.
+    """
+    blacklisted = utils.get_blacklisted(db, identifier)
+    if blacklisted:
+        if override:
+            db.delete(blacklisted)
+        else:
+            raise KeyError(f"{identifier} is blacklisted.")

@@ -21,16 +21,16 @@ class Saver:
 
     def __init__(self, doc=None, rqh=None, db=None, account=None):
         assert self.doctype in constants.ENTITIES
-        if rqh is not None:
-            self.rqh = rqh
-            self.db = rqh.db
-            self.account = account or rqh.current_user
-        elif db is not None:
-            self.rqh = None
-            self.db = db
-            self.account = account
-        else:
+        self.rqh = rqh
+        self.db = db
+        if self.db is None and self.rqh is None:
             raise AttributeError("neither db nor rqh given")
+        if self.db is None:
+            self.db = rqh.db
+        if self.rqh:
+            self.account = account or rqh.current_user
+        else:
+            self.account = account
         self.doc = doc or dict()
         self.changed = dict()
         if "_id" in self.doc:
@@ -45,7 +45,8 @@ class Saver:
         return self
 
     def __exit__(self, type, value, tb):
-        if type is not None: return False # No exceptions handled here.
+        if type is not None:
+            return False  # No exceptions handled here.
         self.finalize()
         try:
             self.db.put(self.doc)
@@ -69,7 +70,8 @@ class Saver:
         else:
             value = converter(value)
         try:
-            if self.doc[key] == value: return
+            if self.doc[key] == value:
+                return
         except KeyError:
             pass
         self.doc[key] = value
@@ -110,10 +112,13 @@ class Saver:
         Raise Saverrror if incorrect.
         """
         old_rev = self.doc.get("_rev")
-        if not old_rev: return
-        if self.rqh is None: return
+        if not old_rev:
+            return
+        if self.rqh is None:
+            return
         new_rev = self.rqh.get_argument("_rev", None)
-        if not new_rev: return
+        if not new_rev:
+            return
         if old_rev != new_rev:
             raise SaverError
 
@@ -127,11 +132,13 @@ class Saver:
 
     def write_log(self):
         "Write a log entry for the change."
-        log = dict(_id=utils.get_iuid(),
-                   doc=self.doc["_id"],
-                   doctype=self.doc[constants.DOCTYPE],
-                   changed=self.changed,
-                   modified=utils.timestamp())
+        log = dict(
+            _id=utils.get_iuid(),
+            doc=self.doc["_id"],
+            doctype=self.doc[constants.DOCTYPE],
+            changed=self.changed,
+            modified=utils.timestamp(),
+        )
         log[constants.DOCTYPE] = constants.LOG
         if self.rqh:
             # xheaders argument to HTTPServer takes care of X-Real-Ip
@@ -144,6 +151,10 @@ class Saver:
         if self.account:
             try:
                 log["account"] = self.account["email"]
+            except (TypeError, AttributeError, KeyError):
+                pass
+            try:
+                log["user_agent"] = self.account["user_agent"]
             except (TypeError, AttributeError, KeyError):
                 pass
         self.db.put(log)

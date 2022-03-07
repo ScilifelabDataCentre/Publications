@@ -1,0 +1,123 @@
+{# Documentation: API #}
+
+{% extends "base.html" %}
+
+{% block head_title %}API{% end %}
+
+{% block body_title %}API{% end %}
+
+{% block main_content %}
+
+<p>
+  The Python code examples below use the third-party package
+  <a href="https://docs.python-requests.org/en/latest/">requests</a>.
+</p>
+
+<h3>Fetch publication by PMID of DOI</h3>
+
+<table class="table">
+  <tr>
+    <th>URL</th>
+    <td><code>/publication</code></td>
+  </tr>
+  <tr>
+    <th>Method</th>
+    <td>POST</td>
+  </tr>
+  <tr>
+    <th>Payload (JSON body)</th>
+    <td>
+      <code>{
+        "identifier": "{PMID or DOI}",
+        "labels": {"{labelname}": "{optional qualifier}"}}
+      </code>
+    </td>
+  </tr>
+  <tr>
+    <th>Description</th>
+    <td>
+      The server is instructed to to fetch publication data from
+      PubMed or Crossref given a PubMed identifier (PMID) or Digital
+      Object Identifier (DOI). This API call fetches only one
+      publication at a time. The <code>labels</code> item in the payload
+      is optional.
+    </td>
+  </tr>
+  <tr>
+    <th>Example code</th>
+    <td>
+<pre>
+import json
+import requests
+
+url = "http://your-server/api/publication"
+headers = {'X-API-key': "my-API-key"}
+
+# PMID identifier in this example.
+data = dict(identifier="1557129", labels={"MyLab": "Collaboration"})
+
+response = requests.post(url, headers=headers, json=data)
+
+if response.status_code != 200:
+    raise ValueError(f"Error {response.status_code}: {response.reason}")
+else:
+    print(json.dumps(response.json(), indent=2))
+</pre>
+    </td>
+  </tr>
+</table>
+
+<h3>Change labels for a publication</h3>
+
+<table class="table">
+  <tr>
+    <th>URL</th>
+    <td><code>/publication/{iuid}/labels</code></td>
+  </tr>
+  <tr>
+    <th>Method</th>
+    <td>POST</td>
+  </tr>
+  <tr>
+    <th>Payload (JSON body)</th>
+    <td>
+      <code>{
+        "labels": {"{labelname}": "{optional qualifier}"}}
+      </code>
+    </td>
+  </tr>
+  <tr>
+    <th>Description</th>
+    <td>
+      Change the labels of the given publication. The labels provided
+      must contain all labels to be set for the publication among
+      those that the account specified by the API key can edit. That
+      is, if the account has three labels associated with it, and only
+      two of those are specified, then the third will be removed if it
+      was already present for the publication.
+    </td>
+  </tr>
+  <tr>
+    <th>Example code</th>
+    <td>
+<pre>
+import json
+import requests
+
+url = "http://your-server/api/publication/{publication-iuid}/labels"
+headers = {'X-API-key': "my-API-key"}
+
+data = dict(labels={"MyLab": "Service"})
+
+response = requests.post(url, headers=headers, json=data)
+
+if response.status_code != 200:
+    raise ValueError(f"Error {response.status_code}: {response.reason}")
+else:
+    print(json.dumps(response.json(), indent=2))
+</pre>
+    </td>
+  </tr>
+</table>
+
+{% end %} {# block main_content #}
