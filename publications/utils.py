@@ -120,6 +120,7 @@ def init_db():
     import publications.log
     import publications.publication
     import publications.researcher
+
     db = get_db()
     publications.account.init(db)
     publications.blacklist.init(db)
@@ -129,6 +130,7 @@ def init_db():
     publications.publication.init(db)
     publications.researcher.init(db)
     return db
+
 
 def get_doc(db, designname, viewname, key):
     """Get the document with the given key from the given design view.

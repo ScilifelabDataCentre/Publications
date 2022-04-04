@@ -1010,7 +1010,7 @@ class PublicationFetch(PublicationMixin, RequestHandler):
                     self.db,
                     identifier,
                     override=override,
-                    labels=None, # Get from form fields.
+                    labels=None,  # Get from form fields.
                     clean=not self.is_admin(),
                     rqh=self,
                 )

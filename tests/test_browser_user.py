@@ -21,9 +21,10 @@ import utils
 @pytest.fixture(scope="module")
 def settings():
     "Get the settings from file 'settings.json' in this directory."
-    return utils.get_settings(BASE_URL="http://localhost:8885",
-                              USER_USERNAME=None,
-                              USER_PASSWORD=None)
+    return utils.get_settings(
+        BASE_URL="http://localhost:8885", USER_USERNAME=None, USER_PASSWORD=None
+    )
+
 
 def login_user(settings, page):
     "Login to the system as ordinary user."
@@ -50,28 +51,34 @@ def test_user(settings, page):
 def test_fetching_publication(settings, page):
     "Test fetching a publication by PMID, and deleting it."
     login_user(settings, page)
-    
+
     page.click("text=Publications")
     page.click("text=By fetching data")
     assert page.url == "http://localhost:8885/fetch"
-    page.fill("textarea[name=\"identifiers\"]", "8142349")
-    page.click("textarea[name=\"identifiers\"]")
-    page.click(":nth-match(button:has-text(\"Fetch\"), 2)")
-    page.click("text=Solution structure and dynamics of ras p21.GDP determined by heteronuclear three")
+    page.fill('textarea[name="identifiers"]', "8142349")
+    page.click('textarea[name="identifiers"]')
+    page.click(':nth-match(button:has-text("Fetch"), 2)')
+    page.click(
+        "text=Solution structure and dynamics of ras p21.GDP determined by heteronuclear three"
+    )
     url = page.url
 
-    page.click("a[role=\"button\"]:has-text(\"1994 (1)\")")
+    page.click('a[role="button"]:has-text("1994 (1)")')
     assert page.url == "http://localhost:8885/publications/1994"
-    page.click("text=Solution structure and dynamics of ras p21.GDP determined by heteronuclear three")
+    page.click(
+        "text=Solution structure and dynamics of ras p21.GDP determined by heteronuclear three"
+    )
     assert page.url == url
 
     # Try fetching it again; should not add anything.
     page.click("text=Publications")
     page.click("text=By fetching data")
     assert page.url == "http://localhost:8885/fetch"
-    page.fill("textarea[name=\"identifiers\"]", "8142349")
-    page.click(":nth-match(button:has-text(\"Fetch\"), 2)")
-    page.click("text=Solution structure and dynamics of ras p21.GDP determined by heteronuclear three")
+    page.fill('textarea[name="identifiers"]', "8142349")
+    page.click(':nth-match(button:has-text("Fetch"), 2)')
+    page.click(
+        "text=Solution structure and dynamics of ras p21.GDP determined by heteronuclear three"
+    )
     assert page.url == url
 
     # Delete the publication.
@@ -79,5 +86,5 @@ def test_fetching_publication(settings, page):
     page.click("text=Delete")
     assert page.url == "http://localhost:8885/"
 
-    locator = page.locator("a[role=\"button\"]:has-text(\"1994 (1)\")")
+    locator = page.locator('a[role="button"]:has-text("1994 (1)")')
     playwright.sync_api.expect(locator).to_have_count(0)
