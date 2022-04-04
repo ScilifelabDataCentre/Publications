@@ -996,10 +996,6 @@ class PublicationFetch(PublicationMixin, RequestHandler):
         identifiers = [utils.strip_prefix(i) for i in identifiers]
         identifiers = [i for i in identifiers if i]
         override = utils.to_bool(self.get_argument("override", False))
-        labels = {}
-        for label in self.get_arguments("label"):
-            labels[label] = self.get_argument(f"{label}_qualifier", None)
-
         errors = []
         blacklisted = []
         fetched = set()
@@ -1014,7 +1010,7 @@ class PublicationFetch(PublicationMixin, RequestHandler):
                     self.db,
                     identifier,
                     override=override,
-                    labels=labels,
+                    labels=None,  # Get from form fields.
                     clean=not self.is_admin(),
                     rqh=self,
                 )
@@ -1027,6 +1023,10 @@ class PublicationFetch(PublicationMixin, RequestHandler):
 
         self.set_cookie("fetched", "_".join(fetched))
         kwargs = {"message": f"{len(fetched)} publication(s) fetched."}
+        # Set the previously used labels, as a courtesy for the next fetch.
+        labels = {}
+        for label in self.get_arguments("label"):
+            labels[label] = self.get_argument(f"{label}_qualifier", None)
         kwargs["labels"] = "|".join(
             [
                 f"{label}/{qualifier}" if qualifier else label
@@ -1349,7 +1349,6 @@ class ApiPublicationLabels(PublicationMixin, ApiMixin, RequestHandler):
     def post(self, iuid):
         self.check_curator()
         try:
-            print(iuid)
             publ = self.get_publication(iuid)
         except KeyError as error:
             raise tornado.web.HTTPError(404)
@@ -1370,7 +1369,7 @@ def fetch_publication(
     db,
     identifier,
     override=False,
-    labels={},
+    labels=None,
     allowed_labels=None,
     clean=True,
     rqh=None,
