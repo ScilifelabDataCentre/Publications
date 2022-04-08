@@ -1,0 +1,31 @@
+name: Publish Docker image
+on:
+  release:
+    types: [published]
+jobs:
+  push_to_registry:
+    if: github.repository == 'pekrau/publications'
+    name: Publish Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Log in to Github Container Repository
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/pekrau/publications
+      - name: Push backend to Docker Hub
+        uses: docker/build-push-action@v2
+        with:
+          file: Dockerfile
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
