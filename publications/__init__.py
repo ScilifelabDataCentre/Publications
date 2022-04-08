@@ -4,7 +4,7 @@ import os.path
 import re
 import sys
 
-__version__ = "7.0.5"
+__version__ = "7.1.0"
 
 
 class Constants:
@@ -178,6 +178,8 @@ settings = dict(
     EMAIL=None,  # No emails can be sent unless this is set.
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
+    ADMIN_EMAIL=None,     # If set, an admin user will be created on startup.
+    ADMIN_PASSWORD=None,  # If set, change the password immediately after creation!
     PUBMED_DELAY=0.5,  # Delay before PubMed fetch, to avoid block.
     PUBMED_TIMEOUT=5.0,  # Timeout limit for PubMed fetch.
     NCBI_API_KEY=None,  # NCBI account API key, if any.
