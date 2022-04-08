@@ -63,6 +63,7 @@ def init(db):
             saver["labels"] = []
         logging.info(f"Admin user '{settings['ADMIN_EMAIL']}' created.")
 
+
 DESIGN_DOC = {
     "views": {
         "api_key": {
