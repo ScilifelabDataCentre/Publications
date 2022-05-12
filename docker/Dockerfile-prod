@@ -9,8 +9,6 @@ RUN mkdir /code/site
 WORKDIR /code/publications
 ENV PYTHONPATH /code
 
-# XXX Change for tornado!
-#ENV GUNICORN_CMD_ARGS "--bind=0.0.0.0:8000 --workers=1 --thread=4 --worker-class=gthread --forwarded-allow-ips='*' --access-logfile -"
-#CMD ["gunicorn", "app:app"]
+CMD ["python3", "publications/app_publications.py"]
 
 VOLUME ["/code/site"]

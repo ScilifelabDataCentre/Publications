@@ -57,10 +57,7 @@ class Blacklist(PublicationMixin, RequestHandler):
         }
         self.db.put(blacklist)
         self.delete_entity(publication)
-        try:
-            self.redirect(self.get_argument("next"))
-        except tornado.web.MissingArgumentError:
-            self.see_other("home")
+        self.see_other("home")
 
 
 class Blacklisted(RequestHandler):
