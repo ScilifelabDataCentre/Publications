@@ -1,7 +1,9 @@
 name: Publish Docker image
+
 on:
   release:
     types: [published]
+
 jobs:
   push_to_registry:
     if: github.repository == 'pekrau/publications'
@@ -21,10 +23,10 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: ghcr.io/pekrau/publications
-      - name: Push backend to Docker Hub
+      - name: Build and publish backend
         uses: docker/build-push-action@v2
         with:
-          file: Dockerfile
+          file: docker/Dockerfile-prod
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}

@@ -16,9 +16,7 @@ class Login(RequestHandler):
 
     def get(self):
         "Display login page."
-        self.render(
-            "login.html", next=self.get_argument("next", self.reverse_url("home"))
-        )
+        self.render("login.html")
 
     def post(self):
         """Login to a account account. Set a secure cookie.
@@ -46,7 +44,7 @@ class Login(RequestHandler):
             )
             with AccountSaver(doc=account, rqh=self) as saver:
                 saver["login"] = utils.timestamp()  # Set last login timestamp.
-            self.redirect(self.get_argument("next", self.reverse_url("home")))
+            self.redirect(self.reverse_url("home"))
 
 
 class Logout(RequestHandler):
