@@ -3,7 +3,7 @@ FROM python:alpine
 RUN apk update && apk upgrade
 
 COPY ./requirements.txt /requirements.txt
-RUN pip install -r /requirements.txt gunicorn
+RUN pip install -r /requirements.txt
 COPY ./publications /code/publications
 RUN mkdir /code/site
 WORKDIR /code/publications
