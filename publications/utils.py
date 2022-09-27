@@ -1,7 +1,7 @@
 "Various utility functions."
 
 import datetime
-import email.mime.text
+import email.message
 import hashlib
 import logging
 import os
@@ -455,8 +455,10 @@ class EmailServer:
         try:
             host = settings["EMAIL"]["HOST"]
             if not host:
-                raise ValueError
-            self.email = settings.get("SITE_EMAIL") or settings["EMAIL"]["SENDER"]
+                raise KeyError
+            self.email = settings["SITE_EMAIL"]
+            if not self.email:
+                raise KeyError
         except (KeyError, TypeError):
             raise ValueError("email server host is not properly defined")
         port = settings["EMAIL"].get("PORT") or 0
@@ -484,11 +486,13 @@ class EmailServer:
 
     def send(self, recipient, subject, text):
         "Send an email."
-        mail = email.mime.text.MIMEText(text, "plain", "utf-8")
-        mail["Subject"] = subject
-        mail["From"] = self.email
-        mail["To"] = recipient
-        self.server.sendmail(self.email, [recipient], mail.as_string())
+        message = email.message.EmailMessage()
+        message["From"] = self.email
+        message["Subject"] = subject
+        message["Reply-To"] = settings["SITE_REPLY_TO_EMAIL"] or self.email
+        message["To"] = recipient
+        message.set_content(text)
+        self.server.send_message(message)
 
 
 class NocaseDict:
