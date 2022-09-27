@@ -4,7 +4,7 @@ import os.path
 import re
 import sys
 
-__version__ = "7.1.2"
+__version__ = "7.1.3"
 
 
 class Constants:
@@ -175,7 +175,12 @@ settings = dict(
     DATABASE_PASSWORD=None,  # Should probably be set to connect to CouchDB.
     COOKIE_SECRET=None,  # Must be set!
     PASSWORD_SALT=None,  # Must be set!
-    EMAIL=None,  # No emails can be sent unless this is set.
+    EMAIL=dict(HOST=None,  # Domain name. Must be defined for email to work.
+               PORT=0,
+               SSL=False,
+               TLS=False,
+               USER=None,
+               PASSWORD=None),
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
     ADMIN_EMAIL=None,  # If set, an admin user will be created on startup.
@@ -199,7 +204,8 @@ settings = dict(
     SITE_TEXT="A publications reference database system.",
     SITE_PARENT_NAME="Site host",
     SITE_PARENT_URL=None,
-    SITE_EMAIL=None,
+    SITE_EMAIL=None,            # Must be defined for email to work.
+    SITE_REPLY_TO_EMAIL=None,   # If not defined, uses SITE_EMAIL instead.
     SITE_CONTACT="<p><i>No contact information available.</i></p>",
     SITE_STATIC_DIR=os.path.normpath(os.path.join(constants.ROOT, "../site/static")),
     SITE_LABEL_QUALIFIERS=[],
