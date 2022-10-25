@@ -11,12 +11,6 @@ from publications.requesthandler import RequestHandler
 from publications.publication import PublicationMixin
 
 
-def init(db):
-    "Initialize; update the CouchDB design documents."
-    if db.put_design("blacklist", DESIGN_DOC):
-        logging.info("Updated 'blacklist' design document.")
-
-
 DESIGN_DOC = {
     "views": {
         "doi": {
@@ -33,6 +27,12 @@ DESIGN_DOC = {
         },
     }
 }
+
+
+def load_design_document(db):
+    "Update the CouchDB design document."
+    if db.put_design("blacklist", DESIGN_DOC):
+        logging.info("Updated 'blacklist' design document.")
 
 
 class Blacklist(PublicationMixin, RequestHandler):

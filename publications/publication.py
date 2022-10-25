@@ -17,12 +17,6 @@ from publications.writer import CsvWriter, XlsxWriter, TextWriter
 from publications.requesthandler import RequestHandler, ApiMixin
 
 
-def init(db):
-    "Initialize; update the CouchDB design documents."
-    if db.put_design("publication", DESIGN_DOC):
-        logging.info("Updated 'publication' design document.")
-
-
 REMOVE = "".join(constants.SEARCH_REMOVE)
 IGNORE = ",".join(["'%s':1" % i for i in constants.SEARCH_IGNORE])
 
@@ -230,6 +224,12 @@ function (doc) {
         },
     }
 }
+
+
+def load_design_document(db):
+    "Update the CouchDB design document."
+    if db.put_design("publication", DESIGN_DOC):
+        logging.info("Updated 'publication' design document.")
 
 
 class PublicationSaver(Saver):

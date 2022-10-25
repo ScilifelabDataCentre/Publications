@@ -306,7 +306,7 @@ def main():
     else:
         filepath = None
     utils.load_settings(filepath=filepath)
-    utils.init_db()
+    utils.load_design_documents()
     application = get_application()
     application.listen(settings["PORT"], xheaders=True)
     pid = os.getpid()

@@ -9,12 +9,6 @@ from publications import constants
 from publications.requesthandler import RequestHandler
 
 
-def init(db):
-    "Initialize; update the CouchDB design documents."
-    if db.put_design("log", DESIGN_DOC):
-        logging.info("Updated 'log' design document.")
-
-
 DESIGN_DOC = {
     "views": {
         "account": {
@@ -38,6 +32,12 @@ DESIGN_DOC = {
         },
     }
 }
+
+
+def load_design_document(db):
+    "Update the CouchDB design document."
+    if db.put_design("log", DESIGN_DOC):
+        logging.info("Updated 'log' design document.")
 
 
 class Logs(RequestHandler):

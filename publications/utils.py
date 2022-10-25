@@ -111,8 +111,8 @@ def get_db():
         raise KeyError(f"CouchDB database '{name}' does not exist.")
 
 
-def init_db():
-    "Initialize the database by loading the design documents. Return the database."
+def load_design_documents():
+    "Load the design documents. Return the database."
     import publications.account
     import publications.blacklist
     import publications.journal
@@ -122,13 +122,13 @@ def init_db():
     import publications.researcher
 
     db = get_db()
-    publications.account.init(db)
-    publications.blacklist.init(db)
-    publications.journal.init(db)
-    publications.label.init(db)
-    publications.log.init(db)
-    publications.publication.init(db)
-    publications.researcher.init(db)
+    publications.account.load_design_document(db)
+    publications.blacklist.load_design_document(db)
+    publications.journal.load_design_document(db)
+    publications.label.load_design_document(db)
+    publications.log.load_design_document(db)
+    publications.publication.load_design_document(db)
+    publications.researcher.load_design_document(db)
     return db
 
 
