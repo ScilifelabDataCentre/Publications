@@ -55,6 +55,14 @@ def create_database():
 
 
 @cli.command()
+def initialize():
+    """Initialize database; load design documents.
+    No longer needed. Kept just for backwards compatibility.
+    """
+    utils.load_design_documents()
+
+
+@cli.command()
 def counts():
     "Output counts of some database entities."
     db = utils.load_design_documents()
