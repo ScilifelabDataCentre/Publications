@@ -30,16 +30,42 @@ def cli(settings, log):
 
 
 @cli.command()
+def destroy_database():
+    "Hard delete of the entire database, including the instance within CouchDB."
+    server = utils.get_dbserver()
+    try:
+        db = server[settings["DATABASE_NAME"]]
+    except couchdb2.NotFoundError as error:
+        raise click.ClickException(str(error))
+    db.destroy()
+    click.echo(f"""Destroyed database '{settings["DATABASE_NAME"]}'.""")
+
+
+@cli.command()
+def create_database():
+    "Create the database instance within CouchDB. Load the design document."
+    server = utils.get_dbserver()
+    if settings["DATABASE_NAME"] in server:
+        raise click.ClickException(
+            f"""Database '{settings["DATABASE_NAME"]}' already exists."""
+        )
+    server.create(settings["DATABASE_NAME"])
+    click.echo(f"""Created database '{settings["DATABASE_NAME"]}'.""")
+    utils.load_design_documents()
+
+
+@cli.command()
 def initialize():
-    "Initialize the database, which must exist; load all design documents."
-    utils.init_db()
-    click.echo("Loaded all design documents.")
+    """Initialize database; load design documents.
+    No longer needed. Kept just for backwards compatibility.
+    """
+    utils.load_design_documents()
 
 
 @cli.command()
 def counts():
-    "Output counts of database entities."
-    db = utils.init_db()
+    "Output counts of some database entities."
+    db = utils.load_design_documents()
     click.echo(f"{utils.get_count(db, 'publication', 'year'):>5} publications")
     click.echo(f"{utils.get_count(db, 'label', 'value'):>5} labels")
     click.echo(f"{utils.get_count(db, 'account', 'email'):>5} accounts")
@@ -68,7 +94,7 @@ def dump(dumpfile, dumpdir, progressbar):
     if not dumpfile:
         dumpfile = "dump_{0}.tar.gz".format(time.strftime("%Y-%m-%d"))
         if dumpdir:
-            filepath = os.path.join(dumpdir, dumpfile)
+            dumpfile = os.path.join(dumpdir, dumpfile)
     ndocs, nfiles = db.dump(dumpfile, exclude_designs=True, progressbar=progressbar)
     click.echo(f"Dumped {ndocs} documents and {nfiles} files to '{dumpfile}'.")
 
@@ -80,7 +106,7 @@ def dump(dumpfile, dumpdir, progressbar):
 )
 def undump(dumpfile, progressbar):
     "Load a Publications database .tar.gz dump file. The database must be empty."
-    db = utils.init_db()
+    db = utils.load_design_documents()
     if utils.get_count(db, "publication", "year") != 0:
         raise click.ClickException(
             f"The database '{settings['DATABASE_NAME']}' is not empty."

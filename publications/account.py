@@ -42,28 +42,6 @@ Or, go to %(url)s and fill in the one-time code %(code)s manually and provide yo
 EMAIL_ERROR = "Could not send email! Contact the administrator."
 
 
-def init(db):
-    """Initialize:
-    - Update the CouchDB design documents.
-    - Create admin user, if defined and not done.
-    """
-    if db.put_design("account", DESIGN_DOC):
-        logging.info("Updated 'account' design document.")
-    if not (settings["ADMIN_EMAIL"] and settings["ADMIN_PASSWORD"]):
-        return
-    try:
-        utils.get_account(db, settings["ADMIN_EMAIL"])
-        logging.info(f"Admin user '{settings['ADMIN_EMAIL']}'" " exists already.")
-    except KeyError:
-        with AccountSaver(db=db) as saver:
-            saver.set_email(settings["ADMIN_EMAIL"])
-            saver["owner"] = settings["ADMIN_EMAIL"]
-            saver.set_password(settings["ADMIN_PASSWORD"])
-            saver["role"] = constants.ADMIN
-            saver["labels"] = []
-        logging.info(f"Admin user '{settings['ADMIN_EMAIL']}' created.")
-
-
 DESIGN_DOC = {
     "views": {
         "api_key": {
@@ -88,6 +66,12 @@ DESIGN_DOC = {
         },
     }
 }
+
+
+def load_design_document(db):
+    "Update the CouchDB design document."
+    if db.put_design("account", DESIGN_DOC):
+        logging.info("Updated 'account' design document.")
 
 
 class AccountSaver(Saver):

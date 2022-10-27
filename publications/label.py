@@ -14,12 +14,6 @@ from publications.publication import PublicationSaver
 from publications.subset import Subset
 
 
-def init(db):
-    "Initialize; update the CouchDB design documents."
-    if db.put_design("label", DESIGN_DOC):
-        logging.info("Updated 'label' design document.")
-
-
 DESIGN_DOC = {
     "views": {
         "normalized_value": {
@@ -45,6 +39,12 @@ DESIGN_DOC = {
         },
     }
 }
+
+
+def load_design_document(db):
+    "Update the CouchDB design document."
+    if db.put_design("label", DESIGN_DOC):
+        logging.info("Updated 'label' design document.")
 
 
 class LabelSaver(Saver):

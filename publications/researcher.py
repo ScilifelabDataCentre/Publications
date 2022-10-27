@@ -12,12 +12,6 @@ from publications.saver import Saver, SaverError
 from publications.requesthandler import RequestHandler, ApiMixin
 
 
-def init(db):
-    "Initialize; update the CouchDB design documents."
-    if db.put_design("researcher", DESIGN_DOC):
-        logging.info("Updated 'researcher' design document.")
-
-
 DESIGN_DOC = {
     "views": {
         "orcid": {
@@ -41,6 +35,12 @@ DESIGN_DOC = {
         },
     }
 }
+
+
+def load_design_document(db):
+    "Update the CouchDB design document."
+    if db.put_design("researcher", DESIGN_DOC):
+        logging.info("Updated 'researcher' design document.")
 
 
 class ResearcherSaver(Saver):

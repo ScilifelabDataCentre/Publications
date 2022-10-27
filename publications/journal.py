@@ -12,12 +12,6 @@ from publications.requesthandler import RequestHandler
 from publications.publication import PublicationSaver
 
 
-def init(db):
-    "Initialize; update the CouchDB design documents."
-    if db.put_design("journal", DESIGN_DOC):
-        logging.info("Updated 'journal' design document.")
-
-
 DESIGN_DOC = {
     "views": {
         "issn": {
@@ -40,6 +34,12 @@ DESIGN_DOC = {
         },
     }
 }
+
+
+def load_design_document(db):
+    "Update the CouchDB design document."
+    if db.put_design("journal", DESIGN_DOC):
+        logging.info("Updated 'journal' design document.")
 
 
 class JournalSaver(Saver):
