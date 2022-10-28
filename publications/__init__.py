@@ -4,7 +4,7 @@ import os.path
 import re
 import sys
 
-__version__ = "7.2.2"
+__version__ = "7.2.3"
 
 
 class Constants:
@@ -193,7 +193,7 @@ settings = dict(
     LONG_PUBLICATIONS_LIST_LIMIT=200,
     TEMPORAL_LABELS=False,
     FIRST_YEAR=2010,
-    MAX_NUMBER_LABELS_PRECHECKED=2,
+    MAX_NUMBER_LABELS_PRECHECKED=6,
     NUMBER_FIRST_AUTHORS=3,
     NUMBER_LAST_AUTHORS=2,
     DISPLAY_TRANSLATIONS={},
