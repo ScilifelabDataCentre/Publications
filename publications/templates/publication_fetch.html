@@ -69,11 +69,11 @@ Fetch data for publication
       {% if settings['SITE_LABEL_QUALIFIERS'] %}
       <div style="padding-left: 2em;">
 	<label class="radio-inline">
-	{% for qual in settings['SITE_LABEL_QUALIFIERS'] %}
+	{% for pos, qual in enumerate(settings['SITE_LABEL_QUALIFIERS']) %}
 	<label class="radio-inline">
           {# Handle weird problem with non-ASCII characters in label... #}
 	  <input type="radio" name="{{ utils.to_ascii(label) }}_qualifier"
-                 value="{{ qual }}">{{ qual }}
+                 {{ pos == 0 and 'checked' or '' }} value="{{ qual }}">{{ qual }}
                  {{ qual == checked_labels.get(label) and 'checked' or '' }}
 	</label>
 	{% end %}
