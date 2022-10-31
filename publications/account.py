@@ -271,6 +271,7 @@ class AccountAdd(RequestHandler):
                 saver.set_email(email)
                 saver["owner"] = email
                 saver["name"] = self.get_argument("name", None)
+                saver["orcid"] = self.get_argument("orcid", None)
                 saver["role"] = role
                 labels = set([l["value"] for l in self.get_docs("label", "value")])
                 saver["labels"] = sorted(
@@ -353,6 +354,7 @@ class AccountEdit(AccountMixin, RequestHandler):
                         l for l in self.get_arguments("labels") if l in labels
                     )
                 saver["name"] = self.get_argument("name", None)
+                saver["orcid"] = self.get_argument("orcid", None)
                 if self.get_argument("api_key", None):
                     saver.renew_api_key()
         except SaverError:

@@ -356,6 +356,7 @@ class RequestHandler(tornado.web.RequestHandler):
         )
         result["email"] = account["email"]
         result["name"] = account.get("name")  # May be absent.
+        result["orcid"] = account.get("orcid")  # May be absent.
         result["role"] = account["role"]
         result["status"] = account.get("disabled") and "disabled" or "enabled"
         result["login"] = account.get("login")
