@@ -457,7 +457,6 @@ def fetch(filepath, label):
         labels = {label: qualifier}
     else:
         labels = {}
-    account = {"email": os.getlogin(), "user_agent": "CLI"}
     # All labels are allowed from the CLI; as if admin were logged in.
     allowed_labels = set([l["value"] for l in utils.get_docs(db, "label", "value")])
     for identifier in identifiers:
@@ -469,7 +468,7 @@ def fetch(filepath, label):
                     db,
                     identifier,
                     labels=labels,
-                    account=account,
+                    account=get_account(),
                     allowed_labels=allowed_labels,
                 )
             except IOError as error:
@@ -554,8 +553,7 @@ def remove_label(label, csvfilepath):
             continue
         if label not in publ["labels"]:
             continue
-        account = {"email": os.getlogin(), "user_agent": "CLI"}
-        with PublicationSaver(doc=publ, db=db, account=account) as saver:
+        with PublicationSaver(doc=publ, db=db, account=get_account()) as saver:
             labels = publ["labels"].copy()
             labels.pop(label)
             saver["labels"] = labels
@@ -616,7 +614,6 @@ def update_pubmed(csvfilepath):
     count = 0
     iuids = get_iuids_from_csv(csvfilepath)
     click.echo(f"{len(iuids)} publications in CSV input file.")
-    account = {"email": os.getlogin(), "user_agent": "CLI"}
     for iuid in iuids:
         try:
             publ = db[iuid]
@@ -638,7 +635,7 @@ def update_pubmed(csvfilepath):
         except ValueError as error:
             click.echo(f"{pmid}, {error}")
         else:
-            with PublicationSaver(doc=publ, db=db, account=account) as saver:
+            with PublicationSaver(doc=publ, db=db, account=get_account()) as saver:
                 saver.update(new)
                 saver.fix_journal()
             click.echo(f"Updated {iuid} {publ['title'][:50]}...")
@@ -665,7 +662,6 @@ def update_crossref(csvfilepath):
     count = 0
     iuids = get_iuids_from_csv(csvfilepath)
     click.echo(f"{len(iuids)} publications in CSV input file.")
-    account = {"email": os.getlogin(), "user_agent": "CLI"}
     for iuid in iuids:
         try:
             publ = db[iuid]
@@ -686,7 +682,7 @@ def update_crossref(csvfilepath):
         except ValueError as error:
             click.echo(f"{doi}, {error}")
         else:
-            with PublicationSaver(doc=publ, db=db, account=account) as saver:
+            with PublicationSaver(doc=publ, db=db, account=get_account()) as saver:
                 saver.update(new)
                 saver.fix_journal()
             click.echo(f"Updated {iuid} {publ['title'][:50]}...")
@@ -713,7 +709,6 @@ def find_pmid(csvfilepath):
     count = 0
     iuids = get_iuids_from_csv(csvfilepath)
     click.echo(f"{len(iuids)} publications in CSV input file.")
-    account = {"email": os.getlogin(), "user_agent": "CLI"}
     for iuid in iuids:
         try:
             publ = db[iuid]
@@ -728,7 +723,7 @@ def find_pmid(csvfilepath):
         else:
             result = pubmed.search(title=publ["title"])
         if len(result) == 1:
-            with PublicationSaver(doc=publ, db=db, account=account) as saver:
+            with PublicationSaver(doc=publ, db=db, account=get_account()) as saver:
                 saver["pmid"] = result[0]
             click.echo(f"PMID {result[0]}: {publ['title'][:50]}...")
             count += 1
@@ -738,8 +733,7 @@ def find_pmid(csvfilepath):
 def add_label_to_publication(db, publication, label, qualifier):
     if publication["labels"].get(label, "dummy qualifier") == qualifier:
         return False
-    account = {"email": os.getlogin(), "user_agent": "CLI"}
-    with PublicationSaver(doc=publication, db=db, account=account) as saver:
+    with PublicationSaver(doc=publication, db=db, account=get_account()) as saver:
         labels = publication["labels"].copy()
         labels[label] = qualifier
         saver["labels"] = labels
@@ -753,6 +747,14 @@ def get_iuids_from_csv(csvfilepath):
             return [p["IUID"] for p in reader]
     except (IOError, csv.Error, KeyError) as error:
         raise click.ClickException(str(error))
+
+def get_account():
+    "Get dict with current account info for logging purposes."
+    try:
+        email = os.getlogin()
+    except OSError:
+        email = "unknown"
+    return {"email": email, "user_agent": "CLI"}
 
 
 if __name__ == "__main__":
