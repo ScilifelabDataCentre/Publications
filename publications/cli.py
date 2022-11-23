@@ -50,8 +50,8 @@ def create_database():
             f"""Database '{settings["DATABASE_NAME"]}' already exists."""
         )
     server.create(settings["DATABASE_NAME"])
-    click.echo(f"""Created database '{settings["DATABASE_NAME"]}'.""")
     utils.load_design_documents()
+    click.echo(f"""Created database '{settings["DATABASE_NAME"]}'.""")
 
 
 @cli.command()

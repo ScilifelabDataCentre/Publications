@@ -112,7 +112,7 @@ def get_db():
 
 
 def load_design_documents():
-    "Load the design documents. Return the database."
+    "Load the CouchDB design documents. Return the database."
     import publications.account
     import publications.blacklist
     import publications.journal
