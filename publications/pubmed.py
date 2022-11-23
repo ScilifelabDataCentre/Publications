@@ -11,9 +11,9 @@ import xml.etree.ElementTree
 
 import requests
 
-PUBMED_FETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract&id=%s"
+PUBMED_FETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract&id=%s&retmode=xml"
 
-PUBMED_SEARCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=%s&term=%s"
+PUBMED_SEARCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax=%s&term=%s&retmode=xml"
 
 DEFAULT_TIMEOUT = 5.0
 DEFAULT_DELAY = 1.0
@@ -411,4 +411,4 @@ def test():
 
 
 if __name__ == "__main__":
-    print(search(doi="10.1038/356448a0"))
+    print(fetch('8142349', dirname="."))
