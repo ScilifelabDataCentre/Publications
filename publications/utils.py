@@ -450,7 +450,8 @@ class EmailServer:
 
     def __init__(self):
         """Open the connection to the email server.
-        Raise ValueError if no email server host has been defined.
+        Raise ValueError if no email server host has been defined
+        or any other problem.
         """
         try:
             host = settings["EMAIL"]["HOST"]
@@ -461,38 +462,44 @@ class EmailServer:
                 raise KeyError
         except (KeyError, TypeError):
             raise ValueError("email server host is not properly defined")
-        port = settings["EMAIL"].get("PORT") or 0
-        if settings["EMAIL"].get("SSL"):
-            self.server = smtplib.SMTP_SSL(host, port=port)
-        else:
-            self.server = smtplib.SMTP(host, port=port)
-            if settings["EMAIL"].get("TLS"):
-                self.server.starttls()
-        self.server.ehlo()
         try:
-            user = settings["EMAIL"]["USER"]
-            password = settings["EMAIL"]["PASSWORD"]
-        except KeyError:
-            pass
-        else:
-            self.server.login(user, password)
+            port = settings["EMAIL"].get("PORT") or 0
+            if settings["EMAIL"].get("SSL"):
+                self.server = smtplib.SMTP_SSL(host, port=port)
+            else:
+                self.server = smtplib.SMTP(host, port=port)
+                if settings["EMAIL"].get("TLS"):
+                    self.server.starttls()
+            self.server.ehlo()
+            try:
+                user = settings["EMAIL"]["USER"]
+                password = settings["EMAIL"]["PASSWORD"]
+            except KeyError:
+                pass
+            else:
+                self.server.login(user, password)
+        except smtplib.SMTPException as error:
+            raise ValueError(str(error))
 
     def __del__(self):
         "Close the connection to the email server."
         try:
             self.server.quit()
-        except AttributeError:
+        except (smtplib.SMTPException, AttributeError):
             pass
 
     def send(self, recipient, subject, text):
         "Send an email."
-        message = email.message.EmailMessage()
-        message["From"] = self.email
-        message["Subject"] = subject
-        message["Reply-To"] = settings["SITE_REPLY_TO_EMAIL"] or self.email
-        message["To"] = recipient
-        message.set_content(text)
-        self.server.send_message(message)
+        try:
+            message = email.message.EmailMessage()
+            message["From"] = self.email
+            message["Subject"] = subject
+            message["Reply-To"] = settings["SITE_REPLY_TO_EMAIL"] or self.email
+            message["To"] = recipient
+            message.set_content(text)
+            self.server.send_message(message)
+        except smtplib.SMTPException as error:
+            raise ValueError(str(error))
 
 
 class NocaseDict:
