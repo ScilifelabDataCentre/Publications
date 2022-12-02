@@ -296,12 +296,11 @@ class AccountAdd(RequestHandler):
             )
             try:
                 server = utils.EmailServer()
-            except ValueError:
-                self.set_error_flash("Could not send email to user!")
-            else:
                 server.send(
                     account["email"], ADD_TITLE % settings["SITE_NAME"], ADD_TEXT % data
                 )
+            except ValueError:
+                self.set_error_flash("Could not send email to user!")
         self.see_other("account", email)
 
 
@@ -413,14 +412,13 @@ class AccountReset(RequestHandler):
         )
         try:
             server = utils.EmailServer()
-        except ValueError:
-            self.set_error_flash(EMAIL_ERROR)
-        else:
             server.send(
                 account["email"],
                 f"Reset your password in website {settings['SITE_NAME']}",
                 RESET_TEXT % data,
             )
+        except ValueError:
+            self.set_error_flash(EMAIL_ERROR)
         self.see_other("home")
 
 
@@ -515,12 +513,11 @@ class AccountEnable(RequestHandler):
         )
         try:
             server = utils.EmailServer()
-        except ValueError:
-            self.set_error_flash(EMAIL_ERROR)
-        else:
             server.send(
                 account["email"],
                 f"Enabled your account in website {settings['SITE_NAME']}",
                 ENABLED_TEXT % data,
             )
+        except ValueError:
+            self.set_error_flash(EMAIL_ERROR)
         self.see_other("account", email)

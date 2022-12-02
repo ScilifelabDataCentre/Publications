@@ -48,6 +48,12 @@
           {% end %}
         </td>
       </tr>
+      {% if account['role'] == constants.ADMIN %}
+      <tr>
+        <th>Password code</th>
+        <td>{{ account.get('code') or '-' }}</td>
+      </tr>
+      {% end %} {# if #}
       <tr>
         <th>API key</th>
         <td>{{ account.get('api_key') or '[none]' }}</td>
