@@ -469,8 +469,9 @@ class EmailServer:
             else:
                 self.server = smtplib.SMTP(host, port=port)
                 if settings["EMAIL"].get("TLS"):
+                    # self.server.ehlo()
                     self.server.starttls()
-            self.server.ehlo()
+                    # self.server.ehlo()
             try:
                 user = settings["EMAIL"]["USER"]
                 password = settings["EMAIL"]["PASSWORD"]
