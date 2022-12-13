@@ -4,7 +4,7 @@ import os.path
 import re
 import sys
 
-__version__ = "7.2.10"
+__version__ = "7.3.0"
 
 
 class Constants:
@@ -175,12 +175,21 @@ settings = dict(
     DATABASE_PASSWORD=None,  # Should probably be set to connect to CouchDB.
     COOKIE_SECRET=None,  # Must be set!
     PASSWORD_SALT=None,  # Must be set!
-    EMAIL=dict(HOST=None,  # Domain name. Must be defined for email to work.
-               PORT=0,
-               SSL=False,
-               TLS=False,
-               USER=None,
-               PASSWORD=None),
+    MAIL_SERVER=None,           # If not set, then no emails can be sent.
+    MAIL_DEFAULT_SENDER=None,   # If not set, MAIL_USERNAME will be used.
+    MAIL_POST=25,               # Must be an integer.
+    MAIL_USE_SSL=False,
+    MAIL_USE_TLS=False,
+    MAIL_EHLO=None,
+    MAIL_USERNAME=None,
+    MAIL_PASSWORD=None,
+    MAIL_REPLY_TO=None,
+    # EMAIL=dict(HOST=None,  # Domain name. Must be defined for email to work.
+    #            PORT=0,
+    #            SSL=False,
+    #            TLS=False,
+    #            USER=None,
+    #            PASSWORD=None),
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
     PUBMED_DELAY=0.5,  # Delay before PubMed fetch, to avoid block.
@@ -202,8 +211,9 @@ settings = dict(
     SITE_TEXT="A publications reference database system.",
     SITE_PARENT_NAME="Site host",
     SITE_PARENT_URL=None,
-    SITE_EMAIL=None,            # Must be defined for email to work.
-    SITE_REPLY_TO_EMAIL=None,   # If not defined, uses SITE_EMAIL instead.
+    # XXX see MAIL_* variables?
+    # SITE_EMAIL=None,            # Must be defined for email to work.
+    # SITE_REPLY_TO_EMAIL=None,   # If not defined, uses SITE_EMAIL instead.
     SITE_CONTACT="<p><i>No contact information available.</i></p>",
     SITE_STATIC_DIR=os.path.normpath(os.path.join(constants.ROOT, "../site/static")),
     SITE_LABEL_QUALIFIERS=[],

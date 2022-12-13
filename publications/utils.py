@@ -454,31 +454,40 @@ class EmailServer:
         or any other problem.
         """
         try:
-            host = settings["EMAIL"]["HOST"]
+            host = settings["MAIL_SERVER"]
             if not host:
                 raise KeyError
-            self.email = settings["SITE_EMAIL"]
+            self.email = settings["MAIL_DEFAULT_SENDER"] or settings["MAIL_USERNAME"]
             if not self.email:
                 raise KeyError
-        except (KeyError, TypeError):
-            raise ValueError("email server host is not properly defined")
+            port = int(settings["MAIL_PORT"])
+            use_ssl = to_bool(settings["MAIL_USE_SSL"])
+            use_tls = to_bool(settings["MAIL_USE_TLS"])
+        except (KeyError, TypeError, ValueError):
+            raise ValueError("email server is not properly defined")
         try:
-            port = settings["EMAIL"].get("PORT") or 0
-            if settings["EMAIL"].get("SSL"):
+            if use_tls:
+                self.server = smtplib.SMTP(host, port=port)
+                if settings.get("MAIL_EHLO"):
+                    self.server.ehlo(settings["MAIL_EHLO"])
+                self.server.starttls()
+                if settings.get("MAIL_EHLO"):
+                    self.server.ehlo(settings["MAIL_EHLO"])
+            elif use_ssl:
                 self.server = smtplib.SMTP_SSL(host, port=port)
             else:
                 self.server = smtplib.SMTP(host, port=port)
-                if settings["EMAIL"].get("TLS"):
-                    # self.server.ehlo()
-                    self.server.starttls()
-                    # self.server.ehlo()
             try:
-                user = settings["EMAIL"]["USER"]
-                password = settings["EMAIL"]["PASSWORD"]
+                username = settings["MAIL_USERNAME"]
+                if not username:
+                    raise KeyError
+                password = settings["MAIL_PASSWORD"]
+                if not password:
+                    raise KeyError
             except KeyError:
                 pass
             else:
-                self.server.login(user, password)
+                self.server.login(username, password)
         except smtplib.SMTPException as error:
             raise ValueError(str(error))
 
@@ -495,7 +504,8 @@ class EmailServer:
             message = email.message.EmailMessage()
             message["From"] = self.email
             message["Subject"] = subject
-            message["Reply-To"] = settings["SITE_REPLY_TO_EMAIL"] or self.email
+            if settings["MAIL_REPLY_TO"]:
+                message["Reply-to"] = settings["MAIL_REPLY_TO"]
             message["To"] = recipient
             message.set_content(text)
             self.server.send_message(message)
