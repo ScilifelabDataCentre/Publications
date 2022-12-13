@@ -92,7 +92,7 @@
   </a>
 </p>
 {% end %} {# if is_editable #}
-{% if settings.get('EMAIL') and settings['EMAIL'].get('HOST') and not account.get('disabled') %}
+{% if settings['MAIL_SERVER'] and not account.get('disabled') %}
 <p>
   <a href="{{ reverse_url('account_reset', account=account['email']) }}"
      class="btn btn-warning btn-block"

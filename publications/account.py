@@ -39,7 +39,7 @@ Or, go to %(url)s and fill in the one-time code %(code)s manually and provide yo
 /The %(site)s administrator.
 """
 
-EMAIL_ERROR = "Could not send email! Contact the administrator."
+EMAIL_ERROR = "Could not send email. Contact the administrator."
 
 
 DESIGN_DOC = {
@@ -371,12 +371,13 @@ class AccountReset(RequestHandler):
             account = self.current_user["email"]
         else:
             account = None
-        if settings.get("EMAIL") and settings["EMAIL"].get("HOST"):
+        # if settings.get("EMAIL") and settings["EMAIL"].get("HOST"):
+        if settings["MAIL_SERVER"]:
             self.render("account_reset.html", account=account)
         else:
             self.set_error_flash(
                 "Cannot reset password since"
-                " no email server configuration."
+                " email server has not been configured."
                 " Contact the system administrator."
             )
             self.see_other("home")
@@ -417,7 +418,8 @@ class AccountReset(RequestHandler):
                 f"Reset your password in website {settings['SITE_NAME']}",
                 RESET_TEXT % data,
             )
-        except ValueError:
+        except ValueError as error:
+            logging.error(str(error))
             self.set_error_flash(EMAIL_ERROR)
         self.see_other("home")
 
