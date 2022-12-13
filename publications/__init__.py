@@ -4,7 +4,7 @@ import os.path
 import re
 import sys
 
-__version__ = "7.3.0"
+__version__ = "7.3.1"
 
 
 class Constants:
@@ -177,7 +177,7 @@ settings = dict(
     PASSWORD_SALT=None,  # Must be set!
     MAIL_SERVER=None,           # If not set, then no emails can be sent.
     MAIL_DEFAULT_SENDER=None,   # If not set, MAIL_USERNAME will be used.
-    MAIL_POST=25,               # Must be an integer.
+    MAIL_PORT=25,
     MAIL_USE_SSL=False,
     MAIL_USE_TLS=False,
     MAIL_EHLO=None,

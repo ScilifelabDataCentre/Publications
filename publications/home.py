@@ -44,12 +44,9 @@ class Settings(RequestHandler):
     def get(self):
         self.check_admin()
         cleaned = settings.copy()
-        for key in ["PASSWORD_SALT", "COOKIE_SECRET", "DATABASE_PASSWORD"]:
+        for key in ["PASSWORD_SALT", "COOKIE_SECRET", "DATABASE_PASSWORD", "MAIL_PASSWORD"]:
             if key in cleaned:
-                cleaned[key] = "****"
-        email = cleaned.get("EMAIL") or {}
-        if "PASSWORD" in email:
-            cleaned["EMAIL"]["PASSWORD"] = "****"
+                cleaned[key] = "<hidden>"
         self.render("settings.html", cleaned_settings=sorted(cleaned.items()))
 
 
