@@ -8,7 +8,7 @@ from publications import constants
 from publications import settings
 from publications import utils
 from publications.saver import Saver, SaverError
-from publications.requesthandler import RequestHandler
+from publications.requesthandler import CorsMixin, RequestHandler
 from publications.publication import PublicationSaver
 
 
@@ -154,8 +154,8 @@ class Journal(JournalMixin, RequestHandler):
         self.see_other("journals")
 
 
-class JournalJson(Journal):
-    "Journal JSON data."
+class JournalJson(CorsMixin, Journal):
+    "Journal JSON output."
 
     def render(self, template, **kwargs):
         URL = self.absolute_reverse_url
@@ -242,8 +242,8 @@ class Journals(RequestHandler):
         self.render("journals.html", journals=journals)
 
 
-class JournalsJson(Journals):
-    "JSON for journals."
+class JournalsJson(CorsMixin, Journals):
+    "Journals JSON output."
 
     def render(self, template, **kwargs):
         URL = self.absolute_reverse_url

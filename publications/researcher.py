@@ -9,7 +9,7 @@ from publications import publication
 from publications import settings
 from publications import utils
 from publications.saver import Saver, SaverError
-from publications.requesthandler import RequestHandler, ApiMixin
+from publications.requesthandler import CorsMixin, RequestHandler
 
 
 DESIGN_DOC = {
@@ -194,8 +194,8 @@ class JsonMixin:
         return result
 
 
-class ResearcherJson(JsonMixin, Researcher):
-    "Researcher JSON data."
+class ResearcherJson(CorsMixin, JsonMixin, Researcher):
+    "Researcher JSON output."
 
     def get(self, identifier):
         "Display the researcher."
@@ -463,8 +463,8 @@ class Researchers(RequestHandler):
         self.render("researchers.html", researchers=researchers)
 
 
-class ResearchersJson(JsonMixin, Researchers):
-    "Researchers JSON list."
+class ResearchersJson(CorsMixin, JsonMixin, Researchers):
+    "Researchers list JSON output."
 
     def render(self, template, researchers):
         "Override; ignores template, and outpus JSON instead of HTML."

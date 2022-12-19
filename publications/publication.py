@@ -14,7 +14,7 @@ from publications import utils
 from publications.saver import Saver, SaverError
 from publications.subset import Subset
 from publications.writer import CsvWriter, XlsxWriter, TextWriter
-from publications.requesthandler import RequestHandler, ApiMixin
+from publications.requesthandler import RequestHandler, CorsMixin, ApiMixin
 
 
 REMOVE = "".join(constants.SEARCH_REMOVE)
@@ -592,7 +592,7 @@ class Publication(PublicationMixin, RequestHandler):
         self.see_other("home")
 
 
-class PublicationJson(PublicationMixin, RequestHandler):
+class PublicationJson(CorsMixin, PublicationMixin, RequestHandler):
     "Publication JSON data."
 
     def get(self, identifier):
@@ -624,7 +624,7 @@ class PublicationsTable(Publications):
     TEMPLATE = "publications_table.html"
 
 
-class PublicationsJson(Publications):
+class PublicationsJson(CorsMixin, Publications):
     "Publications JSON output."
 
     def render(self, template, **kwargs):
@@ -800,7 +800,7 @@ class PublicationsNoPmid(PublicationMixin, RequestHandler):
         self.render("publications_no_pmid.html", publications=publications)
 
 
-class PublicationsNoPmidJson(PublicationsNoPmid):
+class PublicationsNoPmidJson(CorsMixin, PublicationsNoPmid):
     "Publications lacking PMID JSON output."
 
     def render(self, template, **kwargs):
@@ -831,7 +831,7 @@ class PublicationsNoDoi(RequestHandler):
         self.render("publications_no_doi.html", publications=publications)
 
 
-class PublicationsNoDoiJson(PublicationsNoDoi):
+class PublicationsNoDoiJson(CorsMixin, PublicationsNoDoi):
     "Publications lacking DOI JSON output."
 
     def render(self, template, **kwargs):
@@ -860,7 +860,7 @@ class PublicationsNoLabel(RequestHandler):
         self.render("publications_no_label.html", publications=subset)
 
 
-class PublicationsNoLabelJson(PublicationsNoLabel):
+class PublicationsNoLabelJson(CorsMixin, PublicationsNoLabel):
     "Publications lacking label JSON output."
 
     def render(self, template, **kwargs):

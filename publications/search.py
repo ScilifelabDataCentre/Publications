@@ -5,7 +5,7 @@ import logging
 from publications import constants
 from publications import settings
 from publications import utils
-from publications.requesthandler import RequestHandler
+from publications.requesthandler import CorsMixin, RequestHandler
 
 
 SEARCH_REMOVE = set(constants.SEARCH_REMOVE)
@@ -103,8 +103,8 @@ class Search(RequestHandler):
         return result
 
 
-class SearchJson(Search):
-    "Output search results in JSON."
+class SearchJson(CorsMixin, Search):
+    "Search results JSON output."
 
     def render(self, template, **kwargs):
         URL = self.absolute_reverse_url
