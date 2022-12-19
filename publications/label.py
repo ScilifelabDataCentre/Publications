@@ -7,7 +7,7 @@ import tornado.web
 from publications import constants
 from publications import settings
 from publications import utils
-from publications.requesthandler import RequestHandler
+from publications.requesthandler import CorsMixin, RequestHandler
 from publications.saver import Saver, SaverError
 from publications.account import AccountSaver
 from publications.publication import PublicationSaver
@@ -123,8 +123,8 @@ class Label(RequestHandler):
         self.see_other("labels")
 
 
-class LabelJson(Label):
-    "Label JSON data."
+class LabelJson(CorsMixin, Label):
+    "Label JSON output."
 
     def render(self, template, **kwargs):
         self.write(
@@ -175,8 +175,8 @@ class LabelsTable(RequestHandler):
         self.render("labels_table.html", labels=labels)
 
 
-class LabelsJson(LabelsTable):
-    "JSON for labels."
+class LabelsJson(CorsMixin, LabelsTable):
+    "Labels JSON output."
 
     def render(self, template, **kwargs):
         URL = self.absolute_reverse_url

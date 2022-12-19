@@ -8,7 +8,7 @@ from publications import constants
 from publications import settings
 from publications import utils
 from publications.saver import Saver, SaverError
-from publications.requesthandler import RequestHandler
+from publications.requesthandler import CorsMixin, RequestHandler
 
 ADD_TITLE = "A new account in the website %s"
 
@@ -202,8 +202,8 @@ class Account(AccountMixin, RequestHandler):
         self.see_other("accounts")
 
 
-class AccountJson(Account):
-    "Account JSON data."
+class AccountJson(CorsMixin, Account):
+    "Account JSON output."
 
     def render(self, template, **kwargs):
         self.write(self.get_account_json(kwargs["account"], full=True))
@@ -219,8 +219,8 @@ class Accounts(RequestHandler):
         self.render("accounts.html", accounts=accounts)
 
 
-class AccountsJson(Accounts):
-    "Accounts JSON data."
+class AccountsJson(CorsMixin, Accounts):
+    "Accounts JSON output."
 
     def render(self, template, **kwargs):
         URL = self.absolute_reverse_url

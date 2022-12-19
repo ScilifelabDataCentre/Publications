@@ -4,7 +4,7 @@ import os.path
 import re
 import sys
 
-__version__ = "7.3.2"
+__version__ = "7.3.3"
 
 
 class Constants:
@@ -192,7 +192,7 @@ settings = dict(
     CROSSREF_DELAY=0.5,  # Delay before Crossref fetch, to avoid block.
     CROSSREF_TIMEOUT=10.0,  # Timeout limit for Crossref fetch.
     PUBLICATIONS_FETCHED_LIMIT=10,
-    SHORT_PUBLICATIONS_LIST_LIMIT=10,
+    SHORT_PUBLICATIONS_LIST_LIMIT=20,
     LONG_PUBLICATIONS_LIST_LIMIT=200,
     TEMPORAL_LABELS=False,
     FIRST_YEAR=2010,

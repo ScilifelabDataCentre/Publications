@@ -18,11 +18,6 @@ from publications import utils
 class RequestHandler(tornado.web.RequestHandler):
     "Base request handler."
 
-    def set_default_headers(self):
-        "Allow CORS requests."
-        self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-
     def prepare(self):
         "Get the database connection."
         self.db = utils.get_db()
@@ -420,6 +415,15 @@ class RequestHandler(tornado.web.RequestHandler):
                 [(r.value, r.key) for r in self.db.view("journal", "issn_l")]
             )
             return self._issn_l_map.get(issn)
+
+
+class CorsMixin:
+    "Mixin for outputting CORS headers allowing requests."
+
+    def set_default_headers(self):
+        "Allow CORS requests."
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
 
 
 class ApiMixin:
