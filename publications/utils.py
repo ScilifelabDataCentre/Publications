@@ -84,6 +84,8 @@ def load_settings(filepath=None, log=True):
     for key in ["PUBMED_DELAY", "PUBMED_TIMEOUT", "CROSSREF_DELAY", "CROSSREF_TIMEOUT"]:
         if not isinstance(settings[key], (int, float)) or settings[key] <= 0.0:
             raise ValueError(f"Invalid '{key}' value: must be positive number.")
+    if settings["MAIL_SERVER"] and not (settings["MAIL_DEFAULT_SENDER"] or settings["MAIL_USERNAME"]):
+        raise ValueError("Either MAIL_DEFAULT_SENDER or MAIL_USERNAME must be defined.")
 
     # Set up the xref templates URLs.
     settings["XREF_TEMPLATE_URLS"] = NocaseDict(settings["XREF_TEMPLATE_URLS"])
@@ -454,8 +456,8 @@ class EmailServer:
         or any other problem.
         """
         try:
-            host = settings["MAIL_SERVER"]
-            if not host:
+            server = settings["MAIL_SERVER"]
+            if not server:
                 raise KeyError
             self.email = settings["MAIL_DEFAULT_SENDER"] or settings["MAIL_USERNAME"]
             if not self.email:
@@ -467,16 +469,16 @@ class EmailServer:
             raise ValueError("email server is not properly defined")
         try:
             if use_tls:
-                self.server = smtplib.SMTP(host, port=port)
+                self.server = smtplib.SMTP(server, port=port)
                 if settings.get("MAIL_EHLO"):
                     self.server.ehlo(settings["MAIL_EHLO"])
                 self.server.starttls()
                 if settings.get("MAIL_EHLO"):
                     self.server.ehlo(settings["MAIL_EHLO"])
             elif use_ssl:
-                self.server = smtplib.SMTP_SSL(host, port=port)
+                self.server = smtplib.SMTP_SSL(server, port=port)
             else:
-                self.server = smtplib.SMTP(host, port=port)
+                self.server = smtplib.SMTP(server, port=port)
             try:
                 username = settings["MAIL_USERNAME"]
                 if not username:
