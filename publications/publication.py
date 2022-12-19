@@ -605,7 +605,7 @@ class PublicationJson(CorsMixin, PublicationMixin, RequestHandler):
 
 
 class Publications(RequestHandler):
-    "Publications list display page; by year or all."
+    "Publications list display page; by year or most recent."
 
     TEMPLATE = "publications.html"
 
@@ -614,7 +614,7 @@ class Publications(RequestHandler):
         if year:
             subset.select_year(year)
         else:
-            subset.select_all()
+            subset.select_recent(settings["SHORT_PUBLICATIONS_LIST_LIMIT"])
         self.render(self.TEMPLATE, publications=subset, year=year)
 
 

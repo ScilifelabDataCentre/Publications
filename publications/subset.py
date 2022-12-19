@@ -72,7 +72,7 @@ class Subset:
     "Publication subset selection and operations."
 
     def __init__(
-        self, db, all=False, year=None, label=None, author=None, orcid=None, issn=None
+            self, db, all=False, recent=None, year=None, label=None, author=None, orcid=None, issn=None
     ):
         self.db = db
         self.iuids = set()
@@ -80,6 +80,8 @@ class Subset:
             self.select_all()
         elif year:
             self.select_year(year)
+        elif recent:
+            self.select_recent(recent)
         elif label:
             self.select_label(label)
         elif author:
@@ -165,6 +167,10 @@ class Subset:
     def select_all(self):
         "Select all publications."
         self._select("publication", "published")
+
+    def select_recent(self, recent):
+        "Select 'recent' number of publications."
+        self._select("publication", "first_published", limit=recent, descending=True)
 
     def select_year(self, year):
         "Select the publications by the 'published' year."
