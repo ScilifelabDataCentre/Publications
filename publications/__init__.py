@@ -4,7 +4,7 @@ import os.path
 import re
 import sys
 
-__version__ = "7.3.1"
+__version__ = "7.3.2"
 
 
 class Constants:
@@ -184,12 +184,6 @@ settings = dict(
     MAIL_USERNAME=None,
     MAIL_PASSWORD=None,
     MAIL_REPLY_TO=None,
-    # EMAIL=dict(HOST=None,  # Domain name. Must be defined for email to work.
-    #            PORT=0,
-    #            SSL=False,
-    #            TLS=False,
-    #            USER=None,
-    #            PASSWORD=None),
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
     PUBMED_DELAY=0.5,  # Delay before PubMed fetch, to avoid block.
