@@ -85,6 +85,8 @@ class Status(RequestHandler):
             dict(
                 status="OK",
                 n_publications=self.get_count("publication", "year"),
+                n_labels=self.get_count("label", "value"),
+                n_researchers=self.get_count("researcher", "name"),
             )
         )
 
