@@ -610,11 +610,10 @@ class Publications(RequestHandler):
     TEMPLATE = "publications.html"
 
     def get(self, year=None):
-        subset = Subset(self.db)
         if year:
-            subset.select_year(year)
+            subset = Subset(self.db, year=year)
         else:
-            subset.select_recent(settings["SHORT_PUBLICATIONS_LIST_LIMIT"])
+            subset = Subset(self.db, all=True)
         self.render(self.TEMPLATE, publications=subset, year=year)
 
 
@@ -654,7 +653,7 @@ class PublicationsJson(CorsMixin, Publications):
 
 
 class PublicationsFile(utils.DownloadParametersMixin, Publications):
-    "Class adding methods for output of publications to a file."
+    "Adding method for output of publications to a file."
 
     def get_filtered_publications(self):
         "Get the publications filtered according to form arguments."

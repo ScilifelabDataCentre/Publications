@@ -11,6 +11,7 @@ import xlsxwriter
 
 from publications import constants
 from publications import settings
+from publications.subset import Subset
 from publications.requesthandler import RequestHandler
 
 
@@ -19,15 +20,8 @@ class Home(RequestHandler):
 
     def get(self):
         limit = settings["SHORT_PUBLICATIONS_LIST_LIMIT"]
-        docs = self.get_docs(
-            "publication",
-            "first_published",
-            key=constants.CEILING,
-            last="",
-            descending=True,
-            limit=limit,
-        )
-        self.render("home.html", publications=docs, limit=limit)
+        subset = Subset(self.db, recent=limit)
+        self.render("home.html", publications=subset, limit=limit)
 
 
 class Contact(RequestHandler):
@@ -85,8 +79,6 @@ class Status(RequestHandler):
             dict(
                 status="OK",
                 n_publications=self.get_count("publication", "year"),
-                n_labels=self.get_count("label", "value"),
-                n_researchers=self.get_count("researcher", "name"),
             )
         )
 
