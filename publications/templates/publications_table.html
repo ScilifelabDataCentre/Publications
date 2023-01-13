@@ -78,7 +78,8 @@ Publications {{ year or '' }}
   $(function() {
     $("#publications").DataTable( {
       "pagingType": "full_numbers",
-      "pageLength": 10
+      "pageLength": 10,
+      "order": [[3, "desc"]]
     });
   });
 </script>
