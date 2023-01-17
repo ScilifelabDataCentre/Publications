@@ -9,6 +9,6 @@ RUN mkdir /code/site
 WORKDIR /code/publications
 ENV PYTHONPATH /code
 
-CMD ["python3", "app_publications.py"]
+CMD ["python3", "main.py"]
 
 VOLUME ["/code/site"]
