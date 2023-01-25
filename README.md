@@ -63,6 +63,11 @@ Features
 Important changes
 -----------------
 
+- Since version 8.0, Python 3.9 or later is required.
+
+- Since version 8.0, the main file to be executed is called `main.py` rather
+  than `app_publications.py`. The Docker file has been changed accordingly.
+
 - Since version 6.4, the GitHub wiki has been discontinued. Installation
   information is available below, and other information is available
   in the web app interface.
@@ -106,7 +111,7 @@ Installation
 0. NOTE: tornado is difficult (even impossible?) to set up on Windows
    systems, so Linux is strongly recommended.
 
-1. Ensure that you have Python 3.6 or higher.
+1. Ensure that you have Python 3.9 or higher.
 
 2. Your Python environment must include the Publications directory in
    its path, e.g.:

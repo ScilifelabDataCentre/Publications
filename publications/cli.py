@@ -18,7 +18,8 @@ from publications import utils
 from publications.account import AccountSaver
 from publications.publication import PublicationSaver, fetch_publication
 from publications.subset import Subset, get_parser
-import publications.app_publications
+
+import publications.main
 import publications.writer
 
 
@@ -57,7 +58,7 @@ def create_database():
 @cli.command()
 def initialize():
     """Initialize database; load design documents.
-    No longer needed. Kept just for backwards compatibility.
+    No longer really needed. Kept just for backwards compatibility.
     """
     utils.load_design_documents()
 
@@ -319,7 +320,7 @@ def select(
     These separate sets are the intersected to give the final subset.
     """
     db = utils.get_db()
-    app = publications.app_publications.get_application()
+    app = publications.main.get_application()
     subsets = []
 
     def _union(s, t):

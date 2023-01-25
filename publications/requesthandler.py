@@ -34,12 +34,7 @@ class RequestHandler(tornado.web.RequestHandler):
         self.clear_cookie("error")
         result["message"] = urllib.parse.unquote_plus(self.get_cookie("message", ""))
         self.clear_cookie("message")
-        result["year_counts"] = [
-            (r.key, r.value)
-            for r in self.db.view(
-                "publication", "year", descending=True, reduce=True, group_level=1
-            )
-        ]
+        result["year_counts"] = self.get_year_counts()
         return result
 
     def see_other(self, name, *args, **kwargs):
@@ -104,6 +99,15 @@ class RequestHandler(tornado.web.RequestHandler):
     def get_count(self, designname, viewname, key=None):
         "Get the reduce value for the name view and the given key."
         return utils.get_count(self.db, designname, viewname, key=key)
+
+    def get_year_counts(self):
+        "Return a list of tuples (year, count) for all years."
+        return [
+            (r.key, r.value)
+            for r in self.db.view(
+                    "publication", "year", descending=True, reduce=True, group_level=1
+            )
+        ]
 
     def get_publication(self, identifier):
         """Get the publication given its IUID, DOI or PMID.

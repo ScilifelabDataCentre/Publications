@@ -375,39 +375,7 @@
       {% block content %}
       <div class="row">
 	<div class="col-md-2">
-          <p class="text-center">
-	    <span class="glyphicon glyphicon-file"></span> Publications
-          </p>
 	  {% block menu_content %}
-	  {% for y, c in year_counts %}
-	  <p style="padding: 0px 10px">
-	    <a href="{{ reverse_url('publications_year', y) }}"
-	       role="button" class="btn btn-default btn-block btn-xs">
-	      {{ y }} ({{ c }})
-	    </a>
-	  </p>
-	  {% end %} {# for y, c #}
-          <p style="padding: 0px 10px">
-	    <a href="{{ reverse_url('publications') }}"
-	       role="button" class="btn btn-default btn-block btn-xs">
-	      All ({{ sum([c for y, c in year_counts]) }})
-	    </a>
-          </p>
-          <br>
-	  <p>
-	    <a href="{{ reverse_url('labels') }}"
-	       role="button" class="btn btn-default btn-block btn-sm">
-	      <span class="glyphicon glyphicon-tag"></span>
-	      {% module Translate('Labels') %}
-	    </a>
-	  </p>
-	  <p>
-	    <a href="{{ reverse_url('journals') }}"
-	       role="button" class="btn btn-default btn-block btn-sm">
-	      <span class="glyphicon glyphicon-book"></span>
-	      Journals
-	    </a>
-	  </p>
 	  {% end %} {# block menu_content #}
 	</div>
 	<div class="col-md-8">
