@@ -768,6 +768,13 @@ class PublicationsTxt(PublicationsFile):
         )
 
 
+class PublicationsYearsJson(RequestHandler):
+    "Statistics of number of publications per year."
+
+    def get(self):
+        self.write({"year_counts": self.get_year_counts()})
+
+
 class PublicationsNoPmid(PublicationMixin, RequestHandler):
     "Publications lacking PMID."
 
