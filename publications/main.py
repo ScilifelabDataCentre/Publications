@@ -92,6 +92,11 @@ def get_application():
             name="publications_table",
         ),
         url(
+            r"/publications/recent.json",
+            publications.publication.PublicationsRecentJson,
+            name="publications_recent_json",
+        ),
+        url(
             r"/publications/years.json",
             publications.publication.PublicationsYearsJson,
             name="publications_years_json",
