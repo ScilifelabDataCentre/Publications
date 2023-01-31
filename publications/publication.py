@@ -768,6 +768,27 @@ class PublicationsTxt(PublicationsFile):
         )
 
 
+class PublicationsRecentJson(CorsMixin, RequestHandler):
+    "The most recent publications."
+
+    def get(self):
+        limit = settings["SHORT_PUBLICATIONS_LIST_LIMIT"]
+        subset = Subset(self.db, recent=limit)
+        URL = self.absolute_reverse_url
+        result = dict()
+        result["entity"] = "publications"
+        result["timestamp"] = utils.timestamp()
+        result["links"] = links = dict()
+        links["self"] = {"href": URL("publications_recent_json")}
+        result["publications_count"] = len(subset)
+        full = utils.to_bool(self.get_argument("full", True))
+        result["full"] = full
+        result["publications"] = [
+            self.get_publication_json(publ, full=full) for publ in subset
+        ]
+        self.write(result)
+
+
 class PublicationsYearsJson(RequestHandler):
     "Statistics of number of publications per year."
 
