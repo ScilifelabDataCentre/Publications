@@ -82,48 +82,56 @@
 {% end %} {# block main_content #}
 
 {% block meta_content %}
+
+{% if current_user and current_user == account %}
+<form action="{{ reverse_url('logout') }}"
+      method="POST" role="form">
+  {% module xsrf_form_html() %}
+  <div class="form-group">
+    <button type="submit" title="Logout" class="btn btn-warning btn-block">
+      <span class="glyphicon glyphicon-log-out"></span> Logout
+    </button>
+  </div>
+</form>
+{% end %}
+
 {% if is_editable %}
 <p>
   <a href="{{ reverse_url('account_edit', account['email']) }}"
      class="btn btn-primary btn-block"
      role="button">
-    <span class="glyphicon glyphicon-edit"></span>
-    Edit
-  </a>
+    <span class="glyphicon glyphicon-edit"></span> Edit</a>
 </p>
 {% end %} {# if is_editable #}
-{% if settings['MAIL_SERVER'] and not account.get('disabled') %}
-<p>
-  <a href="{{ reverse_url('account_reset', account=account['email']) }}"
-     class="btn btn-warning btn-block"
-     role="button">
-    <span class="glyphicon glyphicon-repeat"></span>
-    Reset password
-  </a>
-</p>
-{% end %}
+
 {% if is_admin and not account.get('disabled') %}
 <p>
   <a href="{{ reverse_url('account_password', account=account['email']) }}"
-     class="btn btn-success btn-block"
-     role="button">
-    <span class="glyphicon glyphicon-arrow-down"></span>
-    Set password
+     class="btn btn-success btn-block" role="button">
+    <span class="glyphicon glyphicon-arrow-down"></span> Set password
   </a>
 </p>
 {% end %}
+
+{% if settings['MAIL_SERVER'] and not account.get('disabled') %}
+<p>
+  <a href="{{ reverse_url('account_reset', account=account['email']) }}"
+     class="btn btn-warning btn-block" role="button">
+    <span class="glyphicon glyphicon-repeat"></span> Reset password
+  </a>
+</p>
+{% end %}
+
 {% if is_admin %}
 <p>
   {% if account.get('disabled') %}
   <form action="{{ reverse_url('account_enable', account['email']) }}"
-        role="form"
-        method="POST">
+        method="POST" role="form">
     {% module xsrf_form_html() %}
     <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
     <div class="form-group">
       <button type="submit" class="btn btn-danger btn-block">
-	<span class="glyphicon glyphicon-ok-circle"></span>
-	Enable
+	<span class="glyphicon glyphicon-ok-circle"></span> Enable
       </button>
     </div>
   </form>
@@ -135,14 +143,14 @@
     <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
     <div class="form-group">
       <button type="submit" class="btn btn-danger btn-block">
-	<span class="glyphicon glyphicon-ban-circle"></span>
-	Disable
+	<span class="glyphicon glyphicon-ban-circle"></span> Disable
       </button>
     </div>
   </form>
   {% end %}
 </p>
 {% end %} {# if is_admin #}
+
 {% if is_deletable %}
 <p>
   <form action="{{ reverse_url('account', account['email']) }}"
@@ -158,6 +166,7 @@
   </form>
 </p>
 {% end %} {# if is_deletable #}
+
 <p>
   <a href="{{ reverse_url('logs', account['_id']) }}">
     <span class="badge">
