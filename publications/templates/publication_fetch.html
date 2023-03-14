@@ -19,14 +19,15 @@ Fetch data for publication
   <div class="form-group">
     <label class="col-md-2 control-label" for="identifier">PMID or DOI</label>
     <div class="col-md-8">
-      <textarea class="form-control" rows="4"
-                name="identifiers" id="identifiers"></textarea>
       <span class="help-block">
-	Fetch publication reference data using PubMed identifiers
+	Fetch publication reference data by entering PubMed identifiers
 	(PMID, e.g. <strong>25613900</strong>)
 	or Digital Object Identifiers
 	(DOI, e.g. <strong>10.1126/science.1260419</strong>).
-        <br>
+      </span>
+      <textarea class="form-control" rows="4"
+                name="identifiers" id="identifiers"></textarea>
+      <span class="help-block">
         <strong>Max {{ settings['PUBLICATIONS_FETCHED_LIMIT'] }}</strong>
         will be fetched in one operation. Provide one identifier per
         line.
