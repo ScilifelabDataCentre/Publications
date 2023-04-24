@@ -6,7 +6,7 @@ idna==3.3
 pyparsing==3.0.9
 PyYAML==6.0
 requests==2.28.2
-tornado==6.2
-tqdm==4.64.1
+tornado==6.3.1
+tqdm==4.65.0
 urllib3==1.26.9
-XlsxWriter==3.0.7
+XlsxWriter==3.1.0
