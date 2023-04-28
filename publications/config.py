@@ -1,13 +1,18 @@
-"Configuration of settings, and endpoints."
+"Configuration of settings, and configuration pages."
 
 import logging
 import os
 import os.path
 
+import couchdb2
+import tornado.web
 import yaml
 
 from publications import constants
 from publications import settings
+from publications.requesthandler import RequestHandler
+
+import publications.saver
 
 
 DEFAULT_SETTINGS = dict(
@@ -60,14 +65,6 @@ DEFAULT_SETTINGS = dict(
     SITE_CONTACT="<p><i>No contact information available.</i></p>",
     SITE_STATIC_DIR=os.path.normpath(os.path.join(constants.ROOT, "../site/static")),
     SITE_LABEL_QUALIFIERS=[],
-    IDENTIFIER_PREFIXES=[
-        "doi:",
-        "pmid:",
-        "pubmed:",
-        "http://doi.org/",
-        "https://doi.org/",
-        "http://dx.doi.org/",
-    ],
     XREF_TEMPLATE_URLS={
         "ArrayExpress": "https://www.ebi.ac.uk/arrayexpress/experiments/%s/",
         "BioProject": "https://www.ncbi.nlm.nih.gov/bioproject/%s",
@@ -101,6 +98,7 @@ def load_settings(filepath=None, log=True):
     Raise KeyError if a settings variable is missing.
     Raise ValueError if a settings variable value is invalid.
     """
+    settings.clear()
     settings.update(DEFAULT_SETTINGS)
 
     site_dir = settings["SITE_DIR"]

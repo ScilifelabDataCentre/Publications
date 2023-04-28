@@ -8,14 +8,13 @@ import sys
 import tornado.web
 import tornado.ioloop
 
-from publications import config
 from publications import constants
 from publications import settings
 from publications import uimodules
 from publications import utils
 
+import publications.config
 import publications.home
-import publications.login
 import publications.account
 import publications.publication
 import publications.blacklist
@@ -24,7 +23,6 @@ import publications.label
 import publications.search
 import publications.researcher
 import publications.subset
-import publications.log
 
 
 def get_application():
@@ -281,12 +279,12 @@ def get_application():
         url(r"/search", publications.search.Search, name="search"),
         url(r"/search.json", publications.search.SearchJson, name="search_json"),
         url(r"/subset", publications.subset.SubsetDisplay, name="subset"),
-        url(r"/logs/([^/]+)", publications.log.Logs, name="logs"),
+        url(r"/logs/([^/]+)", publications.home.Logs, name="logs"),
         url(r"/contact", publications.home.Contact, name="contact"),
         url(r"/settings", publications.home.Settings, name="settings"),
         url(r"/software", publications.home.Software, name="software"),
-        url(r"/login", publications.login.Login, name="login"),
-        url(r"/logout", publications.login.Logout, name="logout"),
+        url(r"/login", publications.account.Login, name="login"),
+        url(r"/logout", publications.account.Logout, name="logout"),
         url(
             r"/api/publication",
             publications.publication.ApiPublicationFetch,
@@ -316,8 +314,8 @@ def main():
         filepath = sys.argv[1]
     else:
         filepath = None
-    config.load_settings(filepath=filepath)
-    utils.load_design_documents()
+    publications.config.load_settings(filepath=filepath)
+    publications.database.update_design_documents()
     application = get_application()
     application.listen(settings["PORT"], xheaders=True)
     pid = os.getpid()

@@ -14,13 +14,15 @@ from publications import constants
 from publications import settings
 from publications import utils
 
+import publications.database
+
 
 class RequestHandler(tornado.web.RequestHandler):
     "Base request handler."
 
     def prepare(self):
         "Get the database connection."
-        self.db = utils.get_db()
+        self.db = publications.database.get_db()
 
     def get_template_namespace(self):
         "Set the variables accessible within the template."
@@ -86,19 +88,19 @@ class RequestHandler(tornado.web.RequestHandler):
         """Get the document with the given id, or from the given view.
         Raise KeyError if not found.
         """
-        return utils.get_doc(self.db, designname, viewname, key)
+        return publications.database.get_doc(self.db, designname, viewname, key)
 
     def get_docs(self, designname, viewname, key=None, last=None, **kwargs):
         """Get the list of documents using the named view
         and the given key or interval.
         """
-        return utils.get_docs(
+        return publications.database.get_docs(
             self.db, designname, viewname, key=key, last=last, **kwargs
         )
 
     def get_count(self, designname, viewname, key=None):
         "Get the reduce value for the name view and the given key."
-        return utils.get_count(self.db, designname, viewname, key=key)
+        return publications.database.get_count(self.db, designname, viewname, key=key)
 
     def get_year_counts(self):
         "Return a list of tuples (year, count) for all years."
@@ -113,13 +115,13 @@ class RequestHandler(tornado.web.RequestHandler):
         """Get the publication given its IUID, DOI or PMID.
         Raise KeyError if not found.
         """
-        return utils.get_publication(self.db, identifier)
+        return publications.database.get_publication(self.db, identifier)
 
     def get_researcher(self, identifier):
         """Get the researcher for the identifier, which is an IUID or an ORCID.
         Raise KeyError if not found.
         """
-        return utils.get_researcher(self.db, identifier)
+        return publications.database.get_researcher(self.db, identifier)
 
     def get_researchers(self, family, given=None, initials=None):
         """Get the researcher entities for the family name,
@@ -142,13 +144,13 @@ class RequestHandler(tornado.web.RequestHandler):
         """Get the label document by its IUID or value.
         Raise KeyError if not found.
         """
-        return utils.get_label(self.db, identifier)
+        return publications.database.get_label(self.db, identifier)
 
     def get_account(self, email):
         """Get the account identified by the email address.
         Raise KeyError if no such account.
         """
-        return utils.get_account(self.db, email)
+        return publications.database.get_account(self.db, email)
 
     def get_current_user(self):
         """Get the currently logged-in user account, or None.
@@ -422,7 +424,7 @@ class RequestHandler(tornado.web.RequestHandler):
 
 
 class CorsMixin:
-    "Mixin for outputting CORS headers allowing requests."
+    "Requesthandler mixin for outputting CORS headers allowing requests."
 
     def set_default_headers(self):
         "Allow CORS requests."
@@ -431,7 +433,7 @@ class CorsMixin:
 
 
 class ApiMixin:
-    "Mixin for API and JSON handling."
+    "Requesthandler mixin for API and JSON handling."
 
     def get_json_body(self):
         "Return the body of the request interpreted as JSON."
@@ -444,3 +446,37 @@ class ApiMixin:
     def check_xsrf_cookie(self):
         "Do not check for XSRF cookie when API."
         pass
+
+
+class DownloadParametersMixin:
+    "Requesthandler mixin for getting the parameters controlling the download output."
+
+    def get_parameters(self):
+        "Return the output parameters from the form arguments."
+        result = dict(
+            single_label=to_bool(self.get_argument("single_label", False)),
+            all_authors=to_bool(self.get_argument("all_authors", False)),
+            issn=to_bool(self.get_argument("issn", False)),
+            numbered=to_bool(self.get_argument("numbered", False)),
+            doi_url=to_bool(self.get_argument("doi_url", False)),
+            pmid_url=to_bool(self.get_argument("pmid_url", False)),
+        )
+        try:
+            result["maxline"] = self.get_argument("maxline", None)
+            if result["maxline"]:
+                result["maxline"] = int(result["maxline"])
+                if result["maxline"] <= 20:
+                    raise ValueError
+        except (ValueError, TypeError):
+            result["maxline"] = None
+        delimiter = self.get_argument("delimiter", "").lower()
+        if delimiter == "comma":
+            result["delimiter"] = ","
+        elif delimiter == "semi-colon":
+            result["delimiter"] = ";"
+        elif delimiter == "tab":
+            result["delimiter"] = "\t"
+        encoding = self.get_argument("encoding", "").lower()
+        if encoding:
+            result["encoding"] = encoding
+        return result

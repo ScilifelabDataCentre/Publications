@@ -5,45 +5,15 @@ import logging
 import tornado.web
 
 from publications import constants
-from publications import publication
 from publications import settings
 from publications import utils
-from publications.saver import Saver, SaverError
 from publications.requesthandler import CorsMixin, RequestHandler
 
-
-DESIGN_DOC = {
-    "views": {
-        "orcid": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'researcher') return;
-  if (doc.orcid) emit(doc.orcid, doc.family + ' ' + doc.initials);
-}"""
-        },
-        "family": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'researcher') return;
-  emit(doc.family_normalized, doc.family + ' ' + doc.initials);
-}"""
-        },
-        "name": {
-            "reduce": "_count",
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'researcher') return;
-  emit(doc.family_normalized + ' ' + doc.initials_normalized, null);
-}""",
-        },
-    }
-}
+import publications.publication
+import publications.saver
 
 
-def load_design_document(db):
-    "Update the CouchDB design document."
-    if db.put_design("researcher", DESIGN_DOC):
-        logging.info("Updated 'researcher' design document.")
-
-
-class ResearcherSaver(Saver):
+class ResearcherSaver(publications.saver.Saver):
     doctype = constants.RESEARCHER
 
     def set_family(self, value=None):
@@ -77,7 +47,7 @@ class ResearcherSaver(Saver):
             value = self.rqh.get_argument("orcid", "").strip()
         if value:
             try:
-                utils.get_researcher(self.db, value)
+                publications.database.get_researcher(self.db, value)
             except KeyError:
                 pass
             else:
@@ -272,7 +242,7 @@ class ResearcherEdit(ResearcherMixin, RequestHandler):
                 saver.set_affiliations()
         except ValueError as error:
             self.set_error_flash(str(error))
-        except SaverError:
+        except publications.saver.SaverError:
             self.set_error_flash(constants.REV_ERROR)
         self.see_other("researcher", researcher["_id"])
 
@@ -287,7 +257,7 @@ class ResearcherFilterMixin:
         return result
 
 
-class ResearcherPublicationsCsv(ResearcherFilterMixin, publication.PublicationsCsv):
+class ResearcherPublicationsCsv(ResearcherFilterMixin, publications.publication.PublicationsCsv):
     "Researcher publication CSV output."
 
     def get(self, identifier):
@@ -308,7 +278,7 @@ class ResearcherPublicationsCsv(ResearcherFilterMixin, publication.PublicationsC
         super().post()
 
 
-class ResearcherPublicationsXlsx(ResearcherFilterMixin, publication.PublicationsXlsx):
+class ResearcherPublicationsXlsx(ResearcherFilterMixin, publications.publication.PublicationsXlsx):
     "Researcher publication XLSX output."
 
     def get(self, identifier):
@@ -329,7 +299,7 @@ class ResearcherPublicationsXlsx(ResearcherFilterMixin, publication.Publications
         super().post()
 
 
-class ResearcherPublicationsTxt(ResearcherFilterMixin, publication.PublicationsTxt):
+class ResearcherPublicationsTxt(ResearcherFilterMixin, publications.publication.PublicationsTxt):
     "Researcher publication text file output."
 
     def get(self, identifier):
@@ -415,7 +385,7 @@ class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
                             break
         except ValueError as error:
             self.set_error_flash(str(error))
-        except SaverError:
+        except publications.saver.SaverError:
             self.set_error_flash(constants.REV_ERROR)
         self.see_other("researcher", researcher["_id"])
 

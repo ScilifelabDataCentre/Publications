@@ -7,232 +7,19 @@ import couchdb2
 import tornado.web
 
 from publications import constants
-from publications import crossref
-from publications import pubmed
 from publications import settings
 from publications import utils
-from publications.saver import Saver, SaverError
 from publications.subset import Subset
-from publications.writer import CsvWriter, XlsxWriter, TextWriter
-from publications.requesthandler import RequestHandler, CorsMixin, ApiMixin
+from publications.requesthandler import RequestHandler, CorsMixin, ApiMixin, DownloadParametersMixin
+
+import publications.crossref
+import publications.database
+import publications.pubmed
+import publications.saver
+import publications.writer
 
 
-REMOVE = "".join(constants.SEARCH_REMOVE)
-IGNORE = ",".join(["'%s':1" % i for i in constants.SEARCH_IGNORE])
-
-DESIGN_DOC = {
-    "views": {
-        "author": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  var au, name;
-  var length = doc.authors.length;
-  for (var i=0; i<length; i++) {
-    au = doc.authors[i];
-    if (!au.family_normalized) continue;
-    emit(au.family_normalized, null);
-    if (au.initials_normalized) {
-      name = au.family_normalized + ' ' + au.initials_normalized;
-      emit(name, null);
-    }
-    if (au.given_normalized) {
-      name = au.family_normalized + ' ' + au.given_normalized;
-      emit(name, null);
-    }
-  }
-}"""
-        },
-        "researcher": {
-            "reduce": "_count",
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  var au;
-  var length = doc.authors.length;
-  for (var i=0; i<length; i++) {
-    au = doc.authors[i];
-    if (au.researcher) emit(au.researcher, au.family + ' ' + au.initials);
-  }
-}""",
-        },
-        "pmid": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (doc.pmid) emit(doc.pmid, null);
-}"""
-        },
-        "doi": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (doc.doi) emit(doc.doi.toLowerCase(), null);
-}"""
-        },
-        "no_pmid": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (!doc.pmid) emit(doc.published, null);
-}"""
-        },
-        "no_doi": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (!doc.doi) emit(doc.published, null);
-}"""
-        },
-        "epublished": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (!doc.epublished) return;
-  emit(doc.epublished, null);
-}"""
-        },
-        "first_published": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (!doc.published) return;
-  if (doc.epublished) {
-    if (doc.published < doc.epublished) {
-      emit(doc.published, null);
-    } else {
-      emit(doc.epublished, null);
-    };
-  } else {
-    emit(doc.published, null);
-  };
-}"""
-        },
-        "label_parts": {
-            "map": """var REMOVE = /[%s]/g;
-var IGNORE = {%s};
-function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  var label, parts, part;
-  for (var key in doc.labels) {
-    label = doc.labels[key].toLowerCase();
-    label = label.replace(REMOVE, ' ');
-    parts = label.split(/\s+/);
-    var length = parts.length;
-    for (var i=0; i<length; i++) {
-      part = parts[i];
-      if (!part) continue;
-      if (IGNORE[part]) continue;
-      emit(part, null);
-    }
-  }
-}"""
-            % (REMOVE, IGNORE)
-        },
-        "issn": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (!doc.journal) return;
-  if (doc.journal.issn) emit(doc.journal.issn, null);
-  if (doc.journal['issn-l']) emit(doc.journal['issn-l'], null);
-}"""
-        },
-        "journal": {
-            "reduce": "_count",
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (!doc.journal) return;
-  if (!doc.journal.title) return;
-  emit(doc.journal.title, null);
-}""",
-        },
-        "label": {
-            "reduce": "_count",
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  for (var key in doc.labels) emit(key.toLowerCase(), null);
-}""",
-        },
-        "no_label": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (Object.keys(doc.labels).length === 0) emit(doc.title, null);
-}"""
-        },
-        "year": {
-            "reduce": "_count",
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (!doc.published) return;
-  var year = doc.published.split('-')[0];
-  emit(year, null);
-}""",
-        },
-        "modified": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  emit(doc.modified, null);
-}"""
-        },
-        "notes": {
-            "map": """var REMOVE = /[%s]/g;
-var IGNORE = {%s};
-function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  var notes = doc.notes.split(/\s+/);
-  var note;
-  var length = notes.length;
-  for (var i=0; i<length; i++) {
-    note = notes[i].toLowerCase();
-    note = note.replace(REMOVE, '');
-    if (!note) continue;
-    if (IGNORE[note]) continue;
-    emit(note, null);
-  }
-}"""
-            % (REMOVE, IGNORE)
-        },
-        "published": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  if (!doc.published) return;
-  emit(doc.published, null);
-}"""
-        },
-        "title": {
-            "map": """var REMOVE = /[%s]/g;
-var IGNORE = {%s};
-function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  var words = doc.title.split(/\s+/);
-  var word;
-  var length = words.length;
-  for (var i=0; i<length; i++) {
-    word = words[i].toLowerCase();
-    word = word.replace(REMOVE, '');
-    if (!word) continue;
-    if (IGNORE[word]) continue;
-    emit(word, null);
-  }
-}"""
-            % (REMOVE, IGNORE)
-        },
-        "xref": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'publication') return;
-  var xref;
-  var length = doc.xrefs.length;
-  for (var i=0; i<length; i++) {
-    xref = doc.xrefs[i];
-    if (!xref.db) continue;
-    if (!xref.key) continue;
-    emit(xref.key, xref.db);
-  }
-}"""
-        },
-    }
-}
-
-
-def load_design_document(db):
-    "Update the CouchDB design document."
-    if db.put_design("publication", DESIGN_DOC):
-        logging.info("Updated 'publication' design document.")
-
-
-class PublicationSaver(Saver):
+class PublicationSaver(publications.saver.Saver):
     doctype = constants.PUBLICATION
 
     def initialize(self):
@@ -425,7 +212,7 @@ class PublicationSaver(Saver):
                 if orcid:
                     # Existing reseacher based on ORCID.
                     try:
-                        author["researcher"] = utils.get_researcher(self.db, orcid)[
+                        author["researcher"] = publications.database.get_researcher(self.db, orcid)[
                             "_id"
                         ]
                     except KeyError:
@@ -460,16 +247,16 @@ class PublicationSaver(Saver):
         issn_l = journal.get("issn-l")
         if issn:
             try:
-                doc = utils.get_doc(self.db, "journal", "issn", issn)
+                doc = publications.database.get_doc(self.db, "journal", "issn", issn)
                 issn_l = doc.get("issn-l") or issn_l
             except KeyError:
                 try:
-                    doc = utils.get_doc(self.db, "journal", "issn_l", issn)
+                    doc = publications.database.get_doc(self.db, "journal", "issn_l", issn)
                     issn_l = issn
                 except KeyError:
                     if title:
                         try:
-                            doc = utils.get_doc(self.db, "journal", "title", title)
+                            doc = publications.database.get_doc(self.db, "journal", "title", title)
                         except KeyError:
                             doc = None
                         else:
@@ -652,7 +439,7 @@ class PublicationsJson(CorsMixin, Publications):
         self.write(result)
 
 
-class PublicationsFile(utils.DownloadParametersMixin, Publications):
+class PublicationsFile(DownloadParametersMixin, Publications):
     "Adding method for output of publications to a file."
 
     def get_filtered_publications(self):
@@ -707,7 +494,7 @@ class PublicationsCsv(PublicationsFile):
         )
 
     def post(self):
-        writer = CsvWriter(self.db, self.application, **self.get_parameters())
+        writer = publications.writer.CsvWriter(self.db, self.application, **self.get_parameters())
         writer.write(self.get_filtered_publications())
         self.write(writer.get_content())
         self.set_header("Content-Type", constants.CSV_MIME)
@@ -733,7 +520,7 @@ class PublicationsXlsx(PublicationsFile):
     # Authentication is *not* required!
     def post(self):
         "Produce XLSX output."
-        writer = XlsxWriter(self.db, self.application, **self.get_parameters())
+        writer = publications.writer.XlsxWriter(self.db, self.application, **self.get_parameters())
         writer.write(self.get_filtered_publications())
         self.write(writer.get_content())
         self.set_header("Content-Type", constants.XLSX_MIME)
@@ -759,7 +546,7 @@ class PublicationsTxt(PublicationsFile):
     # Authentication is *not* required!
     def post(self):
         "Produce text output."
-        writer = TextWriter(self.db, self.application, **self.get_parameters())
+        writer = publications.writer.TextWriter(self.db, self.application, **self.get_parameters())
         writer.write(self.get_filtered_publications())
         self.write(writer.get_content())
         self.set_header("Content-Type", constants.TXT_MIME)
@@ -1106,7 +893,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
                 saver.set_abstract()
                 saver.update_labels()
                 saver.set_notes()
-        except SaverError:
+        except publications.saver.SaverError:
             self.set_error_flash(constants.REV_ERROR)
         self.see_other("publication", publication["_id"])
 
@@ -1141,7 +928,7 @@ class PublicationResearchers(PublicationMixin, RequestHandler):
             with PublicationSaver(doc=publication, rqh=self) as saver:
                 saver.check_revision()
                 saver.set_researchers()
-        except SaverError:
+        except publications.saver.SaverError:
             self.set_error_flash(constants.REV_ERROR)
         self.see_other("publication", publication["_id"])
 
@@ -1194,7 +981,7 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
                     else:
                         xrefs.append(dict(db=db, key=key, description=description))
                     saver["xrefs"] = xrefs
-        except SaverError:
+        except publications.saver.SaverError:
             self.set_error_flash(constants.REV_ERROR)
         except (tornado.web.MissingArgumentError, ValueError) as error:
             self.set_error_flash(str(error))
@@ -1225,7 +1012,7 @@ class PublicationUpdatePmid(PublicationMixin, RequestHandler):
             self.see_other("publication", publication["_id"], error=str(error))
             return
         try:
-            new = pubmed.fetch(
+            new = publications.pubmed.fetch(
                 identifier,
                 timeout=settings["PUBMED_TIMEOUT"],
                 delay=settings["PUBMED_DELAY"],
@@ -1271,7 +1058,7 @@ class PublicationFindPmid(PublicationMixin, RequestHandler):
             return
         try:
             try:
-                found = pubmed.search(
+                found = publications.pubmed.search(
                     doi=identifier,
                     timeout=settings["PUBMED_TIMEOUT"],
                     delay=settings["PUBMED_DELAY"],
@@ -1316,7 +1103,7 @@ class PublicationUpdateDoi(PublicationMixin, RequestHandler):
             self.see_other("publication", publication["_id"], error=str(error))
             return
         try:
-            new = crossref.fetch(
+            new = publications.crossref.fetch(
                 identifier,
                 timeout=settings["CROSSREF_TIMEOUT"],
                 delay=settings["CROSSREF_DELAY"],
@@ -1364,7 +1151,7 @@ class ApiPublicationFetch(PublicationMixin, ApiMixin, RequestHandler):
             raise tornado.web.HTTPError(400, reason=str(error))
         except KeyError as error:
             raise tornado.web.HTTPError(409, reason=f"blacklisted {error}")
-        except SaverError as error:
+        except publications.saver.SaverError as error:
             raise tornado.web.HTTPError(409, reason="revision conflict")
         self.write(self.get_publication_json(publ, single=True))
 
@@ -1387,7 +1174,7 @@ class ApiPublicationLabels(PublicationMixin, ApiMixin, RequestHandler):
         try:
             with PublicationSaver(doc=publ, rqh=self) as saver:
                 saver.update_labels(labels=labels)
-        except SaverError as error:
+        except publications.saver.SaverError as error:
             raise tornado.web.HTTPError(409, reason="revision conflict")
         self.write(self.get_publication_json(publ, single=True))
 
@@ -1419,7 +1206,7 @@ def fetch_publication(
 
     # Does the publication already exist in the database?
     try:
-        current = utils.get_publication(db, identifier)
+        current = publications.database.get_publication(db, identifier)
     except KeyError:
         current = None
 
@@ -1427,7 +1214,7 @@ def fetch_publication(
     identifier_is_pmid = constants.PMID_RX.match(identifier)
     if identifier_is_pmid:
         try:
-            new = pubmed.fetch(
+            new = publications.pubmed.fetch(
                 identifier,
                 timeout=settings["PUBMED_TIMEOUT"],
                 delay=settings["PUBMED_DELAY"],
@@ -1442,7 +1229,7 @@ def fetch_publication(
             raise IOError(f"{identifier} {str(error)}")
 
     else:  # Not PMID: DOI identifier; search PubMed first.
-        pmids = pubmed.search(
+        pmids = publications.pubmed.search(
             doi=identifier,
             timeout=settings["PUBMED_TIMEOUT"],
             delay=settings["PUBMED_DELAY"],
@@ -1450,7 +1237,7 @@ def fetch_publication(
         )
         if len(pmids) == 1:  # Unique result: use it.
             try:
-                new = pubmed.fetch(
+                new = publications.pubmed.fetch(
                     pmids[0],
                     timeout=settings["PUBMED_TIMEOUT"],
                     delay=settings["PUBMED_DELAY"],
@@ -1465,7 +1252,7 @@ def fetch_publication(
                 raise IOError(f"{identifier} {str(error)}")
         else:  # No result, or ambiguous. Try Crossref.
             try:
-                new = crossref.fetch(
+                new = publications.crossref.fetch(
                     identifier,
                     timeout=settings["CROSSREF_TIMEOUT"],
                     delay=settings["CROSSREF_DELAY"],
@@ -1487,12 +1274,12 @@ def fetch_publication(
         # Maybe the publication has been fetched using the other identifier?
         if identifier_is_pmid:
             try:
-                current = utils.get_publication(db, new.get("doi"))
+                current = publications.database.get_publication(db, new.get("doi"))
             except KeyError:
                 pass
         else:
             try:
-                current = utils.get_publication(db, new.get("pmid"))
+                current = publications.database.get_publication(db, new.get("pmid"))
             except KeyError:
                 pass
 
@@ -1518,7 +1305,7 @@ def check_blacklisted(db, identifier, override=False):
     """Raise KeyError if identifier blacklisted.
     If override, remove from blacklist.
     """
-    blacklisted = utils.get_blacklisted(db, identifier)
+    blacklisted = publications.database.get_blacklisted(db, identifier)
     if blacklisted:
         if override:
             db.delete(blacklisted)

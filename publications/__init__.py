@@ -92,6 +92,7 @@ class Constants:
     LABEL = "label"
     BLACKLIST = "blacklist"
     LOG = "log"
+    META = "meta"
     ENTITIES = (PUBLICATION, JOURNAL, ACCOUNT, LABEL, RESEARCHER)
 
     # Account roles
@@ -118,15 +119,24 @@ class Constants:
     REV_ERROR = "Entity has been edited by someone else. Cannot overwrite."
     FETCH_ERROR = "Could not fetch data. "
     BLACKLISTED_MESSAGE = (
-        "Publication(s) not fetched since in the blacklist."
+        "Publication(s) not fetched since it is in the blacklist."
         " Check 'override' and try again, if needed: "
     )
 
-    # External URL templates.
+    # Hard-wired URL templates for the most important external sites.
     PUBMED_URL = "https://pubmed.ncbi.nlm.nih.gov/%s/"
     DOI_URL = "https://doi.org/%s"
     ORCID_URL = "https://orcid.org/%s"
     CROSSREF_URL = "https://search.crossref.org/?q=%s"
+
+    IDENTIFIER_PREFIXES=[
+        "doi:",
+        "pmid:",
+        "pubmed:",
+        "http://doi.org/",
+        "https://doi.org/",
+        "http://dx.doi.org/",
+    ],
 
     # Search setup; characters to remove and words to ignore.
     SEARCH_REMOVE = "-_\.:,?()'$"

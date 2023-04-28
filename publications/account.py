@@ -7,8 +7,10 @@ import tornado.web
 from publications import constants
 from publications import settings
 from publications import utils
-from publications.saver import Saver, SaverError
 from publications.requesthandler import CorsMixin, RequestHandler
+
+import publications.saver
+
 
 ADD_TITLE = "A new account in the website %s"
 
@@ -42,39 +44,7 @@ Or, go to %(url)s and fill in the one-time code %(code)s manually and provide yo
 EMAIL_ERROR = "Could not send email. Contact the administrator."
 
 
-DESIGN_DOC = {
-    "views": {
-        "api_key": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'account') return;
-  if (!doc.api_key) return;
-  emit(doc.api_key, doc.email);
-}"""
-        },
-        "email": {
-            "reduce": "_count",
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'account') return;
-  emit(doc.email, null);
-}""",
-        },
-        "label": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'account') return;
-  for (var key in doc.labels) emit(doc.labels[key].toLowerCase(), doc.email);
-}"""
-        },
-    }
-}
-
-
-def load_design_document(db):
-    "Update the CouchDB design document."
-    if db.put_design("account", DESIGN_DOC):
-        logging.info("Updated 'account' design document.")
-
-
-class AccountSaver(Saver):
+class AccountSaver(publications.saver.Saver):
     doctype = constants.ACCOUNT
 
     def set_email(self, email):
@@ -356,7 +326,7 @@ class AccountEdit(AccountMixin, RequestHandler):
                 saver["orcid"] = self.get_argument("orcid", None)
                 if self.get_argument("api_key", None):
                     saver.renew_api_key()
-        except SaverError:
+        except publications.saver.SaverError:
             self.set_error_flash(constants.REV_ERROR)
         self.see_other("account", account["email"])
 
@@ -523,3 +493,48 @@ class AccountEnable(RequestHandler):
         except ValueError:
             self.set_error_flash(EMAIL_ERROR)
         self.see_other("account", email)
+
+
+class Login(RequestHandler):
+    "Login to a account account. Set a secure cookie."
+
+    def get(self):
+        "Display login page."
+        self.render("login.html")
+
+    def post(self):
+        """Login to a account account. Set a secure cookie.
+        Log failed login attempt and disable account if too many recent.
+        """
+        try:
+            email = self.get_argument("email")
+            password = self.get_argument("password")
+        except tornado.web.MissingArgumentError:
+            self.set_error_flash("Missing email or password argument.")
+            self.see_other("login")
+            return
+        try:
+            account = self.get_account(email)
+            if utils.hashed_password(password) != account.get("password"):
+                raise KeyError
+        except KeyError:
+            self.set_error_flash("No such account or invalid password.")
+            self.see_other("login")
+        else:
+            self.set_secure_cookie(
+                constants.USER_COOKIE,
+                account["email"],
+                expires_days=settings["LOGIN_MAX_AGE_DAYS"],
+            )
+            with AccountSaver(doc=account, rqh=self) as saver:
+                saver["login"] = utils.timestamp()  # Set last login timestamp.
+            self.redirect(self.reverse_url("home"))
+
+
+class Logout(RequestHandler):
+    "Logout; unset the secure cookie to invalidate login session."
+
+    @tornado.web.authenticated
+    def post(self):
+        self.set_secure_cookie(constants.USER_COOKIE, "")
+        self.see_other("home")

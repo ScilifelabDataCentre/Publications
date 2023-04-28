@@ -7,42 +7,13 @@ import tornado.web
 from publications import constants
 from publications import settings
 from publications import utils
-from publications.saver import Saver, SaverError
 from publications.requesthandler import CorsMixin, RequestHandler
-from publications.publication import PublicationSaver
+
+import publications.publication
+import publications.saver
 
 
-DESIGN_DOC = {
-    "views": {
-        "issn": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'journal') return;
-  emit(doc.issn, doc.title);
-}"""
-        },
-        "issn_l": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'journal' || !doc['issn-l']) return;
-  emit(doc['issn-l'], doc.issn);
-}"""
-        },
-        "title": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'journal') return;
-  emit(doc.title, doc.issn);
-}"""
-        },
-    }
-}
-
-
-def load_design_document(db):
-    "Update the CouchDB design document."
-    if db.put_design("journal", DESIGN_DOC):
-        logging.info("Updated 'journal' design document.")
-
-
-class JournalSaver(Saver):
+class JournalSaver(publications.saver.Saver):
     doctype = constants.JOURNAL
 
 
@@ -222,7 +193,7 @@ class JournalEdit(JournalMixin, RequestHandler):
         if old_title != title or old_issn != issn:
             publications = self.get_docs("publication", "journal", old_title)
             for publ in publications:
-                with PublicationSaver(doc=publ, rqh=self) as saver:
+                with publications.publication.PublicationSaver(doc=publ, rqh=self) as saver:
                     journal = saver["journal"].copy()
                     journal["title"] = title
                     journal["issn"] = issn

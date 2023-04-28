@@ -92,3 +92,24 @@ class Doc(RequestHandler):
         except FileNotFoundError:
             self.set_error_flash("No such documentation page.")
             self.see_other("doc", "overview")
+
+
+class Logs(RequestHandler):
+    "Logs page."
+
+    @tornado.web.authenticated
+    def get(self, iuid):
+        try:
+            doc = self.db[iuid]
+        except couchdb2.NotFoundError:
+            raise tornado.web.HTTPError(404, reason="No such entity.")
+        if doc[constants.DOCTYPE] == constants.PUBLICATION:
+            title = doc["title"]
+            href = self.reverse_url("publication", doc["_id"])
+        elif doc[constants.DOCTYPE] == constants.ACCOUNT:
+            self.check_owner(doc)
+            title = doc["email"]
+            href = self.reverse_url("account", doc["email"])
+        else:
+            raise NotImplementedError
+        self.render("logs.html", title=title, href=href, logs=self.get_logs(doc["_id"]))

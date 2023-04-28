@@ -8,46 +8,14 @@ from publications import constants
 from publications import settings
 from publications import utils
 from publications.requesthandler import CorsMixin, RequestHandler
-from publications.saver import Saver, SaverError
-from publications.account import AccountSaver
-from publications.publication import PublicationSaver
-from publications.subset import Subset
+
+import publications.account
+import publications.publication
+import publications.saver
+import publications.subset
 
 
-DESIGN_DOC = {
-    "views": {
-        "normalized_value": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'label') return;
-  emit(doc.normalized_value, doc.value);
-}"""
-        },
-        "value": {
-            "reduce": "_count",
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'label') return;
-  emit(doc.value, null);
-}""",
-        },
-        "current": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'label') return;
-  if (doc.ended) return;
-  if (doc.secondary) return;
-  emit(doc.started, doc.value);
-}"""
-        },
-    }
-}
-
-
-def load_design_document(db):
-    "Update the CouchDB design document."
-    if db.put_design("label", DESIGN_DOC):
-        logging.info("Updated 'label' design document.")
-
-
-class LabelSaver(Saver):
+class LabelSaver(publications.saver.Saver):
     doctype = constants.LABEL
 
     def set_value(self, value):
@@ -60,7 +28,7 @@ class LabelSaver(Saver):
     def check_value(self, value):
         "Value must be unique."
         try:
-            label = utils.get_label(self.db, value)
+            label = publications.database.get_label(self.db, value)
             if label["_id"] == self.doc.get("_id"):
                 return
         except KeyError:
@@ -83,7 +51,7 @@ class Label(RequestHandler):
             self.see_other("home", error=str(error))
             return
         accounts = self.get_docs("account", "label", key=label["value"].lower())
-        publications = list(Subset(self.db, label=label["value"]))
+        publications = list(publications.subset.Subset(self.db, label=label["value"]))
         self.render(
             "label.html", label=label, accounts=accounts, publications=publications
         )
@@ -107,15 +75,15 @@ class Label(RequestHandler):
             return
         value = label["value"]
         # Do it in this order; safer if interrupted.
-        publications = list(Subset(self.db, label=label["value"]))
+        publications = list(publications.subset.Subset(self.db, label=label["value"]))
         for publication in publications:
-            with PublicationSaver(publication, rqh=self) as saver:
+            with publications.publication.PublicationSaver(publication, rqh=self) as saver:
                 labels = publication["labels"].copy()
                 labels.pop(value, None)
                 labels.pop(value.lower(), None)
                 saver["labels"] = labels
         for account in self.get_docs("account", "label", key=value.lower()):
-            with AccountSaver(account, rqh=self) as saver:
+            with publications.account.AccountSaver(account, rqh=self) as saver:
                 labels = set(account["labels"])
                 labels.discard(value)
                 saver["labels"] = sorted(labels)
@@ -253,7 +221,7 @@ class LabelEdit(RequestHandler):
                 if settings["TEMPORAL_LABELS"]:
                     saver["started"] = self.get_argument("started", "") or None
                     saver["ended"] = self.get_argument("ended", "") or None
-        except SaverError:
+        except publications.saver.SaverError:
             self.set_error_flash(constants.REV_ERROR)
             self.see_other("label", label["value"])
             return
@@ -263,15 +231,15 @@ class LabelEdit(RequestHandler):
             return
         if new_value != old_value:
             for account in self.get_docs("account", "label", key=old_value.lower()):
-                with AccountSaver(account, rqh=self) as saver:
+                with publications.account.AccountSaver(account, rqh=self) as saver:
                     labels = set(account["labels"])
                     labels.discard(old_value)
                     labels.discard(old_value.lower())
                     labels.add(new_value)
                     saver["labels"] = sorted(labels)
-            for publication in Subset(self.db, label=old_value):
+            for publication in publications.subset.Subset(self.db, label=old_value):
                 if old_value in publication["labels"]:
-                    with PublicationSaver(publication, rqh=self) as saver:
+                    with publications.publication.PublicationSaver(publication, rqh=self) as saver:
                         labels = publication["labels"].copy()
                         labels[new_value] = labels.pop(old_value)
                         saver["labels"] = labels
@@ -315,14 +283,14 @@ class LabelMerge(RequestHandler):
         new_label = merge["value"]
         self.delete_entity(label)
         for account in self.get_docs("account", "label", key=old_label.lower()):
-            with AccountSaver(account, rqh=self) as saver:
+            with publications.account.AccountSaver(account, rqh=self) as saver:
                 labels = set(account["labels"])
                 labels.discard(old_label)
                 labels.discard(old_label.lower())
                 labels.add(new_label)
                 saver["labels"] = sorted(labels)
-        for publication in Subset(self.db, label=old_label):
-            with PublicationSaver(publication, rqh=self) as saver:
+        for publication in publications.subset.Subset(self.db, label=old_label):
+            with publications.publication.PublicationSaver(publication, rqh=self) as saver:
                 labels = publication["labels"].copy()
                 qual = labels.pop(old_label, None) or labels.pop(
                     old_label.lower(), None
