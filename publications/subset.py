@@ -5,6 +5,7 @@ import logging
 
 import pyparsing as pp
 
+from publications import config
 from publications import constants
 from publications import settings
 from publications import utils
@@ -596,7 +597,7 @@ def get_parser():
 
 if __name__ == "__main__":
     logging.getLogger().disabled = True
-    utils.load_settings()
+    config.load_settings()
     db = utils.get_db()
 
     parser = get_parser()

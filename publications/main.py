@@ -8,6 +8,7 @@ import sys
 import tornado.web
 import tornado.ioloop
 
+from publications import config
 from publications import constants
 from publications import settings
 from publications import uimodules
@@ -315,7 +316,7 @@ def main():
         filepath = sys.argv[1]
     else:
         filepath = None
-    utils.load_settings(filepath=filepath)
+    config.load_settings(filepath=filepath)
     utils.load_design_documents()
     application = get_application()
     application.listen(settings["PORT"], xheaders=True)

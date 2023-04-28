@@ -10,6 +10,7 @@ import sys
 import click
 import couchdb2
 
+from publications import config
 from publications import constants
 from publications import crossref
 from publications import pubmed
@@ -27,7 +28,7 @@ import publications.writer
 @click.option("-s", "--settings", help="Path of settings YAML file.")
 @click.option("--log", flag_value=True, default=False, help="Enable logging output.")
 def cli(settings, log):
-    utils.load_settings(settings, log=log)
+    config.load_settings(settings, log=log)
 
 
 @cli.command()

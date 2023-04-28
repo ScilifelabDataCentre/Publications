@@ -3,93 +3,15 @@
 import datetime
 import email.message
 import hashlib
-import logging
-import os
-import os.path
 import smtplib
 import string
 import uuid
 import unicodedata
 
 import couchdb2
-import yaml
 
 from publications import constants
 from publications import settings
-
-
-def load_settings(filepath=None, log=True):
-    """Load the settings. The file path first specified is used:
-    1) The argument to this procedure (possibly from a command line argument).
-    2) The environment variable PUBLICATIONS_SETTINGS.
-    3) The file '../site/settings.yaml' relative to this directory.
-    If 'log' is True, activate logging according to DEBUG settings.
-    Raise IOError if settings file could not be read.
-    Raise KeyError if a settings variable is missing.
-    Raise ValueError if a settings variable value is invalid.
-    """
-    site_dir = settings["SITE_DIR"]
-    if not os.path.exists(site_dir):
-        raise IOError(f"The required site directory '{site_dir}' does not exist.")
-    if not os.path.isdir(site_dir):
-        raise IOError(f"The site directory path '{site_dir}' is not a directory.")
-    # Find and read the settings file, updating the defaults.
-    if not filepath:
-        try:
-            filename = os.environ["PUBLICATIONS_SETTINGS"]
-        except KeyError:
-            filepath = os.path.join(site_dir, "settings.yaml")
-    with open(filepath) as infile:
-        settings.update(yaml.safe_load(infile))
-    settings["SETTINGS_FILE"] = filepath
-
-    # Setup logging.
-    if settings.get("LOGGING_DEBUG"):
-        kwargs = dict(level=logging.DEBUG)
-    else:
-        kwargs = dict(level=logging.INFO)
-    try:
-        kwargs["format"] = settings["LOGGING_FORMAT"]
-    except KeyError:
-        pass
-    try:
-        kwargs["filename"] = settings["LOGGING_FILEPATH"]
-    except KeyError:
-        pass
-    else:
-        try:
-            kwargs["filemode"] = settings["LOGGING_FILEMODE"]
-        except KeyError:
-            pass
-    settings["LOG"] = log
-    if log:
-        logging.basicConfig(**kwargs)
-        logging.info(f"Publications version {constants.VERSION}")
-        logging.info(f"ROOT: {constants.ROOT}")
-        logging.info(f"SITE_DIR: {settings['SITE_DIR']}")
-        logging.info(f"settings: {settings['SETTINGS_FILE']}")
-        logging.info(f"logging debug: {settings['LOGGING_DEBUG']}")
-        logging.info(f"tornado debug: {settings['TORNADO_DEBUG']}")
-
-    # Check some settings.
-    for key in ["BASE_URL", "PORT", "DATABASE_SERVER", "DATABASE_NAME"]:
-        if key not in settings:
-            raise KeyError(f"No settings['{key}'] item.")
-        if not settings[key]:
-            raise ValueError(f"Settings['{key}'] has invalid value.")
-    if len(settings.get("COOKIE_SECRET") or "") < 10:
-        raise ValueError("settings['COOKIE_SECRET'] not set, or too short.")
-    if len(settings.get("PASSWORD_SALT") or "") < 10:
-        raise ValueError("Settings['PASSWORD_SALT'] not set, or too short.")
-    for key in ["PUBMED_DELAY", "PUBMED_TIMEOUT", "CROSSREF_DELAY", "CROSSREF_TIMEOUT"]:
-        if not isinstance(settings[key], (int, float)) or settings[key] <= 0.0:
-            raise ValueError(f"Invalid '{key}' value: must be positive number.")
-    if settings["MAIL_SERVER"] and not (settings["MAIL_DEFAULT_SENDER"] or settings["MAIL_USERNAME"]):
-        raise ValueError("Either MAIL_DEFAULT_SENDER or MAIL_USERNAME must be defined.")
-
-    # Set up the xref templates URLs.
-    settings["XREF_TEMPLATE_URLS"] = NocaseDict(settings["XREF_TEMPLATE_URLS"])
-    settings["XREF_TEMPLATE_URLS"]["URL"] = "%s"
 
 
 def get_dbserver():
@@ -513,32 +435,3 @@ class EmailServer:
             self.server.send_message(message)
         except smtplib.SMTPException as error:
             raise ValueError(str(error))
-
-
-class NocaseDict:
-    "Keys are compared ignoring case."
-
-    def __init__(self, orig):
-        self.orig = orig.copy()
-        self.lower = dict()
-        for key in orig:
-            self.lower[key.lower()] = orig[key]
-
-    def keys(self):
-        return list(self.orig.keys())
-
-    def __getitem__(self, key):
-        return self.lower[key.lower()]
-
-    def __setitem__(self, key, value):
-        self.orig[key] = value
-        self.lower[key.lower()] = value
-
-    def __str__(self):
-        return str(dict([(k, self[k]) for k in self.keys()]))
-
-    def get(self, key, default=None):
-        try:
-            return self[key]
-        except KeyError:
-            return default
