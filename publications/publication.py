@@ -490,6 +490,7 @@ class PublicationsCsv(PublicationsFile):
             year=self.get_argument("year", None),
             labels=set(self.get_arguments("label")),
             all_labels=all_labels,
+            labels_years=publications.database.get_labels_years(self.db),
             cancel_url=self.get_argument("cancel_url", None),
         )
 
@@ -514,6 +515,7 @@ class PublicationsXlsx(PublicationsFile):
             year=self.get_argument("year", None),
             labels=set(self.get_arguments("label")),
             all_labels=all_labels,
+            labels_years=publications.database.get_labels_years(self.db),
             cancel_url=self.get_argument("cancel_url", None),
         )
 
@@ -540,6 +542,7 @@ class PublicationsTxt(PublicationsFile):
             year=self.get_argument("year", None),
             labels=set(self.get_arguments("label")),
             all_labels=all_labels,
+            labels_years=publications.database.get_labels_years(self.db),
             cancel_url=self.get_argument("cancel_url", None),
         )
 

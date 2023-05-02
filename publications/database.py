@@ -160,6 +160,26 @@ def get_label(db, identifier):
     return doc
 
 
+def get_labels_years(db):
+    """Return the years for which at least on label was active.
+    Only if TEMPORAL_LABELS is set to True.
+    """
+    import publications.utils
+    if not settings["TEMPORAL_LABELS"]: return []
+    started = 100000
+    ended = int(publications.utils.today().split("-")[0])
+    for doc in get_docs(db, "label", "value"):
+        try:
+            started = min(started, int(doc.get("started")))
+        except (ValueError, TypeError):
+            pass
+        try:
+            ended = max(ended, int(doc.get("ended")))
+        except (ValueError, TypeError):
+            pass
+    return list(range(started, ended + 1))
+
+
 def get_blacklisted(db, identifier):
     """Get the blacklist document if the publication with
     the external identifier has been blacklisted.

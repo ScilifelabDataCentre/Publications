@@ -4,4 +4,4 @@
 *.xml
 *.pyc
 site
-!site_template/settings.yaml
+!settings_template.yaml

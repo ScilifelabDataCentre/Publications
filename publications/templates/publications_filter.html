@@ -119,7 +119,7 @@
     <select class="form-control" id="active" name="active">
       <option value="" selected>Any</option>
       <option>Current</option>
-      {% for y in utils.years()[:-1] %}
+      {% for y in labels_years %}
       <option>{{ y }}</option>
       {% end %}
     </select>

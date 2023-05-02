@@ -49,7 +49,6 @@ DEFAULT_SETTINGS = dict(
     SHORT_PUBLICATIONS_LIST_LIMIT=20,
     LONG_PUBLICATIONS_LIST_LIMIT=200,
     TEMPORAL_LABELS=False,
-    FIRST_YEAR=2010,
     MAX_NUMBER_LABELS_PRECHECKED=6,
     NUMBER_FIRST_AUTHORS=3,
     NUMBER_LAST_AUTHORS=2,
@@ -59,9 +58,6 @@ DEFAULT_SETTINGS = dict(
     SITE_TEXT="A publications reference database system.",
     SITE_PARENT_NAME="Site host",
     SITE_PARENT_URL=None,
-    # XXX see MAIL_* variables?
-    # SITE_EMAIL=None,            # Must be defined for email to work.
-    # SITE_REPLY_TO_EMAIL=None,   # If not defined, uses SITE_EMAIL instead.
     SITE_CONTACT="<p><i>No contact information available.</i></p>",
     SITE_STATIC_DIR=os.path.normpath(os.path.join(constants.ROOT, "../site/static")),
     SITE_LABEL_QUALIFIERS=[],
