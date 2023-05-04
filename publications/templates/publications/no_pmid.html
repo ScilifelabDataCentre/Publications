@@ -1,21 +1,21 @@
-{# Page for publications lacking label. #}
+{# Publications lacking PMID page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
-{% block head_title %}Publications lacking label{% end %}
+{% block head_title %}Publications lacking PMID{% end %}
+
 {% block body_title %}
-<span class="glyphicon glyphicon-unchecked"></span>
-Publications lacking label
+<span class="glyphicon glyphicon-unchecked"></span> Publications lacking PMID
 {% end %}
 
 {% block main_content %}
 <h3>{{ len(publications) }} publications</h3>
 {% for publication in publications %}
-{% include 'publication_item.html' %}
+{% include '../publication.html' %}
 {% end %}
 {% end %} {# block main_content #}
 
 {% block alt_format %}
-{% set url = handler.reverse_url('publications_no_label_json') %}
+{% set url = handler.reverse_url('publications_no_pmid_json') %}
 <a href="{{ url }}"><img src="{{ static_url('json.png') }}"> JSON</a>
 {% end %} {# block alt_format #}

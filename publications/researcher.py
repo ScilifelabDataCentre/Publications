@@ -1,7 +1,5 @@
 "Researcher (person, but also possibly consortium or similar) pages."
 
-import logging
-
 import tornado.web
 
 from publications import constants

@@ -1,7 +1,5 @@
 "Search for terms in publications."
 
-import logging
-
 from publications import constants
 from publications import settings
 from publications import utils

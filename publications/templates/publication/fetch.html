@@ -1,6 +1,6 @@
 {# Fetch publication data given its DOI or PMID. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}Fetch publication data{% end %}
 
@@ -99,7 +99,7 @@ Fetch data for publication
 <div>
   <h3>{{ len(publications) }} fetched publications</h3>
   {% for publication in publications %}
-  {% include 'publication_item.html' %}
+  {% include '../publication.html' %}
   {% end %}
 </div>
 {% end %} {# if publications #}

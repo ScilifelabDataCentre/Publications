@@ -389,7 +389,7 @@ class AccountReset(RequestHandler):
                 RESET_TEXT % data,
             )
         except ValueError as error:
-            logging.error(str(error))
+            logging.getLogger("publications").error(str(error))
             self.set_error_flash(EMAIL_ERROR)
         self.see_other("home")
 

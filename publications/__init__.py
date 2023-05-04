@@ -13,7 +13,14 @@ class Constants:
 
     VERSION = __version__
     URL = "https://github.com/pekrau/Publications"
-    ROOT = os.path.dirname(os.path.abspath(__file__))
+
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    TEMPLATE_DIR = os.path.normpath(os.path.join(ROOT_DIR, "templates"))
+    STATIC_DIR = os.path.normpath(os.path.join(ROOT_DIR, "static"))
+    SITE_DIR = os.path.normpath(os.path.join(ROOT_DIR, "../site"))
+    # The SITE_STATIC_DIR is no longer used, but may contain files that need
+    # to be loaded into the database when upgrading. So keep the definition.
+    SITE_STATIC_DIR = os.path.normpath(os.path.join(ROOT_DIR, "../site/static"))
 
     PYTHON_VERSION = ".".join([str(i) for i in sys.version_info[0:3]])
     PYTHON_URL = "https://www.python.org/"
@@ -69,6 +76,8 @@ class Constants:
         "https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap.min.js"
     )
 
+    LOGGING_FORMAT = "%(asctime)s %(name)s %(levelname)s %(message)s"
+
     # Patterns
     ID_RX = re.compile(r"^[a-z][_a-z0-9]*$", re.IGNORECASE)
     NAME_RX = re.compile(r"^[^/]+$")
@@ -99,6 +108,8 @@ class Constants:
     ADMIN = "admin"
     CURATOR = "curator"
     ROLES = (ADMIN, CURATOR)
+
+    LOGIN_URL = r"/login"
 
     # Boolean string values
     TRUE = frozenset(["true", "yes", "t", "y", "1"])
@@ -136,7 +147,7 @@ class Constants:
         "http://doi.org/",
         "https://doi.org/",
         "http://dx.doi.org/",
-    ],
+    ]
 
     # Search setup; characters to remove and words to ignore.
     SEARCH_REMOVE = "-_\.:,?()'$"
@@ -170,4 +181,5 @@ class Constants:
 constants = Constants()
 
 
+# Loaded by 'config.load_settings_from_file' and 'config.load_settings_from_db'.
 settings = dict()

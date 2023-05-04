@@ -16,19 +16,18 @@ import publications.saver
 
 
 DEFAULT_SETTINGS = dict(
-    SITE_DIR=os.path.normpath(os.path.join(constants.ROOT, "../site")),
     BASE_URL="http://localhost:8885/",
     PORT=8885,  # The port used by tornado.
     TORNADO_DEBUG=False,
     LOGGING_DEBUG=False,
-    LOGGING_FORMAT="%(levelname)s [%(asctime)s] %(message)s",
-    PIDFILE=None,
     DATABASE_SERVER="http://localhost:5984/",
     DATABASE_NAME="publications",
     DATABASE_ACCOUNT=None,  # Should probably be set to connect to CouchDB.
     DATABASE_PASSWORD=None,  # Should probably be set to connect to CouchDB.
     COOKIE_SECRET=None,  # Must be set!
     PASSWORD_SALT=None,  # Must be set!
+    SETTINGS_FILEPATH=None,  # This value is set on startup.
+    SETTINGS_ENVVAR=False,   # This value is set on startup.
     MAIL_SERVER=None,           # If not set, then no emails can be sent.
     MAIL_DEFAULT_SENDER=None,   # If not set, MAIL_USERNAME will be used.
     MAIL_PORT=25,
@@ -59,7 +58,6 @@ DEFAULT_SETTINGS = dict(
     SITE_PARENT_NAME="Site host",
     SITE_PARENT_URL=None,
     SITE_CONTACT="<p><i>No contact information available.</i></p>",
-    SITE_STATIC_DIR=os.path.normpath(os.path.join(constants.ROOT, "../site/static")),
     SITE_LABEL_QUALIFIERS=[],
     XREF_TEMPLATE_URLS={
         "ArrayExpress": "https://www.ebi.ac.uk/arrayexpress/experiments/%s/",
@@ -84,12 +82,13 @@ DEFAULT_SETTINGS = dict(
 )
 
 
-def load_settings(filepath=None, log=True):
-    """Load the settings. The file path first specified is used:
-    1) The argument to this procedure (possibly from a command line argument).
-    2) The environment variable PUBLICATIONS_SETTINGS_FILEPATH.
+def load_settings_from_file():
+    """Load the settings that are not stored in the database from file or
+    environment variables.
+    1) Initialize with the values in DEFAULT_SETTINGS.
+    2) Try the filepath in the environment variable PUBLICATIONS_SETTINGS_FILEPATH.
     3) The file '../site/settings.yaml' relative to this directory.
-    If 'log' is True, activate logging according to DEBUG settings.
+    4) Use any environment variables defined; settings file values are overwritten.
     Raise IOError if settings file could not be read.
     Raise KeyError if a settings variable is missing.
     Raise ValueError if a settings variable value is invalid.
@@ -97,48 +96,50 @@ def load_settings(filepath=None, log=True):
     settings.clear()
     settings.update(DEFAULT_SETTINGS)
 
-    site_dir = settings["SITE_DIR"]
-    if not os.path.exists(site_dir):
-        raise IOError(f"The required site directory '{site_dir}' does not exist.")
-    if not os.path.isdir(site_dir):
-        raise IOError(f"The site directory path '{site_dir}' is not a directory.")
     # Find and read the settings file, updating the defaults.
-    if not filepath:
-        try:
-            filename = os.environ["PUBLICATIONS_SETTINGS_FILEPATH"]
-        except KeyError:
-            filepath = os.path.join(site_dir, "settings.yaml")
-    with open(filepath) as infile:
-        settings.update(yaml.safe_load(infile))
-    settings["SETTINGS_FILE"] = filepath
+    try:
+        filepath = os.environ["PUBLICATIONS_SETTINGS_FILEPATH"]
+    except KeyError:
+        filepath = os.path.join(constants.SITE_DIR, "settings.yaml")
+    try:
+        with open(filepath) as infile:
+            from_settings_file = yaml.safe_load(infile)
+    except OSError:
+        obsolete_keys = []
+    else:
+        settings.update(from_settings_file)
+        settings["SETTINGS_FILEPATH"] = filepath
+        obsolete_keys = set(from_settings_file.keys()).difference(DEFAULT_SETTINGS)
 
-    # Setup logging.
-    if settings.get("LOGGING_DEBUG"):
-        kwargs = dict(level=logging.DEBUG)
-    else:
-        kwargs = dict(level=logging.INFO)
-    try:
-        kwargs["format"] = settings["LOGGING_FORMAT"]
-    except KeyError:
-        pass
-    try:
-        kwargs["filename"] = settings["LOGGING_FILEPATH"]
-    except KeyError:
-        pass
-    else:
+    # Modify the settings from environment variables; convert to correct type.
+    envvar_keys = []
+    for key, value in DEFAULT_SETTINGS.items():
         try:
-            kwargs["filemode"] = settings["LOGGING_FILEMODE"]
+            new = os.environ[key]
         except KeyError:
             pass
-    settings["LOG"] = log
-    if log:
-        logging.basicConfig(**kwargs)
-        logging.info(f"Publications version {constants.VERSION}")
-        logging.info(f"ROOT: {constants.ROOT}")
-        logging.info(f"SITE_DIR: {settings['SITE_DIR']}")
-        logging.info(f"settings: {settings['SETTINGS_FILE']}")
-        logging.info(f"logging debug: {settings['LOGGING_DEBUG']}")
-        logging.info(f"tornado debug: {settings['TORNADO_DEBUG']}")
+        else:  # Do NOT catch any exception! Means bad setup.
+            if isinstance(value, int):
+                settings[key] = int(new)
+            elif isinstance(value, bool):
+                settings[key] = utils.to_bool(new)
+            else:
+                settings[key] = new
+            envvar_keys.append(key)
+            settings["SETTINGS_ENVVAR"] = True
+
+    # Setup logging.
+    logging.basicConfig(format=constants.LOGGING_FORMAT)
+    logger = logging.getLogger("publications")
+    if settings.get("LOGGING_DEBUG"):
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+    logger.info(f"OrderPortal version {constants.VERSION}")
+    logger.info(f"ROOT_DIR: {constants.ROOT_DIR}")
+    logger.info(f"settings: {settings['SETTINGS_FILEPATH']}")
+    logger.info(f"logger debug: {settings['LOGGING_DEBUG']}")
+    logger.info(f"tornado debug: {settings['TORNADO_DEBUG']}")
 
     # Check some settings.
     for key in ["BASE_URL", "PORT", "DATABASE_SERVER", "DATABASE_NAME"]:

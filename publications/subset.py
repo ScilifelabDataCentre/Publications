@@ -598,8 +598,8 @@ def get_parser():
 
 
 if __name__ == "__main__":
-    logging.getLogger().disabled = True
-    publications.config.load_settings()
+    logging.getLogger("publications").disabled = True
+    publications.config.load_settings_from_file()
     db = publications.database.get_db()
 
     parser = get_parser()

@@ -37,7 +37,7 @@ Search publications
 
 <h3>{{ len(publications) }} publications</h3>
 {% for publication in publications %}
-{% include 'publication_item.html' %}
+{% include 'publication.html' %}
 {% end %}
 
 {% end %} {# block main_content #}
@@ -45,8 +45,6 @@ Search publications
 {% block alt_format %}
 <p>
   <a href="{{ reverse_url('search_json', terms=terms) }}">
-    <img src="{{ static_url('json.png') }}">
-    JSON
-  </a>
+    <img src="{{ static_url('json.png') }}">JSON</a>
 </p>
 {% end %} {# block alt_format #}

@@ -1,15 +1,15 @@
 {# Publications most recently modified page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}{{ limit }} most recently modified publications{% end %}
+
 {% block body_title %}
-<span class="glyphicon glyphicon-time"></span>
-{{ limit }} most recently modified publications
+<span class="glyphicon glyphicon-time"></span> {{ limit }} most recently modified publications
 {% end %}
 
 {% block main_content %}
 {% for publication in publications %}
-{% include 'publication_item.html' %}
+{% include '../publication.html' %}
 {% end %}
 {% end %} {# block main_content #}

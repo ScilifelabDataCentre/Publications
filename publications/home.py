@@ -113,3 +113,11 @@ class Logs(RequestHandler):
         else:
             raise NotImplementedError
         self.render("logs.html", title=title, href=href, logs=self.get_logs(doc["_id"]))
+
+
+class NoSuchEntity(RequestHandler):
+    "Error message on home page."
+
+    def get(self, path=None):
+        self.logger.debug(f"Page not found: {path}")
+        self.see_other("home", error="Sorry, page not found.")

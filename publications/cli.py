@@ -26,10 +26,8 @@ import publications.writer
 
 
 @click.group()
-@click.option("-s", "--settings", help="Path of settings YAML file.")
-@click.option("--log", flag_value=True, default=False, help="Enable logging output.")
-def cli(settings, log):
-    publications.config.load_settings(settings, log=log)
+def cli():
+    publications.config.load_settings_from_file()
 
 
 @cli.command()

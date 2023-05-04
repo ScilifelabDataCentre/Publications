@@ -1,6 +1,6 @@
 {# Publication duplicates. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}Publication duplicates{% end %}
 {% block body_title %}
@@ -19,9 +19,9 @@ Publication duplicates
 <table class="table">
   {% for publication, duplicate in duplicates %}
   <tr>
-    <td>{% include 'publication_item.html' %}</td>
+    <td>{% include '../publication.html' %}</td>
     {% set publication = duplicate %}
-    <td>{% include 'publication_item.html' %}</td>
+    <td>{% include '../publication.html' %}</td>
   </tr>
 {% end %}
 </table>

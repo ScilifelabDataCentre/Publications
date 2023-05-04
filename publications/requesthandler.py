@@ -23,6 +23,7 @@ class RequestHandler(tornado.web.RequestHandler):
     def prepare(self):
         "Get the database connection."
         self.db = publications.database.get_db()
+        self.logger = logging.getLogger("publications")
 
     def get_template_namespace(self):
         "Set the variables accessible within the template."
@@ -187,10 +188,10 @@ class RequestHandler(tornado.web.RequestHandler):
         except KeyError:
             raise ValueError
         if account.get("disabled"):
-            logging.info(f"API key login: DISABLED {account['email']}")
+            self.logger.info(f"API key login: DISABLED {account['email']}")
             return None
         else:
-            logging.info(f"API key login: {account['email']}")
+            self.logger.info(f"API key login: {account['email']}")
             return account
 
     def get_current_user_session(self):
@@ -211,10 +212,10 @@ class RequestHandler(tornado.web.RequestHandler):
         if account.get("login") is None:
             raise ValueError
         if account.get("disabled"):
-            logging.info(f"Session authentication: DISABLED {account['email']}")
+            self.logger.info(f"Session authentication: DISABLED {account['email']}")
             return None
         else:
-            logging.info(f"Session authentication: {account['email']}")
+            self.logger.info(f"Session authentication: {account['email']}")
             return account
 
     def get_current_user_basic(self):
@@ -238,10 +239,10 @@ class RequestHandler(tornado.web.RequestHandler):
         except (IndexError, ValueError, TypeError):
             raise ValueError
         if account.get("disabled"):
-            logging.info(f"Basic auth login: DISABLED {account['email']}")
+            self.logger.info(f"Basic auth login: DISABLED {account['email']}")
             return None
         else:
-            logging.info(f"Basic auth login: {account['email']}")
+            self.logger.info(f"Basic auth login: {account['email']}")
             return account
 
     def get_logs(self, iuid):

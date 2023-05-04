@@ -1,7 +1,6 @@
 "Publication pages."
 
 import functools
-import logging
 
 import couchdb2
 import tornado.web
@@ -351,7 +350,7 @@ class Publication(PublicationMixin, RequestHandler):
             self.see_other("home", error=str(error))
             return
         self.render(
-            "publication.html",
+            "publication/display.html",
             publication=publication,
             is_editable=self.is_editable(publication),
             is_deletable=self.is_deletable(publication),
@@ -394,7 +393,7 @@ class PublicationJson(CorsMixin, PublicationMixin, RequestHandler):
 class Publications(RequestHandler):
     "Publications list display page; by year or most recent."
 
-    TEMPLATE = "publications.html"
+    TEMPLATE = "publications/list.html"
 
     def get(self, year=None):
         if year:
@@ -407,7 +406,7 @@ class Publications(RequestHandler):
 class PublicationsTable(Publications):
     "Publications table display page."
 
-    TEMPLATE = "publications_table.html"
+    TEMPLATE = "publications/table.html"
 
 
 class PublicationsJson(CorsMixin, Publications):
@@ -486,7 +485,7 @@ class PublicationsCsv(PublicationsFile):
         "Show output selection page."
         all_labels = sorted([l["value"] for l in self.get_docs("label", "value")])
         self.render(
-            "publications_csv.html",
+            "publications/csv.html",
             year=self.get_argument("year", None),
             labels=set(self.get_arguments("label")),
             all_labels=all_labels,
@@ -511,7 +510,7 @@ class PublicationsXlsx(PublicationsFile):
         "Show output selection page."
         all_labels = sorted([l["value"] for l in self.get_docs("label", "value")])
         self.render(
-            "publications_xlsx.html",
+            "publications/xlsx.html",
             year=self.get_argument("year", None),
             labels=set(self.get_arguments("label")),
             all_labels=all_labels,
@@ -538,7 +537,7 @@ class PublicationsTxt(PublicationsFile):
         "Show output selection page."
         all_labels = sorted([l["value"] for l in self.get_docs("label", "value")])
         self.render(
-            "publications_txt.html",
+            "publications/txt.html",
             year=self.get_argument("year", None),
             labels=set(self.get_arguments("label")),
             all_labels=all_labels,
@@ -614,7 +613,7 @@ class PublicationsNoPmid(PublicationMixin, RequestHandler):
         publs2.sort(key=lambda p: p["modified"])
         publs3.sort(key=lambda p: p["modified"])
         publications = publs1 + publs2 + publs3
-        self.render("publications_no_pmid.html", publications=publications)
+        self.render("publications/no_pmid.html", publications=publications)
 
 
 class PublicationsNoPmidJson(CorsMixin, PublicationsNoPmid):
@@ -645,7 +644,7 @@ class PublicationsNoDoi(RequestHandler):
         subset.select_no_doi()
         publications = subset.get_publications()
         publications.sort(key=lambda p: p["modified"])
-        self.render("publications_no_doi.html", publications=publications)
+        self.render("publications/no_doi.html", publications=publications)
 
 
 class PublicationsNoDoiJson(CorsMixin, PublicationsNoDoi):
@@ -674,7 +673,7 @@ class PublicationsNoLabel(RequestHandler):
     def get(self):
         subset = Subset(self.db)
         subset.select_no_label()
-        self.render("publications_no_label.html", publications=subset)
+        self.render("publications/no_label.html", publications=subset)
 
 
 class PublicationsNoLabelJson(CorsMixin, PublicationsNoLabel):
@@ -724,7 +723,7 @@ class PublicationsDuplicates(RequestHandler):
                     duplicates.append((publ1, publ2))
             except KeyError:
                 lookup[key] = publ1
-        self.render("publications_duplicates.html", duplicates=duplicates)
+        self.render("publications/duplicates.html", duplicates=duplicates)
 
 
 class PublicationsModified(PublicationMixin, RequestHandler):
@@ -738,7 +737,7 @@ class PublicationsModified(PublicationMixin, RequestHandler):
         publications = subset.get_publications()
         publications.sort(key=lambda p: p["modified"], reverse=True)
         self.render(
-            "publications_modified.html", publications=publications, limit=limit
+            "publications/modified.html", publications=publications, limit=limit
         )
 
 
@@ -800,7 +799,7 @@ class PublicationFetch(PublicationMixin, RequestHandler):
             for label in labels:
                 checked_labels[label] = None
         self.render(
-            "publication_fetch.html",
+            "publication/fetch.html",
             labels=labels,
             checked_labels=checked_labels,
             publications=docs,

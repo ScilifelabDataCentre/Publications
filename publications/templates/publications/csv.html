@@ -1,0 +1,28 @@
+{# Publications CSV setup page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}Download Publications CSV{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-download-alt"></span> Download Publications CSV
+{% end %}
+
+{% block main_content %}
+<form action="{{ reverse_url('publications_csv') }}"
+      method="POST" role="form" class="form-horizontal">
+  {% module xsrf_form_html() %}
+
+  {% include 'filter.html' %}
+  {% include 'authors_parameters.html' %}
+  {% include 'label_parameters.html' %}
+  {% include 'issn_parameters.html' %}
+  {% include 'csv_parameters.html' %}
+  {% include 'download.html' %}
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ cancel_url }}" role="button" class="btn btn-default btn-block">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel</a>
+{% end %} {# block meta_content #}

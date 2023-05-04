@@ -1,7 +1,5 @@
 "Blacklisted publications."
 
-import logging
-
 import tornado.web
 
 from publications import constants
