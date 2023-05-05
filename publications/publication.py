@@ -747,7 +747,7 @@ class PublicationAdd(PublicationMixin, RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_curator()
-        self.render("publication_add.html", labels=self.get_allowed_labels())
+        self.render("publication/add.html", labels=self.get_allowed_labels())
 
     @tornado.web.authenticated
     def post(self):
@@ -870,7 +870,7 @@ class PublicationEdit(PublicationMixin, RequestHandler):
             self.see_other("home", error=str(error))
             return
         self.render(
-            "publication_edit.html",
+            "publication/edit.html",
             publication=publication,
             labels=self.get_allowed_labels(),
         )
@@ -916,7 +916,7 @@ class PublicationResearchers(PublicationMixin, RequestHandler):
                 author["researchers"] = self.get_researchers(
                     author["family"], initials=author["initials"]
                 )
-        self.render("publication_researchers.html", publication=publication)
+        self.render("publication/researchers.html", publication=publication)
 
     @tornado.web.authenticated
     def post(self, iuid):
@@ -946,7 +946,7 @@ class PublicationXrefs(PublicationMixin, RequestHandler):
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
-        self.render("publication_xrefs.html", publication=publication)
+        self.render("publication/xrefs.html", publication=publication)
 
     @tornado.web.authenticated
     def post(self, iuid):

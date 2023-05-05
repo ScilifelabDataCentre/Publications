@@ -1,6 +1,6 @@
 {# Label merge page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}Merge label{% end %}
 
@@ -12,16 +12,15 @@ Merge '{{ label['value'] }}'
 
 {% block main_content %}
 <form action="{{ reverse_url('label_merge', label['value']) }}"
-      role="form"
-      class="form-horizontal"
-      method="POST">
+      method="POST" class="form-horizontal" role="form">
   {% module xsrf_form_html() %}
+
   <input type="hidden" name="_rev" value="{{ label['_rev'] }}">
 
   <div class="form-group has-feedback">
     <label class="control-label col-md-1" for="merge">Into</label>
     <div class="col-md-8">
-      <select class="form-control" name="merge" id="merge">
+      <select name="merge" id="merge" class="form-control">
 	{% for l in labels %}
 	{% if l['value'] != label['value'] %}
 	<option>{{ l['value'] }}</option>
@@ -37,8 +36,7 @@ Merge '{{ label['value'] }}'
   <div class="form-group">
     <div class="col-md-3 col-md-offset-1">
       <button type="submit" class="btn btn-success btn-block">
-	<span class="glyphicon glyphicon-resize.small"></span>
-	Merge
+	<span class="glyphicon glyphicon-resize.small"></span> Merge
       </button>
     </div>
   </div>
@@ -48,10 +46,8 @@ Merge '{{ label['value'] }}'
 
 {% block meta_content %}
 <a href="{{ reverse_url('label', label['value']) }}"
-   class="btn btn-default btn-block"
-   role="button">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
+   class="btn btn-default btn-block" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
 </a>
 {% end %} {# block meta_content #}
 

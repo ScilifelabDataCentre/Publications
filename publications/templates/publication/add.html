@@ -1,6 +1,6 @@
 {# Add publication manually page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}
 Add publication manually
@@ -24,9 +24,7 @@ Add publication manually
 
 {% block main_content %}
 <form action="{{ reverse_url('publication_add') }}"
-      role="form"
-      class="form-horizontal"
-      method="POST">
+      method="POST" role="form" class="form-horizontal">
   {% module xsrf_form_html() %}
 
   <div class="form-group has-feedback">

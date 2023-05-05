@@ -6,15 +6,12 @@
 
 {% block body_title %}
 <span class="glyphicon glyphicon-user"></span>
-<span class="glyphicon glyphicon-plus"></span>
-Add account
+<span class="glyphicon glyphicon-plus"></span> Add account
 {% end %} {# block body_title #}
 
 {% block main_content %}
 <form action="{{ reverse_url('account_add') }}"
-      role="form"
-      class="form-horizontal"
-      method="POST">
+      method="POST" role="form" class="form-horizontal">
   {% module xsrf_form_html() %}
 
   <div class="form-group has-feedback">
@@ -57,7 +54,7 @@ Add account
       {% set checked = role == constants.CURATOR and 'checked' or '' %}
       <label class="radio-inline">
 	<input type="radio" name="role" id="role"
-	       value="{{ role }}" {{ checked }}>{{ role }}
+               value="{{ role }}" {{ checked }}>{{ role }}
       </label>
       {% end %}
       <span class="help-block">
@@ -96,8 +93,7 @@ Add account
   <div class="form-group">
     <div class="col-md-11 col-md-offset-1">
       <button type="submit" class="btn btn-success">
-	<span class="glyphicon glyphicon-plus"></span>
-	Add
+	<span class="glyphicon glyphicon-plus"></span> Add
       </button>
     </div>
   </div>
@@ -106,11 +102,8 @@ Add account
 {% end %} {# block main_content #}
 
 {% block meta_content %}
-<a href="{{ reverse_url('accounts') }}"
-   class="btn btn-default"
-   role="button">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
+<a href="{{ reverse_url('accounts') }}" class="btn btn-default" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
 </a>
 {% end %} {# block meta_content #}
 

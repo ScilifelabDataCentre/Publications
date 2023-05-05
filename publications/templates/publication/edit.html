@@ -1,10 +1,8 @@
 {# Publication edit page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
-{% block head_title %}
-Edit publication {{ publication['title'][:20] }}...
-{% end %}
+{% block head_title %}Edit publication {{ publication['title'][:20] }}...{% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-edit"></span>
@@ -18,10 +16,9 @@ Edit
 
 {% block main_content %}
 <form action="{{ reverse_url('publication_edit', publication['_id']) }}"
-      role="form"
-      class="form-horizontal"
-      method="POST">
+      method="POST" role="form" class="form-horizontal">
   {% module xsrf_form_html() %}
+
   <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
 
   <div class="form-group has-feedback">
@@ -168,8 +165,7 @@ Edit
   <div class="form-group has-feedback">
     <label class="control-label col-md-1" for="abstract">Abstract</label>
     <div class="col-md-11">
-      <textarea class="form-control" rows="6"
-		name="abstract" id="abstract"
+      <textarea class="form-control" name="abstract" id="abstract" rows="6"
 		>{{ publication.get('abstract') or '' }}</textarea>
     </div>
   </div>
@@ -177,8 +173,7 @@ Edit
   <div class="form-group has-feedback">
     <label class="control-label col-md-1" for="notes">Notes</label>
     <div class="col-md-11">
-      <textarea class="form-control" rows="3"
-		name="notes" id="notes"
+      <textarea class="form-control" name="notes" id="notes" rows="3"
 		>{{ publication.get('notes') or '' }}</textarea>
       <span class="help-block">
         Miscellanous notes visible to all.
@@ -218,8 +213,7 @@ Edit
   <div class="form-group">
     <div class="col-md-3 col-md-offset-1">
       <button type="submit" class="btn btn-success btn-block">
-	<span class="glyphicon glyphicon-save"></span>
-	Save
+	<span class="glyphicon glyphicon-save"></span> Save
       </button>
     </div>
   </div>
@@ -229,9 +223,7 @@ Edit
 
 {% block meta_content %}
 <a href="{{ reverse_url('publication', publication['_id']) }}"
-   class="btn btn-default btn-block"
-   role="button">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
+   class="btn btn-default btn-block" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
 </a>
 {% end %} {# block meta_content #}

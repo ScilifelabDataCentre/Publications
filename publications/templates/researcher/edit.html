@@ -1,6 +1,6 @@
 {# Researcher edit page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}
 Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
@@ -14,8 +14,7 @@ Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
 
 {% block main_content %}
 <form action="{{ reverse_url('researcher_edit', researcher['_id']) }}"
-      role="form" class="form-horizontal"
-      method="POST">
+      method="POST" role="form" class="form-horizontal">
   {% module xsrf_form_html() %}
   <input type="hidden" name="_rev" value="{{ researcher['_rev'] }}">
 
@@ -68,8 +67,7 @@ Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
     <label class="control-label col-md-1" for="affiliations">
       Affiliations</label>
     <div class="col-md-8">
-      <textarea name="affiliations" id="affiliations"
-                class="form-control" rows="6"
+      <textarea name="affiliations" id="affiliations" class="form-control" rows="6"
                 >{{ '\n'.join(researcher['affiliations']) }}</textarea>
       <span class="help-block">
 	One affiliation per line.
@@ -80,8 +78,7 @@ Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
   <div class="form-group">
     <div class="col-md-3 col-md-offset-1">
       <button type="submit" class="btn btn-success btn-block">
-	<span class="glyphicon glyphicon-save"></span>
-	Save
+	<span class="glyphicon glyphicon-save"></span> Save
       </button>
     </div>
   </div>
@@ -92,7 +89,6 @@ Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
 {% block meta_content %}
 <a href="{{ reverse_url('researcher', researcher['_id']) }}"
    role="button" class="btn btn-default btn-block">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
 </a>
 {% end %} {# block meta_content #}

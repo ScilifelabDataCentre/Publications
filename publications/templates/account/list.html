@@ -1,12 +1,11 @@
 {# Accounts table page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}Accounts{% end %}
 
 {% block body_title %}
-<span class="glyphicon glyphicon-user"></span>
-Accounts
+<span class="glyphicon glyphicon-user"></span> Accounts
 {% end %}
 
 {# Remove search field here, to avoid confusion with accounts search. #}
@@ -70,10 +69,8 @@ Accounts
 {% block meta_content %}
 <p>
   <a href="{{ reverse_url('account_add') }}"
-     class="btn btn-success btn-block"
-     role="button">
-    <span class="glyphicon glyphicon-plus"></span>
-    Add account
+     class="btn btn-success btn-block" role="button">
+    <span class="glyphicon glyphicon-plus"></span> Add account
   </a>
 </p>
 {% end %} {# block meta_content #}
@@ -81,8 +78,7 @@ Accounts
 {% block alt_format %}
 <p>
   <a href="{{ reverse_url('accounts_json') }}">
-    <img src="{{ static_url('json.png') }}">
-    JSON
+    <img src="{{ static_url('json.png') }}"> JSON
   </a>
 </p>
 {% end %} {# block alt_format #}

@@ -1,6 +1,6 @@
 {# Label addition page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}Add label{% end %}
 
@@ -12,9 +12,7 @@ Add label
 
 {% block main_content %}
 <form action="{{ reverse_url('label_add') }}"
-      role="form"
-      class="form-horizontal"
-      method="POST">
+      method="POST" class="form-horizontal" role="form">
   {% module xsrf_form_html() %}
 
   <div class="form-group has-feedback">
@@ -64,8 +62,7 @@ Add label
   <div class="form-group">
     <div class="col-md-11 col-md-offset-2">
       <button type="submit" class="btn btn-success">
-	<span class="glyphicon glyphicon-plus"></span>
-	Add
+	<span class="glyphicon glyphicon-plus"></span> Add
       </button>
     </div>
   </div>
@@ -74,11 +71,8 @@ Add label
 {% end %} {# block main_content #}
 
 {% block meta_content %}
-<a href="{{ reverse_url('labels') }}"
-   class="btn btn-default"
-   role="button">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
+<a href="{{ reverse_url('labels') }}" class="btn btn-default" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
 </a>
 {% end %} {# block meta_content #}
 

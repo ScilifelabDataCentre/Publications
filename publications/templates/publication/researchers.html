@@ -1,6 +1,6 @@
 {# Publication researchers edit page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}
 Edit researchers for publication {{ publication['title'][:20] }}...
@@ -19,9 +19,9 @@ Edit researchers for
 
 {% block main_content %}
 <form action="{{ reverse_url('publication_researchers', publication['_id']) }}"
-      role="form" class="form-horizontal"
-      method="POST">
+      method="POST" role="form" class="form-horizontal">
   {% module xsrf_form_html() %}
+
   <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
 
   {% for author in publication['authors'] %}
@@ -82,8 +82,7 @@ Edit researchers for
 
 {% block meta_content %}
 <a href="{{ reverse_url('publication', publication['_id']) }}"
-   class="btn btn-default btn-block"
-   role="button">
+   class="btn btn-default btn-block" role="button">
   <span class="glyphicon glyphicon-remove-circle"></span>
   Cancel
 </a>

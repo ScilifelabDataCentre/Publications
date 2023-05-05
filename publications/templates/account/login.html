@@ -1,24 +1,23 @@
 {# Login page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}Login{% end %}
 
 {% block body_title %}
-<span class="glyphicon glyphicon-log-in"></span>
-Login
+<span class="glyphicon glyphicon-log-in"></span> Login
 {% end %} {# block body_title #}
 
 {% block main_content %}
 <div class="row">
   <div class="col-md-6">
     <form action="{{ reverse_url('login') }}"
-	  role="form"
-	  method="POST">
+	  method="POST" role="form">
       {% module xsrf_form_html() %}
+
       <div class="form-group has-feedback">
 	<label for="email">Email</label>
-	<input type="text" class="form-control" name="email"
+	<input type="text" name="email" id="email" class="form-control"
 	       placeholder="Email address of account"
 	       autocomplete="email">
 	<span class="glyphicon glyphicon-star text-danger form-control-feedback"></span>
@@ -31,8 +30,7 @@ Login
       </div>
       <div class="form-group"> 
 	<button id="login" type="submit" class="btn btn-primary btn-block">
-	  <span class="glyphicon glyphicon-log-in"></span>
-	  Login
+	  <span class="glyphicon glyphicon-log-in"></span> Login
 	</button>
       </div>
     </form>

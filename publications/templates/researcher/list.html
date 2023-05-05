@@ -1,11 +1,10 @@
 {# Researchers table page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}Researchers{% end %}
 {% block body_title %}
-<span class="glyphicon glyphicon-education"></span>
-Researchers
+<span class="glyphicon glyphicon-education"></span> Researchers
 {% end %}
 
 {% block main_content %}
@@ -49,8 +48,7 @@ Researchers
 {% block alt_format %}
 <p>
   <a href="{{ reverse_url('researchers_json') }}">
-    <img src="{{ static_url('json.png') }}">
-    JSON
+    <img src="{{ static_url('json.png') }}"> JSON
   </a>
 </p>
 {% end %} {# block alt_format #}

@@ -1,6 +1,6 @@
 {# Publication xrefs edit page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}
 Edit xrefs for publication {{ publication['title'][:20] }}...
@@ -21,16 +21,15 @@ Edit xrefs for
 <div class="panel panel-default">
   <div class="panel-body">
     <form action="{{ reverse_url('publication_xrefs', publication['_id']) }}"
-          role="form"
-          class="form-horizontal"
-          method="POST">
+          method="POST" class="form-horizontal" role="form">
       {% module xsrf_form_html() %}
+
       <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
+
       <div class="form-group">
         <label class="control-label col-md-2" for="db">Database</label>
         <div class="col-md-5">
-          <select class="form-control" name="db" id="db"
-                  aria-describedby="dbHelp">
+          <select name="db" id="db" class="form-control" aria-describedby="dbHelp">
             {% for dbname in sorted(settings['XREF_TEMPLATE_URLS'].keys()) %}
             <option>{{ dbname }}</option>
             {% end %}
@@ -40,7 +39,7 @@ Edit xrefs for
           </span>
         </div>
         <div class="col-md-5">
-          <input type="text" class="form-control" name="db_other" id="db_other">
+          <input type="text" name="db_other" id="db_other" class="form-control">
           <span id="dbHelp" class="help-block text-warning">
             Specify another database. If given, this value will be used.
           </span>
@@ -49,8 +48,8 @@ Edit xrefs for
       <div class="form-group">
         <label class="control-label col-md-2" for="key">Accession</label>
         <div class="col-md-10">
-          <input type="text" class="form-control" name="key" id="key"
-                 aria-describedby="keyHelpt">
+          <input type="text" name="key" id="key"
+                 class="form-control" aria-describedby="keyHelpt">
           <span id="keyHelp" class="help-block">
             Required. If the database is <strong>URL</strong>, a
             complete URL including the <code>http(s)://</code> part.
@@ -60,9 +59,8 @@ Edit xrefs for
       <div class="form-group">
         <label class="control-label col-md-2" for="description">Description</label>
         <div class="col-md-10">
-          <input type="text" class="form-control"
-                 name="description" id="description"
-                 aria-describedby="descriptionHelp">
+          <input type="text" name="description" id="description"
+                 class="form-control" aria-describedby="descriptionHelp">
           <span id="descriptionHelp" class="help-block">
             Brief description or title of the database entry.
           </span>
@@ -70,15 +68,13 @@ Edit xrefs for
       </div>
       <div class="form-group">
         <div class="col-md-10 col-md-offset-2">
-          <button type="submit" class="btn btn-success"
-                  style="padding-left: 3em; padding-right: 3em;"
-                  aria-describedby="addHelp">
+          <button type="submit" class="btn btn-success" aria-describedby="addHelp"
+                  style="padding-left: 3em; padding-right: 3em;">
 	    <span class="glyphicon glyphicon-plus"></span>
 	    Add
           </button>
-          <button type="submit" class="btn btn-success"
-                  style="margin-left: 2em;"
-                  name="__save__" value="continue"
+          <button type="submit" name="__save__" value="continue"
+                  class="btn btn-success" style="margin-left: 2em;"
                   aria-describedby="addHelp">
 	    <span class="glyphicon glyphicon-plus"></span>
 	    Add and continue edit
@@ -97,9 +93,7 @@ Edit xrefs for
 <div class="panel panel-default">
   <div class="panel-body">
     <form action="{{ reverse_url('publication_xrefs', publication['_id']) }}"
-          role="form"
-          class="form-horizontal"
-          method="POST">
+          method="POST" class="form-horizontal" role="form">
       {% module xsrf_form_html() %}
       <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
       <input type="hidden" name="_http_method" value="DELETE">
@@ -126,8 +120,7 @@ Edit xrefs for
       <div class="form-group">
         <div class="col-md-10 col-md-offset-2">
           <button type="submit" class="btn btn-danger">
-	    <span class="glyphicon glyphicon-remove"></span>
-	    Delete
+	    <span class="glyphicon glyphicon-remove"></span> Delete
           </button>
         </div>
       </div>
@@ -139,9 +132,7 @@ Edit xrefs for
 
 {% block meta_content %}
 <a href="{{ reverse_url('publication', publication['_id']) }}"
-   class="btn btn-default"
-   role="button">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
+   class="btn btn-default" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
 </a>
 {% end %} {# block meta_content #}

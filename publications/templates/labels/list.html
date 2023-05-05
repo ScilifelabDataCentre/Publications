@@ -1,12 +1,11 @@
 {# Labels list page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}{% module Translate('Labels') %} list{% end %}
 
 {% block body_title %}
-<span class="glyphicon glyphicon-tag"></span>
-{% module Translate('Labels') %} list
+<span class="glyphicon glyphicon-tag"></span> {% module Translate('Labels') %} list
 {% end %}
 
 {% block main_content %}
@@ -67,10 +66,8 @@
 {% if is_admin %}
 <p>
   <a href="{{ reverse_url('label_add') }}"
-     class="btn btn-success btn-block"
-     role="button">
-    <span class="glyphicon glyphicon-plus"></span>
-    Add
+     class="btn btn-success btn-block" role="button">
+    <span class="glyphicon glyphicon-plus"></span> Add
   </a>
 </p>
 {% end %} {# if is_admin #}
@@ -78,8 +75,7 @@
 
 {% block alt_format %}
 <a href="{{ reverse_url('labels_table') }}">
-  <span class="glyphicon glyphicon-list-alt"></span>
-  Table
+  <span class="glyphicon glyphicon-list-alt"></span> Table
 </a>
 <br>
 <a href="{{ reverse_url('labels_json') }}">

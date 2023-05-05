@@ -1,12 +1,11 @@
 {# Account page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}{{ account['email'] }}{% end %}
 
 {% block body_title %}
-<span class="glyphicon glyphicon-user"></span>
-{{ account['email'] }}
+<span class="glyphicon glyphicon-user"></span> {{ account['email'] }}
 {% end %} {# block body_title #}
 
 {% block main_content %}
@@ -84,8 +83,7 @@
 {% block meta_content %}
 
 {% if current_user and current_user == account %}
-<form action="{{ reverse_url('logout') }}"
-      method="POST" role="form">
+<form action="{{ reverse_url('logout') }}" method="POST" role="form">
   {% module xsrf_form_html() %}
   <div class="form-group">
     <button type="submit" title="Logout" class="btn btn-warning btn-block">
@@ -98,8 +96,7 @@
 {% if is_editable %}
 <p>
   <a href="{{ reverse_url('account_edit', account['email']) }}"
-     class="btn btn-primary btn-block"
-     role="button">
+     class="btn btn-primary btn-block" role="button">
     <span class="glyphicon glyphicon-edit"></span> Edit</a>
 </p>
 {% end %} {# if is_editable #}
@@ -137,8 +134,7 @@
   </form>
 {% else %}
   <form action="{{ reverse_url('account_disable', account['email']) }}"
-        role="form"
-        method="POST">
+        method="POST" role="form">
     {% module xsrf_form_html() %}
     <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
     <div class="form-group">
@@ -154,14 +150,12 @@
 {% if is_deletable %}
 <p>
   <form action="{{ reverse_url('account', account['email']) }}"
-	role="form"
-	method="POST">
+        method="POST" role="form">
     {% module xsrf_form_html() %}
     <input type="hidden" name="_http_method" value="delete">
     <button type="submit" class="btn btn-danger btn-block"
 	    onclick="return confirm('Really delete this account?');">
-      <span class="glyphicon glyphicon-trash"></span>
-      Delete
+      <span class="glyphicon glyphicon-trash"></span> Delete
     </button>
   </form>
 </p>
@@ -170,8 +164,7 @@
 <p>
   <a href="{{ reverse_url('logs', account['_id']) }}">
     <span class="badge">
-      <span class="glyphicon glyphicon-list-alt"></span>
-      Logs
+      <span class="glyphicon glyphicon-list-alt"></span> Logs
     </span>
   </a>
 </p>
@@ -180,8 +173,7 @@
 {% block alt_format %}
 <p>
   <a href="{{ reverse_url('account_json', account['email']) }}">
-    <img src="{{ static_url('json.png') }}">
-    JSON
+    <img src="{{ static_url('json.png') }}"> JSON
   </a>
 </p>
 {% end %} {# block alt_format #}

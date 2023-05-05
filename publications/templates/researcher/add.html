@@ -1,10 +1,8 @@
 {# Add researcher manually page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
-{% block head_title %}
-Add researcher manually
-{% end %}
+{% block head_title %}Add researcher manually{% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-plus"></span>
@@ -14,9 +12,7 @@ Add researcher manually
 
 {% block main_content %}
 <form action="{{ reverse_url('researcher_add') }}"
-      role="form"
-      class="form-horizontal"
-      method="POST">
+      method="POST" class="form-horizontal" role="form">
   {% module xsrf_form_html() %}
 
   <div class="form-group has-feedback">
@@ -61,8 +57,8 @@ Add researcher manually
     <label class="control-label col-md-2" for="affiliations">
       Affiliations</label>
     <div class="col-md-8">
-      <textarea name="affiliations" id="affiliations"
-                class="form-control" rows="6"></textarea>
+      <textarea name="affiliations" id="affiliations" class="form-control" rows="6"
+                ></textarea>
       <span class="help-block">
 	One affiliation per line.
       </span>
@@ -72,8 +68,7 @@ Add researcher manually
   <div class="form-group">
     <div class="col-md-3 col-md-offset-1">
       <button type="submit" class="btn btn-success btn-block">
-	<span class="glyphicon glyphicon-save"></span>
-	Save
+	<span class="glyphicon glyphicon-save"></span> Save
       </button>
     </div>
   </div>
@@ -83,11 +78,8 @@ Add researcher manually
 
 {% block meta_content %}
 <p>
-  <a href="{{ reverse_url('home') }}"
-     class="btn btn-default btn-block"
-     role="button">
-    <span class="glyphicon glyphicon-remove-circle"></span>
-    Cancel
+  <a href="{{ reverse_url('home') }}" class="btn btn-default btn-block" role="button">
+    <span class="glyphicon glyphicon-remove-circle"></span> Cancel
   </a>
 </p>
 {% end %} {# block meta_content #}

@@ -112,7 +112,7 @@ class Researcher(ResearcherMixin, RequestHandler):
         publications = self.get_docs("publication", "researcher", key=researcher["_id"])
         publications.sort(key=lambda i: i["published"], reverse=True)
         self.render(
-            "researcher.html",
+            "researcher/display.html",
             researcher=researcher,
             publications=publications,
             is_editable=self.is_editable(researcher),
@@ -189,7 +189,7 @@ class ResearcherAdd(ResearcherMixin, RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        self.render("researcher_add.html")
+        self.render("researcher/add.html")
 
     @tornado.web.authenticated
     def post(self):
@@ -220,7 +220,7 @@ class ResearcherEdit(ResearcherMixin, RequestHandler):
         except (KeyError, ValueError) as error:
             self.see_other("home", error=str(error))
             return
-        self.render("researcher_edit.html", researcher=researcher)
+        self.render("researcher/edit.html", researcher=researcher)
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -265,7 +265,7 @@ class ResearcherPublicationsCsv(ResearcherFilterMixin, publications.publication.
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        self.render("researcher_publications_csv.html", researcher=researcher)
+        self.render("researcher/publications_csv.html", researcher=researcher)
 
     def post(self, identifier):
         try:
@@ -286,7 +286,7 @@ class ResearcherPublicationsXlsx(ResearcherFilterMixin, publications.publication
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        self.render("researcher_publications_xlsx.html", researcher=researcher)
+        self.render("researcher/publications_xlsx.html", researcher=researcher)
 
     def post(self, identifier):
         try:
@@ -307,7 +307,7 @@ class ResearcherPublicationsTxt(ResearcherFilterMixin, publications.publication.
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        self.render("researcher_publications_txt.html", researcher=researcher)
+        self.render("researcher/publications_txt.html", researcher=researcher)
 
     def post(self, identifier):
         try:
@@ -332,7 +332,7 @@ class ResearcherPublicationsEdit(ResearcherMixin, RequestHandler):
         publications = self.get_publications(researcher)
         publications.sort(key=lambda p: p["published"], reverse=True)
         self.render(
-            "researcher_publications_edit.html",
+            "researcher/publications_edit.html",
             researcher=researcher,
             publications=publications,
         )
@@ -428,7 +428,7 @@ class Researchers(RequestHandler):
         counts = dict((r.key, r.value) for r in view)
         for researcher in researchers:
             researcher["n_publications"] = counts.get(researcher["_id"], 0)
-        self.render("researchers.html", researchers=researchers)
+        self.render("researcher/list.html", researchers=researchers)
 
 
 class ResearchersJson(CorsMixin, JsonMixin, Researchers):

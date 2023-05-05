@@ -1,6 +1,6 @@
 {# Label edit page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}Edit label{% end %}
 
@@ -12,10 +12,9 @@ Edit '{{ label['value'] }}'
 
 {% block main_content %}
 <form action="{{ reverse_url('label_edit', label['value']) }}"
-      role="form"
-      class="form-horizontal"
-      method="POST">
+      method="POST" class="form-horizontal" role="form">
   {% module xsrf_form_html() %}
+
   <input type="hidden" name="_rev" value="{{ label['_rev'] }}">
 
   <div class="form-group has-feedback">
@@ -44,8 +43,7 @@ Edit '{{ label['value'] }}'
   <div class="form-group has-feedback">
     <label class="control-label col-md-2" for="description">Description</label>
     <div class="col-md-8">
-      <textarea class="form-control" rows="4"
-		name="description" id="description"
+      <textarea class="form-control" name="description" id="description" rows="4"
 		>{{ label.get('description') or '' }}</textarea>
     </div>
   </div>
@@ -89,8 +87,7 @@ Edit '{{ label['value'] }}'
   <div class="form-group">
     <div class="col-md-3 col-md-offset-2">
       <button type="submit" class="btn btn-success btn-block">
-	<span class="glyphicon glyphicon-save"></span>
-	Save
+	<span class="glyphicon glyphicon-save"></span> Save
       </button>
     </div>
   </div>
@@ -100,10 +97,8 @@ Edit '{{ label['value'] }}'
 
 {% block meta_content %}
 <a href="{{ reverse_url('label', label['value']) }}"
-   class="btn btn-default btn-block"
-   role="button">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
+   class="btn btn-default btn-block" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
 </a>
 {% end %} {# block meta_content #}
 

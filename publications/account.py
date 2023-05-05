@@ -143,7 +143,7 @@ class Account(AccountMixin, RequestHandler):
             self.see_other("home")
             return
         self.render(
-            "account.html",
+            "account/display.html",
             account=account,
             is_editable=self.is_editable(account),
             is_deletable=self.is_deletable(account),
@@ -186,7 +186,7 @@ class Accounts(RequestHandler):
     def get(self):
         self.check_admin()
         accounts = self.get_docs("account", "email")
-        self.render("accounts.html", accounts=accounts)
+        self.render("account/list.html", accounts=accounts)
 
 
 class AccountsJson(CorsMixin, Accounts):
@@ -212,7 +212,7 @@ class AccountAdd(RequestHandler):
     def get(self):
         self.check_admin()
         self.render(
-            "account_add.html",
+            "account/add.html",
             all_labels=[l["value"] for l in self.get_docs("label", "value")],
         )
 
@@ -293,12 +293,12 @@ class AccountEdit(AccountMixin, RequestHandler):
             return
         if self.is_admin():
             self.render(
-                "account_edit.html",
+                "account/edit.html",
                 account=account,
                 labels=[l["value"] for l in self.get_docs("label", "value")],
             )
         else:
-            self.render("account_edit.html", account=account)
+            self.render("account/edit.html", account=account)
 
     @tornado.web.authenticated
     def post(self, email):
@@ -343,7 +343,7 @@ class AccountReset(RequestHandler):
             account = None
         # if settings.get("EMAIL") and settings["EMAIL"].get("HOST"):
         if settings["MAIL_SERVER"]:
-            self.render("account_reset.html", account=account)
+            self.render("account/reset.html", account=account)
         else:
             self.set_error_flash(
                 "Cannot reset password since"
@@ -401,7 +401,7 @@ class AccountPassword(RequestHandler):
 
     def get(self):
         self.render(
-            "account_password.html",
+            "account/password.html",
             email=self.get_argument("account", ""),
             code=self.get_argument("code", ""),
         )
@@ -500,7 +500,7 @@ class Login(RequestHandler):
 
     def get(self):
         "Display login page."
-        self.render("login.html")
+        self.render("account/login.html")
 
     def post(self):
         """Login to a account account. Set a secure cookie.

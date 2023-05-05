@@ -1,6 +1,6 @@
 {# Label page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}
 {{ label['value'] }} ({{ len(publications) }} publications)
@@ -57,7 +57,7 @@
 </p>
 {% end %} {# if current_user #}
 
-{% include 'publications/years.html' %}
+{% include '../publications/years.html' %}
 
 {% end %} {# block main_content #}
 
@@ -67,28 +67,24 @@
   <a href="{{ reverse_url('label_edit', label['value']) }}"
      class="btn btn-primary btn-block"
      role="button">
-    <span class="glyphicon glyphicon-edit"></span>
-    Edit
+    <span class="glyphicon glyphicon-edit"></span> Edit
   </a>
 </p>
 <p>
   <a href="{{ reverse_url('label_merge', label['value']) }}"
      class="btn btn-warning btn-block"
      role="button">
-    <span class="glyphicon glyphicon-resize-small"></span>
-    Merge
+    <span class="glyphicon glyphicon-resize-small"></span> Merge
   </a>
 </p>
 <p>
   <form action="{{ reverse_url('label', label['value']) }}"
-	role="form"
-	method="POST">
+        method="POST" role="form">
     {% module xsrf_form_html() %}
     <input type="hidden" name="_http_method" value="delete">
     <button type="submit" class="btn btn-danger btn-block"
 	    onclick="return confirm('Really delete this label?');">
-      <span class="glyphicon glyphicon-trash"></span>
-      Delete
+      <span class="glyphicon glyphicon-trash"></span> Delete
     </button>
   </form>
 </p>

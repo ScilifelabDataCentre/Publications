@@ -1,23 +1,19 @@
 {# Account edit page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
-{% block head_title %}
-Edit account {{ account['email'] }}
-{% end %}
+{% block head_title %}Edit account {{ account['email'] }}{% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-edit"></span>
-<span class="glyphicon glyphicon-user"></span>
-Edit '{{ account['email'] }}'
+<span class="glyphicon glyphicon-user"></span> Edit '{{ account['email'] }}'
 {% end %} {# block body_title #}
 
 {% block main_content %}
 <form action="{{ reverse_url('account_edit', account['email']) }}"
-      role="form"
-      class="form-horizontal"
-      method="POST">
+      method="POST" role="form" class="form-horizontal">
   {% module xsrf_form_html() %}
+
   <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
 
   <div class="form-group">
@@ -104,8 +100,7 @@ Edit '{{ account['email'] }}'
   <div class="form-group">
     <div class="col-md-3 col-md-offset-1">
       <button type="submit" class="btn btn-success btn-block">
-	<span class="glyphicon glyphicon-save"></span>
-	Save
+	<span class="glyphicon glyphicon-save"></span> Save
       </button>
     </div>
   </div>
@@ -115,10 +110,8 @@ Edit '{{ account['email'] }}'
 
 {% block meta_content %}
 <a href="{{ reverse_url('account', account['email']) }}"
-   class="btn btn-default btn-block"
-   role="button">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
+   class="btn btn-default btn-block" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
 </a>
 {% end %} {# block meta_content #}
 

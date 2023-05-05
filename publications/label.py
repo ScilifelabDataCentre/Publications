@@ -51,7 +51,7 @@ class Label(RequestHandler):
         accounts = self.get_docs("account", "label", key=label["value"].lower())
         publications = list(publications.subset.Subset(self.db, label=label["value"]))
         self.render(
-            "label.html", label=label, accounts=accounts, publications=publications
+            "label/display.html", label=label, accounts=accounts, publications=publications
         )
 
     @tornado.web.authenticated
@@ -118,7 +118,7 @@ class LabelsList(RequestHandler):
             labels = self.get_docs("label", "value")
             all = None
         labels.sort(key=lambda d: d["value"].lower())
-        self.render("labels.html", labels=labels, all=all)
+        self.render("labels/list.html", labels=labels, all=all)
 
 
 class LabelsTable(RequestHandler):
@@ -138,7 +138,7 @@ class LabelsTable(RequestHandler):
         counts = dict([(r.key, r.value) for r in view])
         for label in labels:
             label["count"] = counts.get(label["value"].lower(), 0)
-        self.render("labels_table.html", labels=labels)
+        self.render("labels/table.html", labels=labels)
 
 
 class LabelsJson(CorsMixin, LabelsTable):
@@ -164,7 +164,7 @@ class LabelAdd(RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        self.render("label_add.html")
+        self.render("label/add.html")
 
     @tornado.web.authenticated
     def post(self):
@@ -197,7 +197,7 @@ class LabelEdit(RequestHandler):
         except KeyError as error:
             self.see_other("labels", error=str(error))
             return
-        self.render("label_edit.html", label=label)
+        self.render("label/edit.html", label=label)
 
     @tornado.web.authenticated
     def post(self, identifier):
@@ -256,7 +256,7 @@ class LabelMerge(RequestHandler):
             self.see_other("labels", error=str(error))
             return
         self.render(
-            "label_merge.html", label=label, labels=self.get_docs("label", "value")
+            "label/merge.html", label=label, labels=self.get_docs("label", "value")
         )
 
     @tornado.web.authenticated

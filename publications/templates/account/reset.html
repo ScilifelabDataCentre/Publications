@@ -1,21 +1,20 @@
 {# Password reset page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}Reset password{% end %}
 
 {% block body_title %}
-<span class="glyphicon glyphicon-repeat"></span>
-Reset password
+<span class="glyphicon glyphicon-repeat"></span> Reset password
 {% end %} {# block body_title #}
 
 {% block main_content %}
 <div class="row">
   <div class="col-md-6">
     <form action="{{ reverse_url('account_reset') }}"
-	  role="form"
-	  method="POST">
+	  method="POST" role="form">
       {% module xsrf_form_html() %}
+
       <div class="form-group has-feedback">
 	<label for="account">Account</label>
 	<input type="text" class="form-control" name="account"
@@ -43,8 +42,7 @@ Reset password
       </div>
       <div class="form-group"> 
 	<button type="submit" class="btn btn-warning btn-block">
-	  <span class="glyphicon glyphicon-repeat"></span>
-	  Reset password
+	  <span class="glyphicon glyphicon-repeat"></span> Reset password
 	</button>
       </div>
     </form>
@@ -55,10 +53,8 @@ Reset password
 {% block meta_content %}
 {# if account #}
 <a href="{{ reverse_url('account', account) }}"
-   class="btn btn-default btn-block"
-   role="button">
-  <span class="glyphicon glyphicon-remove-circle"></span>
-  Cancel
+   class="btn btn-default btn-block" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
 </a>
 {# end #}
 {% end %} {# block meta_content #}

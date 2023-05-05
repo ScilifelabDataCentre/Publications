@@ -1,10 +1,8 @@
 {# Researcher page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
-{% block head_title %}
-{{ researcher['family'] }} {{ researcher['initials'] }}
-{% end %}
+{% block head_title %}{{ researcher['family'] }} {{ researcher['initials'] }}{% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-education"></span>
@@ -42,7 +40,7 @@
 
 <h3>{{ len(publications) }} publications</h3>
 {% for publication in publications %}
-{% include 'item.html' %}
+{% include 'publication.html' %}
 {% end %}
 
 {% end %} {# block main_content #}
@@ -52,23 +50,20 @@
 <p>
   <a href="{{ reverse_url('researcher_edit', researcher['_id']) }}"
      role="button" class="btn btn-primary btn-block">
-    <span class="glyphicon glyphicon-edit"></span>
-    Edit
+    <span class="glyphicon glyphicon-edit"></span> Edit
   </a>
 </p>
 <p>
   <a href="{{ reverse_url('researcher_publications_edit', researcher['_id']) }}"
      role="button" class="btn btn-primary btn-block">
-    <span class="glyphicon glyphicon-edit"></span>
-    Edit publications
+    <span class="glyphicon glyphicon-edit"></span> Edit publications
   </a>
 </p>
 {% end %} {# if is_editable #}
 {% if is_deletable %}
 <p>
   <form action="{{ reverse_url('researcher', researcher['_id']) }}"
-	role="form"
-	method="POST">
+	method="POST" role="form">
     {% module xsrf_form_html() %}
     <input type="hidden" name="_http_method" value="delete">
     <button type="submit" class="btn btn-block btn-danger"
@@ -83,8 +78,7 @@
 
 {% block alt_format %}
 <a href="{{ reverse_url('researcher_json', researcher['_id']) }}">
-  <img src="{{ static_url('json.png') }}">
-  JSON
+  <img src="{{ static_url('json.png') }}"> JSON
 </a>
 <br>
 <a href="{{ reverse_url('researcher_publications_csv', researcher['_id']) }}">
