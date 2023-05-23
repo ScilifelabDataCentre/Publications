@@ -1,0 +1,179 @@
+{# Account page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}{{ account['email'] }}{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-user"></span> {{ account['email'] }}
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<div class="row">
+  <div class="col-md-6">
+    <table class="table table-striped">
+      <tr>
+	<th>Name</th>
+	<td>{{ account.get('name') or '-' }}</td>
+      </tr>
+      <tr>
+	<th>ORCID</th>
+	<td>{{ account.get('orcid') or '-' }}</td>
+      </tr>
+      <tr>
+	<th>Role</th>
+	<td>{{ account['role'] }}</td>
+      </tr>
+      <tr>
+	<th>Labels</th>
+	<td>
+	  {% if account['role'] == constants.ADMIN %}
+	  <i>any</i>
+	  {% else %}
+	  {% for label in account['labels'] %}
+	  <a href="{{ reverse_url('label', label) }}">{{ label }}</a>
+	  <br>
+	  {% end %} {# for label #}
+	  {% end %} {# if #}
+	</td>
+      </tr>
+      <tr>
+        <th>Status</th>
+        <td>
+          {% if account.get('disabled') %}
+          <span class="text-danger"><strong>Disabled<strong></span>
+          {% else %}
+          Enabled
+          {% end %}
+        </td>
+      </tr>
+      {% if is_admin %}
+      <tr>
+        <th>Password code</th>
+        <td>{{ account.get('code') or '-' }}</td>
+      </tr>
+      {% end %} {# if is_admin #}
+      <tr>
+        <th>API key</th>
+        <td>{{ account.get('api_key') or '[none]' }}</td>
+      </tr>
+      <tr>
+	<th>Last login</th>
+	<td>
+	  {% if account.get('login') %}
+	  <span class="localtime">{{ account['login'] }}</span>
+	  {% else %}
+	  -
+	  {% end %}
+	</td>
+      </tr>
+      <tr>
+	<th>Modified</th>
+	<td class="localtime">{{ account['modified'] }}</td>
+      </tr>
+      <tr>
+	<th>Created</th>
+	<td class="localtime">{{ account['created'] }}</td>
+      </tr>
+    </table>
+  </div>
+</div>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+
+{% if current_user and current_user == account %}
+<form action="{{ reverse_url('logout') }}" method="POST" role="form">
+  {% module xsrf_form_html() %}
+  <div class="form-group">
+    <button type="submit" title="Logout" class="btn btn-warning btn-block">
+      <span class="glyphicon glyphicon-log-out"></span> Logout
+    </button>
+  </div>
+</form>
+{% end %}
+
+{% if is_editable %}
+<p>
+  <a href="{{ reverse_url('account_edit', account['email']) }}"
+     class="btn btn-primary btn-block" role="button">
+    <span class="glyphicon glyphicon-edit"></span> Edit</a>
+</p>
+{% end %} {# if is_editable #}
+
+{% if is_admin and not account.get('disabled') %}
+<p>
+  <a href="{{ reverse_url('account_password', account=account['email']) }}"
+     class="btn btn-success btn-block" role="button">
+    <span class="glyphicon glyphicon-arrow-down"></span> Set password
+  </a>
+</p>
+{% end %}
+
+{% if settings['MAIL_SERVER'] and not account.get('disabled') %}
+<p>
+  <a href="{{ reverse_url('account_reset', account=account['email']) }}"
+     class="btn btn-warning btn-block" role="button">
+    <span class="glyphicon glyphicon-repeat"></span> Reset password
+  </a>
+</p>
+{% end %}
+
+{% if is_admin %}
+<p>
+  {% if account.get('disabled') %}
+  <form action="{{ reverse_url('account_enable', account['email']) }}"
+        method="POST" role="form">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
+    <div class="form-group">
+      <button type="submit" class="btn btn-danger btn-block">
+	<span class="glyphicon glyphicon-ok-circle"></span> Enable
+      </button>
+    </div>
+  </form>
+{% else %}
+  <form action="{{ reverse_url('account_disable', account['email']) }}"
+        method="POST" role="form">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_rev" value="{{ account['_rev'] }}">
+    <div class="form-group">
+      <button type="submit" class="btn btn-danger btn-block">
+	<span class="glyphicon glyphicon-ban-circle"></span> Disable
+      </button>
+    </div>
+  </form>
+  {% end %}
+</p>
+{% end %} {# if is_admin #}
+
+{% if is_deletable %}
+<p>
+  <form action="{{ reverse_url('account', account['email']) }}"
+        method="POST" role="form">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_http_method" value="delete">
+    <button type="submit" class="btn btn-danger btn-block"
+	    onclick="return confirm('Really delete this account?');">
+      <span class="glyphicon glyphicon-trash"></span> Delete
+    </button>
+  </form>
+</p>
+{% end %} {# if is_deletable #}
+
+<p>
+  <a href="{{ reverse_url('logs', account['_id']) }}">
+    <span class="badge">
+      <span class="glyphicon glyphicon-list-alt"></span> Logs
+    </span>
+  </a>
+</p>
+{% end %} {# block meta_content #}
+
+{% block alt_format %}
+<p>
+  <a href="{{ reverse_url('account_json', account['email']) }}">
+    <img src="{{ static_url('json.png') }}"> JSON
+  </a>
+</p>
+{% end %} {# block alt_format #}

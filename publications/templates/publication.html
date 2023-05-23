@@ -1,177 +1,48 @@
-{# Publication page. #}
+{# Publication item within a list. #}
 
-{% extends "base.html" %}
-
-{% block head_title %}{{ publication['title'] }}{% end %}
-
-{% block body_title %}
-<span class="glyphicon glyphicon-file"></span>
-{{ publication['title'] }}
-{% end %} {# block body_title #}
-
-{% block main_content %}
-<p class="lead">
-  {% module Authors(publication['authors'], complete=True) %}
-</p>
-<p>
-  {% module Journal(publication) %}
-  {% module Published(publication) %}
-  {% module OpenAccess(publication) %}
-</p>
-<p>
-  {{ publication['abstract'] or ''}}
-</p>
-<p>
-  {% for label in sorted(publication['labels']) %}
-  <p>
-    <a class="label label-primary"
-       href="{{ reverse_url('label', label) }}">
-      {{ label }}
-      {% if publication['labels'].get(label) %}
-      [{{ publication['labels'][label] }}]
+<div class="well well-sm">
+  <div class="pull-right">
+    {% if publication.get('pmid_findable') %}
+    <form action="{{ reverse_url('publication_find_pmid', publication['_id']) }}"
+          role="form"
+          method="POST">
+      {% module xsrf_form_html() %}
+      <div class="form-group">
+        <button type="submit" class="btn btn-xs btn-primary">
+          <span class="glyphicon glyphicon-ok-circle"></span>
+          Find PMID
+        </button>
+      </div>
+    </form>
+    {% end %}
+    {% module PubmedButton(publication.get('pmid')) %}
+    {% module DoiButton(publication.get('doi')) %}
+    {% module CrossrefButton(publication.get('doi')) %}
+  </div>
+  <div>
+    <a href="{{ reverse_url('publication', publication['_id']) }}">
+      <span class="glyphicon glyphicon-file"></span>
+      {{ publication['title'] }}
+    </a>
+  </div>
+  <div>
+    {% module Authors(publication['authors']) %}
+  </div>
+  <div>
+    {% module Journal(publication) %}
+    {% module Published(publication) %}
+    {% module OpenAccess(publication) %}
+  </div>
+  <div>
+    {# Avoid name collision with 'label' elsewhere. #}
+    {% for label2 in sorted(publication['labels']) %}
+    <a class="label label-primary margin-r1"
+       href="{{ reverse_url('label', label2) }}">
+      {{ label2 }}
+      {% if publication['labels'].get(label2) %}
+      [{{ publication['labels'][label2] }}]
       {% end %}
     </a>
-  </p>
-  {% end %}
-</p>
-{% module PubmedButton(publication.get('pmid'), full=True) %}
-{% module DoiButton(publication.get('doi'), full=True) %}
-{% module CrossrefButton(publication.get('doi'), full=True) %}
-<p>
-{% for xref in publication.get('xrefs', []) %}
-{% module Xref(xref, full=True) %}
-<br>
-{% end %}
-</p>
-{% if publication.get('notes') %}
-<pre>{{ publication['notes'] }}</pre>
-{% end %}
-{% end %} {# block main_content #}
-
-{% block meta_content %}
-{% if current_user %}
-
-{% if is_editable %}
-<p>
-  <a href="{{ reverse_url('publication_edit', publication['_id']) }}"
-     class="btn btn-primary btn-block" role="button">
-    <span class="glyphicon glyphicon-edit"></span>
-    Edit
-  </a>
-</p>
-<p>
-  <a href="{{ reverse_url('publication_researchers', publication['_id']) }}"
-     class="btn btn-primary btn-block" role="button">
-    <span class="glyphicon glyphicon-edit"></span>
-    Edit researchers
-  </a>
-</p>
-
-{% if publication.get('pmid') %}
-<p>
-  <form action="{{ reverse_url('publication_update_pmid', publication['_id']) }}"
-        role="form"
-        method="POST">
-    {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-primary btn-block">
-      <span class="glyphicon glyphicon-refresh"></span>
-      Update by PMID
-    </button>
-  </form>
-</p>
-{% end %} {# if publication.get('pmid') #}
-
-{% if publication.get('doi') %}
-{% if not publication.get('pmid') %}
-<p>
-  <form action="{{ reverse_url('publication_find_pmid', publication['_id']) }}"
-        role="form"
-        method="POST">
-    {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-primary btn-block">
-      <span class="glyphicon glyphicon-ok-circle"></span>
-      Find PMID
-    </button>
-  </form>
-</p>
-{% end %} {# if not publication.get('pmid') #}
-<p>
-  <form action="{{ reverse_url('publication_update_doi', publication['_id']) }}"
-        role="form"
-        method="POST">
-    {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-primary btn-block">
-      <span class="glyphicon glyphicon-refresh"></span>
-      Update by DOI
-    </button>
-  </form>
-</p>
-{% end %} {# if publication.get('doi') #}
-
-<p>
-  <a href="{{ reverse_url('publication_xrefs', publication['_id']) }}"
-     class="btn btn-info btn-block" role="button">
-    <span class="glyphicon glyphicon-share"></span>
-    Edit xrefs
-  </a>
-</p>
-{% end %} {# if is_editable #}
-
-{% if is_deletable %}
-<p>
-  <form action="{{ reverse_url('publication', publication['_id']) }}"
-	role="form"
-	method="POST">
-    {% module xsrf_form_html() %}
-    <input type="hidden" name="_http_method" value="delete">
-    <button type="submit" class="btn btn-danger btn-block"
-	    onclick="return confirm('Really delete this publication?');">
-      <span class="glyphicon glyphicon-trash"></span>
-      Delete
-    </button>
-  </form>
-</p>
-<p>
-  <form action="{{ reverse_url('blacklist', publication['_id']) }}"
-	role="form"
-	method="POST">
-    {% module xsrf_form_html() %}
-    <button type="submit" class="btn btn-danger btn-block"
-	    onclick="return confirm('Really blacklist this publication?');">
-      <span class="glyphicon glyphicon-ban-circle"></span>
-      Blacklist
-    </button>
-  </form>
-</p>
-{% end %} {# if is_deletable #}
-
-<p>
-  <span title="Last modified" class="localtime">{{ publication['modified'] }}</span>
-  <br>
-  <a href="{{ reverse_url('logs', publication['_id']) }}">
-    <span class="badge">
-      <span class="glyphicon glyphicon-list-alt"></span>
-      Logs
-    </span>
-  </a>
-</p>
-
-{% end %} {# if current_user #}
-{% end %} {# block meta_content #}
-
-{% block alt_format %}
-<p>
-  <a href="{{ reverse_url('publication_json', publication['_id']) }}">
-    <img src="{{ static_url('json.png') }}">
-    JSON
-  </a>
-</p>
-{% end %} {# block alt_format #}
-
-{% block javascript_code %}
-<script>
-  $(function () {
-    $('[data-toggle="tooltip"]').tooltip()
-  })
-</script>
-{% end %}
+    {% end %}
+  </div>
+</div>

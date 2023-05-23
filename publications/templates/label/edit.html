@@ -1,0 +1,109 @@
+{# Label edit page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}Edit label{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-tag"></span>
+<span class="glyphicon glyphicon-edit"></span>
+Edit '{{ label['value'] }}'
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<form action="{{ reverse_url('label_edit', label['value']) }}"
+      method="POST" class="form-horizontal" role="form">
+  {% module xsrf_form_html() %}
+
+  <input type="hidden" name="_rev" value="{{ label['_rev'] }}">
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-2" for="value">Label</label>
+    <div class="col-md-8">
+      <input type="text" name="value" id="value" class="form-control"
+	     value="{{ label['value'] }}">
+      <span class="glyphicon glyphicon-star text-danger form-control-feedback"></span>
+      <span class="help-block">
+	The label value, which must be unique.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-2" for="href">Href</label>
+    <div class="col-md-8">
+      <input type="text" name="href" id="href" class="form-control"
+	     value="{{ label.get('href') or '' }}">
+      <span class="help-block">
+        A URL to a resource providing information about the label.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-2" for="description">Description</label>
+    <div class="col-md-8">
+      <textarea class="form-control" name="description" id="description" rows="4"
+		>{{ label.get('description') or '' }}</textarea>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-2" for="secondary">Secondary</label>
+    <div class="col-md-8 checkbox">
+      <label>
+	<input type="checkbox" name="secondary" id="secondary" value="true"
+               "{{ label.get('secondary') and 'checked' or '' }}">
+        Secondary label: It is not shown in the list of current labels.
+      </label>
+    </div>
+  </div>
+
+  {% if settings['TEMPORAL_LABELS'] %}
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-2" for="started">Started</label>
+    <div class="col-md-6">
+      <input type="text" name="started" id="started" class="form-control"
+	     value="{{ label.get('started') or '' }}">
+      <span class="help-block">
+        The year the label became valid (if applicable).
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-2" for="ended">Ended</label>
+    <div class="col-md-6">
+      <input type="text" name="ended" id="ended" class="form-control"
+	     value="{{ label.get('ended') or '' }}">
+      <span class="help-block">
+        The year the label became invalid (if applicable). If not set,
+        then the label is current.
+      </span>
+    </div>
+  </div>
+  {% end %}
+
+  <div class="form-group">
+    <div class="col-md-3 col-md-offset-2">
+      <button type="submit" class="btn btn-success btn-block">
+	<span class="glyphicon glyphicon-save"></span> Save
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ reverse_url('label', label['value']) }}"
+   class="btn btn-default btn-block" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
+</a>
+{% end %} {# block meta_content #}
+
+{% block autofocus %}
+<script>
+  $(function(){ $("#value").focus(); });
+</script>
+{% end %}

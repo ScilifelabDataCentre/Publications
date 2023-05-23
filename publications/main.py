@@ -2,8 +2,6 @@
 
 import logging
 import os
-import os.path
-import sys
 
 import tornado.web
 import tornado.ioloop
@@ -13,8 +11,8 @@ from publications import settings
 from publications import uimodules
 from publications import utils
 
+import publications.config
 import publications.home
-import publications.login
 import publications.account
 import publications.publication
 import publications.blacklist
@@ -23,21 +21,14 @@ import publications.label
 import publications.search
 import publications.researcher
 import publications.subset
-import publications.log
 
 
-def get_application():
+def get_handlers():
     url = tornado.web.url
-    handlers = [
+    return [
         url(r"/", publications.home.Home, name="home"),
         url(r"/status", publications.home.Status, name="status"),
         url(r"/docs/([^/]+)", publications.home.Doc, name="doc"),
-        url(
-            r"/site/([^/]+)",
-            tornado.web.StaticFileHandler,
-            {"path": settings["SITE_STATIC_DIR"]},
-            name="site",
-        ),
         url(
             r"/publication/([^/]{32,32})",
             publications.publication.Publication,
@@ -280,12 +271,12 @@ def get_application():
         url(r"/search", publications.search.Search, name="search"),
         url(r"/search.json", publications.search.SearchJson, name="search_json"),
         url(r"/subset", publications.subset.SubsetDisplay, name="subset"),
-        url(r"/logs/([^/]+)", publications.log.Logs, name="logs"),
+        url(r"/logs/([^/]+)", publications.home.Logs, name="logs"),
         url(r"/contact", publications.home.Contact, name="contact"),
         url(r"/settings", publications.home.Settings, name="settings"),
         url(r"/software", publications.home.Software, name="software"),
-        url(r"/login", publications.login.Login, name="login"),
-        url(r"/logout", publications.login.Logout, name="logout"),
+        url(constants.LOGIN_URL, publications.account.Login, name="login"),
+        url(r"/logout", publications.account.Logout, name="logout"),
         url(
             r"/api/publication",
             publications.publication.ApiPublicationFetch,
@@ -296,34 +287,31 @@ def get_application():
             publications.publication.ApiPublicationLabels,
             name="api_publication_labels",
         ),
+        url(
+            r"/site/([^/]+)",
+            tornado.web.StaticFileHandler,
+            {"path": constants.SITE_STATIC_DIR},
+            name="site",
+        ),
+        url(r"/(.*)", publications.home.NoSuchEntity),
     ]
 
-    return tornado.web.Application(
-        handlers=handlers,
+
+def main():
+    publications.config.load_settings_from_file()
+    publications.database.update_design_documents()
+    application = tornado.web.Application(
+        handlers=get_handlers(),
         debug=settings.get("TORNADO_DEBUG", False),
         cookie_secret=settings["COOKIE_SECRET"],
         xsrf_cookies=True,
         ui_modules=uimodules,
-        template_path=os.path.join(constants.ROOT, "templates"),
-        static_path=os.path.join(constants.ROOT, "static"),
-        login_url=r"/login",
+        template_path=constants.TEMPLATE_DIR,
+        static_path=constants.STATIC_DIR,
+        login_url=constants.LOGIN_URL,
     )
-
-
-def main():
-    if len(sys.argv) == 2:
-        filepath = sys.argv[1]
-    else:
-        filepath = None
-    utils.load_settings(filepath=filepath)
-    utils.load_design_documents()
-    application = get_application()
     application.listen(settings["PORT"], xheaders=True)
-    pid = os.getpid()
-    if settings["PIDFILE"]:
-        with open(settings["PIDFILE"], "w") as pf:
-            pf.write(str(pid))
-    logging.info(f"web server PID {pid} at {settings['BASE_URL']}")
+    logging.getLogger("publications").info(f"Web server at {settings['BASE_URL']}")
     tornado.ioloop.IOLoop.instance().start()
 
 

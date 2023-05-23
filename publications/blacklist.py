@@ -1,41 +1,16 @@
 "Blacklisted publications."
 
-import logging
-
 import tornado.web
 
 from publications import constants
 from publications import settings
 from publications import utils
 from publications.requesthandler import RequestHandler
-from publications.publication import PublicationMixin
+
+import publications.publication
 
 
-DESIGN_DOC = {
-    "views": {
-        "doi": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'blacklist') return;
-  if (doc.doi) emit(doc.doi, doc.title);
-}"""
-        },
-        "pmid": {
-            "map": """function (doc) {
-  if (doc.publications_doctype !== 'blacklist') return;
-  if (doc.pmid) emit(doc.pmid, doc.title);
-}"""
-        },
-    }
-}
-
-
-def load_design_document(db):
-    "Update the CouchDB design document."
-    if db.put_design("blacklist", DESIGN_DOC):
-        logging.info("Updated 'blacklist' design document.")
-
-
-class Blacklist(PublicationMixin, RequestHandler):
+class Blacklist(publications.publication.PublicationMixin, RequestHandler):
     "Blacklist a specified publication."
 
     @tornado.web.authenticated

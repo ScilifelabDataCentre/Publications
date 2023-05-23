@@ -1,0 +1,94 @@
+{# Researcher edit page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}
+Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
+{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-edit"></span>
+<span class="glyphicon glyphicon-education"></span>
+Edit researcher {{ researcher['family'] }} {{ researcher['initials'] }}
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<form action="{{ reverse_url('researcher_edit', researcher['_id']) }}"
+      method="POST" role="form" class="form-horizontal">
+  {% module xsrf_form_html() %}
+  <input type="hidden" name="_rev" value="{{ researcher['_rev'] }}">
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="family">Family name</label>
+    <div class="col-md-6">
+      <input type="text" name="family" id="family" class="form-control"
+             value="{{ researcher['family'] }}">
+      <span class="help-block">
+        Required.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="given">Given name</label>
+    <div class="col-md-6">
+      <input name="given" id="given" type="text" class="form-control"
+             value="{{ researcher['given'] }}">
+      <span class="help-block">
+        Given name. Add as many whole given names as known.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="initials">Initials</label>
+    <div class="col-md-6">
+      <input name="initials" id="initials" type="text" class="form-control"
+             value="{{ researcher['initials'] }}">
+      <span class="help-block">
+        Initials; blanks will be removed.
+        If not given, computed from the given name.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="orcid">ORCID</label>
+    <div class="col-md-6">
+      {% if researcher.get('orcid') %}
+      <p class="form-control-static">{{ researcher.get('orcid') }}</p>
+      {% else %}
+      <input type="text" name="orcid" id="orcid" class="form-control">
+      {% end %}
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="affiliations">
+      Affiliations</label>
+    <div class="col-md-8">
+      <textarea name="affiliations" id="affiliations" class="form-control" rows="6"
+                >{{ '\n'.join(researcher['affiliations']) }}</textarea>
+      <span class="help-block">
+	One affiliation per line.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-3 col-md-offset-1">
+      <button type="submit" class="btn btn-success btn-block">
+	<span class="glyphicon glyphicon-save"></span> Save
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ reverse_url('researcher', researcher['_id']) }}"
+   role="button" class="btn btn-default btn-block">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
+</a>
+{% end %} {# block meta_content #}

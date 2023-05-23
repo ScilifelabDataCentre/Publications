@@ -1,0 +1,114 @@
+{# Account addition page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Add account{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-user"></span>
+<span class="glyphicon glyphicon-plus"></span> Add account
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<form action="{{ reverse_url('account_add') }}"
+      method="POST" role="form" class="form-horizontal">
+  {% module xsrf_form_html() %}
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="account">Account</label>
+    <div class="col-md-5">
+      <input type="account" name="account" id="account" class="form-control">
+      <span class="glyphicon glyphicon-star text-danger form-control-feedback"></span>
+      <span class="help-block">
+	The user's email address is the identifier for the account.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-1" for="name">Name</label>
+    <div class="col-md-11">
+      <input type="text" name="name" id="name" size="40">
+      <span class="help-block">
+	The user's name, written as usual, e.g. <i>Per Kraulis</i>.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-1" for="orcid">ORCID</label>
+    <div class="col-md-11">
+      <input type="text" name="orcid" id="orcid" size="18">
+      <span class="help-block">
+	The user's ORCID (persistent digital identifier for researchers).
+        <br>
+        See the <a href="https://orcid.org/" target="_blank">ORCID website</a>.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="role">Role</label>
+    <div class="col-md-11">
+      {% for role in constants.ROLES %}
+      {% set checked = role == constants.CURATOR and 'checked' or '' %}
+      <label class="radio-inline">
+	<input type="radio" name="role" id="role"
+               value="{{ role }}" {{ checked }}>{{ role }}
+      </label>
+      {% end %}
+      <span class="help-block">
+        See <a href="{{ reverse_url('doc', 'user_account') }}">User account</a>
+        for an explanation of user account roles.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-1" for="labels">Labels</label>
+    <div class="col-md-6">
+      <select multiple size="8" class="form-control" name="labels" id="labels">
+	{% for label in all_labels %}
+	<option>{{ label }}</option>
+	{% end %} {# for label #}
+      </select>
+      <span class="help-block">
+	Multiple select list; hold ctrl or shift (or drag with the mouse)
+	to select more than one.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-1" for="email">Email</label>
+    <div class="col-md-6">
+      <input type="checkbox" name="email" id="email" checked>
+      <span class="help-block">
+	Send an email message to the account's address, containing
+        instructions for the user to set the password.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-11 col-md-offset-1">
+      <button type="submit" class="btn btn-success">
+	<span class="glyphicon glyphicon-plus"></span> Add
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ reverse_url('accounts') }}" class="btn btn-default" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
+</a>
+{% end %} {# block meta_content #}
+
+{% block autofocus %}
+<script>
+  $(function(){ $("#account").focus(); });
+</script>
+{% end %}

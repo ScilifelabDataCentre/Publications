@@ -1,0 +1,60 @@
+{# Password reset page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}Reset password{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-repeat"></span> Reset password
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<div class="row">
+  <div class="col-md-6">
+    <form action="{{ reverse_url('account_reset') }}"
+	  method="POST" role="form">
+      {% module xsrf_form_html() %}
+
+      <div class="form-group has-feedback">
+	<label for="account">Account</label>
+	<input type="text" class="form-control" name="account"
+	       placeholder="Email address of account"
+	       autocomplete="email" value="{{ account or '' }}">
+	<span class="glyphicon glyphicon-star text-danger form-control-feedback"></span>
+	<span class="help-block">
+	  <p>
+	    The current password of the account will be deleted.
+	  </p>
+	  <p>
+	    An email message will be sent which contains a link to
+	    <a href="{{ reverse_url('account_password') }}">
+	      the page where you set your new password
+	    </a> using a one-time code.
+	  </p>
+	  <p>
+            <strong>NOTE:</strong> The email may end up in your spam filter!
+	  </p>
+	  <p>
+	    Nothing happens if there is no account with the given
+	    email address.
+	  </p>
+	</span>
+      </div>
+      <div class="form-group"> 
+	<button type="submit" class="btn btn-warning btn-block">
+	  <span class="glyphicon glyphicon-repeat"></span> Reset password
+	</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+{# if account #}
+<a href="{{ reverse_url('account', account) }}"
+   class="btn btn-default btn-block" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
+</a>
+{# end #}
+{% end %} {# block meta_content #}

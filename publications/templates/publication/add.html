@@ -1,0 +1,204 @@
+{# Add publication manually page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}
+Add publication manually
+{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-plus"></span>
+<span class="glyphicon glyphicon-edit"></span>
+Add publication manually
+{% end %} {# block body_title #}
+
+{% block message %}
+<div class="row">
+  <div class="col-md-9 col-md-offset-2 alert alert-warning">
+    This page should <strong>not</strong> be used for publications which
+    have a known PMID or DOI. Use the
+    <a href="{{ reverse_url('publication_fetch') }}">Fetch data</a> page.
+  </div>
+</div>
+{% end %} {# block message #}
+
+{% block main_content %}
+<form action="{{ reverse_url('publication_add') }}"
+      method="POST" role="form" class="form-horizontal">
+  {% module xsrf_form_html() %}
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="title">Title</label>
+    <div class="col-md-11">
+      <textarea class="form-control" rows="4"
+		name="title" id="title"></textarea>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="authors">Authors</label>
+    <div class="col-md-8">
+      <textarea class="form-control" rows="6"
+		name="authors" id="authors"></textarea>
+      <span class="help-block">
+	One author per line, family name first, separated by comma ','
+	from the given name(s) or initials separated by blanks.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="pages">PMID</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control"
+	     name="pmid" id="pmid">
+      <span class="help-block">
+        PubMed Identifier. If you know it, you should probably be using
+        the <a href="{{ reverse_url('publication_fetch') }}">Fetch data</a>
+        page instead.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="pages">DOI</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control"
+	     name="doi" id="doi">
+      <span class="help-block">
+        Digital Object Identifier. If you know it, you should probably be using
+        the <a href="{{ reverse_url('publication_fetch') }}">Fetch data</a>
+        page instead.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="journal">Journal</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control"
+	     name="journal" id="journal">
+      <span class="help-block">
+	Short name of the journal.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="issn">ISSN</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control"
+	     name="issn" id="issn">
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="published">Published</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control datepicker"
+	     name="published" id="published">
+      <span class="help-block">
+	Date published in print. Defaults to today.
+	<br>
+	ISO date format: 'YYYY-MM-DD'.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="epublished">Online</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control datepicker"
+	     name="epublished" id="epublished">
+      <span class="help-block">
+	Date published online.
+	<br>
+	ISO date format: 'YYYY-MM-DD'.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="volume">Volume</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control"
+	     name="volume" id="volume">
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="issue">Issue</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control"
+	     name="issue" id="issue">
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="pages">Pages</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control"
+	     name="pages" id="pages">
+      <span class="help-block">
+	Inclusive complete page numbers, e.g. <strong>1890-1894</strong>.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="abstract">Abstract</label>
+    <div class="col-md-11">
+      <textarea class="form-control" rows="6"
+		name="abstract" id="abstract"></textarea>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-1">Labels</label>
+    <div class=" col-md-11">
+      {% for label in sorted(labels) %}
+      <div class="checkbox">
+	<label>
+	  <input type="checkbox" name="label" value="{{ label }}">{{ label }}
+	</label>
+      </div>
+      {% if settings['SITE_LABEL_QUALIFIERS'] %}
+      <div style="padding-left: 2em;">
+	<label class="radio-inline">
+          {% set qual = settings['SITE_LABEL_QUALIFIERS'][0] %}
+	  <input type="radio" name="{{ label }}_qualifier" value="{{ qual }}">
+          {{ qual }}
+	</label>
+	{% for qual in settings['SITE_LABEL_QUALIFIERS'][1:] %}
+	<label class="radio-inline">
+	  <input type="radio"
+                 name="{{ label }}_qualifier" value="{{ qual }}">{{ qual }}
+	</label>
+	{% end %}
+      </div>
+      {% end %} {# if settings['SITE_LABEL_QUALIFIERS'] #}
+      {% end %} {# for label #}
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-3 col-md-offset-1">
+      <button type="submit" class="btn btn-success btn-block">
+	<span class="glyphicon glyphicon-save"></span>
+	Save
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<p>
+  <a href="{{ reverse_url('home') }}" role="button"
+     class="btn btn-default btn-block">
+    <span class="glyphicon glyphicon-remove-circle"></span>
+    Cancel
+  </a>
+</p>
+{% end %} {# block meta_content #}

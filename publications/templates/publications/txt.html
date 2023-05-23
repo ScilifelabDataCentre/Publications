@@ -1,0 +1,25 @@
+{# Publications TXT setup page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}Download Publications TXT{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-download-alt"></span> Download Publications TXT
+{% end %}
+
+{% block main_content %}
+<form action="{{ reverse_url('publications_txt') }}"
+      method="POST" role="form" class="form-horizontal">
+  {% module xsrf_form_html() %}
+  {% include 'filter.html' %}
+  {% include 'authors_parameters.html' %}
+  {% include 'txt_parameters.html' %}
+  {% include 'download.html' %}
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ cancel_url }}" role="button" class="btn btn-default btn-block">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel</a>
+{% end %} {# block meta_content #}

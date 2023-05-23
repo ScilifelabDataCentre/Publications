@@ -1,0 +1,110 @@
+{# Label page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}
+{{ label['value'] }} ({{ len(publications) }} publications)
+{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-tag"></span> {{ label['value'] }}
+{% end %} {# block body_title #}
+
+{% block main_content %}
+{% if label.get('description') %}
+<p>
+  {{ label.get('description') }}
+</p>
+{% end %}
+{% if label.get('href') %}
+<p>
+  <strong>See:</strong>
+  <a href="{{ label.get('href') }}" target="_">{{ label.get('href') }}</a>
+</p>
+{% end %}
+<p>
+  {% if label.get('secondary') %}
+  <strong>Secondary</strong>: Not shown in the list of current labels.
+  {% else %}
+  <strong>Primary</strong>:
+  {% if settings['TEMPORAL_LABELS'] %}
+  Shown in the list of current labels, if end date is not specified.
+  {% else %}
+  Shown in the list of current labels.
+  {% end %}
+  {% end %}
+</p>
+{% if settings['TEMPORAL_LABELS'] %}
+<p>
+  <strong>Started:</strong> {{ label.get('started') or '-' }}
+</p>
+<p>
+  <strong>Ended:</strong> {{ label.get('ended') or 'Current' }}
+</p>
+{% end %}
+{% if current_user %}
+<p>
+  <strong>Curators:</strong>
+  {% if accounts %}
+  {% for account in accounts %}
+  <a href="{{ reverse_url('account', account['email']) }}">
+    {{ account['email'] }}
+  </a>
+  {% end %} {# for account #}
+  {% else %}
+  <i>None</i>
+  {% end %}
+</p>
+{% end %} {# if current_user #}
+
+{% include '../publications/years.html' %}
+
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+{% if is_admin %}
+<p>
+  <a href="{{ reverse_url('label_edit', label['value']) }}"
+     class="btn btn-primary btn-block"
+     role="button">
+    <span class="glyphicon glyphicon-edit"></span> Edit
+  </a>
+</p>
+<p>
+  <a href="{{ reverse_url('label_merge', label['value']) }}"
+     class="btn btn-warning btn-block"
+     role="button">
+    <span class="glyphicon glyphicon-resize-small"></span> Merge
+  </a>
+</p>
+<p>
+  <form action="{{ reverse_url('label', label['value']) }}"
+        method="POST" role="form">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_http_method" value="delete">
+    <button type="submit" class="btn btn-danger btn-block"
+	    onclick="return confirm('Really delete this label?');">
+      <span class="glyphicon glyphicon-trash"></span> Delete
+    </button>
+  </form>
+</p>
+{% end %} {# if is_admin #}
+{% end %} {# block meta_content #}
+
+{% block alt_format %}
+<a href="{{ handler.reverse_url('label_json', label['value']) }}">
+  <img src="{{ static_url('json.png') }}"> JSON
+</a>
+<br>
+<a href="{{ reverse_url('publications_csv', label=label['value'], cancel_url=request.uri) }}">
+  <img src="{{ static_url('csv.png') }}"> CSV
+</a>
+<br>
+<a href="{{ reverse_url('publications_xlsx', label=label['value'], cancel_url=request.uri) }}">
+  <img src="{{ static_url('xlsx.png') }}"> XLSX
+</a>
+<br>
+<a href="{{ reverse_url('publications_txt', label=label['value'], cancel_url=request.uri) }}">
+  <img src="{{ static_url('txt.png') }}"> TXT
+</a>
+{% end %} {# block alt_format #}

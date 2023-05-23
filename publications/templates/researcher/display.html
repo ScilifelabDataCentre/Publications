@@ -1,0 +1,95 @@
+{# Researcher page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}{{ researcher['family'] }} {{ researcher['initials'] }}{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-education"></span>
+{{ researcher['family'] }} {{ researcher['initials'] }}
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<table class="table">
+  <tr>
+    <th>Family name</th>
+    <td>{{ researcher['family'] }}</td>
+  </tr>
+  <tr>
+    <th>Given name</th>
+    <td>{{ researcher['given'] }}</td>
+  </tr>
+  <tr>
+    <th>Initials</th>
+    <td>{{ researcher['initials'] }}</td>
+  </tr>
+  <tr>
+    <th>ORCID</th>
+    <td>{% module OrcidButton(researcher['orcid'], full=True) %}</td>
+  </tr>
+  <tr>
+    <th>Affiliations</th>
+    <td>
+      {% for affiliation in researcher.get('affiliations') or [] %}
+      {{ affiliation }}
+      <br>
+      {% end %}
+    </td>
+  </tr>
+</table>
+
+<h3>{{ len(publications) }} publications</h3>
+{% for publication in publications %}
+{% include 'publication.html' %}
+{% end %}
+
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+{% if is_editable %}
+<p>
+  <a href="{{ reverse_url('researcher_edit', researcher['_id']) }}"
+     role="button" class="btn btn-primary btn-block">
+    <span class="glyphicon glyphicon-edit"></span> Edit
+  </a>
+</p>
+<p>
+  <a href="{{ reverse_url('researcher_publications_edit', researcher['_id']) }}"
+     role="button" class="btn btn-primary btn-block">
+    <span class="glyphicon glyphicon-edit"></span> Edit publications
+  </a>
+</p>
+{% end %} {# if is_editable #}
+{% if is_deletable %}
+<p>
+  <form action="{{ reverse_url('researcher', researcher['_id']) }}"
+	method="POST" role="form">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="_http_method" value="delete">
+    <button type="submit" class="btn btn-block btn-danger"
+	    onclick="return confirm('Really delete this researcher?');">
+      <span class="glyphicon glyphicon-remove"></span>
+      Delete
+    </button>
+  </form>
+</p>
+{% end %} {# if is_deletable #}
+{% end %} {# block meta_content #}
+
+{% block alt_format %}
+<a href="{{ reverse_url('researcher_json', researcher['_id']) }}">
+  <img src="{{ static_url('json.png') }}"> JSON
+</a>
+<br>
+<a href="{{ reverse_url('researcher_publications_csv', researcher['_id']) }}">
+  <img src="{{ static_url('csv.png') }}"> CSV
+</a>
+<br>
+<a href="{{ reverse_url('researcher_publications_xlsx', researcher['_id']) }}">
+  <img src="{{ static_url('xlsx.png') }}"> XLSX
+</a>
+<br>
+<a href="{{ reverse_url('researcher_publications_txt', researcher['_id']) }}">
+  <img src="{{ static_url('txt.png') }}"> TXT
+</a>
+{% end %} {# block alt_format #}

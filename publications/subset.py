@@ -8,11 +8,14 @@ import pyparsing as pp
 from publications import constants
 from publications import settings
 from publications import utils
-from publications.requesthandler import RequestHandler
-from publications.writer import CsvWriter, XlsxWriter, TextWriter
+from publications.requesthandler import RequestHandler, DownloadParametersMixin
+
+import publications.config
+import publications.database
+import publications.writer
 
 
-class SubsetDisplay(utils.DownloadParametersMixin, RequestHandler):
+class SubsetDisplay(DownloadParametersMixin, RequestHandler):
     "Display, edit and evaluate selection expressions."
 
     def get(self):
@@ -35,7 +38,7 @@ class SubsetDisplay(utils.DownloadParametersMixin, RequestHandler):
         if format and not message:
             parameters = self.get_parameters()
             if format == "CSV":
-                writer = CsvWriter(self.db, self.application, **parameters)
+                writer = publications.writer.CsvWriter(self.db, self.application, **parameters)
                 writer.write(subset)
                 self.write(writer.get_content())
                 self.set_header("Content-Type", constants.CSV_MIME)
@@ -44,7 +47,7 @@ class SubsetDisplay(utils.DownloadParametersMixin, RequestHandler):
                 )
                 return
             elif format == "XLSX":
-                writer = XlsxWriter(self.db, self.application, **parameters)
+                writer = publications.writer.XlsxWriter(self.db, self.application, **parameters)
                 writer.write(subset)
                 self.write(writer.get_content())
                 self.set_header("Content-Type", constants.XLSX_MIME)
@@ -53,7 +56,7 @@ class SubsetDisplay(utils.DownloadParametersMixin, RequestHandler):
                 )
                 return
             elif format == "TXT":
-                writer = TextWriter(self.db, self.application, **parameters)
+                writer = publications.writer.TextWriter(self.db, self.application, **parameters)
                 writer.write(subset)
                 self.write(writer.get_content())
                 self.set_header("Content-Type", constants.TXT_MIME)
@@ -211,7 +214,7 @@ class Subset:
     def select_orcid(self, orcid):
         "Select publications by researcher ORCID."
         try:
-            researcher = utils.get_doc(self.db, "researcher", "orcid", orcid)
+            researcher = publications.database.get_doc(self.db, "researcher", "orcid", orcid)
             iuid = researcher["_id"]
         except KeyError:
             iuid = "-"
@@ -272,7 +275,7 @@ class Subset:
             labels = set([i.value for i in self.db.view("label", "current")])
         else:
             labels = set()
-            for label in utils.get_docs(self.db, "label", "value"):
+            for label in publications.database.get_docs(self.db, "label", "value"):
                 started = label.get("started")
                 if started and started <= year:  # Year as str
                     ended = label.get("ended")
@@ -595,9 +598,9 @@ def get_parser():
 
 
 if __name__ == "__main__":
-    logging.getLogger().disabled = True
-    utils.load_settings()
-    db = utils.get_db()
+    logging.getLogger("publications").disabled = True
+    publications.config.load_settings_from_file()
+    db = publications.database.get_db()
 
     parser = get_parser()
 

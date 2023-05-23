@@ -1,7 +1,5 @@
 "Context handler for saving a document. "
 
-import logging
-
 import couchdb2
 import tornado.web
 

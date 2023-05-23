@@ -1,0 +1,133 @@
+{# Section for filtering the selection of publications. #}
+
+<div class="form-group">
+  <div class="col-md-offset-1 col-md-9">
+    <p>
+      <strong>Note:</strong> Each filter is applied in turn, so that it
+      works on the set of publications produced by the previous one.
+    </p>
+    <p>
+      A general selection expression evaluator for generating any subset is available
+      <a href="{{ reverse_url('subset') }}">here</a>.
+    </p>
+  </div>
+</div>
+
+{# By year. #}
+<div class="form-group">
+  <label class="control-label col-md-1" for="years">Years</label>
+  <div class="col-md-3">
+    <select class="form-control" id="years" name="years" multiple>
+      {% for y, c in year_counts %}
+      {% if y == year %}
+      <option selected value="{{ y }}">{{ y }} ({{ c }})</option>
+      {% else %}
+      <option value="{{ y }}">{{ y }} ({{ c }})</option>
+      {% end %}
+      {% end %}
+    </select>
+  </div>
+  <div class="col-md-7 col-md-offset-1 help-block">
+    Filter publications based on publication year.
+    <br>
+    This filter is not applied if no years are selected.
+    <br>
+    Multiple select allowed. Hold ctrl or shift (or drag with the mouse)
+    to select more than one.
+  </div>
+</div>
+
+{# By labels inclusive; publications with any of the selected labels. #}
+<div class="form-group">
+  <label class="control-label col-md-1" for="labels">Labels</label>
+  <div class="col-md-4">
+    <select class="form-control" size="{{ max(2, min(len(all_labels), 8)) }}"
+	    id="labels" name="labels" multiple>
+      {% for label in all_labels %}
+      {% if label in labels %}
+      <option selected value="{{ label }}">{{ label }}</option>
+      {% else %}
+      <option value="{{ label }}">{{ label }}</option>
+      {% end %}
+      {% end %}
+    </select>
+  </div>
+  <div class="col-md-7 help-block">
+    <p>
+      Filter publications based on the assigned labels. A publication
+      must contain <strong>at least one</strong> of the selected
+      labels.
+    </p>
+    This filter is not applied if no labels are selected.
+    <br>
+    Multiple select allowed. Hold ctrl or shift (or drag with the mouse)
+    to select more than one.
+  </div>
+</div>
+
+{# By labels required; publications must contain all selected labels. #}
+<div class="form-group">
+  <label class="control-label col-md-1" for="labels">Labels required</label>
+  <div class="col-md-4">
+    <select class="form-control" size="{{ max(2, min(len(all_labels), 8)) }}"
+	    id="labels_required" name="labels_required" multiple>
+      {% for label in all_labels %}
+      <option value="{{ label }}">{{ label }}</option>
+      {% end %}
+    </select>
+  </div>
+  <div class="col-md-7 help-block">
+    <p>
+      Filter publications based on the assigned labels. A publication
+      must contain <strong>all</strong> selected labels.
+    </p>
+    This filter is not applied if no labels are selected.
+    <br>
+    Multiple select allowed. Hold ctrl or shift (or drag with the mouse)
+    to select more than one.
+  </div>
+</div>
+
+{# By labels exclude; publications must contain all selected labels. #}
+<div class="form-group">
+  <label class="control-label col-md-1" for="labels">Labels excluded</label>
+  <div class="col-md-4">
+    <select class="form-control" size="{{ max(2, min(len(all_labels), 8)) }}"
+	    id="labels_excluded" name="labels_excluded" multiple>
+      {% for label in all_labels %}
+      <option value="{{ label }}">{{ label }}</option>
+      {% end %}
+    </select>
+  </div>
+  <div class="col-md-7 help-block">
+    <p>
+      Filter publications based on the assigned labels. A publication
+      must <strong>not</strong> contain the selected labels.
+    </p>
+    This filter is not applied if no labels are selected.
+    <br>
+    Multiple select allowed. Hold ctrl or shift (or drag with the mouse)
+    to select more than one.
+  </div>
+</div>
+
+{# By temporal labels, if so configured. #}
+{% if settings['TEMPORAL_LABELS'] %}
+<div class="form-group">
+  <label class="control-label col-md-1" for="active">Labels active year</label>
+  <div class="col-md-3">
+    <select class="form-control" id="active" name="active">
+      <option value="" selected>Any</option>
+      <option>Current</option>
+      {% for y in labels_years %}
+      <option>{{ y }}</option>
+      {% end %}
+    </select>
+  </div>
+  <div class="col-md-7 col-md-offset-1 help-block">
+    Filter publications based on label activity during the selected
+    year. If a publication has no label active during the given
+    year, it will not be selected.
+  </div>
+</div>
+{% end %}

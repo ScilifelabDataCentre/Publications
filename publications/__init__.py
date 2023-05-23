@@ -4,7 +4,7 @@ import os.path
 import re
 import sys
 
-__version__ = "8.1.1"
+__version__ = "9.0.0"
 
 
 class Constants:
@@ -13,7 +13,14 @@ class Constants:
 
     VERSION = __version__
     URL = "https://github.com/pekrau/Publications"
-    ROOT = os.path.dirname(os.path.abspath(__file__))
+
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    TEMPLATE_DIR = os.path.normpath(os.path.join(ROOT_DIR, "templates"))
+    STATIC_DIR = os.path.normpath(os.path.join(ROOT_DIR, "static"))
+    SITE_DIR = os.path.normpath(os.path.join(ROOT_DIR, "../site"))
+    # The SITE_STATIC_DIR is no longer used, but may contain files that need
+    # to be loaded into the database when upgrading. So keep the definition.
+    SITE_STATIC_DIR = os.path.normpath(os.path.join(ROOT_DIR, "../site/static"))
 
     PYTHON_VERSION = ".".join([str(i) for i in sys.version_info[0:3]])
     PYTHON_URL = "https://www.python.org/"
@@ -69,6 +76,8 @@ class Constants:
         "https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap.min.js"
     )
 
+    LOGGING_FORMAT = "%(asctime)s %(name)s %(levelname)s %(message)s"
+
     # Patterns
     ID_RX = re.compile(r"^[a-z][_a-z0-9]*$", re.IGNORECASE)
     NAME_RX = re.compile(r"^[^/]+$")
@@ -92,12 +101,15 @@ class Constants:
     LABEL = "label"
     BLACKLIST = "blacklist"
     LOG = "log"
+    META = "meta"
     ENTITIES = (PUBLICATION, JOURNAL, ACCOUNT, LABEL, RESEARCHER)
 
     # Account roles
     ADMIN = "admin"
     CURATOR = "curator"
     ROLES = (ADMIN, CURATOR)
+
+    LOGIN_URL = r"/login"
 
     # Boolean string values
     TRUE = frozenset(["true", "yes", "t", "y", "1"])
@@ -118,15 +130,24 @@ class Constants:
     REV_ERROR = "Entity has been edited by someone else. Cannot overwrite."
     FETCH_ERROR = "Could not fetch data. "
     BLACKLISTED_MESSAGE = (
-        "Publication(s) not fetched since in the blacklist."
+        "Publication(s) not fetched since it is in the blacklist."
         " Check 'override' and try again, if needed: "
     )
 
-    # External URL templates.
+    # Hard-wired URL templates for the most important external sites.
     PUBMED_URL = "https://pubmed.ncbi.nlm.nih.gov/%s/"
     DOI_URL = "https://doi.org/%s"
     ORCID_URL = "https://orcid.org/%s"
     CROSSREF_URL = "https://search.crossref.org/?q=%s"
+
+    IDENTIFIER_PREFIXES=[
+        "doi:",
+        "pmid:",
+        "pubmed:",
+        "http://doi.org/",
+        "https://doi.org/",
+        "http://dx.doi.org/",
+    ]
 
     # Search setup; characters to remove and words to ignore.
     SEARCH_REMOVE = "-_\.:,?()'$"
@@ -160,78 +181,5 @@ class Constants:
 constants = Constants()
 
 
-# Default settings, may be changed by a settings YAML file.
-settings = dict(
-    SITE_DIR=os.path.normpath(os.path.join(constants.ROOT, "../site")),
-    BASE_URL="http://localhost:8885/",
-    PORT=8885,  # The port used by tornado.
-    TORNADO_DEBUG=False,
-    LOGGING_DEBUG=False,
-    LOGGING_FORMAT="%(levelname)s [%(asctime)s] %(message)s",
-    PIDFILE=None,
-    DATABASE_SERVER="http://localhost:5984/",
-    DATABASE_NAME="publications",
-    DATABASE_ACCOUNT=None,  # Should probably be set to connect to CouchDB.
-    DATABASE_PASSWORD=None,  # Should probably be set to connect to CouchDB.
-    COOKIE_SECRET=None,  # Must be set!
-    PASSWORD_SALT=None,  # Must be set!
-    MAIL_SERVER=None,           # If not set, then no emails can be sent.
-    MAIL_DEFAULT_SENDER=None,   # If not set, MAIL_USERNAME will be used.
-    MAIL_PORT=25,
-    MAIL_USE_SSL=False,
-    MAIL_USE_TLS=False,
-    MAIL_EHLO=None,
-    MAIL_USERNAME=None,
-    MAIL_PASSWORD=None,
-    MAIL_REPLY_TO=None,
-    MIN_PASSWORD_LENGTH=6,
-    LOGIN_MAX_AGE_DAYS=14,
-    PUBMED_DELAY=0.5,  # Delay before PubMed fetch, to avoid block.
-    PUBMED_TIMEOUT=5.0,  # Timeout limit for PubMed fetch.
-    NCBI_API_KEY=None,  # NCBI account API key, if any.
-    CROSSREF_DELAY=0.5,  # Delay before Crossref fetch, to avoid block.
-    CROSSREF_TIMEOUT=10.0,  # Timeout limit for Crossref fetch.
-    PUBLICATIONS_FETCHED_LIMIT=10,
-    SHORT_PUBLICATIONS_LIST_LIMIT=20,
-    LONG_PUBLICATIONS_LIST_LIMIT=200,
-    TEMPORAL_LABELS=False,
-    FIRST_YEAR=2010,
-    MAX_NUMBER_LABELS_PRECHECKED=6,
-    NUMBER_FIRST_AUTHORS=3,
-    NUMBER_LAST_AUTHORS=2,
-    DISPLAY_TRANSLATIONS={},
-    SITE_NAME="Publications",
-    SITE_TITLE="Publications",
-    SITE_TEXT="A publications reference database system.",
-    SITE_PARENT_NAME="Site host",
-    SITE_PARENT_URL=None,
-    # XXX see MAIL_* variables?
-    # SITE_EMAIL=None,            # Must be defined for email to work.
-    # SITE_REPLY_TO_EMAIL=None,   # If not defined, uses SITE_EMAIL instead.
-    SITE_CONTACT="<p><i>No contact information available.</i></p>",
-    SITE_STATIC_DIR=os.path.normpath(os.path.join(constants.ROOT, "../site/static")),
-    SITE_LABEL_QUALIFIERS=[],
-    IDENTIFIER_PREFIXES=[
-        "doi:",
-        "pmid:",
-        "pubmed:",
-        "http://doi.org/",
-        "https://doi.org/",
-        "http://dx.doi.org/",
-    ],
-    XREF_TEMPLATE_URLS={
-        "PMC": "https://www.ncbi.nlm.nih.gov/pmc/articles/%s/",
-        "BioProject": "https://www.ncbi.nlm.nih.gov/bioproject/%s",
-        "Genbank": "https://www.ncbi.nlm.nih.gov/nuccore/%s",
-        "GEO": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=%s",
-        "pmc": "https://www.ncbi.nlm.nih.gov/pmc/articles/%s",
-        "PDB": "https://www.rcsb.org/structure/%s/",
-        "PubChem-Substance": "https://pubchem.ncbi.nlm.nih.gov/substance/%s",
-        "ArrayExpress": "https://www.ebi.ac.uk/arrayexpress/experiments/%s/",
-        "EBI": "https://www.ebi.ac.uk/ebisearch/search.ebi?db=allebi&query=%s",
-        "Dryad": "https://datadryad.org/search?q=%s",
-        "Mendeley": "https://doi.org/%s",
-        "figshare": "https://doi.org/%s",
-        "Zenodo": "https://doi.org/%s",
-    },
-)
+# Loaded by 'config.load_settings_from_file' and 'config.load_settings_from_db'.
+settings = dict()

@@ -1,0 +1,229 @@
+{# Publication edit page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}Edit publication {{ publication['title'][:20] }}...{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-edit"></span>
+Edit
+{% if len(publication['title']) < 30 %}
+'{{ publication['title'] }}'
+{% else %}
+'{{ publication['title'][:28] }}...'
+{% end %}
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<form action="{{ reverse_url('publication_edit', publication['_id']) }}"
+      method="POST" role="form" class="form-horizontal">
+  {% module xsrf_form_html() %}
+
+  <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="title">Title</label>
+    <div class="col-md-11">
+      <textarea class="form-control" rows="4"
+		name="title" id="title"
+		>{{ publication.get('title') or '' }}</textarea>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="authors">Authors</label>
+    <div class="col-md-7">
+      <textarea class="form-control" rows="6"
+		name="authors" id="authors"
+		>{{ '\n'.join(["%s, %s" % (a.get('family'), a.get('given') or a.get('initials' or '')) for a in publication.get('authors') or []]) }}</textarea>
+      <span class="help-block">
+	One author per line, family name first, separated by comma ','
+	from the given name(s) or initials separated by blanks.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="pmid">PMID</label>
+    <div class="col-md-5">
+      <input type="text" class="form-control"
+	     name="pmid" id="pmid"
+	     value="{{ publication.get('pmid') or '' }}">
+      <span class="help-block">
+	PubMed identifier.
+	Validity is currently <strong>not checked</strong>.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="doi">DOI</label>
+    <div class="col-md-5">
+      <input type="text" class="form-control"
+	     name="doi" id="doi"
+	     value="{{ publication.get('doi') or '' }}">
+      <span class="help-block">
+	DOI identifier.
+	Validity is currently <strong>not checked</strong>.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="open_access">Open Access</label>
+    <div class="col-md-5">
+      <div class="checkbox">
+	<label>
+	  <input type="checkbox" name="open_access" value="true"
+                 {{ publication.get('open_access') and 'checked' or '' }}>
+          The article is <img src="{{ static_url('open_access.png') }}"
+                              title="Open Access">.          
+	</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="journal">Journal</label>
+    <div class="col-md-5">
+      <input type="text" class="form-control"
+	     name="journal" id="journal"
+	     value="{{ publication.get('journal', {}).get('title') or '' }}">
+      <span class="help-block">
+	Short name of the journal.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="issn">ISSN</label>
+    <div class="col-md-5">
+      <input type="text" class="form-control"
+	     name="issn" id="issn"
+	     value="{{ publication.get('journal', {}).get('issn') or '' }}">
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="published">Published</label>
+    <div class="col-md-5">
+      <input type="text" class="form-control datepicker"
+	     name="published" id="published"
+	     value="{{ publication.get('published') or '' }}">
+      <span class="help-block">
+	Date published in print. Defaults to today.
+	<br>
+	ISO date format: 'YYYY-MM-DD'.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="epublished">Online</label>
+    <div class="col-md-5">
+      <input type="text" class="form-control datepicker"
+	     name="epublished" id="epublished"
+	     value="{{ publication.get('epublished') or '' }}">
+      <span class="help-block">
+	Date published online.
+	<br>
+	ISO date format: 'YYYY-MM-DD'.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="volume">Volume</label>
+    <div class="col-md-5">
+      <input type="text" class="form-control"
+	     name="volume" id="volume"
+	     value="{{ publication.get('journal', {}).get('volume') or '' }}">
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="issue">Issue</label>
+    <div class="col-md-5">
+      <input type="text" class="form-control"
+	     name="issue" id="issue"
+	     value="{{ publication.get('journal', {}).get('issue') or '' }}">
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="pages">Pages</label>
+    <div class="col-md-5">
+      <input type="text" class="form-control"
+	     name="pages" id="pages"
+	     value="{{ publication.get('journal', {}).get('pages') or '' }}">
+      <span class="help-block">
+	Inclusive complete page numbers, e.g. <strong>1890-1894</strong>.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="abstract">Abstract</label>
+    <div class="col-md-11">
+      <textarea class="form-control" name="abstract" id="abstract" rows="6"
+		>{{ publication.get('abstract') or '' }}</textarea>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="control-label col-md-1" for="notes">Notes</label>
+    <div class="col-md-11">
+      <textarea class="form-control" name="notes" id="notes" rows="3"
+		>{{ publication.get('notes') or '' }}</textarea>
+      <span class="help-block">
+        Miscellanous notes visible to all.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-1">{% module Translate('Labels') %}</label>
+    <div class=" col-md-11">
+      {% for label in sorted(labels) %}
+      <div class="checkbox">
+	<label>
+	  {% if label in publication['labels'] %}
+	  <input type="checkbox" name="label" checked value="{{ label }}">{{ label }}
+	  {% else %}
+	  <input type="checkbox" name="label" value="{{ label }}">{{ label }}
+	  {% end %} {# if label #}
+	</label>
+      </div>
+      {% if settings['SITE_LABEL_QUALIFIERS'] %}
+      <div style="padding-left: 2em;">
+	{% for qualifier in settings['SITE_LABEL_QUALIFIERS'] %}
+	<label class="radio-inline">
+          {# Handle weird problem with non-ASCII characters in label... #}
+	  <input type="radio" name="{{ utils.to_ascii(label) }}_qualifier"
+		 value="{{ qualifier }}"
+		 {{ publication['labels'].get(label) == qualifier and 'checked' or '' }} >{{ qualifier }}
+	</label>
+	{% end %}
+      </div>
+      {% end %} {# if settings['SITE_LABEL_QUALIFIERS'] #}
+      {% end %} {# for label #}
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-3 col-md-offset-1">
+      <button type="submit" class="btn btn-success btn-block">
+	<span class="glyphicon glyphicon-save"></span> Save
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ reverse_url('publication', publication['_id']) }}"
+   class="btn btn-default btn-block" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span> Cancel
+</a>
+{% end %} {# block meta_content #}

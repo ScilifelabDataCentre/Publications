@@ -1,0 +1,111 @@
+{# Labels table page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}{% module Translate('Labels') %} table{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-tag"></span>
+<span class="glyphicon glyphicon-list-alt"></span>
+{% module Translate('Labels') %} table
+{% end %}
+
+{% block main_content %}
+<div class="row">
+  <div class="col-md-12">
+    <table id="labels" class="table table-striped table-condensed">
+      <thead>
+	<tr>
+	  <th>{% module Translate('Label') %}</th>
+	  <th># Publications</th>
+	  <th>Type</th>
+          {% if settings['TEMPORAL_LABELS'] %}
+	  <th>Started</th>
+	  <th>Ended</th>
+          {% end %}
+	  {% if is_curator %}
+	  <th>Curators</th>
+	  {% end %}
+	</tr>
+      </thead>
+      <tbody>
+	{% for label in labels %}
+	<tr>
+	  <td>
+	    <a href="{{ reverse_url('label', label['value']) }}">
+	      {{ label['value'] }}
+	    </a>
+	  </td>
+	  <td>
+	    <span class="badge">{{ label['count'] }}</span>
+	  </td>
+          <td>
+            {% if label.get('secondary') %}
+            Secondary
+            {% else %}
+            Primary
+            {% end %}
+          </td>
+          {% if settings['TEMPORAL_LABELS'] %}
+          <td>
+            {{ label.get('started') or '-' }}
+          </td>
+          <td>
+            {{ label.get('ended') or 'Current' }}
+          </td>
+          {% end %}
+	  {% if is_curator %}
+	  <td>
+	    {% if len(label['accounts']) > 4 %}
+	    <i>[many]</i>
+	    {% else %}
+	    {% for email in label['accounts'] %}
+	    <a href="{{ reverse_url('account', email) }}">{{ email }}</a>
+	    <br>
+	    {% end %} {# for #}
+	    {% end %}
+	  </td>
+	  {% end %}
+	</tr>
+	{% end %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+{% if is_admin %}
+<p>
+  <a href="{{ reverse_url('label_add') }}"
+     class="btn btn-success btn-block" role="button">
+    <span class="glyphicon glyphicon-plus"></span> Add
+  </a>
+</p>
+{% end %} {# if is_admin #}
+{% end %} {# block meta_content #}
+
+{% block alt_format %}
+<p>
+  <a href="{{ reverse_url('labels') }}">
+    <span class="glyphicon glyphicon-list"></span> List
+  </a>
+</p>
+<p>
+  <a href="{{ reverse_url('labels_json') }}">
+    <img src="{{ static_url('json.png') }}">
+    JSON
+  </a>
+</p>
+{% end %} {# block alt_format #}
+
+{% block javascript_code %}
+<script>
+  $(function() {
+    $("#labels").DataTable( {
+      "pagingType": "full_numbers",
+      "pageLength": 10
+    });
+  });
+</script>
+{% end %}

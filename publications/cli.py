@@ -19,21 +19,21 @@ from publications.account import AccountSaver
 from publications.publication import PublicationSaver, fetch_publication
 from publications.subset import Subset, get_parser
 
+import publications.config
 import publications.main
+import publications.database
 import publications.writer
 
 
 @click.group()
-@click.option("-s", "--settings", help="Path of settings YAML file.")
-@click.option("--log", flag_value=True, default=False, help="Enable logging output.")
-def cli(settings, log):
-    utils.load_settings(settings, log=log)
+def cli():
+    publications.config.load_settings_from_file()
 
 
 @cli.command()
 def destroy_database():
     "Hard delete of the entire database, including the instance within CouchDB."
-    server = utils.get_dbserver()
+    server = publications.database.get_dbserver()
     try:
         db = server[settings["DATABASE_NAME"]]
     except couchdb2.NotFoundError as error:
@@ -45,32 +45,32 @@ def destroy_database():
 @cli.command()
 def create_database():
     "Create the database instance within CouchDB. Load the design document."
-    server = utils.get_dbserver()
+    server = publications.database.get_dbserver()
     if settings["DATABASE_NAME"] in server:
         raise click.ClickException(
             f"""Database '{settings["DATABASE_NAME"]}' already exists."""
         )
     server.create(settings["DATABASE_NAME"])
-    utils.load_design_documents()
+    publications.database.update_design_documents()
     click.echo(f"""Created database '{settings["DATABASE_NAME"]}'.""")
 
 
 @cli.command()
 def initialize():
-    """Initialize database; load design documents.
+    """Initialize database; update design documents.
     No longer really needed. Kept just for backwards compatibility.
     """
-    utils.load_design_documents()
+    publications.database.update_design_documents()
 
 
 @cli.command()
 def counts():
     "Output counts of some database entities."
-    db = utils.load_design_documents()
-    click.echo(f"{utils.get_count(db, 'publication', 'year'):>5} publications")
-    click.echo(f"{utils.get_count(db, 'label', 'value'):>5} labels")
-    click.echo(f"{utils.get_count(db, 'account', 'email'):>5} accounts")
-    click.echo(f"{utils.get_count(db, 'researcher', 'name'):>5} researchers")
+    db = publications.database.update_design_documents()
+    click.echo(f"{publications.database.get_count(db, 'publication', 'year'):>5} publications")
+    click.echo(f"{publications.database.get_count(db, 'label', 'value'):>5} labels")
+    click.echo(f"{publications.database.get_count(db, 'account', 'email'):>5} accounts")
+    click.echo(f"{publications.database.get_count(db, 'researcher', 'name'):>5} researchers")
 
 
 @cli.command()
@@ -91,7 +91,7 @@ def counts():
 )
 def dump(dumpfile, dumpdir, progressbar):
     "Dump all data in the database to a .tar.gz dump file."
-    db = utils.get_db()
+    db = publications.database.get_db()
     if not dumpfile:
         dumpfile = "dump_{0}.tar.gz".format(time.strftime("%Y-%m-%d"))
         if dumpdir:
@@ -107,8 +107,8 @@ def dump(dumpfile, dumpdir, progressbar):
 )
 def undump(dumpfile, progressbar):
     "Load a Publications database .tar.gz dump file. The database must be empty."
-    db = utils.load_design_documents()
-    if utils.get_count(db, "publication", "year") != 0:
+    db = publications.database.update_design_documents()
+    if publications.database.get_count(db, "publication", "year") != 0:
         raise click.ClickException(
             f"The database '{settings['DATABASE_NAME']}' is not empty."
         )
@@ -121,7 +121,7 @@ def undump(dumpfile, progressbar):
 @click.option("--password")  # Get password after account existence check.
 def admin(email, password):
     "Create a user account having the admin role."
-    db = utils.get_db()
+    db = publications.database.get_db()
     try:
         with AccountSaver(db=db) as saver:
             saver.set_email(email)
@@ -143,7 +143,7 @@ def admin(email, password):
 @click.option("--password")  # Get password after account existence check.
 def curator(email, password):
     "Create a user account having the curator role."
-    db = utils.get_db()
+    db = publications.database.get_db()
     try:
         with AccountSaver(db=db) as saver:
             saver.set_email(email)
@@ -165,9 +165,9 @@ def curator(email, password):
 @click.option("--password")  # Get password after account existence check.
 def password(email, password):
     "Set the password for the given account."
-    db = utils.get_db()
+    db = publications.database.get_db()
     try:
-        user = utils.get_account(db, email)
+        user = publications.database.get_account(db, email)
     except KeyError as error:
         raise click.ClickException(str(error))
     try:
@@ -189,7 +189,7 @@ def show(identifier):
     The identifier may be a PMID, DOI, email, API key, label, ISSN, ISSN-L,
     ORCID, or IUID of the document.
     """
-    db = utils.get_db()
+    db = publications.database.get_db()
     for designname, viewname, operation in [
         ("publication", "pmid", _asis),
         ("publication", "doi", _asis),
@@ -203,7 +203,7 @@ def show(identifier):
         ("blacklist", "pmid", _asis),
     ]:
         try:
-            doc = utils.get_doc(db, designname, viewname, operation(identifier))
+            doc = publications.database.get_doc(db, designname, viewname, operation(identifier))
             break
         except KeyError:
             pass
@@ -319,7 +319,7 @@ def select(
     times, giving the union of publications within the option type.
     These separate sets are the intersected to give the final subset.
     """
-    db = utils.get_db()
+    db = publications.database.get_db()
     app = publications.main.get_application()
     subsets = []
 
@@ -431,7 +431,7 @@ def fetch(filepath, label):
     If that does not work, Crossref is tried.
     Delay, timeout and API key for fetching is defined in the settings file.
     """
-    db = utils.get_db()
+    db = publications.database.get_db()
     identifiers = []
     try:
         with open(filepath) as infile:
@@ -450,7 +450,7 @@ def fetch(filepath, label):
         else:
             qualifier = None
         try:
-            label = utils.get_label(db, label)["value"]
+            label = publications.database.get_label(db, label)["value"]
         except KeyError as error:
             raise click.ClickException(str(error))
         if qualifier and qualifier not in settings["SITE_LABEL_QUALIFIERS"]:
@@ -459,10 +459,10 @@ def fetch(filepath, label):
     else:
         labels = {}
     # All labels are allowed from the CLI; as if admin were logged in.
-    allowed_labels = set([l["value"] for l in utils.get_docs(db, "label", "value")])
+    allowed_labels = set([l["value"] for l in publications.database.get_docs(db, "label", "value")])
     for identifier in identifiers:
         try:
-            publ = utils.get_publication(db, identifier)
+            publ = publications.database..get_publication(db, identifier)
         except KeyError:
             try:
                 publ = fetch_publication(
@@ -502,7 +502,7 @@ def fetch(filepath, label):
 )
 def add_label(label, csvfilepath):
     """Add a label to a set of publications."""
-    db = utils.get_db()
+    db = publications.database.get_db()
     parts = label.split("/", 1)
     if len(parts) == 2:
         label = parts[0]
@@ -510,7 +510,7 @@ def add_label(label, csvfilepath):
     else:
         qualifier = None
     try:
-        label = utils.get_label(db, label)["value"]
+        label = publications.database.get_label(db, label)["value"]
     except KeyError as error:
         raise click.ClickException(str(error))
     if qualifier and qualifier not in settings["SITE_LABEL_QUALIFIERS"]:
@@ -540,9 +540,9 @@ def add_label(label, csvfilepath):
 )
 def remove_label(label, csvfilepath):
     "Remove a label from a set of publications."
-    db = utils.get_db()
+    db = publications.database.get_db()
     try:
-        label = utils.get_label(db, label)["value"]
+        label = publications.database.get_label(db, label)["value"]
     except KeyError as error:
         raise click.ClickException(str(error))
     count = 0
@@ -571,9 +571,9 @@ def xrefs(filepath):
     The db and key of the xref form the first two columnds.
     If a URL is defined, it is written to the third column.
     """
-    db = utils.get_db()
+    db = publications.database.get_db()
     dbs = dict()
-    for publication in utils.get_docs(db, "publication", "modified"):
+    for publication in publications.database.get_docs(db, "publication", "modified"):
         for xref in publication.get("xrefs", []):
             dbs.setdefault(xref["db"], set()).add(xref["key"])
     with open(filepath, "w") as outfile:
@@ -611,7 +611,7 @@ def update_pubmed(csvfilepath):
     Note that a delay is inserted between each call to PubMed to avoid
     bad behaviour towards the web service.
     """
-    db = utils.get_db()
+    db = publications.database.get_db()
     count = 0
     iuids = get_iuids_from_csv(csvfilepath)
     click.echo(f"{len(iuids)} publications in CSV input file.")
@@ -659,7 +659,7 @@ def update_crossref(csvfilepath):
     Note that a delay is inserted between each call to Crossref to avoid
     bad behaviour towards the web service.
     """
-    db = utils.get_db()
+    db = publications.database.get_db()
     count = 0
     iuids = get_iuids_from_csv(csvfilepath)
     click.echo(f"{len(iuids)} publications in CSV input file.")
@@ -706,7 +706,7 @@ def find_pmid(csvfilepath):
     Note that a delay is inserted between each call to PubMed to avoid
     bad behaviour towards the web service.
     """
-    db = utils.get_db()
+    db = publications.database.get_db()
     count = 0
     iuids = get_iuids_from_csv(csvfilepath)
     click.echo(f"{len(iuids)} publications in CSV input file.")

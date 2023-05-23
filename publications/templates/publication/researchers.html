@@ -1,0 +1,89 @@
+{# Publication researchers edit page. #}
+
+{% extends "../base.html" %}
+
+{% block head_title %}
+Edit researchers for publication {{ publication['title'][:20] }}...
+{% end %}
+
+{% block body_title %}
+<span class="glyphicon glyphicon-edit"></span>
+<span class="glyphicon glyphicon-education"></span>
+Edit researchers for 
+{% if len(publication['title']) < 30 %}
+'{{ publication['title'] }}'
+{% else %}
+'{{ publication['title'][:28] }}...'
+{% end %}
+{% end %} {# block body_title #}
+
+{% block main_content %}
+<form action="{{ reverse_url('publication_researchers', publication['_id']) }}"
+      method="POST" role="form" class="form-horizontal">
+  {% module xsrf_form_html() %}
+
+  <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
+
+  {% for author in publication['authors'] %}
+  {% set name = author['family'] + ' ' + author['initials'] %}
+  {% set name_normalized = author['family_normalized'] + ' ' + author['initials_normalized'] %}
+  <div class="form-group">
+    {% if author.get('researcher') %}
+    <label class="control-label col-md-3">
+      <a href="{{ reverse_url('researcher', author['researcher']) }}">{{ name }}</a>
+    </label>
+    <div class="col-md-8">
+      <label class="radio-inline">
+	<input type="radio" name="{{ name_normalized }}" checked value="true">
+        Keep
+      </label>
+      <label class="radio-inline">
+	<input type="radio" name="{{ name_normalized }}" value="false">
+        Remove current association
+      </label>
+    </div>
+    {% else %}
+    <label class="control-label col-md-3">{{ name }}</label>
+    <div class="col-md-8">
+      {% if author['researchers'] %}
+      {% for researcher in author['researchers'] %}
+      <div class="checkbox">
+        <label>
+	  <input type="checkbox" name="{{ name_normalized }}" value="{{ researcher['_id'] }}">
+          Set to:
+          <a href="{{ reverse_url('researcher', researcher['_id']) }}">
+            {{ researcher['family'] }} {{ researcher['initials'] }}
+            {{ researcher.get("orcid") or '' }}
+          </a>
+        </label>
+      </div>
+      {% end %} {# for researcher in author['researchers'] #}
+      {% else %}
+      <div class="form-control-static">
+        <i>No candidate researchers</i>
+      </div>
+      {% end %} {# if author['researchers'] #}
+    </div>
+    {% end %} {# if author.get('researcher') #}
+  </div>
+  {% end %} {# for author in publication['authors'] #}
+
+  <div class="form-group">
+    <div class="col-md-3 col-md-offset-3">
+      <button type="submit" class="btn btn-success btn-block">
+	<span class="glyphicon glyphicon-save"></span>
+	Save
+      </button>
+    </div>
+  </div>
+
+</form>
+{% end %} {# block main_content #}
+
+{% block meta_content %}
+<a href="{{ reverse_url('publication', publication['_id']) }}"
+   class="btn btn-default btn-block" role="button">
+  <span class="glyphicon glyphicon-remove-circle"></span>
+  Cancel
+</a>
+{% end %} {# block meta_content #}
