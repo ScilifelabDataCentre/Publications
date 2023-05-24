@@ -51,7 +51,10 @@ class Label(RequestHandler):
         accounts = self.get_docs("account", "label", key=label["value"].lower())
         publications = list(publications.subset.Subset(self.db, label=label["value"]))
         self.render(
-            "label/display.html", label=label, accounts=accounts, publications=publications
+            "label/display.html",
+            label=label,
+            accounts=accounts,
+            publications=publications,
         )
 
     @tornado.web.authenticated
@@ -75,7 +78,9 @@ class Label(RequestHandler):
         # Do it in this order; safer if interrupted.
         publications = list(publications.subset.Subset(self.db, label=label["value"]))
         for publication in publications:
-            with publications.publication.PublicationSaver(publication, rqh=self) as saver:
+            with publications.publication.PublicationSaver(
+                publication, rqh=self
+            ) as saver:
                 labels = publication["labels"].copy()
                 labels.pop(value, None)
                 labels.pop(value.lower(), None)
@@ -237,7 +242,9 @@ class LabelEdit(RequestHandler):
                     saver["labels"] = sorted(labels)
             for publication in publications.subset.Subset(self.db, label=old_value):
                 if old_value in publication["labels"]:
-                    with publications.publication.PublicationSaver(publication, rqh=self) as saver:
+                    with publications.publication.PublicationSaver(
+                        publication, rqh=self
+                    ) as saver:
                         labels = publication["labels"].copy()
                         labels[new_value] = labels.pop(old_value)
                         saver["labels"] = labels
@@ -288,7 +295,9 @@ class LabelMerge(RequestHandler):
                 labels.add(new_label)
                 saver["labels"] = sorted(labels)
         for publication in publications.subset.Subset(self.db, label=old_label):
-            with publications.publication.PublicationSaver(publication, rqh=self) as saver:
+            with publications.publication.PublicationSaver(
+                publication, rqh=self
+            ) as saver:
                 labels = publication["labels"].copy()
                 qual = labels.pop(old_label, None) or labels.pop(
                     old_label.lower(), None

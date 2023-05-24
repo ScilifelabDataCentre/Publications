@@ -191,7 +191,9 @@ class JournalEdit(JournalMixin, RequestHandler):
         if old_title != title or old_issn != issn:
             publications = self.get_docs("publication", "journal", old_title)
             for publ in publications:
-                with publications.publication.PublicationSaver(doc=publ, rqh=self) as saver:
+                with publications.publication.PublicationSaver(
+                    doc=publ, rqh=self
+                ) as saver:
                     journal = saver["journal"].copy()
                     journal["title"] = title
                     journal["issn"] = issn

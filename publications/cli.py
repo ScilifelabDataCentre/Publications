@@ -43,21 +43,30 @@ def destroy_database():
 
 
 @cli.command()
-def create_database():
-    "Create the database instance within CouchDB. Load the design document."
+@click.option(
+    "-s",
+    "--silent",
+    is_flag=True,
+    default=False,
+    help="Do not complain if database already exists.",
+)
+def create_database(silent):
+    "Create the database instance within CouchDB. Load the design documents."
     server = publications.database.get_dbserver()
     if settings["DATABASE_NAME"] in server:
-        raise click.ClickException(
-            f"""Database '{settings["DATABASE_NAME"]}' already exists."""
-        )
-    server.create(settings["DATABASE_NAME"])
+        if not silent:
+            raise click.ClickException(
+                f"""Database '{settings["DATABASE_NAME"]}' already exists."""
+            )
+    else:
+        server.create(settings["DATABASE_NAME"])
+        click.echo(f"""Created database '{settings["DATABASE_NAME"]}'.""")
     publications.database.update_design_documents()
-    click.echo(f"""Created database '{settings["DATABASE_NAME"]}'.""")
 
 
 @cli.command()
 def initialize():
-    """Initialize database; update design documents.
+    """Initialize the database; update the design documents.
     No longer really needed. Kept just for backwards compatibility.
     """
     publications.database.update_design_documents()
@@ -67,10 +76,14 @@ def initialize():
 def counts():
     "Output counts of some database entities."
     db = publications.database.update_design_documents()
-    click.echo(f"{publications.database.get_count(db, 'publication', 'year'):>5} publications")
+    click.echo(
+        f"{publications.database.get_count(db, 'publication', 'year'):>5} publications"
+    )
     click.echo(f"{publications.database.get_count(db, 'label', 'value'):>5} labels")
     click.echo(f"{publications.database.get_count(db, 'account', 'email'):>5} accounts")
-    click.echo(f"{publications.database.get_count(db, 'researcher', 'name'):>5} researchers")
+    click.echo(
+        f"{publications.database.get_count(db, 'researcher', 'name'):>5} researchers"
+    )
 
 
 @cli.command()
@@ -203,7 +216,9 @@ def show(identifier):
         ("blacklist", "pmid", _asis),
     ]:
         try:
-            doc = publications.database.get_doc(db, designname, viewname, operation(identifier))
+            doc = publications.database.get_doc(
+                db, designname, viewname, operation(identifier)
+            )
             break
         except KeyError:
             pass
@@ -459,10 +474,12 @@ def fetch(filepath, label):
     else:
         labels = {}
     # All labels are allowed from the CLI; as if admin were logged in.
-    allowed_labels = set([l["value"] for l in publications.database.get_docs(db, "label", "value")])
+    allowed_labels = set(
+        [l["value"] for l in publications.database.get_docs(db, "label", "value")]
+    )
     for identifier in identifiers:
         try:
-            publ = publications.database..get_publication(db, identifier)
+            publ = publications.database.get_publication(db, identifier)
         except KeyError:
             try:
                 publ = fetch_publication(
@@ -748,6 +765,7 @@ def get_iuids_from_csv(csvfilepath):
             return [p["IUID"] for p in reader]
     except (IOError, csv.Error, KeyError) as error:
         raise click.ClickException(str(error))
+
 
 def get_account():
     "Get dict with current account info for logging purposes."

@@ -108,7 +108,7 @@ class RequestHandler(tornado.web.RequestHandler):
         return [
             (r.key, r.value)
             for r in self.db.view(
-                    "publication", "year", descending=True, reduce=True, group_level=1
+                "publication", "year", descending=True, reduce=True, group_level=1
             )
         ]
 
@@ -430,7 +430,7 @@ class CorsMixin:
     def set_default_headers(self):
         "Allow CORS requests."
         self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 
 
 class ApiMixin:
