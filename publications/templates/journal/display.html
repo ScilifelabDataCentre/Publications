@@ -1,6 +1,6 @@
 {# Journal page. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}{{ journal.get('title') or journal.get('issn') }}{% end %}
 
@@ -52,7 +52,7 @@
 </div>
 <div class="row">
   <div class="col-md-12">
-    {% include 'publications/years.html' %}
+    {% include '../publications/years.html' %}
   </div>
 </div>
 {% end %} {# block main_content #}
