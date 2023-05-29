@@ -140,7 +140,7 @@ class Constants:
     ORCID_URL = "https://orcid.org/%s"
     CROSSREF_URL = "https://search.crossref.org/?q=%s"
 
-    IDENTIFIER_PREFIXES=[
+    IDENTIFIER_PREFIXES = [
         "doi:",
         "pmid:",
         "pubmed:",

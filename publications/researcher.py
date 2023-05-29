@@ -255,7 +255,9 @@ class ResearcherFilterMixin:
         return result
 
 
-class ResearcherPublicationsCsv(ResearcherFilterMixin, publications.publication.PublicationsCsv):
+class ResearcherPublicationsCsv(
+    ResearcherFilterMixin, publications.publication.PublicationsCsv
+):
     "Researcher publication CSV output."
 
     def get(self, identifier):
@@ -276,7 +278,9 @@ class ResearcherPublicationsCsv(ResearcherFilterMixin, publications.publication.
         super().post()
 
 
-class ResearcherPublicationsXlsx(ResearcherFilterMixin, publications.publication.PublicationsXlsx):
+class ResearcherPublicationsXlsx(
+    ResearcherFilterMixin, publications.publication.PublicationsXlsx
+):
     "Researcher publication XLSX output."
 
     def get(self, identifier):
@@ -297,7 +301,9 @@ class ResearcherPublicationsXlsx(ResearcherFilterMixin, publications.publication
         super().post()
 
 
-class ResearcherPublicationsTxt(ResearcherFilterMixin, publications.publication.PublicationsTxt):
+class ResearcherPublicationsTxt(
+    ResearcherFilterMixin, publications.publication.PublicationsTxt
+):
     "Researcher publication text file output."
 
     def get(self, identifier):

@@ -38,6 +38,7 @@ def get_db():
     except couchdb2.NotFoundError:
         raise KeyError(f"CouchDB database '{name}' does not exist.")
 
+
 def update_design_documents():
     "Ensure that all CouchDB design documents are up to date."
     db = get_db()
@@ -118,7 +119,9 @@ def get_publication(db, identifier):
         doc = None
         for viewname in ["doi", "pmid"]:
             try:
-                doc = publications.database.get_doc(db, "publication", viewname, identifier)
+                doc = publications.database.get_doc(
+                    db, "publication", viewname, identifier
+                )
                 break
             except KeyError:
                 pass
@@ -154,7 +157,9 @@ def get_label(db, identifier):
     except couchdb2.NotFoundError:
         identifier = to_ascii(identifier).lower()
         try:
-            doc = publications.database.get_doc(db, "label", "normalized_value", identifier)
+            doc = publications.database.get_doc(
+                db, "label", "normalized_value", identifier
+            )
         except KeyError:
             raise KeyError(f"no such label '{identifier}'")
     return doc
@@ -165,7 +170,9 @@ def get_labels_years(db):
     Only if TEMPORAL_LABELS is set to True.
     """
     import publications.utils
-    if not settings["TEMPORAL_LABELS"]: return []
+
+    if not settings["TEMPORAL_LABELS"]:
+        return []
     started = 100000
     ended = int(publications.utils.today().split("-")[0])
     for doc in get_docs(db, "label", "value"):

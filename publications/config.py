@@ -27,9 +27,9 @@ DEFAULT_SETTINGS = dict(
     COOKIE_SECRET=None,  # Must be set!
     PASSWORD_SALT=None,  # Must be set!
     SETTINGS_FILEPATH=None,  # This value is set on startup.
-    SETTINGS_ENVVAR=False,   # This value is set on startup.
-    MAIL_SERVER=None,           # If not set, then no emails can be sent.
-    MAIL_DEFAULT_SENDER=None,   # If not set, MAIL_USERNAME will be used.
+    SETTINGS_ENVVAR=False,  # This value is set on startup.
+    MAIL_SERVER=None,  # If not set, then no emails can be sent.
+    MAIL_DEFAULT_SENDER=None,  # If not set, MAIL_USERNAME will be used.
     MAIL_PORT=25,
     MAIL_USE_SSL=False,
     MAIL_USE_TLS=False,
@@ -154,10 +154,14 @@ def load_settings_from_file():
     for key in ["PUBMED_DELAY", "PUBMED_TIMEOUT", "CROSSREF_DELAY", "CROSSREF_TIMEOUT"]:
         if not isinstance(settings[key], (int, float)) or settings[key] <= 0.0:
             raise ValueError(f"Invalid '{key}' value: must be positive number.")
-    if settings["MAIL_SERVER"] and not (settings["MAIL_DEFAULT_SENDER"] or settings["MAIL_USERNAME"]):
+    if settings["MAIL_SERVER"] and not (
+        settings["MAIL_DEFAULT_SENDER"] or settings["MAIL_USERNAME"]
+    ):
         raise ValueError("Either MAIL_DEFAULT_SENDER or MAIL_USERNAME must be defined.")
 
     # Set up the xref templates URLs; always lower-case keys.
     for key in list(settings["XREF_TEMPLATE_URLS"].keys()):
-        settings["XREF_TEMPLATE_URLS"][key.lower()] = settings["XREF_TEMPLATE_URLS"].pop(key)
+        settings["XREF_TEMPLATE_URLS"][key.lower()] = settings[
+            "XREF_TEMPLATE_URLS"
+        ].pop(key)
     settings["XREF_TEMPLATE_URLS"]["url"] = "%s"

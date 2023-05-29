@@ -1,6 +1,6 @@
 {# Documentation: Overview. #}
 
-{% extends "base.html" %}
+{% extends "../base.html" %}
 
 {% block head_title %}Overview{% end %}
 
@@ -8,8 +8,13 @@
 
 {% block main_content %}
 <p>
-  The <strong>Publications</strong> system stores references to
-  publications.
+  The Publications system stores references to publications. It does
+  not store PDFs of publications.
+</p>
+<p>
+  The Publications system is appropriate for keeping track of the
+  publications for a group, a project, an institute, a department, or
+  similar.
 </p>
 <p>
   A publication reference ('publication' in short) may contain:
@@ -26,11 +31,6 @@
   Publications are added by providing DOIs or PMIDs (PubMed
   identifiers) which the Publications system then fetches the data for
   from the Crossref and/or PubMed web services.
-</p>
-<p>
-  The Publications system is appropriate for keeping track of the
-  publications for a group, a project, an institute, a department,
-  or similar.
 </p>
 <p>
   For more information, see the links in the right-hand panel.

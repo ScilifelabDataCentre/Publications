@@ -38,7 +38,12 @@ class Settings(RequestHandler):
     def get(self):
         self.check_admin()
         cleaned = settings.copy()
-        for key in ["PASSWORD_SALT", "COOKIE_SECRET", "DATABASE_PASSWORD", "MAIL_PASSWORD"]:
+        for key in [
+            "PASSWORD_SALT",
+            "COOKIE_SECRET",
+            "DATABASE_PASSWORD",
+            "MAIL_PASSWORD",
+        ]:
             if key in cleaned:
                 cleaned[key] = "<hidden>"
         self.render("settings.html", cleaned_settings=sorted(cleaned.items()))
@@ -88,7 +93,7 @@ class Doc(RequestHandler):
 
     def get(self, page):
         try:
-            self.render(f"doc_{page}.html")
+            self.render(f"docs/{page}.html")
         except FileNotFoundError:
             self.set_error_flash("No such documentation page.")
             self.see_other("doc", "overview")

@@ -94,7 +94,7 @@ class Journal(JournalMixin, RequestHandler):
         publications = [self.db[i] for i in publications]
         publications.sort(key=lambda p: p["published"], reverse=True)
         self.render(
-            "journal.html",
+            "journal/display.html",
             journal=journal,
             is_editable=self.is_editable(journal),
             is_deletable=self.is_deletable(journal),
@@ -161,7 +161,7 @@ class JournalEdit(JournalMixin, RequestHandler):
             self.see_other("journals", error=str(error))
             return
         self.render(
-            "journal_edit.html",
+            "journal/edit.html",
             is_editable=self.is_editable(journal),
             is_deletable=self.is_deletable(journal),
             journal=journal,
@@ -191,7 +191,9 @@ class JournalEdit(JournalMixin, RequestHandler):
         if old_title != title or old_issn != issn:
             publications = self.get_docs("publication", "journal", old_title)
             for publ in publications:
-                with publications.publication.PublicationSaver(doc=publ, rqh=self) as saver:
+                with publications.publication.PublicationSaver(
+                    doc=publ, rqh=self
+                ) as saver:
                     journal = saver["journal"].copy()
                     journal["title"] = title
                     journal["issn"] = issn
@@ -208,7 +210,7 @@ class Journals(RequestHandler):
         counts = dict([(r.key, r.value) for r in view])
         for journal in journals:
             journal["count"] = counts.get(journal["title"], 0)
-        self.render("journals.html", journals=journals)
+        self.render("journal/list.html", journals=journals)
 
 
 class JournalsJson(CorsMixin, Journals):

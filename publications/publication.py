@@ -9,7 +9,12 @@ from publications import constants
 from publications import settings
 from publications import utils
 from publications.subset import Subset
-from publications.requesthandler import RequestHandler, CorsMixin, ApiMixin, DownloadParametersMixin
+from publications.requesthandler import (
+    RequestHandler,
+    CorsMixin,
+    ApiMixin,
+    DownloadParametersMixin,
+)
 
 import publications.crossref
 import publications.database
@@ -211,9 +216,9 @@ class PublicationSaver(publications.saver.Saver):
                 if orcid:
                     # Existing reseacher based on ORCID.
                     try:
-                        author["researcher"] = publications.database.get_researcher(self.db, orcid)[
-                            "_id"
-                        ]
+                        author["researcher"] = publications.database.get_researcher(
+                            self.db, orcid
+                        )["_id"]
                     except KeyError:
                         # Create a new researcher.
                         try:
@@ -250,12 +255,16 @@ class PublicationSaver(publications.saver.Saver):
                 issn_l = doc.get("issn-l") or issn_l
             except KeyError:
                 try:
-                    doc = publications.database.get_doc(self.db, "journal", "issn_l", issn)
+                    doc = publications.database.get_doc(
+                        self.db, "journal", "issn_l", issn
+                    )
                     issn_l = issn
                 except KeyError:
                     if title:
                         try:
-                            doc = publications.database.get_doc(self.db, "journal", "title", title)
+                            doc = publications.database.get_doc(
+                                self.db, "journal", "title", title
+                            )
                         except KeyError:
                             doc = None
                         else:
@@ -494,7 +503,9 @@ class PublicationsCsv(PublicationsFile):
         )
 
     def post(self):
-        writer = publications.writer.CsvWriter(self.db, self.application, **self.get_parameters())
+        writer = publications.writer.CsvWriter(
+            self.db, self.application, **self.get_parameters()
+        )
         writer.write(self.get_filtered_publications())
         self.write(writer.get_content())
         self.set_header("Content-Type", constants.CSV_MIME)
@@ -521,7 +532,9 @@ class PublicationsXlsx(PublicationsFile):
     # Authentication is *not* required!
     def post(self):
         "Produce XLSX output."
-        writer = publications.writer.XlsxWriter(self.db, self.application, **self.get_parameters())
+        writer = publications.writer.XlsxWriter(
+            self.db, self.application, **self.get_parameters()
+        )
         writer.write(self.get_filtered_publications())
         self.write(writer.get_content())
         self.set_header("Content-Type", constants.XLSX_MIME)
@@ -548,7 +561,9 @@ class PublicationsTxt(PublicationsFile):
     # Authentication is *not* required!
     def post(self):
         "Produce text output."
-        writer = publications.writer.TextWriter(self.db, self.application, **self.get_parameters())
+        writer = publications.writer.TextWriter(
+            self.db, self.application, **self.get_parameters()
+        )
         writer.write(self.get_filtered_publications())
         self.write(writer.get_content())
         self.set_header("Content-Type", constants.TXT_MIME)

@@ -38,7 +38,9 @@ class SubsetDisplay(DownloadParametersMixin, RequestHandler):
         if format and not message:
             parameters = self.get_parameters()
             if format == "CSV":
-                writer = publications.writer.CsvWriter(self.db, self.application, **parameters)
+                writer = publications.writer.CsvWriter(
+                    self.db, self.application, **parameters
+                )
                 writer.write(subset)
                 self.write(writer.get_content())
                 self.set_header("Content-Type", constants.CSV_MIME)
@@ -47,7 +49,9 @@ class SubsetDisplay(DownloadParametersMixin, RequestHandler):
                 )
                 return
             elif format == "XLSX":
-                writer = publications.writer.XlsxWriter(self.db, self.application, **parameters)
+                writer = publications.writer.XlsxWriter(
+                    self.db, self.application, **parameters
+                )
                 writer.write(subset)
                 self.write(writer.get_content())
                 self.set_header("Content-Type", constants.XLSX_MIME)
@@ -56,7 +60,9 @@ class SubsetDisplay(DownloadParametersMixin, RequestHandler):
                 )
                 return
             elif format == "TXT":
-                writer = publications.writer.TextWriter(self.db, self.application, **parameters)
+                writer = publications.writer.TextWriter(
+                    self.db, self.application, **parameters
+                )
                 writer.write(subset)
                 self.write(writer.get_content())
                 self.set_header("Content-Type", constants.TXT_MIME)
@@ -75,7 +81,15 @@ class Subset:
     "Publication subset selection and operations."
 
     def __init__(
-            self, db, all=False, recent=None, year=None, label=None, author=None, orcid=None, issn=None
+        self,
+        db,
+        all=False,
+        recent=None,
+        year=None,
+        label=None,
+        author=None,
+        orcid=None,
+        issn=None,
     ):
         self.db = db
         self.iuids = set()
@@ -214,7 +228,9 @@ class Subset:
     def select_orcid(self, orcid):
         "Select publications by researcher ORCID."
         try:
-            researcher = publications.database.get_doc(self.db, "researcher", "orcid", orcid)
+            researcher = publications.database.get_doc(
+                self.db, "researcher", "orcid", orcid
+            )
             iuid = researcher["_id"]
         except KeyError:
             iuid = "-"
