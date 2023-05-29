@@ -5,8 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block head_title %}{{ title }}{% end %}</title>
-    <link rel="shortcut icon" type="image/png"
-          href="{{ reverse_url('site', 'favicon.png') }}">
+    <link rel="shortcut icon" href="{{ reverse_url('site', 'favicon') }}">
     <link rel="stylesheet" href="{{ constants.JQUERY_UI_CSS_URL }}">
     <link rel="stylesheet" crossorigin="anonymous"
           href="{{ constants.BOOTSTRAP_CSS_URL }}"
@@ -208,6 +207,14 @@
 	    </li>
 	    {% end %} {# if is_admin #}
 
+	    {% if is_admin %}
+            <li class="dropdown">
+	      <a href="{{ reverse_url('configuration') }}">
+		<span class="glyphicon glyphicon-cog"></span> Configuration
+	      </a>
+	    </li>
+	    {% end %} {# if is_admin #}
+
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">
 		<span class="glyphicon glyphicon-info-sign"></span> About
@@ -224,11 +231,11 @@
 		    <span class="glyphicon glyphicon-bullhorn"></span> Contact
 		  </a>
 		</li>
-		{% if settings['SITE_PARENT_URL'] %}
+		{% if settings['SITE_HOST_URL'] %}
 		<li>
-		  <a href="{{ settings['SITE_PARENT_URL'] }}" target="_">
+		  <a href="{{ settings['SITE_HOST_URL'] }}" target="_blank">
 		    <span class="glyphicon glyphicon-link"></span>
-                    {{ settings['SITE_PARENT_NAME'] }}
+                    {{ settings['SITE_HOST_NAME'] }}
 		  </a>
 		</li>
 		{% end %}
@@ -290,7 +297,7 @@
       {% block body_header %}
       <div class="row">
 	<div class="col-md-2">
-	  <img src="{{ reverse_url('site', 'logo.png') }}"
+	  <img src="{{ reverse_url('site', 'icon') }}"
 	       class="img-responsive"
 	       style="padding-bottom: 10px;"
 	       title="{{ settings['SITE_NAME'] }}">
@@ -366,12 +373,12 @@
       <hr>
       <div class="row">
 	<div class="col-md-8">
-	  {% if settings['SITE_PARENT_URL'] %}
-	  <a href="{{ settings['SITE_PARENT_URL'] }}">
-            {{ settings['SITE_PARENT_NAME'] }}
+	  {% if settings['SITE_HOST_URL'] %}
+	  <a href="{{ settings['SITE_HOST_URL'] }}" target="_blank">
+            {{ settings['SITE_HOST_NAME'] or 'Site host' }}
           </a>
           {% else %}
-            {{ settings['SITE_PARENT_NAME'] }}
+            {{ settings['SITE_HOST_NAME'] or '' }}
 	  {% end %}
         </div>
 	<div class="col-md-2 col-md-offset-2">

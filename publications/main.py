@@ -285,11 +285,11 @@ def get_handlers():
             publications.publication.ApiPublicationLabels,
             name="api_publication_labels",
         ),
+        url(r"/site/([^/]+)", publications.config.Site, name="site"),
         url(
-            r"/site/([^/]+)",
-            tornado.web.StaticFileHandler,
-            {"path": constants.SITE_STATIC_DIR},
-            name="site",
+            r"/configuration",
+            publications.config.Configuration,
+            name="configuration",
         ),
         url(r"/(.*)", publications.home.NoSuchEntity),
     ]
@@ -297,7 +297,9 @@ def get_handlers():
 
 def main():
     publications.config.load_settings_from_file()
-    publications.database.update_design_documents()
+    db = publications.database.get_db()
+    publications.database.update_design_documents(db)
+    publications.config.load_settings_from_database(db)
     application = tornado.web.Application(
         handlers=get_handlers(),
         debug=settings.get("TORNADO_DEBUG", False),

@@ -8,18 +8,6 @@ from publications import constants
 from publications import settings
 from publications import utils
 
-import publications.saver
-
-
-class MetaSaver(publications.saver.Saver):
-    "Meta document saver context handler."
-
-    DOCTYPE = constants.META
-
-    def add_log(self):
-        "No log entries for meta documents."
-        pass
-
 
 def get_dbserver():
     "Return the CouchDB2 handle for the CouchDB server."
@@ -42,9 +30,10 @@ def get_db():
         raise KeyError(f"CouchDB database '{name}' does not exist.")
 
 
-def update_design_documents():
+def update_design_documents(db=None):
     "Ensure that all CouchDB design documents are up to date."
-    db = get_db()
+    if db is None:
+        db = get_db()
     logger = logging.getLogger("publications")
     if db.put_design("account", ACCOUNT_DESIGN_DOC):
         logger.info("Updated 'account' CouchDB design document.")

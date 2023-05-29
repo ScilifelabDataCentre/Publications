@@ -4,7 +4,7 @@ import os.path
 import re
 import sys
 
-__version__ = "9.0.1"
+__version__ = "9.1.0"
 
 
 class Constants:
@@ -18,9 +18,6 @@ class Constants:
     TEMPLATE_DIR = os.path.normpath(os.path.join(ROOT_DIR, "templates"))
     STATIC_DIR = os.path.normpath(os.path.join(ROOT_DIR, "static"))
     SITE_DIR = os.path.normpath(os.path.join(ROOT_DIR, "../site"))
-    # The SITE_STATIC_DIR is no longer used, but may contain files that need
-    # to be loaded into the database when upgrading. So keep the definition.
-    SITE_STATIC_DIR = os.path.normpath(os.path.join(ROOT_DIR, "../site/static"))
 
     PYTHON_VERSION = ".".join([str(i) for i in sys.version_info[0:3]])
     PYTHON_URL = "https://www.python.org/"
@@ -125,6 +122,7 @@ class Constants:
     CSV_MIME = "text/csv"
     XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     TXT_MIME = "text/plain"
+    PNG_MIME = "image/png"
 
     # Various texts.
     REV_ERROR = "Entity has been edited by someone else. Cannot overwrite."
