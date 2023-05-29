@@ -52,7 +52,9 @@ class Label(RequestHandler):
             "label/display.html",
             label=label,
             accounts=self.get_docs("account", "label", key=label["value"].lower()),
-            publications=list(publications.subset.Subset(self.db, label=label["value"])),
+            publications=list(
+                publications.subset.Subset(self.db, label=label["value"])
+            ),
         )
 
     @tornado.web.authenticated

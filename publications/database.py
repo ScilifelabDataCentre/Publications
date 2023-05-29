@@ -30,8 +30,10 @@ def get_db():
         raise KeyError(f"CouchDB database '{name}' does not exist.")
 
 
-def update_design_documents(db):
+def update_design_documents(db=None):
     "Ensure that all CouchDB design documents are up to date."
+    if db is None:
+        db = get_db()
     logger = logging.getLogger("publications")
     if db.put_design("account", ACCOUNT_DESIGN_DOC):
         logger.info("Updated 'account' CouchDB design document.")

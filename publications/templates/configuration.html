@@ -38,6 +38,17 @@
   </div>
 
   <div class="form-group">
+    <label class="control-label col-md-2" for="label_qualifiers">Label qualifiers</label>
+    <div class="col-md-10">
+      <textarea name="label_qualifiers" id="label_qualifiers" class="form-control"
+                >{{ '\n'.join(settings['SITE_LABEL_QUALIFIERS']) }}</textarea>
+      <span class="help-block">
+        List of label qualifiers, one per line.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
     <label class="control-label col-md-2" for="icon">Site icon file upload</label>
     <div class="col-md-10">
       <div class="row">

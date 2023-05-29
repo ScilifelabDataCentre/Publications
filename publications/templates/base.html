@@ -233,7 +233,7 @@
 		</li>
 		{% if settings['SITE_HOST_URL'] %}
 		<li>
-		  <a href="{{ settings['SITE_HOST_URL'] }}" target="_">
+		  <a href="{{ settings['SITE_HOST_URL'] }}" target="_blank">
 		    <span class="glyphicon glyphicon-link"></span>
                     {{ settings['SITE_HOST_NAME'] }}
 		  </a>
@@ -374,7 +374,7 @@
       <div class="row">
 	<div class="col-md-8">
 	  {% if settings['SITE_HOST_URL'] %}
-	  <a href="{{ settings['SITE_HOST_URL'] }}">
+	  <a href="{{ settings['SITE_HOST_URL'] }}" target="_blank">
             {{ settings['SITE_HOST_NAME'] or 'Site host' }}
           </a>
           {% else %}

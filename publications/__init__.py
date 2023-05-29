@@ -122,6 +122,7 @@ class Constants:
     CSV_MIME = "text/csv"
     XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     TXT_MIME = "text/plain"
+    PNG_MIME = "image/png"
 
     # Various texts.
     REV_ERROR = "Entity has been edited by someone else. Cannot overwrite."
