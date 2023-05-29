@@ -1,5 +1,7 @@
 "CouchDB operations."
 
+import logging
+
 import couchdb2
 
 from publications import constants
@@ -43,18 +45,19 @@ def get_db():
 def update_design_documents():
     "Ensure that all CouchDB design documents are up to date."
     db = get_db()
+    logger = logging.getLogger("publications")
     if db.put_design("account", ACCOUNT_DESIGN_DOC):
-        app.logger.info("Updated 'account' CouchDB design document.")
+        logger.info("Updated 'account' CouchDB design document.")
     if db.put_design("blacklist", BLACKLIST_DESIGN_DOC):
-        app.logger.info("Updated 'blacklist' CouchDB design document.")
+        logger.info("Updated 'blacklist' CouchDB design document.")
     if db.put_design("journal", JOURNAL_DESIGN_DOC):
-        app.logger.info("Updated 'journal' CouchDB design document.")
+        logger.info("Updated 'journal' CouchDB design document.")
     if db.put_design("label", LABEL_DESIGN_DOC):
-        app.logger.info("Updated 'label' CouchDB design document.")
+        logger.info("Updated 'label' CouchDB design document.")
     if db.put_design("log", LOG_DESIGN_DOC):
-        app.logger.info("Updated 'log' CouchDB design document.")
+        logger.info("Updated 'log' CouchDB design document.")
     if db.put_design("publication", PUBLICATION_DESIGN_DOC):
-        app.logger.info("Updated 'publication' CouchDB design document.")
+        logger.info("Updated 'publication' CouchDB design document.")
     return db
 
 
