@@ -4,6 +4,7 @@ import couchdb2
 
 from publications import constants
 from publications import settings
+from publications import utils
 
 import publications.saver
 
@@ -155,7 +156,7 @@ def get_label(db, identifier):
     try:
         doc = db[identifier]
     except couchdb2.NotFoundError:
-        identifier = to_ascii(identifier).lower()
+        identifier = utils.to_ascii(identifier).lower()
         try:
             doc = publications.database.get_doc(
                 db, "label", "normalized_value", identifier
