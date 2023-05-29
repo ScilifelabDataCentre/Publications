@@ -48,13 +48,11 @@ class Label(RequestHandler):
         except KeyError as error:
             self.see_other("home", error=str(error))
             return
-        accounts = self.get_docs("account", "label", key=label["value"].lower())
-        publications = list(publications.subset.Subset(self.db, label=label["value"]))
         self.render(
             "label/display.html",
             label=label,
-            accounts=accounts,
-            publications=publications,
+            accounts=self.get_docs("account", "label", key=label["value"].lower()),
+            publications=list(publications.subset.Subset(self.db, label=label["value"])),
         )
 
     @tornado.web.authenticated
