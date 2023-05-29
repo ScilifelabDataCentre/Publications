@@ -4,11 +4,14 @@
 
 {% block head_title %}Contact{% end %}
 
-{% block body_title %}
-<span class="glyphicon glyphicon-bullhorn"></span>
-Contact
-{% end %}
+{% block body_title %}<span class="glyphicon glyphicon-bullhorn"></span> Contact{% end %}
 
 {% block main_content %}
-{% raw contact %}
+<p>
+  {% if contact %}
+  {% raw contact %}
+  {% else %}
+  <i>No contact information available.</i>
+  {% end %}
+</p>
 {% end %} {# block main_content #}

@@ -52,13 +52,6 @@ DEFAULT_SETTINGS = dict(
     NUMBER_FIRST_AUTHORS=3,
     NUMBER_LAST_AUTHORS=2,
     DISPLAY_TRANSLATIONS={},
-    SITE_NAME="Publications",
-    SITE_TITLE="Publications",
-    SITE_TEXT="A publications reference database system.",
-    SITE_PARENT_NAME="Site host",
-    SITE_PARENT_URL=None,
-    SITE_CONTACT="<p><i>No contact information available.</i></p>",
-    SITE_LABEL_QUALIFIERS=[],
     XREF_TEMPLATE_URLS={
         "ArrayExpress": "https://www.ebi.ac.uk/arrayexpress/experiments/%s/",
         "BioProject": "https://www.ncbi.nlm.nih.gov/bioproject/%s",
@@ -165,3 +158,71 @@ def load_settings_from_file():
             "XREF_TEMPLATE_URLS"
         ].pop(key)
     settings["XREF_TEMPLATE_URLS"]["url"] = "%s"
+
+
+def load_settings_from_database(db):
+    """Load settings from the database configuration document.
+    Create and initialize the configuration document if it does not exist.
+    """
+    try:
+        configuration = db["configuration"]
+    except couchdb2.NotFoundError:
+        configuration = {
+            constants.DOCTYPE: constants.META,
+            "_id": "configuration",
+            "SITE_NAME": "Publications",
+            "SITE_TEXT": "A publications reference database system.",
+            "SITE_HOST_NAME": None,
+            "SITE_HOST_URL": None,
+            "SITE_CONTACT": None,
+            "SITE_LABEL_QUALIFIERS": [],
+        }
+        db.put(configuration)
+    settings.update(configuration)
+
+
+class Configuration(RequestHandler):
+    "Configuration page."
+
+    @tornado.web.authenticated
+    def get(self):
+        self.check_admin()
+        self.render("configuration.html")
+
+    @tornado.web.authenticated
+    def post(self):
+        self.check_admin()
+        configuration = self.db["configuration"]
+        try:
+            configuration["SITE_NAME"] = self.get_argument("name") or "Publications"
+            configuration["SITE_TEXT"] = self.get_argument("text") or "A publications reference database system."
+        except ValueError as error:
+            self.set_error_flash(str(error))
+        self.see_other("configuration")
+        return
+
+
+class Site(RequestHandler):
+    "Return a site-specific image file."
+
+    def get(self, name):
+        if name == "icon":
+            try:
+                data = settings["SITE_ICON_DATA"]
+                content_type = settings["SITE_ICON_CONTENT_TYPE"]
+            except KeyError:
+                with open(f"{constants.STATIC_DIR}/icon.png", "rb") as infile:
+                    data = infile.read()
+                content_type = "image/png"
+        elif name == "favicon":
+            try:
+                data = settings["SITE_FAVICON_DATA"]
+                content_type = settings["SITE_FAVICON_CONTENT_TYPE"]
+            except KeyError:
+                with open(f"{constants.STATIC_DIR}/favicon.png", "rb") as infile:
+                    data = infile.read()
+                content_type = "image/png"
+        else:
+            raise tornado.web.HTTPError(404)
+        self.write(data)
+        self.set_header("Content-Type", content_type)
