@@ -75,6 +75,13 @@ DEFAULT_SETTINGS = dict(
     },
 )
 
+SECRET_SETTINGS = (
+    "PASSWORD_SALT",
+    "COOKIE_SECRET",
+    "DATABASE_PASSWORD",
+    "MAIL_PASSWORD",
+)
+
 
 def load_settings_from_file():
     """Load the settings that are not stored in the database from file or

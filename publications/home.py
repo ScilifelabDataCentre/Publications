@@ -13,6 +13,7 @@ from publications import constants
 from publications import settings
 from publications.subset import Subset
 from publications.requesthandler import RequestHandler
+import publications.config
 
 
 class Home(RequestHandler):
@@ -37,16 +38,13 @@ class Settings(RequestHandler):
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        cleaned = settings.copy()
-        for key in [
-            "PASSWORD_SALT",
-            "COOKIE_SECRET",
-            "DATABASE_PASSWORD",
-            "MAIL_PASSWORD",
-        ]:
-            if key in cleaned:
-                cleaned[key] = "<hidden>"
-        self.render("settings.html", cleaned_settings=sorted(cleaned.items()))
+        display = dict()
+        for key in publications.config.DEFAULT_SETTINGS:
+            if key in publications.config.SECRET_SETTINGS:
+                display[key] = "<hidden>"
+            else:
+                display[key] = settings[key]
+        self.render("settings.html", display_settings=sorted(display.items()))
 
 
 class Software(RequestHandler):
