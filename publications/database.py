@@ -47,6 +47,8 @@ def update_design_documents(db=None):
         logger.info("Updated 'log' CouchDB design document.")
     if db.put_design("publication", PUBLICATION_DESIGN_DOC):
         logger.info("Updated 'publication' CouchDB design document.")
+    if db.put_design("researcher", RESEARCHER_DESIGN_DOC):
+        logger.info("Updated 'researcher' CouchDB design document.")
     return db
 
 
@@ -112,9 +114,7 @@ def get_publication(db, identifier):
         doc = None
         for viewname in ["doi", "pmid"]:
             try:
-                doc = publications.database.get_doc(
-                    db, "publication", viewname, identifier
-                )
+                doc = get_doc(db, "publication", viewname, identifier)
                 break
             except KeyError:
                 pass
@@ -133,7 +133,7 @@ def get_researcher(db, identifier):
         doc = db[identifier.lower()]
     except couchdb2.NotFoundError:
         try:
-            doc = publications.database.get_doc(db, "researcher", "orcid", identifier)
+            doc = get_doc(db, "researcher", "orcid", identifier)
         except KeyError:
             raise KeyError(f"no such researcher '{identifier}'.")
     return doc
@@ -150,9 +150,7 @@ def get_label(db, identifier):
     except couchdb2.NotFoundError:
         identifier = utils.to_ascii(identifier).lower()
         try:
-            doc = publications.database.get_doc(
-                db, "label", "normalized_value", identifier
-            )
+            doc = get_doc(db, "label", "normalized_value", identifier)
         except KeyError:
             raise KeyError(f"no such label '{identifier}'")
     return doc
@@ -188,7 +186,7 @@ def get_blacklisted(db, identifier):
         return None
     for viewname in ["doi", "pmid"]:
         try:
-            return publications.database.get_doc(db, "blacklist", viewname, identifier)
+            return get_doc(db, "blacklist", viewname, identifier)
         except KeyError:
             pass
     return None
@@ -518,6 +516,30 @@ function (doc) {
     emit(xref.key, xref.db);
   }
 }"""
+        },
+    }
+}
+
+RESEARCHER_DESIGN_DOC = {
+    "views": {
+        "orcid": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  if (doc.orcid) emit(doc.orcid, doc.family + ' ' + doc.initials);
+}"""
+        },
+        "family": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  emit(doc.family_normalized, doc.family + ' ' + doc.initials);
+}"""
+        },
+        "name": {
+            "reduce": "_count",
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  emit(doc.family_normalized + ' ' + doc.initials_normalized, null);
+}""",
         },
     }
 }
