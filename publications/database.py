@@ -112,9 +112,7 @@ def get_publication(db, identifier):
         doc = None
         for viewname in ["doi", "pmid"]:
             try:
-                doc = publications.database.get_doc(
-                    db, "publication", viewname, identifier
-                )
+                doc = get_doc(db, "publication", viewname, identifier)
                 break
             except KeyError:
                 pass
@@ -133,7 +131,7 @@ def get_researcher(db, identifier):
         doc = db[identifier.lower()]
     except couchdb2.NotFoundError:
         try:
-            doc = publications.database.get_doc(db, "researcher", "orcid", identifier)
+            doc = get_doc(db, "researcher", "orcid", identifier)
         except KeyError:
             raise KeyError(f"no such researcher '{identifier}'.")
     return doc
@@ -150,9 +148,7 @@ def get_label(db, identifier):
     except couchdb2.NotFoundError:
         identifier = utils.to_ascii(identifier).lower()
         try:
-            doc = publications.database.get_doc(
-                db, "label", "normalized_value", identifier
-            )
+            doc = get_doc(db, "label", "normalized_value", identifier)
         except KeyError:
             raise KeyError(f"no such label '{identifier}'")
     return doc
@@ -188,7 +184,7 @@ def get_blacklisted(db, identifier):
         return None
     for viewname in ["doi", "pmid"]:
         try:
-            return publications.database.get_doc(db, "blacklist", viewname, identifier)
+            return get_doc(db, "blacklist", viewname, identifier)
         except KeyError:
             pass
     return None
