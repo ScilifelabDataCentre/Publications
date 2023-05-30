@@ -47,6 +47,8 @@ def update_design_documents(db=None):
         logger.info("Updated 'log' CouchDB design document.")
     if db.put_design("publication", PUBLICATION_DESIGN_DOC):
         logger.info("Updated 'publication' CouchDB design document.")
+    if db.put_design("researcher", RESEARCHER_DESIGN_DOC):
+        logger.info("Updated 'researcher' CouchDB design document.")
     return db
 
 
@@ -514,6 +516,30 @@ function (doc) {
     emit(xref.key, xref.db);
   }
 }"""
+        },
+    }
+}
+
+RESEARCHER_DESIGN_DOC = {
+    "views": {
+        "orcid": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  if (doc.orcid) emit(doc.orcid, doc.family + ' ' + doc.initials);
+}"""
+        },
+        "family": {
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  emit(doc.family_normalized, doc.family + ' ' + doc.initials);
+}"""
+        },
+        "name": {
+            "reduce": "_count",
+            "map": """function (doc) {
+  if (doc.publications_doctype !== 'researcher') return;
+  emit(doc.family_normalized + ' ' + doc.initials_normalized, null);
+}""",
         },
     }
 }

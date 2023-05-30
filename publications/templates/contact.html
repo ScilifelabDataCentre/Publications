@@ -7,11 +7,9 @@
 {% block body_title %}<span class="glyphicon glyphicon-bullhorn"></span> Contact{% end %}
 
 {% block main_content %}
-<p>
-  {% if contact %}
-  {% raw contact %}
-  {% else %}
-  <i>No contact information available.</i>
-  {% end %}
-</p>
+{% if contact %}
+{% raw contact %}
+{% else %}
+<i>No contact information available.</i>
+{% end %}
 {% end %} {# block main_content #}
