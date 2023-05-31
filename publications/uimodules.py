@@ -166,11 +166,11 @@ class Translate(tornado.web.UIModule):
     "Translate the term, or keep as is."
 
     def render(self, term):
-        istitle = term.istitle()
-        try:
-            term = settings["DISPLAY_TRANSLATIONS"][term.lower()]
-            if istitle:
-                term = term.title()
-        except KeyError:
-            pass
-        return term
+        translated = settings["DISPLAY_TRANSLATIONS"].get(term.lower())
+        if translated:
+            if term.istitle():
+                return translated.title()
+            else:
+                return translated
+        else:
+            return term

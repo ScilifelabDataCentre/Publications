@@ -18,7 +18,6 @@ PORT: 8885
 # Logging and debug.
 TORNADO_DEBUG: True
 LOGGING_DEBUG: True
-LOGGING_FILEPATH: '/var/log/nginx/publications.log'
 
 # CouchDB database connection setup.
 
@@ -39,26 +38,6 @@ DATABASE_PASSWORD: 'secret'
 # Login setup. Once set, changing these will invalidate all passwords.
 COOKIE_SECRET: 'long random string of characters'
 PASSWORD_SALT: 'another long random string of characters'
-
-# Site customization.
-SITE_NAME: 'Publications'
-SITE_TITLE: 'Publications'
-SITE_TEXT: 'Publications from our institute.'
-SITE_PARENT_URL: 'https://www.whatever.org/'
-SITE_PARENT_NAME: 'Whatever'
-SITE_CONTACT: '<p>Questions? Contact us: <b>info@swhatever.org</b></p>'
-SITE_EMAIL: 'info@whatever.org'
-SITE_LABEL_QUALIFIERS:
-  - Research
-  - Service
-  - Technology development
-
-# Template URLs for generating xref links
-XREF_TEMPLATE_URLS:
-  pmc: 'https://www.ncbi.nlm.nih.gov/pmc/articles/%s/'
-  bioproject: 'https://www.ncbi.nlm.nih.gov/bioproject/%s'
-  genbank: 'https://www.ncbi.nlm.nih.gov/nuccore/%s'
-  dryad: 'https://datadryad.org/resource/doi:%s'
 
 # Email using server running on the host machine.
 EMAIL:
