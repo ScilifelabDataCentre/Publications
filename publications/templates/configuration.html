@@ -58,6 +58,7 @@
       </div>
       <span class="help-block">
         The site icon file to upload.
+        <br>
         Current site icon:
         <img src="{{ reverse_url('site', 'icon') }}" style="border: 1px solid black">
       </span>
@@ -85,7 +86,9 @@
         </div>
       </div>
       <span class="help-block">
-        The favicon file to upload. Current favicon:
+        The favicon file to upload.
+        <br>
+        Current favicon:
         <img src="{{ reverse_url('site', 'favicon') }}" style="border: 1px solid black">
       </span>
     </div>
@@ -129,6 +132,161 @@
       </div>
       <span class="help-block">
         The URL of the hosting site. Optional.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-2" for="translations">Term translations</label>
+    <div class="col-md-10">
+      <table class="table table-condensed">
+        <thead>
+          <tr>
+            <th>Term</th>
+            <th>Translation to display</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for key in settings['DISPLAY_TRANSLATIONS'] %}
+          <tr>
+            <td>
+              <p class="form-control-static">{{ key }}</p>
+            </td>
+            <td>
+              <input type="text" name="translation_{{ key }}" id="translation_{{ key }}"
+                     class="form-control"
+                     value="{{ settings['DISPLAY_TRANSLATIONS'][key] or '' }}">
+            </td>
+          </tr>
+          {% end %}
+        </tbody>
+      </table>
+      <span class="help-block">
+        Translations of some terms in the pages.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-2" for="temporal_labels">Temporal labels</label>
+    <div class="col-md-10">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" id="temporal_labels" name="temporal_labels" value="yes"
+                 {{ settings['TEMPORAL_LABELS'] and 'checked' or '' }}>
+          Labels have a 'Started' and 'Ended' years to denote activity or validity.
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-2" for="number_first_authors">Number of first authors</label>
+    <div class="col-md-10">
+      <div class="row">
+        <div class="col-md-2">
+          <input type="number" name="number_first_authors" id="number_first_authors" min="1"
+                 class="form-control" value="{{ settings['NUMBER_FIRST_AUTHORS'] }}">
+        </div>
+      </div>
+      <span class="help-block">
+        The number of first authors to show for publications in lists.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-2" for="number_last_authors">Number of last authors</label>
+    <div class="col-md-10">
+      <div class="row">
+        <div class="col-md-2">
+          <input type="number" name="number_last_authors" id="number_last_authors" min="1"
+                 class="form-control" value="{{ settings['NUMBER_LAST_AUTHORS'] }}">
+        </div>
+      </div>
+      <span class="help-block">
+        The number of last authors to show for publications in lists.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-2" for="short_publications_list_limit">Number in short lists</label>
+    <div class="col-md-10">
+      <div class="row">
+        <div class="col-md-2">
+          <input type="number" name="short_publications_list_limit" id="short_publications_list_limit" min="1"
+                 class="form-control" value="{{ settings['SHORT_PUBLICATIONS_LIST_LIMIT'] }}">
+        </div>
+      </div>
+      <span class="help-block">
+        The number of publications to show in pages containing short lists.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-2" for="long_publications_list_limit">Number in long lists</label>
+    <div class="col-md-10">
+      <div class="row">
+        <div class="col-md-2">
+          <input type="number" name="long_publications_list_limit" id="long_publications_list_limit" min="1"
+                 class="form-control" value="{{ settings['LONG_PUBLICATIONS_LIST_LIMIT'] }}">
+        </div>
+      </div>
+      <span class="help-block">
+        The number of publications to show in pages containing long lists.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="control-label col-md-2" for="xref_template_urls">Xref template URLs</label>
+    <div class="col-md-10">
+      <table class="table table-condensed">
+        <thead>
+          <tr>
+            <th width="30%">Xref</th>
+            <th>Template URL</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for key, value in settings['XREF_TEMPLATE_URLS'].items() %}
+          <tr>
+            <td>
+              <p class="form-control-static">{{ key }}</p>
+            </td>
+            <td>
+              <input type="text" name="xref_{{ key }}" id="xref_{{ key }}"
+                     class="form-control" value="{{ value }}">
+            </td>
+          </tr>
+          {% end %}
+          <tr>
+            <td>
+              <input type="text" name="xref" id="xref" class="form-control">
+            </td>
+            <td>
+              <input type="text" name="xreftemplate" id="xreftemplate"
+                     class="form-control">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <span class="help-block">
+        <p>
+          Template URLs for references to external databases. The
+          database key is inserted at the <code>%s</code> in the
+          template URL. The database symbol (xref) is matched ignoring
+          character case.
+        </p>
+        <p>
+          To add a new entry, give both the database symbol (xref) and the
+          template URL in input fields of the last row.
+        </p>
+        <p>
+          To remove an entry, give the database symbol (xref) with no value
+          in the input fields of the last row.
       </span>
     </div>
   </div>

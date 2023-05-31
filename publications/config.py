@@ -40,39 +40,13 @@ DEFAULT_SETTINGS = dict(
     MAIL_REPLY_TO=None,
     MIN_PASSWORD_LENGTH=6,
     LOGIN_MAX_AGE_DAYS=14,
-    PUBMED_DELAY=0.5,  # Delay before PubMed fetch, to avoid block.
+    PUBMED_DELAY=0.5,  # Delay before PubMed fetch, to avoid being blocked.
     PUBMED_TIMEOUT=5.0,  # Timeout limit for PubMed fetch.
     NCBI_API_KEY=None,  # NCBI account API key, if any.
-    CROSSREF_DELAY=0.5,  # Delay before Crossref fetch, to avoid block.
+    CROSSREF_DELAY=0.5,  # Delay before Crossref fetch, to avoid being blocked.
     CROSSREF_TIMEOUT=10.0,  # Timeout limit for Crossref fetch.
     PUBLICATIONS_FETCHED_LIMIT=10,
-    SHORT_PUBLICATIONS_LIST_LIMIT=20,
-    LONG_PUBLICATIONS_LIST_LIMIT=200,
-    TEMPORAL_LABELS=False,
     MAX_NUMBER_LABELS_PRECHECKED=6,
-    NUMBER_FIRST_AUTHORS=3,
-    NUMBER_LAST_AUTHORS=2,
-    DISPLAY_TRANSLATIONS={},
-    XREF_TEMPLATE_URLS={
-        "ArrayExpress": "https://www.ebi.ac.uk/arrayexpress/experiments/%s/",
-        "BioProject": "https://www.ncbi.nlm.nih.gov/bioproject/%s",
-        "ClinicalTrials.gov": "https://clinicaltrials.gov/ct2/show/%s",
-        "Dryad": "https://datadryad.org/resource/doi:%-s",
-        "dbGaP": "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=%-s",
-        "EBI": "https://www.ebi.ac.uk/ebisearch/search.ebi?db=allebi&query=%s",
-        "figshare": "https://doi.org/%s",
-        "Genbank": "https://www.ncbi.nlm.nih.gov/nuccore/%s",
-        "GEO": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=%s",
-        "ISRCTN": "https://doi.org/10.1186/%s",
-        "Mendeley": "https://doi.org/%s",
-        "mid": "https://www.ncbi.nlm.nih.gov/pubmed/?term=%s",
-        "PDB": "https://www.rcsb.org/structure/%s/",
-        "PMC": "https://www.ncbi.nlm.nih.gov/pmc/articles/%s/",
-        "PubChem-Substance": "https://pubchem.ncbi.nlm.nih.gov/substance/%s",
-        "RefSeq": "https://www.ncbi.nlm.nih.gov/nuccore/%s",
-        "SRA": "https://www.ncbi.nlm.nih.gov/sra/?term=%s",
-        "Zenodo": "https://doi.org/%s",
-    },
 )
 
 SECRET_SETTINGS = (
@@ -90,7 +64,6 @@ def load_settings_from_file():
     2) Try the filepath in the environment variable PUBLICATIONS_SETTINGS_FILEPATH.
     3) The file '../site/settings.yaml' relative to this directory.
     4) Use any environment variables defined; settings file values are overwritten.
-    Raise IOError if settings file could not be read.
     Raise KeyError if a settings variable is missing.
     Raise ValueError if a settings variable value is invalid.
     """
@@ -160,13 +133,6 @@ def load_settings_from_file():
     ):
         raise ValueError("Either MAIL_DEFAULT_SENDER or MAIL_USERNAME must be defined.")
 
-    # Set up the xref templates URLs; always lower-case keys.
-    for key in list(settings["XREF_TEMPLATE_URLS"].keys()):
-        settings["XREF_TEMPLATE_URLS"][key.lower()] = settings[
-            "XREF_TEMPLATE_URLS"
-        ].pop(key)
-    settings["XREF_TEMPLATE_URLS"]["url"] = "%s"
-
 
 def load_settings_from_database(db):
     """Load settings from the database configuration document.
@@ -187,17 +153,54 @@ def load_settings_from_database(db):
         }
         db.put(configuration)
         logging.getLogger("publications").info("Created 'configuration' document.")
-    else:
-        for name in ("icon", "favicon"):
-            key = f"SITE_{name.upper()}"
-            if configuration.get("_attachments", {}).get(name):
-                settings[key] = dict(
-                    content_type=configuration["_attachments"][name]["content_type"],
-                    content=db.get_attachment(configuration, name).read(),
-                )
-            else:
-                settings[key] = None
+
+    # From version 9.2.0: Update from current 'settings', or set from scratch.
+    if "DISPLAY_TRANSLATIONS" not in configuration:
+        configuration["DISPLAY_TRANSLATIONS"]= {
+            "label": settings["DISPLAY_TRANSLATIONS"].get("label"),
+            "labels": settings["DISPLAY_TRANSLATIONS"].get("labels"),
+        }
+        configuration["TEMPORAL_LABELS"] = bool(settings.get("TEMPORAL_LABELS"))
+        configuration["SHORT_PUBLICATIONS_LIST_LIMIT"] = 20
+        configuration["LONG_PUBLICATIONS_LIST_LIMIT"] = 200
+        configuration["NUMBER_FIRST_AUTHORS"] = 3
+        configuration["NUMBER_LAST_AUTHORS"] = 2
+        configuration["XREF_TEMPLATE_URLS"] = {  # Key is always lower-case.
+            "url": "%s",
+            "arrayexpress": "https://www.ebi.ac.uk/arrayexpress/experiments/%s/",
+            "bioproject": "https://www.ncbi.nlm.nih.gov/bioproject/%s",
+            "clinicaltrials.gov": "https://clinicaltrials.gov/ct2/show/%s",
+            "dryad": "https://datadryad.org/resource/doi:%s",
+            "dbgap": "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=%-s",
+            "ebi": "https://www.ebi.ac.uk/ebisearch/search.ebi?db=allebi&query=%s",
+            "figshare": "https://doi.org/%s",
+            "genbank": "https://www.ncbi.nlm.nih.gov/nuccore/%s",
+            "geo": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=%s",
+            "isrctn": "https://doi.org/10.1186/%s",
+            "mendeley": "https://doi.org/%s",
+            "mid": "https://www.ncbi.nlm.nih.gov/pubmed/?term=%s",
+            "pdb": "https://www.rcsb.org/structure/%s/",
+            "pmc": "https://www.ncbi.nlm.nih.gov/pmc/articles/%s/",
+            "pubchem-substance": "https://pubchem.ncbi.nlm.nih.gov/substance/%s",
+            "refseq": "https://www.ncbi.nlm.nih.gov/nuccore/%s",
+            "sra": "https://www.ncbi.nlm.nih.gov/sra/?term=%s",
+            "zenodo": "https://doi.org/%s",
+        }
+        db.put(configuration)
+        logging.getLogger("publications").info("Updated 'configuration' document.")
+
     settings.update(configuration)
+
+    # Cache the image files directly in 'settings'.
+    for name in ("icon", "favicon"):
+        key = f"SITE_{name.upper()}"
+        if configuration.get("_attachments", {}).get(name):
+            settings[key] = dict(
+                content_type=configuration["_attachments"][name]["content_type"],
+                content=db.get_attachment(configuration, name).read(),
+            )
+        else:
+            settings[key] = None
 
 
 class Configuration(RequestHandler):
@@ -223,7 +226,33 @@ class Configuration(RequestHandler):
             configuration["SITE_LABEL_QUALIFIERS"] = [q for q in qualifiers if q]
             configuration["SITE_HOST_NAME"] = self.get_argument("host_name") or None
             configuration["SITE_HOST_URL"] = self.get_argument("host_url") or None
+            for key in configuration["DISPLAY_TRANSLATIONS"]:
+                value = self.get_argument(f"translation_{key}", "") or ""
+                configuration["DISPLAY_TRANSLATIONS"][key] = value.strip() or None
+            configuration["TEMPORAL_LABELS"] = utils.to_bool(self.get_argument("temporal_labels", False))
+            for key in ["NUMBER_FIRST_AUTHORS",
+                        "NUMBER_LAST_AUTHORS",
+                        "SHORT_PUBLICATIONS_LIST_LIMIT",
+                        "LONG_PUBLICATIONS_LIST_LIMIT"]:
+                try:
+                    configuration[key] = max(1, int(self.get_argument(key.lower())))
+                except (ValueError, TypeError):
+                    pass
+            for key in list(configuration["XREF_TEMPLATE_URLS"]):
+                value = self.get_argument(f"xref_{key}", None)
+                print(key, value)
+                if not value:
+                    configuration["XREF_TEMPLATE_URLS"].pop(key)
+            key = self.get_argument(f"xref", "").strip()
+            if key:
+                print(key)
+                value = self.get_argument(f"xreftemplate", "").strip()
+                print(value)
+                if value and "%s" in value:
+                    configuration["XREF_TEMPLATE_URLS"][key.lower()] = value
             self.db.put(configuration)
+
+            # Set or remove new image files.
             for name in ("icon", "favicon"):
                 if utils.to_bool(self.get_argument(f"{name}_default", False)):
                     try:
@@ -251,11 +280,8 @@ class Site(RequestHandler):
     def get(self, name):
         if name not in ("icon", "favicon"):
             raise tornado.web.HTTPError(404)
-        try:
-            data = settings[f"SITE_{name.upper()}"]
-            if data is None:
-                raise KeyError
-        except KeyError:
+        data = settings[f"SITE_{name.upper()}"]
+        if data is None:        # No file in database; use default.
             with open(f"{constants.STATIC_DIR}/{name}.png", "rb") as infile:
                 data = dict(content=infile.read(), content_type=constants.PNG_MIME)
         self.write(data["content"])
