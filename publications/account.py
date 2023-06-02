@@ -47,6 +47,11 @@ EMAIL_ERROR = "Could not send email. Contact the administrator."
 class AccountSaver(publications.saver.Saver):
     doctype = constants.ACCOUNT
 
+    def set_orcid(self, orcid):
+        if orcid and not constants.ORCID_RX.match(orcid):
+            raise ValueError(f"Invalid format for ORCID value '{value}'")
+        self["orcid"] = orcid
+
     def set_email(self, email):
         assert self.get("email") is None  # Email must not have been set.
         email = email.strip().lower()
@@ -241,7 +246,7 @@ class AccountAdd(RequestHandler):
                 saver.set_email(email)
                 saver["owner"] = email
                 saver["name"] = self.get_argument("name", None)
-                saver["orcid"] = self.get_argument("orcid", None)
+                saver.set_orcid(self.get_argument("orcid", None))
                 saver["role"] = role
                 labels = set([l["value"] for l in self.get_docs("label", "value")])
                 saver["labels"] = sorted(

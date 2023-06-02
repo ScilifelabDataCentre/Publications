@@ -42,8 +42,10 @@ class ResearcherSaver(publications.saver.Saver):
         if self.get("orcid"):
             return
         if value is None:
-            value = self.rqh.get_argument("orcid", "").strip()
+            value = self.rqh.get_argument("orcid", "").strip().upper()
         if value:
+            if not constants.ORCID_RX.match(value):
+                raise ValueError(f"Invalid format for ORCID value '{value}'")
             try:
                 publications.database.get_researcher(self.db, value)
             except KeyError:

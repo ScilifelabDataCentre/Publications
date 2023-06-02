@@ -2,6 +2,7 @@
 
 import json
 import os.path
+import re
 import sys
 import time
 import unicodedata
@@ -12,6 +13,8 @@ CROSSREF_FETCH_URL = "https://api.crossref.org/works/%s"
 
 DEFAULT_TIMEOUT = 5.0
 DEFAULT_DELAY = 0.5
+
+ORCID_RX = re.compile(r"^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[X0-9]$")
 
 
 def fetch(doi, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY, debug=False):
@@ -99,8 +102,7 @@ def get_authors(data):
         author["initials"] = "".join([n[0] for n in given.split()])
         author["initials_normalized"] = to_ascii(author["initials"]).lower()
         try:
-            # ORCID given as URL; split away all except id proper.
-            author["orcid"] = item["ORCID"].split("/")[-1]
+            author["orcid"] = normalize_orcid(item["ORCID"])
         except KeyError:
             pass
         author["affiliations"] = []
@@ -208,6 +210,19 @@ def to_ascii(value):
 def squish(value):
     "Remove all unnecessary white spaces."
     return " ".join([p for p in value.split() if p])
+
+
+def normalize_orcid(value):
+    "Try to normalize ORCID. Return None if invalid format."
+    "Try to normalize ORCID. Return None if invalid format."
+    if not value:
+        return None
+    # ORCID may be given as an URL; split away all except id proper.
+    value = value.split("/")[-1].upper()
+    # Remove dashes, reintroduce, test.
+    value = value.replace("-", "")
+    value = f"{value[0:4]}-{value[4:8]}-{value[8:12]}-{value[12:16]}"
+    return value if ORCID_RX.match(value) else None
 
 
 def test_fetch():

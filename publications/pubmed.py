@@ -3,6 +3,7 @@
 import json
 import os
 import os.path
+import re
 import string
 import sys
 import time
@@ -32,6 +33,8 @@ MONTHS = dict(
     nov=11,
     dec=12,
 )
+
+ORCID_RX = re.compile(r"^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[X0-9]$")
 
 
 def search(
@@ -209,8 +212,7 @@ def get_authors(article):
             author["initials_normalized"] = ""
         for elem in element.findall("Identifier"):
             if elem.attrib.get("Source") == "ORCID":
-                # ORCID may be given as an URL; split away all except id proper.
-                author["orcid"] = get_text(elem).split("/")[-1]
+                author["orcid"] = normalize_orcid(get_text(elem))
         for elem in element.findall(".//Affiliation"):
             author.setdefault("affiliations", []).append(get_text(elem))
         if author:
@@ -398,6 +400,18 @@ def to_ascii(value):
 def squish(value):
     "Remove all unnecessary white spaces."
     return " ".join([p for p in value.split() if p])
+
+
+def normalize_orcid(value):
+    "Try to normalize ORCID. Return None if invalid format."
+    if not value:
+        return None
+    # ORCID may be given as an URL; split away all except id proper.
+    value = value.split("/")[-1].upper()
+    # Remove dashes, reintroduce, test.
+    value = value.replace("-", "")
+    value = f"{value[0:4]}-{value[4:8]}-{value[8:12]}-{value[12:16]}"
+    return value if ORCID_RX.match(value) else None
 
 
 def test():

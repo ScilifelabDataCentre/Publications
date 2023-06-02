@@ -4,7 +4,7 @@ import os.path
 import re
 import sys
 
-__version__ = "9.2.2"
+__version__ = "9.3.0"
 
 
 class Constants:
@@ -82,6 +82,7 @@ class Constants:
     DATE_RX = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")  # Safe until 9999 CE...
     EMAIL_RX = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
     PMID_RX = re.compile(r"^[1-9]\d*$")
+    ORCID_RX = re.compile(r"^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[X0-9]$")
 
     # CouchDB
     # For view ranges: CouchDB uses the Unicode Collation Algorithm,
