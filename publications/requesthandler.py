@@ -455,12 +455,12 @@ class DownloadParametersMixin:
     def get_parameters(self):
         "Return the output parameters from the form arguments."
         result = dict(
-            single_label=to_bool(self.get_argument("single_label", False)),
-            all_authors=to_bool(self.get_argument("all_authors", False)),
-            issn=to_bool(self.get_argument("issn", False)),
-            numbered=to_bool(self.get_argument("numbered", False)),
-            doi_url=to_bool(self.get_argument("doi_url", False)),
-            pmid_url=to_bool(self.get_argument("pmid_url", False)),
+            single_label=utils.to_bool(self.get_argument("single_label", False)),
+            all_authors=utils.to_bool(self.get_argument("all_authors", False)),
+            issn=utils.to_bool(self.get_argument("issn", False)),
+            numbered=utils.to_bool(self.get_argument("numbered", False)),
+            doi_url=utils.to_bool(self.get_argument("doi_url", False)),
+            pmid_url=utils.to_bool(self.get_argument("pmid_url", False)),
         )
         try:
             result["maxline"] = self.get_argument("maxline", None)
