@@ -157,8 +157,8 @@ def load_settings_from_database(db):
     # From version 9.2.0: Update from current 'settings', or set from scratch.
     if "DISPLAY_TRANSLATIONS" not in configuration:
         configuration["DISPLAY_TRANSLATIONS"]= {
-            "label": settings["DISPLAY_TRANSLATIONS"].get("label"),
-            "labels": settings["DISPLAY_TRANSLATIONS"].get("labels"),
+            "label": settings.get("DISPLAY_TRANSLATIONS", {}).get("label"),
+            "labels": settings.get("DISPLAY_TRANSLATIONS", {}).get("labels"),
         }
         configuration["TEMPORAL_LABELS"] = bool(settings.get("TEMPORAL_LABELS"))
         configuration["SHORT_PUBLICATIONS_LIST_LIMIT"] = 20
