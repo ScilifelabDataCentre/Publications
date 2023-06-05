@@ -216,6 +216,7 @@ class Configuration(RequestHandler):
         self.check_admin()
         configuration = self.db["configuration"]
         try:
+            configuration["ALERT"] = self.get_argument("alert") or None
             configuration["SITE_NAME"] = self.get_argument("name") or "Publications"
             configuration["SITE_TEXT"] = (
                 self.get_argument("text") or "A publications reference database system."

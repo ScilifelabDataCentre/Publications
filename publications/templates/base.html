@@ -303,6 +303,11 @@
 	       title="{{ settings['SITE_NAME'] }}">
 	</div>
 	<div class="col-md-8">
+          {% if settings.get('ALERT') %}
+          <div class="panel panel-default">
+            <div class="panel-body bg-danger">{% raw settings['ALERT'] %}</div>
+          </div>
+          {% end %}
 	  <h1>{% block body_title %}{{ title }}{% end %}</h1>
 	  {% block body_subtitle %}{% end %}
 	</div>

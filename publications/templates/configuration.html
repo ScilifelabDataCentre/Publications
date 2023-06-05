@@ -12,6 +12,17 @@
   {% module xsrf_form_html() %}
 
   <div class="form-group">
+    <label class="control-label col-md-2" for="alert">Alert</label>
+    <div class="col-md-10">
+      <input type="text" name="alert" id="alert" class="form-control"
+                 value="{{ settings.get('ALERT') or '' }}">
+      <span class="help-block">
+        Alert text displayed at the top of each page. May contain HTML.
+      </span>
+    </div>
+  </div>
+
+  <div class="form-group">
     <label class="control-label col-md-2" for="name">Site name</label>
     <div class="col-md-10">
       <div class="row">
