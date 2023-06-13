@@ -13,7 +13,7 @@ from publications import constants
 from publications import settings
 from publications.subset import Subset
 from publications.requesthandler import RequestHandler
-import publications.config
+import publications.admin
 
 
 class Home(RequestHandler):
@@ -39,8 +39,8 @@ class Settings(RequestHandler):
     def get(self):
         self.check_admin()
         display = dict()
-        for key in publications.config.DEFAULT_SETTINGS:
-            if key in publications.config.SECRET_SETTINGS:
+        for key in publications.admin.DEFAULT_SETTINGS:
+            if key in publications.admin.SECRET_SETTINGS:
                 display[key] = "<hidden>"
             else:
                 display[key] = settings[key]

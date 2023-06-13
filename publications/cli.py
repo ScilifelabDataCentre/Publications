@@ -19,7 +19,7 @@ from publications.account import AccountSaver
 from publications.publication import PublicationSaver, fetch_publication
 from publications.subset import Subset, get_parser
 
-import publications.config
+import publications.admin
 import publications.main
 import publications.database
 import publications.writer
@@ -27,7 +27,7 @@ import publications.writer
 
 @click.group()
 def cli():
-    publications.config.load_settings_from_file()
+    publications.admin.load_settings_from_file()
 
 
 @cli.command()

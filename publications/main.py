@@ -11,7 +11,7 @@ from publications import settings
 from publications import uimodules
 from publications import utils
 
-import publications.config
+import publications.admin
 import publications.home
 import publications.account
 import publications.publication
@@ -285,10 +285,10 @@ def get_handlers():
             publications.publication.ApiPublicationLabels,
             name="api_publication_labels",
         ),
-        url(r"/site/([^/]+)", publications.config.Site, name="site"),
+        url(r"/site/([^/]+)", publications.admin.Site, name="site"),
         url(
             r"/configuration",
-            publications.config.Configuration,
+            publications.admin.Configuration,
             name="configuration",
         ),
         url(r"/(.*)", publications.home.NoSuchEntity),
@@ -296,10 +296,10 @@ def get_handlers():
 
 
 def main():
-    publications.config.load_settings_from_file()
+    publications.admin.load_settings_from_file()
     db = publications.database.get_db()
     publications.database.update_design_documents(db)
-    publications.config.load_settings_from_database(db)
+    publications.admin.load_settings_from_database(db)
     application = tornado.web.Application(
         handlers=get_handlers(),
         debug=settings.get("TORNADO_DEBUG", False),
