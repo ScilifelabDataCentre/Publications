@@ -9,7 +9,7 @@ from publications import settings
 from publications import utils
 
 
-def get_dbserver():
+def get_server():
     "Return the CouchDB2 handle for the CouchDB server."
     kwargs = dict(href=settings["DATABASE_SERVER"])
     if settings.get("DATABASE_ACCOUNT") and settings.get("DATABASE_PASSWORD"):
@@ -22,7 +22,7 @@ def get_db():
     """Return the CouchDB2 handle for the CouchDB database.
     The named database must exist.
     """
-    server = get_dbserver()
+    server = get_server()
     name = settings["DATABASE_NAME"]
     try:
         return server[name]
@@ -88,6 +88,17 @@ def get_count(db, designname, viewname, key=None):
         return list(view)[0].value
     except IndexError:
         return 0
+
+
+def get_counts(db):
+    "Get the counts for the most important entities in the database."
+    return dict(
+        n_publications=get_count(db, "publication", "year"),
+        n_labels=get_count(db, "label", "value"),
+        n_researchers=get_count(db, "researcher", "name"),
+        n_accounts=get_count(db, "account", "email"),
+        n_documents=len(db)
+    )
 
 
 def get_account(db, email):

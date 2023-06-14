@@ -271,7 +271,6 @@ def get_handlers():
         url(r"/subset", publications.subset.SubsetDisplay, name="subset"),
         url(r"/logs/([^/]+)", publications.home.Logs, name="logs"),
         url(r"/contact", publications.home.Contact, name="contact"),
-        url(r"/settings", publications.home.Settings, name="settings"),
         url(r"/software", publications.home.Software, name="software"),
         url(constants.LOGIN_URL, publications.account.Login, name="login"),
         url(r"/logout", publications.account.Logout, name="logout"),
@@ -291,6 +290,8 @@ def get_handlers():
             publications.admin.Configuration,
             name="configuration",
         ),
+        url(r"/database", publications.admin.Database, name="database"),
+        url(r"/settings", publications.admin.Settings, name="settings"),
         url(r"/(.*)", publications.home.NoSuchEntity),
     ]
 
