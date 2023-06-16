@@ -24,32 +24,30 @@ Edit researchers for
 
   <input type="hidden" name="_rev" value="{{ publication['_rev'] }}">
 
-  {% for author in publication['authors'] %}
-  {% set name = author['family'] + ' ' + author['initials'] %}
-  {% set name_normalized = author['family_normalized'] + ' ' + author['initials_normalized'] %}
+  {% for pos, author in enumerate(publication['authors']) %}
   <div class="form-group">
     {% if author.get('researcher') %}
     <label class="control-label col-md-3">
-      <a href="{{ reverse_url('researcher', author['researcher']) }}">{{ name }}</a>
+      <a href="{{ reverse_url('researcher', author['researcher']) }}">{{ author['name'] }}</a>
     </label>
     <div class="col-md-8">
       <label class="radio-inline">
-	<input type="radio" name="{{ name_normalized }}" checked value="true">
+	<input type="radio" name="{{ author['researcher'] }}" checked value="true">
         Keep
       </label>
       <label class="radio-inline">
-	<input type="radio" name="{{ name_normalized }}" value="false">
+	<input type="radio" name="{{ author['researcher'] }}" value="false">
         Remove current association
       </label>
     </div>
     {% else %}
-    <label class="control-label col-md-3">{{ name }}</label>
+    <label class="control-label col-md-3">{{ author['name'] }}</label>
     <div class="col-md-8">
       {% if author['researchers'] %}
       {% for researcher in author['researchers'] %}
       <div class="checkbox">
         <label>
-	  <input type="checkbox" name="{{ name_normalized }}" value="{{ researcher['_id'] }}">
+	  <input type="checkbox" name="{{ pos }}" value="{{ researcher['_id'] }}">
           Set to:
           <a href="{{ reverse_url('researcher', researcher['_id']) }}">
             {{ researcher['family'] }} {{ researcher['initials'] }}
