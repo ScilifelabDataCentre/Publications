@@ -5,19 +5,18 @@
 # be specified as a command line argument or in the PUBLICATIONS_SETTINGS
 # environment variable.
 #
-# Remember to hide its contents from prying eyes by setting
-# access such that only the web server is allowed to read it.
+# Remember to hide its contents from prying eyes by setting access to
+# the settings file such that only the web server is allowed to read it.
 
+# Logging and debug; set to 'true' if needed during development.
+TORNADO_DEBUG: false
+LOGGING_DEBUG: false
 
 # Base URL for the site; the externally visible URL.
 BASE_URL: 'https://publications.whatever.org/'
 
 # Port for the tornado server.
 PORT: 8885
-
-# Logging and debug.
-TORNADO_DEBUG: True
-LOGGING_DEBUG: True
 
 # CouchDB database connection setup.
 

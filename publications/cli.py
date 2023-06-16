@@ -19,7 +19,7 @@ from publications.account import AccountSaver
 from publications.publication import PublicationSaver, fetch_publication
 from publications.subset import Subset, get_parser
 
-import publications.config
+import publications.admin
 import publications.main
 import publications.database
 import publications.writer
@@ -27,13 +27,13 @@ import publications.writer
 
 @click.group()
 def cli():
-    publications.config.load_settings_from_file()
+    publications.admin.load_settings_from_file()
 
 
 @cli.command()
 def destroy_database():
     "Hard delete of the entire database, including the instance within CouchDB."
-    server = publications.database.get_dbserver()
+    server = publications.database.get_server()
     try:
         db = server[settings["DATABASE_NAME"]]
     except couchdb2.NotFoundError as error:
@@ -52,7 +52,7 @@ def destroy_database():
 )
 def create_database(silent):
     "Create the database instance within CouchDB. Load the design documents."
-    server = publications.database.get_dbserver()
+    server = publications.database.get_server()
     if settings["DATABASE_NAME"] in server:
         if not silent:
             raise click.ClickException(

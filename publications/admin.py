@@ -13,6 +13,7 @@ from publications import settings
 from publications import utils
 from publications.requesthandler import RequestHandler
 
+import publications.database
 import publications.saver
 
 
@@ -216,6 +217,7 @@ class Configuration(RequestHandler):
         self.check_admin()
         configuration = self.db["configuration"]
         try:
+            configuration["ALERT"] = self.get_argument("alert") or None
             configuration["SITE_NAME"] = self.get_argument("name") or "Publications"
             configuration["SITE_TEXT"] = (
                 self.get_argument("text") or "A publications reference database system."
@@ -272,6 +274,47 @@ class Configuration(RequestHandler):
         load_settings_from_database(self.db)
         self.see_other("configuration")
         return
+
+
+class Database(RequestHandler):
+    "Show data about the database."
+
+    def get(self):
+        server = publications.database.get_server()
+        identifier = self.get_argument("identifier", "")
+        if identifier:
+            try:
+                doc = self.db[identifier]
+            except couchdb2.NotFoundError:
+                doc = None
+        else:  # If empty string, database info is returned. Don't do that.
+            doc = None
+        self.render(
+            "database.html",
+            identifier=identifier,
+            doc=doc,
+            counts=publications.database.get_counts(self.db),
+            db_info=self.db.get_info(),
+            server_data=server(),
+            databases=list(server),
+            system_stats=server.get_node_system(),
+            node_stats=server.get_node_stats(),
+        )
+
+
+class Settings(RequestHandler):
+    "Settings page."
+
+    @tornado.web.authenticated
+    def get(self):
+        self.check_admin()
+        display = dict()
+        for key in DEFAULT_SETTINGS:
+            if key in SECRET_SETTINGS:
+                display[key] = "<hidden>"
+            else:
+                display[key] = settings[key]
+        self.render("settings.html", display_settings=sorted(display.items()))
 
 
 class Site(RequestHandler):

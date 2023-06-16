@@ -1,0 +1,54 @@
+{# Database page. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Database{% end %}
+
+{% block body_title %}<span class="glyphicon glyphicon-hdd"></span> Database{% end %}
+
+{% block main_content %}
+<h3>Search OrderPortal CouchDB database</h3>
+<div class="row">
+  <div class="col-md-8">
+    <form action="{{ reverse_url('database') }}"
+          method="GET" role="form" class="form-inline">
+      <div class="form-group">
+        <div class="input-group">
+          <div class="input-group-addon">Find document</div>
+          <input type="text" name="identifier" id="identifier"
+                 class="form-control" size="40" placeholder="Identifier"
+                 value="{{ identifier }}">
+          <div class="input-group-btn">
+            <button class="btn btn-primary" type="submit">Lookup</button>
+          </div>
+        </div>
+        <div class="help-block">
+          Lookup a CouchDB document given its '_id' identifier.
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% if doc %}
+{% module Json(doc) %}
+{% end %}
+
+<h3>Document counts in the Publications CouchDB database</h3>
+{% module Json(counts) %}
+
+<h3>Publications CouchDB database info</h3>
+{% module Json(db_info) %}
+
+<h3>CouchDB server</h3>
+{% module Json(server_data) %}
+
+<h3>All databases in CouchDB server</h3>
+{% module Json([str(d) for d in databases]) %}
+
+<h3>CouchDB system stats</h3>
+{% module Json(system_stats) %}
+
+<h3>CouchDB node stats</h3>
+{% module Json(node_stats) %}
+
+{% end %} {# block main_content #}

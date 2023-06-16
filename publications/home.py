@@ -13,7 +13,8 @@ from publications import constants
 from publications import settings
 from publications.subset import Subset
 from publications.requesthandler import RequestHandler
-import publications.config
+
+import publications.database
 
 
 class Home(RequestHandler):
@@ -30,21 +31,6 @@ class Contact(RequestHandler):
 
     def get(self):
         self.render("contact.html", contact=settings["SITE_CONTACT"])
-
-
-class Settings(RequestHandler):
-    "Settings page."
-
-    @tornado.web.authenticated
-    def get(self):
-        self.check_admin()
-        display = dict()
-        for key in publications.config.DEFAULT_SETTINGS:
-            if key in publications.config.SECRET_SETTINGS:
-                display[key] = "<hidden>"
-            else:
-                display[key] = settings[key]
-        self.render("settings.html", display_settings=sorted(display.items()))
 
 
 class Software(RequestHandler):
@@ -75,15 +61,12 @@ class Software(RequestHandler):
 
 
 class Status(RequestHandler):
-    "Return JSON for the current status and the number of publications."
+    "Return JSON for the current status and the database entity counts."
 
     def get(self):
-        self.write(
-            dict(
-                status="OK",
-                n_publications=self.get_count("publication", "year"),
-            )
-        )
+        data = dict(status="OK")
+        data.update(publications.database.get_counts(self.db))
+        self.write(data)
 
 
 class Doc(RequestHandler):

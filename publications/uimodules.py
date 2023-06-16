@@ -1,5 +1,7 @@
 "User web interface modules."
 
+import json
+
 import tornado.web
 
 from publications import constants
@@ -174,3 +176,10 @@ class Translate(tornado.web.UIModule):
                 return translated
         else:
             return term
+
+
+class Json(tornado.web.UIModule):
+    "Display JSON with indent."
+
+    def render(self, data):
+        return f"<pre>{json.dumps(data, indent=2)}</pre>"
