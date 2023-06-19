@@ -93,6 +93,9 @@ def get_authors(data):
     for item in data["message"].get("author", []):
         author = dict()
         author["family"] = item.get("family")
+        # May be lacking for consortia and such; give up.
+        if not author["family"]:
+            continue
         author["family_normalized"] = to_ascii(author["family"]).lower()
         # Remove dots and dashes
         given = item.get("given", "").replace(".", " ").replace("-", " ")
