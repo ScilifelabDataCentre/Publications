@@ -38,7 +38,16 @@ DATABASE_PASSWORD: 'secret'
 COOKIE_SECRET: 'long random string of characters'
 PASSWORD_SALT: 'another long random string of characters'
 
-# Email using server running on the host machine.
-EMAIL:
-  HOST: 'localhost'
-  SENDER: '"My Name" <my.name@whatever.site>'
+# Email setup using server running on the host machine.
+# EMAIL:
+#   HOST: 'localhost'
+#   SENDER: '"My Name" <my.name@whatever.site>'
+
+# Email setup using Google server and my personal work account.
+# Account with an app-specific password.
+MAIL_SERVER: 'smtp.gmail.com'
+MAIL_DEFAULT_SENDER: '"Per Kraulis" <per.kraulis@scilifelab.se>'
+MAIL_PORT: 587
+MAIL_USE_TLS: true
+MAIL_USERNAME: 'per.kraulis@scilifelab.se'
+MAIL_PASSWORD: 'this must be the app-specific password'

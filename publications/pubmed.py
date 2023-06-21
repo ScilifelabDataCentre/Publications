@@ -412,17 +412,3 @@ def normalize_orcid(value):
     value = value.replace("-", "")
     value = f"{value[0:4]}-{value[4:8]}-{value[8:12]}-{value[12:16]}"
     return value if ORCID_RX.match(value) else None
-
-
-def test():
-    dirname = os.getcwd()
-    pmids = sys.argv[1:]
-    if not pmids:
-        pmids = ["32283633", "8142349", "7525970"]
-    for pmid in pmids:
-        data = fetch(pmid, dirname=dirname, debug=True)
-        print(json.dumps(data, indent=2, ensure_ascii=False))
-
-
-if __name__ == "__main__":
-    print(fetch("8142349", dirname="."))

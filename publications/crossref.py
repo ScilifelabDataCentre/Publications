@@ -14,6 +14,7 @@ CROSSREF_FETCH_URL = "https://api.crossref.org/works/%s"
 DEFAULT_TIMEOUT = 5.0
 DEFAULT_DELAY = 0.5
 
+MARKUP_RX = re.compile(r"<(/?.{1,6})>")
 ORCID_RX = re.compile(r"^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[X0-9]$")
 
 
@@ -54,7 +55,7 @@ def fetch(doi, dirname=None, timeout=DEFAULT_TIMEOUT, delay=DEFAULT_DELAY, debug
 def parse(data):
     "Parse JSON data for a publication into a dictionary."
     result = dict()
-    result["title"] = squish(get_title(data))
+    result["title"] = squish(remove_markup(get_title(data)))
     result["doi"] = get_doi(data)
     result["pmid"] = get_pmid(data)
     result["authors"] = get_authors(data)
@@ -210,6 +211,11 @@ def to_ascii(value):
     return "".join([c for c in value if not unicodedata.combining(c)])
 
 
+def remove_markup(value):
+    "Remove all markup-like code, e.g. <sub> or </sub> with empty string."
+    return MARKUP_RX.sub("", line)
+
+
 def squish(value):
     "Remove all unnecessary white spaces."
     return " ".join([p for p in value.split() if p])
@@ -226,20 +232,3 @@ def normalize_orcid(value):
     value = value.replace("-", "")
     value = f"{value[0:4]}-{value[4:8]}-{value[8:12]}-{value[12:16]}"
     return value if ORCID_RX.match(value) else None
-
-
-def test_fetch():
-    "Fetch a specific article."
-    key = "10.1016/j.cell.2015.12.018"
-    result = fetch(key)
-    assert result["doi"] == key
-
-
-if __name__ == "__main__":
-    dirname = os.getcwd()
-    dois = sys.argv[1:]
-    if not dois:
-        dois = ["10.1126/science.1260419"]
-    for doi in dois:
-        data = fetch(doi, dirname=dirname, debug=True)
-        print(json.dumps(data, indent=2, ensure_ascii=False))

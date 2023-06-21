@@ -132,7 +132,7 @@ def undump(dumpfile, progressbar):
 @cli.command()
 @click.option("--email", prompt=True)
 @click.option("--password")  # Get password after account existence check.
-def admin(email, password):
+def create_admin(email, password):
     "Create a user account having the admin role."
     db = publications.database.get_db()
     try:
@@ -197,7 +197,7 @@ def password(email, password):
 
 @cli.command()
 @click.argument("identifier")
-def show(identifier):
+def output(identifier):
     """Display the JSON for the single item in the database.
     The identifier may be a PMID, DOI, email, API key, label, ISSN, ISSN-L,
     ORCID, or IUID of the document.
