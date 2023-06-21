@@ -97,7 +97,7 @@ class PublicationSaver(publications.saver.Saver):
                 )
             )
         # Authors: Transfer previously associated researchers.
-        researchers = self._get_researchers()
+        researchers = self.get_researchers()
         for author in authors:
             key = "%s %s" % (author["family_normalized"], author["initials_normalized"])
             try:
@@ -106,7 +106,7 @@ class PublicationSaver(publications.saver.Saver):
                 pass
         self["authors"] = authors
 
-    def _get_researchers(self):
+    def get_researchers(self):
         "Get the current assocations of author to researcher."
         result = {}
         for author in self.doc["authors"]:
@@ -120,19 +120,20 @@ class PublicationSaver(publications.saver.Saver):
     def set_researchers(self):
         "Set associations of researcher to author from form data."
         assert self.rqh, "requires http request context"
-        for author in self["authors"]:
-            name = f"{author['family_normalized']} {author['initials_normalized']}"
+        for pos, author in enumerate(self["authors"]):
             # Remove current association?
             if author.get("researcher"):
                 try:
-                    if not utils.to_bool(self.rqh.get_argument(name)):
+                    if not utils.to_bool(self.rqh.get_argument(author["researcher"])):
                         author.pop("researcher")
                 except tornado.web.MissingArgumentError:
                     pass
             # Set a new association?
             else:
                 try:
-                    researcher = self.rqh.get_researcher(self.rqh.get_argument(name))
+                    researcher = self.rqh.get_researcher(
+                        self.rqh.get_argument(str(pos))
+                    )
                 except (tornado.web.MissingArgumentError, ValueError):
                     pass
                 else:
@@ -202,7 +203,7 @@ class PublicationSaver(publications.saver.Saver):
                 journal[key] = value
 
         # Authors: Transfer previously associated researchers.
-        researchers = self._get_researchers()
+        researchers = self.get_researchers()
         self["authors"] = other["authors"]
         # Transfer the researcher association, if any.
         for author in self["authors"]:
@@ -214,7 +215,7 @@ class PublicationSaver(publications.saver.Saver):
                 orcid = author.pop("orcid", None)
                 # If ORCID, then associate with researcher.
                 if orcid:
-                    # Existing reseacher based on ORCID.
+                    # Existing researcher based on ORCID.
                     try:
                         author["researcher"] = publications.database.get_researcher(
                             self.db, orcid
@@ -927,6 +928,7 @@ class PublicationResearchers(PublicationMixin, RequestHandler):
             self.see_other("home", error=str(error))
             return
         for author in publication["authors"]:
+            author["name"] = f"{author['family']} {author['initials']}"
             if not author.get("researcher"):
                 author["researchers"] = self.get_researchers(
                     author["family"], initials=author["initials"]
