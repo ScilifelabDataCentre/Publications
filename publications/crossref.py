@@ -213,7 +213,7 @@ def to_ascii(value):
 
 def remove_markup(value):
     "Remove all markup-like code, e.g. <sub> or </sub> with empty string."
-    return MARKUP_RX.sub("", line)
+    return MARKUP_RX.sub("", value)
 
 
 def squish(value):
