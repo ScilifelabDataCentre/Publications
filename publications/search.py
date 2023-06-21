@@ -18,15 +18,17 @@ class Search(RequestHandler):
 
     def get(self):
         terms = self.get_argument("terms", "")
-        # The search term is quoted; consider a single phrase.
+        # The search term is quoted; a single phrase using exact word.
         if terms.startswith('"') and terms.endswith('"'):
             terms = [terms[1:-1]]
+            exact = True
         # Split up into separate terms.
         else:
             # Remove DOI and PMID prefixes and lowercase.
             terms = [
                 utils.strip_prefix(t) for t in self.get_argument("terms", "").split()
             ]
+            exact = False
 
         iuids = set()
 
@@ -36,7 +38,7 @@ class Search(RequestHandler):
         for term in terms:
             view = self.db.view("researcher", "orcid", key=term)
             researchers.update([r.id for r in view])
-        iuids.update(self.search("publication/researcher", researchers))
+        iuids.update(self.search("publication/researcher", researchers, exact))
 
         # For subsequent searches, lower-case all terms.
         terms = [t.lower() for t in terms if t]
@@ -52,9 +54,9 @@ class Search(RequestHandler):
             "publication/journal",
             "publication/xref",
         ]:
-            iuids.update(self.search(viewname, terms))
+            iuids.update(self.search(viewname, terms, exact))
 
-        # Remove set of insignificant characters for these seaches.
+        # Remove set of insignificant characters for these searches.
         terms = ["".join([c for c in t if c not in SEARCH_REMOVE]) for t in terms]
         terms = [t for t in terms if t]
         for viewname in [
@@ -63,7 +65,7 @@ class Search(RequestHandler):
             "publication/pmid",
             "publication/label_parts",
         ]:
-            iuids.update(self.search(viewname, terms))
+            iuids.update(self.search(viewname, terms, exact))
 
         # Finally get the publication documents for IUIDs
         publications = [self.get_publication(iuid) for iuid in iuids]
@@ -74,7 +76,7 @@ class Search(RequestHandler):
             terms=self.get_argument("terms", ""),
         )
 
-    def search(self, designview, terms):
+    def search(self, designview, terms, exact):
         "Search the given view using the terms. Return set of IUIDs."
         result = set()
         if designview is None:
@@ -93,7 +95,7 @@ class Search(RequestHandler):
                     designname,
                     viewname,
                     startkey=term,
-                    endkey=term + constants.CEILING,
+                    endkey=term if exact else term + constants.CEILING,
                     reduce=False,
                 )
                 for item in view:
