@@ -69,17 +69,6 @@ class Status(RequestHandler):
         self.write(data)
 
 
-class Doc(RequestHandler):
-    "Documentation page."
-
-    def get(self, page):
-        try:
-            self.render(f"docs/{page}.html")
-        except FileNotFoundError:
-            self.set_error_flash("No such documentation page.")
-            self.see_other("doc", "overview")
-
-
 class Documentation(RequestHandler):
     "Documentation page."
 

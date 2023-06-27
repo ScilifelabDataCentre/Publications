@@ -28,7 +28,6 @@ def get_handlers():
     return [
         url(r"/", publications.home.Home, name="home"),
         url(r"/status", publications.home.Status, name="status"),
-        url(r"/docs/([^/]+)", publications.home.Doc, name="doc"),
         url(
             r"/publication/([^/]{32,32})",
             publications.publication.Publication,

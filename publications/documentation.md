@@ -48,7 +48,7 @@ labels which it has been assigned by the admin.
 A curator account requires login. It is created by the admin. It is
 not possible to register one's own account.
 
-# Add a publication
+# Add publication
 
 ## Log in to your account
 
@@ -57,7 +57,7 @@ in to your account in the system. If you do not have one, request
 it by contacting the system administrator given in
 the [Contact page](/contact).
 
-## Add a publication by fetching data
+## Add publication by fetching data
 
 **This is the recommended procedure for adding a publication.**
 
@@ -77,13 +77,13 @@ Publication references should be added using the
   will be applied to entries that already exist in the database, as if they had
   been added by the operation.
 
-## Add a publication manually
+## Add publication manually
 
 Publication references can be added manually by filling in a form on
 the [Add publication manually page](/add).  This is for publication
 that has neither a DOI nor a PMID, often preprints.
 
-# Edit a publication
+# Edit publication
 
 It is possible to edit the details of a publication. However, this is
 **strongly discouraged**. It is much more preferable to update
@@ -93,7 +93,7 @@ If a publication as been wrongly marked using a label that you
 control, then **do not delete the publication**. Instead, edit the
 publication to remove the offending label.
 
-# Delete a publication
+# Delete publication
 
 A curator may delete any publication. Please note that this is a
 **global** operation, affecting the entire database.
@@ -245,7 +245,7 @@ The Python code examples below use the third-party package
 - **Description**: Change the labels of the given publication. The labels provided
    must contain all labels to be set for the publication among
    those that the account specified by the API key can edit. That
-   is, if the account has three labels associated with it, and only
+   is, if the user account has three labels associated with it, and only
    two of those are specified, then the third will be removed if it
    was already present for the publication.
 - **Example code**:
