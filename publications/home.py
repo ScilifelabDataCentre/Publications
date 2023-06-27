@@ -80,6 +80,13 @@ class Doc(RequestHandler):
             self.see_other("doc", "overview")
 
 
+class Documentation(RequestHandler):
+    "Documentation page."
+
+    def get(self):
+        self.render("documentation.html")
+
+
 class Logs(RequestHandler):
     "Logs page."
 

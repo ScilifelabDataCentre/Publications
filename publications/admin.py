@@ -134,6 +134,38 @@ def load_settings_from_file():
     ):
         raise ValueError("Either MAIL_DEFAULT_SENDER or MAIL_USERNAME must be defined.")
 
+    # Read and preprocess the documentation file.
+    lines = []
+    with open("documentation.md") as infile:
+        lines = list(infile.readlines())
+    toc = []
+    current_level = 0
+    for line in lines:
+        if line.startswith("#"):
+            parts = line.split()
+            level = len(parts[0])
+            title = " ".join(parts[1:])
+            # All headers in the file are "clean", i.e. text only, no markup.
+            id = title.strip().replace(" ", "-").lower()
+            id = "".join(c for c in id if c in constants.ALLOWED_ID_CHARACTERS)
+            # Add to table of contents.
+            if level <= 2:
+                if level > current_level:
+                    for l in range(current_level, level):
+                        toc.append(
+                            '<ul class="list-unstyled" style="padding-left: 1.5em;">'
+                        )
+                    current_level = level
+                elif level < current_level:
+                    for l in range(level, current_level):
+                        toc.append("</ul>")
+                    current_level = level
+                toc.append(f'<li><a href="#{id}">{title}</a></li>')
+    for level in range(current_level):
+        toc.append("</ul>")
+    settings["DOCUMENTATION_TOC"] = "\n".join(toc)
+    settings["DOCUMENTATION"] = utils.markdown2html("".join(lines), safe=True)
+
 
 def load_settings_from_database(db):
     """Load settings from the database configuration document.

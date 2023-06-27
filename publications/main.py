@@ -270,6 +270,7 @@ def get_handlers():
         url(r"/search.json", publications.search.SearchJson, name="search_json"),
         url(r"/subset", publications.subset.SubsetDisplay, name="subset"),
         url(r"/logs/([^/]+)", publications.home.Logs, name="logs"),
+        url(r"/documentation", publications.home.Documentation, name="documentation"),
         url(r"/contact", publications.home.Contact, name="contact"),
         url(r"/software", publications.home.Software, name="software"),
         url(constants.LOGIN_URL, publications.account.Login, name="login"),

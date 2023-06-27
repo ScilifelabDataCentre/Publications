@@ -2,9 +2,10 @@
 
 import os.path
 import re
+import string
 import sys
 
-__version__ = "9.3.2"
+__version__ = "9.4.0"
 
 
 class Constants:
@@ -175,6 +176,8 @@ class Constants:
         "using",
         "with",
     ]
+
+    ALLOWED_ID_CHARACTERS = frozenset(string.ascii_lowercase + string.digits + "-_")
 
 
 constants = Constants()

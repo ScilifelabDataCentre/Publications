@@ -1,0 +1,17 @@
+{# Documentation. #}
+
+{% extends "base.html" %}
+
+{% block head_title %}Documentation{% end %}
+{% block body_title %}Documentation{% end %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-9">
+    {% raw settings["DOCUMENTATION"] %}
+  </div>
+  <div class="sticky-top col-md-2 col-md-offset-1">
+    {% raw settings["DOCUMENTATION_TOC"] %}
+  </div>
+</div>
+{% end %}
