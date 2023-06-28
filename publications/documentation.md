@@ -19,14 +19,20 @@ Publications are added by providing DOI (Digital Object Identifier) or
 PMID (PubMed identifier) which the Publications system then fetches
 the data for from the Crossref and/or PubMed web services.
 
+
 # User account
 
 Only a user with a valid account may add and edit publications.
 
 It is not possible to register an account by oneself in the system.To
-get an account one must contact the site admin; see the [Contact page](/contact).
+get an account one must contact the site admin; see the
+[Contact page](/contact).
 
-There are two user account roles in the Publications system: **admin** and **curator**.
+There are two user account roles in the Publications system: **admin**
+and **curator**.
+
+The system admimistrator may change the role of an account. She may also
+disable and enable an account.
 
 ## Admin
 
@@ -47,6 +53,7 @@ labels which it has been assigned by the admin.
 
 A curator account requires login. It is created by the admin. It is
 not possible to register one's own account.
+
 
 # Add publication
 
@@ -160,6 +167,22 @@ There is currently also an optional free-text description field
 associated with an xref. This may be used for a brief characterization
 of the data available in the database entry.
 
+
+# Researcher
+
+The researcher entity records the [ORCID](https://orcid.org/) for an author,
+if given in the PubMed or Crossref data. ORCIDs are increasingly becoming part
+of publication data since about 2020.
+
+The extraction ORCID and association with an author is done
+automatically if the data is available. Unfortunately, the data from
+PubMed and Crossref, or from publishers themselves, rarely provide ORCIDs for
+every author of a paper.
+
+It is possible to add a researcher manually. It is also possible to
+assign an author of a paper to a researcher manually.
+
+
 # Subset
 
 A subset of publications may be obtained by executing a selection
@@ -174,6 +197,7 @@ The list of selected publications can be viewed or downloaded in different
 file formats.
 
 The details of the subset feature are documented in the [Subset page](/subset).
+
 
 # Blacklist
 
@@ -192,6 +216,7 @@ decision, and should be used with care.
 The list of current entries in the blacklist can be viewed in the
 [Blacklisted page](/blacklisted). A curator may delete entries from
 the blacklist.
+
 
 # API
 
