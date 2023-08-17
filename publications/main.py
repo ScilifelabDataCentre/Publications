@@ -232,9 +232,15 @@ def get_handlers():
         # These two label path patterns need to be checked first.
         url(r"/label/([^/]+)/edit", publications.label.LabelEdit, name="label_edit"),
         url(r"/label/([^/]+)/merge", publications.label.LabelMerge, name="label_merge"),
+        url(r"/label/([^/]+)/add", publications.label.LabelAdd, name="label_add"),
+        url(
+            r"/label/([^/]+)/remove",
+            publications.label.LabelRemove,
+            name="label_remove",
+        ),
         url(r"/label/(.+).json", publications.label.LabelJson, name="label_json"),
         url(r"/label/(.+)", publications.label.Label, name="label"),
-        url(r"/label", publications.label.LabelAdd, name="label_add"),
+        url(r"/label", publications.label.LabelCreate, name="label_create"),
         url(r"/account/reset", publications.account.AccountReset, name="account_reset"),
         url(
             r"/account/password",

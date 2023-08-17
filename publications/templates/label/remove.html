@@ -1,17 +1,17 @@
-{# Label add page. #}
+{# Label remove page. #}
 
 {% extends "../base.html" %}
 
-{% block head_title %}Add label to publications{% end %}
+{% block head_title %}Remove label from publications{% end %}
 
 {% block body_title %}
 <span class="glyphicon glyphicon-tag"></span>
-<span class="glyphicon glyphicon-plus"></span>
-Add label to publications
+<span class="glyphicon glyphicon-minus"></span>
+Remove label from publications
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<form action="{{ reverse_url('label_add', label) }}"
+<form action="{{ reverse_url('label_remove', label) }}"
       method="POST" class="form-horizontal" role="form" enctype="multipart/form-data">
   {% module xsrf_form_html() %}
 
@@ -33,26 +33,10 @@ Add label to publications
     </div>
   </div>
 
-  {% if settings['SITE_LABEL_QUALIFIERS'] %}
-  <div class="form-group">
-    <label class="control-label col-md-2" for="qualifier">Qualifier</label>
-    <div style="padding-left: 2em;">
-      <label class="radio-inline">
-	{% for pos, qual in enumerate(settings['SITE_LABEL_QUALIFIERS']) %}
-	<label class="radio-inline">
-          {# Handle weird problem with non-ASCII characters in label... #}
-	  <input type="radio" name="qualifier"
-                 {{ pos == 0 and 'checked' or '' }} value="{{ qual }}"> {{ qual }}
-	</label>
-	{% end %}
-    </div>
-  </div>
-  {% end %} {# if settings['SITE_LABEL_QUALIFIERS'] #}
-
   <div class="form-group">
     <div class="col-md-10 col-md-offset-2">
       <button type="submit" class="btn btn-success">
-	<span class="glyphicon glyphicon-plus"></span> Add label
+	<span class="glyphicon glyphicon-minus"></span> Remove label
       </button>
     </div>
   </div>

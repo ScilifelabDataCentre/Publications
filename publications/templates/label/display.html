@@ -78,6 +78,20 @@
   </a>
 </p>
 <p>
+  <a href="{{ reverse_url('label_add', label['value']) }}"
+     class="btn btn-warning btn-block"
+     role="button">
+    <span class="glyphicon glyphicon-plus"></span> Add to publications
+  </a>
+</p>
+<p>
+  <a href="{{ reverse_url('label_remove', label['value']) }}"
+     class="btn btn-warning btn-block"
+     role="button">
+    <span class="glyphicon glyphicon-minus"></span> Remove from publications
+  </a>
+</p>
+<p>
   <form action="{{ reverse_url('label', label['value']) }}"
         method="POST" role="form">
     {% module xsrf_form_html() %}

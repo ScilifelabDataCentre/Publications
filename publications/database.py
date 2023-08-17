@@ -97,7 +97,7 @@ def get_counts(db):
         n_labels=get_count(db, "label", "value"),
         n_researchers=get_count(db, "researcher", "name"),
         n_accounts=get_count(db, "account", "email"),
-        n_documents=len(db)
+        n_documents=len(db),
     )
 
 

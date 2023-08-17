@@ -189,7 +189,7 @@ def load_settings_from_database(db):
 
     # From version 9.2.0: Update from current 'settings', or set from scratch.
     if "DISPLAY_TRANSLATIONS" not in configuration:
-        configuration["DISPLAY_TRANSLATIONS"]= {
+        configuration["DISPLAY_TRANSLATIONS"] = {
             "label": settings.get("DISPLAY_TRANSLATIONS", {}).get("label"),
             "labels": settings.get("DISPLAY_TRANSLATIONS", {}).get("labels"),
         }
@@ -263,11 +263,15 @@ class Configuration(RequestHandler):
             for key in configuration["DISPLAY_TRANSLATIONS"]:
                 value = self.get_argument(f"translation_{key}", "") or ""
                 configuration["DISPLAY_TRANSLATIONS"][key] = value.strip() or None
-            configuration["TEMPORAL_LABELS"] = utils.to_bool(self.get_argument("temporal_labels", False))
-            for key in ["NUMBER_FIRST_AUTHORS",
-                        "NUMBER_LAST_AUTHORS",
-                        "SHORT_PUBLICATIONS_LIST_LIMIT",
-                        "LONG_PUBLICATIONS_LIST_LIMIT"]:
+            configuration["TEMPORAL_LABELS"] = utils.to_bool(
+                self.get_argument("temporal_labels", False)
+            )
+            for key in [
+                "NUMBER_FIRST_AUTHORS",
+                "NUMBER_LAST_AUTHORS",
+                "SHORT_PUBLICATIONS_LIST_LIMIT",
+                "LONG_PUBLICATIONS_LIST_LIMIT",
+            ]:
                 try:
                     configuration[key] = max(1, int(self.get_argument(key.lower())))
                 except (ValueError, TypeError):
@@ -356,7 +360,7 @@ class Site(RequestHandler):
         if name not in ("icon", "favicon"):
             raise tornado.web.HTTPError(404)
         data = settings[f"SITE_{name.upper()}"]
-        if data is None:        # No file in database; use default.
+        if data is None:  # No file in database; use default.
             with open(f"{constants.STATIC_DIR}/{name}.png", "rb") as infile:
                 data = dict(content=infile.read(), content_type=constants.PNG_MIME)
         self.write(data["content"])

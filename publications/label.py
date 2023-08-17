@@ -1,5 +1,8 @@
 "Label pages."
 
+import csv
+import io
+
 import tornado.web
 
 from publications import constants
@@ -162,13 +165,13 @@ class LabelsJson(CorsMixin, LabelsTable):
         self.write(result)
 
 
-class LabelAdd(RequestHandler):
-    "Label addition page."
+class LabelCreate(RequestHandler):
+    "Label creation page."
 
     @tornado.web.authenticated
     def get(self):
         self.check_admin()
-        self.render("label/add.html")
+        self.render("label/create.html")
 
     @tornado.web.authenticated
     def post(self):
@@ -176,7 +179,7 @@ class LabelAdd(RequestHandler):
         try:
             value = self.get_argument("value")
         except tornado.web.MissingArgumentError:
-            self.see_other("label_add", error="no label provided")
+            self.see_other("label_create", error="no label provided")
             return
         try:
             with LabelSaver(rqh=self) as saver:
@@ -185,7 +188,7 @@ class LabelAdd(RequestHandler):
             label = saver.doc
         except ValueError as error:
             self.set_error_flash(str(error))
-            self.see_other("label_add")
+            self.see_other("label_create")
             return
         self.see_other("label", label["value"])
 
@@ -304,3 +307,108 @@ class LabelMerge(RequestHandler):
                 labels[new_label] = labels.get(new_label) or qual
                 saver["labels"] = labels
         self.see_other("label", new_label)
+
+
+class LabelAdd(RequestHandler):
+    "Add a label to a set of publications."
+
+    @tornado.web.authenticated
+    def get(self, identifier):
+        self.check_admin()
+        print(identifier)
+        try:
+            label = self.get_label(identifier)
+        except KeyError as error:
+            self.see_other("labels", error=str(error))
+            return
+        self.render("label/add.html", label=label["value"])
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        self.check_admin()
+        try:
+            label = self.get_label(identifier)
+        except KeyError as error:
+            self.see_other("labels", error=str(error))
+            return
+        try:
+            infile = self.request.files["publications"][0]
+        except tornado.web.MissingArgumentError:
+            self.set_error_flash("no publications subset file provided")
+            self.see_other("label", label)
+            return
+        with io.StringIO(infile["body"].decode("utf-8")) as csvfile:
+            reader = csv.DictReader(csvfile)
+            iuids = [p["IUID"] for p in reader]
+        qualifier = self.get_argument("qualifier", None)
+        if qualifier not in settings["SITE_LABEL_QUALIFIERS"]:
+            qualifier = None
+        count = 0
+        for iuid in iuids:
+            try:
+                publication = self.get_publication(iuid)
+                if label["value"] in publication["labels"]:
+                    raise KeyError
+            except KeyError:
+                pass
+            else:
+                with publications.publication.PublicationSaver(
+                    publication, rqh=self
+                ) as saver:
+                    labels = publication["labels"].copy()
+                    labels[label["value"]] = qualifier
+                    saver["labels"] = labels
+                count += 1
+        self.set_message_flash(f"Added label to {count} publications.")
+        self.see_other("label", label["value"])
+
+
+class LabelRemove(RequestHandler):
+    "Remove a label from a set of publications."
+
+    @tornado.web.authenticated
+    def get(self, identifier):
+        self.check_admin()
+        print(identifier)
+        try:
+            label = self.get_label(identifier)
+        except KeyError as error:
+            self.see_other("labels", error=str(error))
+            return
+        self.render("label/remove.html", label=label["value"])
+
+    @tornado.web.authenticated
+    def post(self, identifier):
+        self.check_admin()
+        try:
+            label = self.get_label(identifier)
+        except KeyError as error:
+            self.see_other("labels", error=str(error))
+            return
+        try:
+            infile = self.request.files["publications"][0]
+        except tornado.web.MissingArgumentError:
+            self.set_error_flash("no publications subset file provided")
+            self.see_other("label", label)
+            return
+        with io.StringIO(infile["body"].decode("utf-8")) as csvfile:
+            reader = csv.DictReader(csvfile)
+            iuids = [p["IUID"] for p in reader]
+        count = 0
+        for iuid in iuids:
+            try:
+                publication = self.get_publication(iuid)
+                if label["value"] not in publication["labels"]:
+                    raise KeyError
+            except KeyError:
+                pass
+            else:
+                with publications.publication.PublicationSaver(
+                    publication, rqh=self
+                ) as saver:
+                    labels = publication["labels"].copy()
+                    labels.pop(label["value"])
+                    saver["labels"] = labels
+                count += 1
+        self.set_message_flash(f"Removed label from {count} publications.")
+        self.see_other("label", label["value"])
