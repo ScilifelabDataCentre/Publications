@@ -142,10 +142,14 @@ A curator account can have privileges for a set of labels. This
 means that she can add or remove those labels to a publication. She
 cannot change the labels for which she does not have privileges.
 
+The site admin can add or remove a label from a set of publications
+listed in a CSV file produced by the subset feature.
+
 ## Qualifier
 
-Labels may have qualifiers, which can be used to denote *e.g.*
-what type of involvement a facility unit had with the publication.
+Labels attached to a publication may have qualifiers, which can be
+used to denote *e.g.* what type of involvement a facility unit had
+with the publication.
 
 The available qualifiers are part of the configuration of a site
 and are set by the site administrator, who may also disable the use

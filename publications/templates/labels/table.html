@@ -77,9 +77,9 @@
 {% block meta_content %}
 {% if is_admin %}
 <p>
-  <a href="{{ reverse_url('label_add') }}"
+  <a href="{{ reverse_url('label_create') }}"
      class="btn btn-success btn-block" role="button">
-    <span class="glyphicon glyphicon-plus"></span> Add
+    <span class="glyphicon glyphicon-plus"></span> Create {% module Translate('label') %}
   </a>
 </p>
 {% end %} {# if is_admin #}
