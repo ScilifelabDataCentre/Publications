@@ -76,8 +76,7 @@ class Label(RequestHandler):
             return
         value = label["value"]
         # Do it in this order; safer if interrupted.
-        publications = list(publications.subset.Subset(self.db, label=label["value"]))
-        for publication in publications:
+        for publication in publications.subset.Subset(self.db, label=label["value"]):
             with publications.publication.PublicationSaver(
                 publication, rqh=self
             ) as saver:
