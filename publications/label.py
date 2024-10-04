@@ -4,6 +4,7 @@ import csv
 import io
 
 import tornado.web
+import tornado.escape
 
 from publications import constants
 from publications import settings
@@ -58,6 +59,7 @@ class Label(RequestHandler):
             publications=list(
                 publications.subset.Subset(self.db, label=label["value"])
             ),
+            escaped_label=tornado.escape.url_escape(label['value']),
         )
 
     @tornado.web.authenticated
@@ -200,17 +202,17 @@ class LabelEdit(RequestHandler):
     def get(self, identifier):
         self.check_admin()
         try:
-            label = self.get_label(identifier)
+            label = self.get_label(tornado.escape.url_unescape(identifier))
         except KeyError as error:
             self.see_other("labels", error=str(error))
             return
-        self.render("label/edit.html", label=label)
+        self.render("label/edit.html", label=label, escaped_label=identifier)
 
     @tornado.web.authenticated
     def post(self, identifier):
         self.check_admin()
         try:
-            label = self.get_label(identifier)
+            label = self.get_label(tornado.escape.url_unescape(identifier))
         except KeyError as error:
             self.see_other("labels", error=str(error))
             return
