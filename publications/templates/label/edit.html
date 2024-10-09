@@ -11,7 +11,7 @@ Edit '{{ label['value'] }}'
 {% end %} {# block body_title #}
 
 {% block main_content %}
-<form action="{{ reverse_url('label_edit', label['value']) }}"
+<form action="{{ reverse_url('label_edit', escaped_label) }}"
       method="POST" class="form-horizontal" role="form">
   {% module xsrf_form_html() %}
 

@@ -64,7 +64,7 @@
 {% block meta_content %}
 {% if is_admin %}
 <p>
-  <a href="{{ reverse_url('label_edit', label['value']) }}"
+  <a href="{{ reverse_url('label_edit', escaped_label) }}"
      class="btn btn-primary btn-block"
      role="button">
     <span class="glyphicon glyphicon-edit"></span> Edit
