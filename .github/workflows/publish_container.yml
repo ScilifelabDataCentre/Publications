@@ -6,7 +6,7 @@ on:
 
 jobs:
   push_to_registry:
-    if: github.repository == 'pekrau/publications'
+    if: github.repository == 'scilifelabdatacentre/publications'
     name: Publish Docker image
     runs-on: ubuntu-latest
     steps:
@@ -22,7 +22,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/pekrau/publications
+          images: ghcr.io/scilifelabdatacentre/publications
           tags: |
              type=sha,format=long
              type=ref,event=branch
