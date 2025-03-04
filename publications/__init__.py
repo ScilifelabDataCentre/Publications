@@ -5,7 +5,7 @@ import re
 import string
 import sys
 
-__version__ = "9.5.1"
+__version__ = "9.5.2"
 
 
 class Constants:
