@@ -23,4 +23,4 @@ tomli==2.0.1
 typing-extensions==4.1.1
 urllib3==1.26.18
 websockets==10.1
-zipp==3.7.0
+zipp==3.19.1
